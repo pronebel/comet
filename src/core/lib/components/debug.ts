@@ -65,11 +65,21 @@ export class DebugComponent extends Component<DebugModel, Sprite>
 
     protected onAddedToParent(): void
     {
+        const thisView = this.view;
         const parentView = this.parent?.view;
+
+        const viewMatrix = thisView.worldTransform.clone();
 
         if (parentView instanceof Sprite)
         {
-            parentView.addChild(this.view);
+            parentView.addChild(thisView);
         }
+
+        const parentMatrix = parentView.worldTransform.clone();
+
+        parentMatrix.invert();
+        viewMatrix.prepend(parentMatrix);
+
+        thisView.transform.setFromMatrix(viewMatrix);
     }
 }
