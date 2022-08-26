@@ -1,6 +1,44 @@
 <script lang="ts">
   import { app } from "../app";
   import { DebugComponent } from "../../../core/lib/components/debug";
+  import { Sprite, Texture } from "pixi.js";
+
+  const createSprite = (
+    color: number,
+    x: number,
+    y: number,
+    parent?: Sprite
+  ) => {
+    const sprite = new Sprite(Texture.WHITE);
+    sprite.tint = color;
+    sprite.width = 20;
+    sprite.height = 20;
+    sprite.x = x;
+    sprite.y = y;
+    app.stage.addChild(sprite);
+
+    if (parent) {
+      parent.addChild(sprite);
+
+      parent.updateTransform();
+      sprite.updateTransform();
+
+      const viewMatrix = sprite.worldTransform.clone();
+
+      const parentMatrix = parent.worldTransform.clone();
+
+      parentMatrix.invert();
+      viewMatrix.prepend(parentMatrix);
+
+      sprite.transform.setFromMatrix(viewMatrix);
+    }
+
+    return sprite;
+  };
+
+  const a = createSprite(0xff0000, 20, 20);
+  const b = createSprite(0x00ff00, 20, 20, a);
+  createSprite(0x0000ff, 20, 20, b);
 
   const onNewClick = () => {
     const component = new DebugComponent({
