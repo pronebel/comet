@@ -50,4 +50,14 @@ export class DebugComponent extends Component<typeof schema.defaults, Sprite>
         this.view.height = height;
         this.view.alpha = alpha;
     }
+
+    protected onAddedToParent(): void
+    {
+        const parentView = this.parent?.view;
+
+        if (parentView instanceof Sprite)
+        {
+            parentView.addChild(this.view);
+        }
+    }
 }
