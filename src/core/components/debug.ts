@@ -1,7 +1,8 @@
 import { Sprite, Texture } from 'pixi.js';
 
-import { type ModelSchema, createModelSchema, NumericRangeLimitConstraint } from '../util/model';
-import { Component } from '.';
+import { Component } from '../component';
+import { NumericRangeLimitConstraint } from '../model/constraints';
+import { type ModelSchema, createModelSchema } from '../model/schema';
 
 export interface DebugModel
 {

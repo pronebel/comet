@@ -1,7 +1,8 @@
 import EventEmitter from 'eventemitter3';
 
-import type { Model, ModelSchema } from '../util/model';
-import { createModel } from '../util/model';
+import type { Model } from './model/model';
+import { createModel } from './model/model';
+import type { ModelSchema } from './model/schema';
 
 export abstract class Component<M extends object, V> extends EventEmitter<'modified'>
 {

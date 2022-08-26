@@ -1,49 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
-export abstract class ModelConstraint<T>
-{
-    public abstract applyToValue(value: T): T;
-}
-
-export class NumericRangeLimitConstraint extends ModelConstraint<number>
-{
-    public min: number;
-    public max: number;
-
-    constructor(min: number, max: number)
-    {
-        super();
-        this.min = min;
-        this.max = max;
-    }
-
-    public applyToValue(value: number): number
-    {
-        const { min, max } = this;
-
-        return Math.min(max, Math.max(min, value));
-    }
-}
-
-export type ModelConstraints<M extends object> = Partial<Record<keyof M, ModelConstraint<any>[]>>;
-
-export interface ModelSchema<M extends object>
-{
-    keys: (keyof M)[];
-    defaults: M;
-    constraints: ModelConstraints<M>;
-}
-
-export function createModelSchema<M extends object>(defaults: M, constraints?: ModelConstraints<M>): ModelSchema<M>
-{
-    const keys = Object.getOwnPropertyNames(defaults) as (keyof M)[];
-
-    return {
-        keys,
-        defaults,
-        constraints: constraints ?? {} as ModelConstraints<M>,
-    };
-}
+import type { ModelSchema } from './schema';
 
 export class Model<M extends object> extends EventEmitter<'modified'>
 {
@@ -168,9 +125,9 @@ export function createModel<M extends object>(schema: ModelSchema<M>, props: Par
 
                 if (propHash[String(key)])
                 {
-                    const currentValue = (newValue === undefined ? model.getValue(key) : value) as M[keyof M];
+                    // const currentValue = (newValue === undefined ? model.getValue(key) : value) as M[keyof M];
 
-                    model.onModified(key, currentValue, oldValue as unknown as M[keyof M]);
+                    model.onModified(key, value as M[keyof M]/* currentValue*/, oldValue as unknown as M[keyof M]);
                 }
 
                 return rtn;
