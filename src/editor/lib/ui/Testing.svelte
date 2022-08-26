@@ -3,12 +3,7 @@
   import { DebugComponent } from "../../../core/lib/components/debug";
   import { Sprite, Texture } from "pixi.js";
 
-  const createSprite = (
-    color: number,
-    x: number,
-    y: number,
-    parent?: Sprite
-  ) => {
+  const createSprite = (color: number, x: number, y: number) => {
     const sprite = new Sprite(Texture.WHITE);
     sprite.tint = color;
     sprite.width = 20;
@@ -16,29 +11,33 @@
     sprite.x = x;
     sprite.y = y;
     app.stage.addChild(sprite);
-
-    if (parent) {
-      parent.addChild(sprite);
-
-      parent.updateTransform();
-      sprite.updateTransform();
-
-      const viewMatrix = sprite.worldTransform.clone();
-
-      const parentMatrix = parent.worldTransform.clone();
-
-      parentMatrix.invert();
-      viewMatrix.prepend(parentMatrix);
-
-      sprite.transform.setFromMatrix(viewMatrix);
-    }
-
     return sprite;
   };
 
+  const reparentSprite = (view: Sprite, newParentView: Sprite) => {
+    view.updateTransform();
+    newParentView.updateTransform();
+    const viewMatrix = view.worldTransform.clone();
+    newParentView.addChild(view);
+    const parentMatrix = newParentView.worldTransform.clone();
+    parentMatrix.invert();
+    viewMatrix.prepend(parentMatrix);
+    view.transform.setFromMatrix(viewMatrix);
+  };
+
+  // create 3 sprites equally spaced apart
   const a = createSprite(0xff0000, 20, 20);
-  const b = createSprite(0x00ff00, 20, 20, a);
-  createSprite(0x0000ff, 20, 20, b);
+  const b = createSprite(0x00ff00, 40, 40);
+  const c = createSprite(0x0000ff, 60, 60);
+
+  // without adjusting there matrix the sprites move and scale weirdly
+  // as postion and scale are added from the parent matrix
+  // a.addChild(b);
+  // b.addChild(c);
+
+  // adjusting there matrix fixes the issue, visually these should not change
+  reparentSprite(b, a);
+  reparentSprite(c, b);
 
   const onNewClick = () => {
     const component = new DebugComponent({
@@ -87,7 +86,6 @@
     display: flex;
     flex-direction: column;
   }
-
   buttons button {
     width: 100%;
     margin-bottom: 10px;
