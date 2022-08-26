@@ -16,7 +16,7 @@ export default defineConfig(({ command, mode, ssrBuild }) => {
             declarationDir: './dist/player/dist',
             outDir: './dist/player/dist',
             lib: {
-                entry: './src/player/index.ts',
+                entry: './src/player/lib/index.ts',
                 name: 'comet',
                 formats: ['es'],
                 fileName: 'index',

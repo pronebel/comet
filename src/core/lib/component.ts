@@ -4,7 +4,9 @@ import type { Model } from './model/model';
 import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
 
-type AnyComponent = Component<any, any>;
+export type AnyComponent = Component<any, any>;
+
+let id = 0;
 
 export abstract class Component<M extends object, V> extends EventEmitter<'modified'>
 {
@@ -14,28 +16,26 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
     public parent?: AnyComponent;
     public children: AnyComponent[];
 
-    public tag?: string;
+    public id: string;
 
     constructor(props: Partial<M> = {}, linkedTo?: Component<M, V>)
     {
         super();
 
+        this.id = `foo${++id}`;
+        (window as any)[this.id] = this;
+
         this.children = [];
 
         const schema = this.modelSchema();
 
+        this.model = createModel(schema, {
+            ...props,
+        });
+
         if (linkedTo)
         {
-            this.model = createModel(schema, {
-                ...props,
-            });
             this.link(linkedTo);
-        }
-        else
-        {
-            this.model = createModel(schema, {
-                ...props,
-            });
         }
 
         this.model.on('modified', this.onModelModified);
@@ -134,6 +134,16 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
     protected onRemoveFromParent()
     {
         //
+    }
+
+    public get isDisplayObject()
+    {
+        return true;
+    }
+
+    public getView<T>()
+    {
+        return this.view as unknown as T;
     }
 
     public abstract modelSchema(): ModelSchema<M>;

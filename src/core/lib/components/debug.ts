@@ -1,12 +1,14 @@
+import type { InteractionEvent } from 'pixi.js';
 import { Sprite, Texture } from 'pixi.js';
 
+import { app } from '../../../editor/lib/app';
+import { startDrag } from '../../../editor/lib/drag';
 import { Component } from '../component';
 import { NumericRangeLimitConstraint } from '../model/constraints';
 import { type ModelSchema, createModelSchema } from '../model/schema';
 
 export interface DebugModel
 {
-    id: string;
     color: number;
     x: number;
     y: number;
@@ -16,7 +18,6 @@ export interface DebugModel
 }
 
 export const schema = createModelSchema<DebugModel>({
-    id: 'debug',
     color: 0xff0000,
     x: 0,
     y: 0,
@@ -27,7 +28,7 @@ export const schema = createModelSchema<DebugModel>({
     width: [new NumericRangeLimitConstraint(10, 50)],
 });
 
-export class DebugComponent extends Component<typeof schema.defaults, Sprite>
+export class DebugComponent extends Component<DebugModel, Sprite>
 {
     public modelSchema(): ModelSchema<DebugModel>
     {
@@ -36,7 +37,18 @@ export class DebugComponent extends Component<typeof schema.defaults, Sprite>
 
     public createView(): Sprite
     {
-        return new Sprite(Texture.WHITE);
+        const sprite = new Sprite(Texture.WHITE);
+
+        sprite.interactive = true;
+
+        sprite.on('mousedown', (e: InteractionEvent) =>
+        {
+            app.select(this);
+            startDrag(this);
+            e.stopPropagation();
+        });
+
+        return sprite;
     }
 
     public updateView(): void

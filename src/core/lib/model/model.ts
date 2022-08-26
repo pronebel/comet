@@ -32,7 +32,34 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         return values;
     }
 
-    public getValue(key: keyof M): M[keyof M]
+    public get ownValues(): M
+    {
+        const { schema: { keys, keys: { length: l } } } = this;
+        const values: M = {} as M;
+
+        for (let i = 0; i < l; i++)
+        {
+            const key = keys[i];
+
+            const value = (this as unknown as M)[key];
+
+            values[key] = value;
+        }
+
+        return values;
+    }
+
+    public setValues(values: Partial<M>)
+    {
+        const keys = Object.getOwnPropertyNames(values) as (keyof M)[];
+
+        keys.forEach((key) =>
+        {
+            (this as unknown as Partial<M>)[key] = values[key];
+        });
+    }
+
+    public getValue<T extends M[keyof M]>(key: keyof M): T
     {
         const { parent, schema: { defaults } } = this;
         const value = (this as unknown as M)[key];
@@ -44,10 +71,10 @@ export class Model<M extends object> extends EventEmitter<'modified'>
                 return parent.getValue(key);
             }
 
-            return defaults[key];
+            return defaults[key] as T;
         }
 
-        return value;
+        return value as T;
     }
 
     public flatten()

@@ -10,7 +10,7 @@
          "allowJs": true,
          "checkJs": true,
         "strict": true,
-        "types": ["jest", "node"],
+        "types": ["jest", "node", "svelte"],
         "target": "ESNext",
         "useDefineForClassFields": true,
         "module": "ESNext",
