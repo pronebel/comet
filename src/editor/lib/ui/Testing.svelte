@@ -66,5 +66,6 @@
     width: 20px;
     height: 20px;
     border: 1px dashed yellow;
+    pointer-events: none;
   }
 </style>
