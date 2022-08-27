@@ -18,7 +18,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
 
     public id: string;
 
-    constructor(props: Partial<M> = {}, linkedTo?: Component<M, V>)
+    constructor(props: Partial<M> = {}, spawner?: Component<M, V>, linked = true)
     {
         super();
 
@@ -29,13 +29,25 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
 
         const schema = this.modelSchema();
 
-        this.model = createModel(schema, {
+        const model = this.model = createModel(schema, {
             ...props,
         });
 
-        if (linkedTo)
+        if (spawner)
         {
-            this.link(linkedTo);
+            const { model: sourceModel } = spawner;
+
+            if (linked)
+            {
+                model.parent = sourceModel;
+                sourceModel.children.push(model);
+            }
+            else
+            {
+                const sourceValues = sourceModel.values;
+
+                model.setValues(sourceValues);
+            }
         }
 
         this.model.on('modified', this.onModelModified);
@@ -59,9 +71,9 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
     public copy<T extends Component<M, V>>(linked = true): T
     {
         const Ctor = Object.getPrototypeOf(this).constructor as {
-            new (props: Partial<M>, linked?: Component<M, V>): T;
+            new (props: Partial<M>, spawner?: Component<M, V>, linked?: boolean): T;
         };
-        const component = new Ctor({}, linked ? this : undefined);
+        const component = new Ctor({}, this, linked);
 
         this.children.forEach((child) =>
         {
@@ -73,21 +85,16 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         return component as unknown as T;
     }
 
-    protected link(sourceComponent: Component<M, V>)
-    {
-        const { model } = this;
-        const { model: sourceModel } = sourceComponent;
-
-        model.parent = sourceModel;
-        sourceModel.children.push(model);
-    }
-
     public unlink()
     {
         const { model } = this;
 
-        model.flatten();
-        model.parent = undefined;
+        if (model.parent)
+        {
+            model.flatten();
+            model.parent.removeChild(model);
+            model.parent = undefined;
+        }
     }
 
     public setParent(component: AnyComponent)

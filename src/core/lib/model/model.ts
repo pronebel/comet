@@ -98,6 +98,20 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         }
     }
 
+    public removeChild(model: Model<M>)
+    {
+        const index = this.children.indexOf(model);
+
+        if (index > -1)
+        {
+            this.children.splice(index, 1);
+        }
+        else
+        {
+            throw new Error('"Cannot remove a model which is not in children"');
+        }
+    }
+
     public reset()
     {
         const { schema: { keys, keys: { length: l } } } = this;
@@ -115,6 +129,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     public onModified(key: keyof M, value: M[keyof M], oldValue: M[keyof M])
     {
         this.emit('modified', key, value, oldValue);
+
         this.children.forEach((childModel) => childModel.onModified(key, value, oldValue));
     }
 }

@@ -12,13 +12,7 @@
   };
 
   const onCopyLinkedClick = () => {
-    const component = app.copy(true);
-    if (component) {
-      component.model.setValues({
-        x: 20,
-        y: 20,
-      });
-    }
+    app.copy(true);
   };
 
   const onCopyUnLinkedClick = () => {
