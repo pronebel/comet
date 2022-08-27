@@ -3,14 +3,8 @@
   import { DebugComponent } from "../../../core/lib/components/debug";
 
   const onNewClick = () => {
-    const component = new DebugComponent({
-      x: 20,
-      y: 20,
-      width: 20,
-      height: 20,
-    });
+    const component = new DebugComponent();
     app.addComponent(component);
-    app.randColor();
   };
 
   const onDeselectClick = () => {
@@ -18,7 +12,13 @@
   };
 
   const onCopyLinkedClick = () => {
-    app.copy(true);
+    const component = app.copy(true);
+    if (component) {
+      component.model.setValues({
+        x: 20,
+        y: 20,
+      });
+    }
   };
 
   const onCopyUnLinkedClick = () => {
@@ -32,6 +32,10 @@
   const onRandSizeClicked = () => {
     app.randSize();
   };
+
+  const onResetModel = () => {
+    app.resetModel();
+  };
 </script>
 
 <buttons>
@@ -41,6 +45,7 @@
   <button on:click={onCopyUnLinkedClick}>Copy UnLinked</button>
   <button on:click={onRandColorClicked}>Rand Color</button>
   <button on:click={onRandSizeClicked}>Rand Size</button>
+  <button on:click={onResetModel}>Reset Model</button>
   <test />
 </buttons>
 

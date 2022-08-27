@@ -1,4 +1,5 @@
 import { type IApplicationOptions, Application, Container, filters, Sprite, Texture } from 'pixi.js';
+import type { AnyComponent } from 'src/core/lib/component';
 
 import type { DebugComponent } from '../../core/lib/components/debug';
 
@@ -19,9 +20,9 @@ export class App extends Application
 
         const selection = this.selection = new Sprite(Texture.WHITE);
 
-        selection.tint = 0xffffff;
+        selection.tint = 0x00ffff;
         selection.visible = false;
-        selection.filters = [new filters.BlurFilter(2)];
+        selection.filters = [new filters.BlurFilter(5)];
         this.selection.alpha = 0.33;
 
         this.stage.addChild(selection);
@@ -44,17 +45,8 @@ export class App extends Application
     {
         this.deselect();
         this.selected = component;
-
-        console.log(component.id, component.model.values, component.model.ownValues);
-
-        const sprite = component.getView<Sprite>();
-        const bounds = sprite.getBounds();
-
-        this.selection.x = bounds.left;
-        this.selection.y = bounds.top;
-        this.selection.width = component.model.getValue<number>('width');
-        this.selection.height = component.model.getValue<number>('height');
         this.selection.visible = true;
+        this.fitSelection(component);
     }
 
     public deselect()
@@ -63,19 +55,30 @@ export class App extends Application
         this.selection.visible = false;
     }
 
+    public fitSelection(component: AnyComponent)
+    {
+        const sprite = component.getView<Sprite>();
+        const bounds = sprite.getBounds();
+
+        this.selection.x = bounds.left;
+        this.selection.y = bounds.top;
+        this.selection.width = bounds.width;
+        this.selection.height = bounds.height;
+    }
+
     public copy(linked: boolean)
     {
         if (this.selected)
         {
             const component = this.selected.copy<DebugComponent>(linked);
 
-            component.model.setValues({
-                x: 30,
-                y: 30,
-            });
-
+            delete this.selected;
             this.addComponent(component);
+
+            return component;
         }
+
+        return undefined;
     }
 
     public randColor()
@@ -93,6 +96,15 @@ export class App extends Application
             this.selected.model.width = Math.round(Math.random() * 50);
             this.selected.model.height = Math.round(Math.random() * 50);
             this.select(this.selected);
+        }
+    }
+
+    public resetModel()
+    {
+        if (this.selected)
+        {
+            this.selected.model.reset();
+            this.fitSelection(this.selected);
         }
     }
 }

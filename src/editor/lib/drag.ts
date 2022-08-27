@@ -1,5 +1,3 @@
-import type { Sprite } from 'pixi.js';
-
 import type { DebugComponent } from '../../core/lib/components/debug';
 import { app } from './app';
 
@@ -39,13 +37,7 @@ window.addEventListener('mousemove', (e: MouseEvent) =>
         state.component.model.x = newX;
         state.component.model.y = newY;
 
-        const sprite = state.component.getView<Sprite>();
-        const bounds = sprite.getBounds();
-
-        app.selection.x = bounds.left;
-        app.selection.y = bounds.top;
-        app.selection.width = bounds.width;
-        app.selection.height = bounds.height;
+        app.fitSelection(state.component);
     }
 });
 

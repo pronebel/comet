@@ -63,7 +63,6 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         };
         const component = new Ctor({}, linked ? this : undefined);
 
-        // todo: recreate current children, respecting link/unlinked...
         this.children.forEach((child) =>
         {
             const childComponent = child.copy(linked);
@@ -97,8 +96,10 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         {
             this.parent.removeChild(this);
         }
+
         this.parent = component;
         component.children.push(this);
+
         this.onAddedToParent();
     }
 
@@ -108,6 +109,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         {
             throw new Error('"Cannot add component to self"');
         }
+
         component.setParent(this);
     }
 
@@ -135,11 +137,6 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
     protected onRemoveFromParent()
     {
         //
-    }
-
-    public get isDisplayObject()
-    {
-        return true;
     }
 
     public getView<T>()

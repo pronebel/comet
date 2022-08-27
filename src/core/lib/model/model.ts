@@ -7,11 +7,13 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     public parent?: Model<M>;
     public children: Model<M>[];
     public schema: ModelSchema<M>;
+    public data: Partial<M>;
 
-    constructor(schema: ModelSchema<M>)
+    constructor(schema: ModelSchema<M>, data: Partial<M>)
     {
         super();
         this.schema = schema;
+        this.data = data;
         this.children = [];
     }
 
@@ -96,6 +98,20 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         }
     }
 
+    public reset()
+    {
+        const { schema: { keys, keys: { length: l } } } = this;
+
+        for (let i = 0; i < l; i++)
+        {
+            const key = keys[i];
+
+            delete this.data[key];
+        }
+
+        this.emit('modified');
+    }
+
     public onModified(key: keyof M, value: M[keyof M], oldValue: M[keyof M])
     {
         this.emit('modified', key, value, oldValue);
@@ -111,7 +127,7 @@ export function createModel<M extends object>(schema: ModelSchema<M>, props: Par
 
     const { keys } = schema;
 
-    const model = new Model(schema) as Model<M> & M;
+    const model = new Model(schema, data) as Model<M> & M;
 
     const propHash = keys.reduce((map, obj) =>
     {
@@ -152,9 +168,7 @@ export function createModel<M extends object>(schema: ModelSchema<M>, props: Par
 
                 if (propHash[String(key)])
                 {
-                    // const currentValue = (newValue === undefined ? model.getValue(key) : value) as M[keyof M];
-
-                    model.onModified(key, value as M[keyof M]/* currentValue*/, oldValue as unknown as M[keyof M]);
+                    model.onModified(key, value as M[keyof M], oldValue as unknown as M[keyof M]);
                 }
 
                 return rtn;
