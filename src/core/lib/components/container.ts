@@ -58,4 +58,26 @@ export abstract class ContainerComponent<M extends ContainerModel, V extends Con
         view.angle = degToRad(angle);
         view.alpha = alpha;
     }
+
+    protected onAddedToParent(): void
+    {
+        if (this.parent)
+        {
+            const thisView = this.view;
+            const parentView = this.parent.getView<Container>();
+
+            parentView.addChild(thisView);
+        }
+    }
+
+    protected onRemoveFromParent(): void
+    {
+        if (this.parent)
+        {
+            const thisView = this.view;
+            const parentView = this.parent.getView<Container>();
+
+            parentView.removeChild(thisView);
+        }
+    }
 }

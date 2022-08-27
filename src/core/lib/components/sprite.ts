@@ -1,4 +1,3 @@
-import type { Container } from 'pixi.js';
 import { Sprite, Texture } from 'pixi.js';
 
 import { type ModelSchema, createModelSchema } from '../model/schema';
@@ -35,16 +34,5 @@ export class SpriteComponent extends ContainerComponent<SpriteModel, Sprite>
         super.updateView();
 
         this.view.tint = tint;
-    }
-
-    protected onAddedToParent(): void
-    {
-        if (this.parent)
-        {
-            const thisView = this.view;
-            const parentView = this.parent.getView<Container>();
-
-            parentView.addChild(thisView);
-        }
     }
 }

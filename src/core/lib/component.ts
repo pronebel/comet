@@ -8,13 +8,14 @@ export type AnyComponent = Component<any, any>;
 
 let id = 0;
 
-export abstract class Component<M extends object, V> extends EventEmitter<'modified'>
+export abstract class Component<M extends object, V> extends EventEmitter<'modified' | 'childAdded' | 'childRemoved'>
 {
     public model: Model<M> & M;
     public view: V;
 
     public parent?: AnyComponent;
     public children: AnyComponent[];
+    public spawner?: Component<M, V>;
 
     public id: string;
 
@@ -35,12 +36,32 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
 
         if (spawner)
         {
+            this.spawner = spawner;
+
             const { model: sourceModel } = spawner;
 
             if (linked)
             {
                 model.parent = sourceModel;
                 sourceModel.children.push(model);
+
+                spawner.on('childAdded', (component: AnyComponent) =>
+                {
+                    const copy = component.copy(true);
+
+                    this.addChild(copy);
+                });
+
+                spawner.on('childRemoved', (component: AnyComponent) =>
+                {
+                    this.children.forEach((child: AnyComponent) =>
+                    {
+                        if (child.spawner === component)
+                        {
+                            child.deleteSelf();
+                        }
+                    });
+                });
             }
             else
             {
@@ -106,6 +127,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
 
         this.parent = component;
         component.children.push(this);
+        component.emit('childAdded', this);
 
         this.onAddedToParent();
     }
@@ -129,10 +151,19 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         {
             component.onRemoveFromParent();
             children.splice(index, 1);
+            this.emit('childRemoved', component);
         }
         else
         {
             throw new Error('"Cannot remove child which is not in parent"');
+        }
+    }
+
+    public deleteSelf()
+    {
+        if (this.parent)
+        {
+            this.parent.removeChild(this);
         }
     }
 

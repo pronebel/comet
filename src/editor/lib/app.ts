@@ -81,6 +81,16 @@ export class App extends Application
         return undefined;
     }
 
+    public deleteSelected()
+    {
+        if (this.selected)
+        {
+            this.selected.deleteSelf();
+            delete this.selected;
+            this.selection.visible = false;
+        }
+    }
+
     public randColor()
     {
         if (this.selected)

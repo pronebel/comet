@@ -19,6 +19,10 @@
     app.copy(false);
   };
 
+  const onDelete = () => {
+    app.deleteSelected();
+  };
+
   const onRandColorClicked = () => {
     app.randColor();
   };
@@ -37,6 +41,7 @@
   <button on:click={onDeselectClick}>Deselect</button>
   <button on:click={onCopyLinkedClick}>Copy Linked</button>
   <button on:click={onCopyUnLinkedClick}>Copy UnLinked</button>
+  <button on:click={onDelete}>Delete</button>
   <button on:click={onRandColorClicked}>Rand Color</button>
   <button on:click={onRandSizeClicked}>Rand Size</button>
   <button on:click={onResetModel}>Reset Model</button>
