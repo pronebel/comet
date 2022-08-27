@@ -8,5 +8,8 @@ export default defineConfig({
         sourcemap: true,
         chunkSizeWarningLimit: 2000,
         outDir: './dist/editor',
+        rollupOptions: {
+            sourcemap: true,
+        }
     },
 });

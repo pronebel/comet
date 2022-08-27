@@ -44,6 +44,8 @@ window.addEventListener('mousemove', (e: MouseEvent) =>
 
         app.selection.x = bounds.left;
         app.selection.y = bounds.top;
+        app.selection.width = bounds.width;
+        app.selection.height = bounds.height;
     }
 });
 

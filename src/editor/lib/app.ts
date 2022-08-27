@@ -1,4 +1,3 @@
-import type { DisplayObject } from 'pixi.js';
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
 import type { DebugComponent } from '../../core/lib/components/debug';
@@ -20,7 +19,8 @@ export class App extends Application
 
         selection.tint = 0xffffff;
         selection.visible = false;
-        selection.filters = [new filters.BlurFilter(5)];
+        // selection.filters = [new filters.BlurFilter(5)];
+        this.selection.alpha = 0.33;
         selection.zIndex = 10000;
         this.stage.addChild(selection);
     }
@@ -30,10 +30,6 @@ export class App extends Application
         if (this.selected)
         {
             this.selected.addChild(component);
-        }
-        else
-        {
-            this.stage.addChild(component.getView<DisplayObject>());
         }
         this.select(component);
     }
@@ -80,7 +76,7 @@ export class App extends Application
     {
         if (this.selected)
         {
-            this.selected.model.color = Math.round(Math.random() * 100000);
+            this.selected.model.tint = Math.round(Math.random() * 100000);
         }
     }
 

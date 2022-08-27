@@ -1,43 +1,14 @@
-import type { InteractionEvent } from 'pixi.js';
-import { Sprite, Texture } from 'pixi.js';
+import type { InteractionEvent, Sprite } from 'pixi.js';
 
 import { app } from '../../../editor/lib/app';
 import { startDrag } from '../../../editor/lib/drag';
-import { Component } from '../component';
-import { NumericRangeLimitConstraint } from '../model/constraints';
-import { type ModelSchema, createModelSchema } from '../model/schema';
+import { SpriteComponent } from './sprite';
 
-export interface DebugModel
+export class DebugComponent extends SpriteComponent
 {
-    color: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    alpha: number;
-}
-
-export const schema = createModelSchema<DebugModel>({
-    color: 0xff0000,
-    x: 0,
-    y: 0,
-    width: 20,
-    height: 20,
-    alpha: 1,
-}, {
-    width: [new NumericRangeLimitConstraint(10, 50)],
-});
-
-export class DebugComponent extends Component<DebugModel, Sprite>
-{
-    public modelSchema(): ModelSchema<DebugModel>
-    {
-        return schema;
-    }
-
     public createView(): Sprite
     {
-        const sprite = new Sprite(Texture.WHITE);
+        const sprite = super.createView();
 
         sprite.interactive = true;
 
@@ -49,43 +20,5 @@ export class DebugComponent extends Component<DebugModel, Sprite>
         });
 
         return sprite;
-    }
-
-    public updateView(): void
-    {
-        const { color, x, y, width, height, alpha } = this.model.values;
-
-        this.view.tint = color;
-        this.view.x = x;
-        this.view.y = y;
-        this.view.width = width;
-        this.view.height = height;
-        this.view.alpha = alpha;
-    }
-
-    protected onAddedToParent(): void
-    {
-        if (this.parent)
-        {
-            const thisView = this.view;
-            const parentView = this.parent.getView<Sprite>();
-
-            if (parentView instanceof Sprite)
-            {
-                parentView.addChild(thisView);
-            }
-
-            parentView.updateTransform();
-            thisView.updateTransform();
-
-            const viewMatrix = thisView.worldTransform.clone();
-
-            const parentMatrix = parentView.worldTransform.clone();
-
-            parentMatrix.invert();
-            viewMatrix.prepend(parentMatrix);
-
-            thisView.transform.setFromMatrix(viewMatrix);
-        }
     }
 }

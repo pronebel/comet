@@ -2,49 +2,36 @@
   import { app } from "../app";
   import { DebugComponent } from "../../../core/lib/components/debug";
   import { Sprite, Texture } from "pixi.js";
+  import { setParent } from "../../../core/lib/util/transform";
 
-  const createSprite = (color: number, x: number, y: number) => {
+  const createSprite = (color: number, parent?: Sprite) => {
     const sprite = new Sprite(Texture.WHITE);
     sprite.tint = color;
     sprite.width = 20;
     sprite.height = 20;
-    sprite.x = x;
-    sprite.y = y;
+    sprite.x = sprite.y = 20;
+    sprite.alpha = 0.5;
     app.stage.addChild(sprite);
+    if (parent) {
+      setParent(sprite, parent);
+    }
     return sprite;
   };
 
-  const reparentSprite = (view: Sprite, newParentView: Sprite) => {
-    view.updateTransform();
-    newParentView.updateTransform();
-    const viewMatrix = view.worldTransform.clone();
-    newParentView.addChild(view);
-    const parentMatrix = newParentView.worldTransform.clone();
-    parentMatrix.invert();
-    viewMatrix.prepend(parentMatrix);
-    view.transform.setFromMatrix(viewMatrix);
-  };
-
-  // create 3 sprites equally spaced apart
-  const a = createSprite(0xff0000, 20, 20);
-  const b = createSprite(0x00ff00, 40, 40);
-  const c = createSprite(0x0000ff, 60, 60);
-
-  // without adjusting there matrix the sprites move and scale weirdly
-  // as postion and scale are added from the parent matrix
-  // a.addChild(b);
-  // b.addChild(c);
-
-  // adjusting there matrix fixes the issue, visually these should not change
-  reparentSprite(b, a);
-  reparentSprite(c, b);
+  const a = createSprite(0xff0000);
+  const b = createSprite(0x00ff00, a);
+  createSprite(0x0000ff, b);
 
   const onNewClick = () => {
     const component = new DebugComponent({
-      x: 30,
-      y: 30,
+      x: 20,
+      y: 20,
+      width: 20,
+      height: 20,
     });
+    app.stage.addChild(component.view);
     app.addComponent(component);
+    app.randColor();
   };
 
   const onDeselectClick = () => {
@@ -75,6 +62,7 @@
   <button on:click={onCopyUnLinkedClick}>Copy UnLinked</button>
   <button on:click={onRandColorClicked}>Rand Color</button>
   <button on:click={onRandSizeClicked}>Rand Size</button>
+  <test />
 </buttons>
 
 <style>
@@ -90,5 +78,14 @@
     width: 100%;
     margin-bottom: 10px;
     font-size: 12pt;
+  }
+
+  buttons test {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    width: 20px;
+    height: 20px;
+    border: 1px dashed yellow;
   }
 </style>

@@ -41,7 +41,8 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         this.model.on('modified', this.onModelModified);
 
         this.view = this.createView();
-        this.updateView();
+
+        this.update();
     }
 
     public dispose()
@@ -52,7 +53,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
     protected onModelModified = <T>(key: string, value: T, oldValue: T) =>
     {
         this.emit('modified', key, value, oldValue);
-        this.updateView();
+        this.update();
     };
 
     public copy<T extends Component<M, V>>(linked = true): T
@@ -144,6 +145,11 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
     public getView<T>()
     {
         return this.view as unknown as T;
+    }
+
+    public update()
+    {
+        this.updateView();
     }
 
     public abstract modelSchema(): ModelSchema<M>;
