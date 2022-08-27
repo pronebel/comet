@@ -1,26 +1,6 @@
 <script lang="ts">
   import { app } from "../app";
   import { DebugComponent } from "../../../core/lib/components/debug";
-  import { Sprite, Texture } from "pixi.js";
-  import { setParent } from "../../../core/lib/util/transform";
-
-  const createSprite = (color: number, parent?: Sprite) => {
-    const sprite = new Sprite(Texture.WHITE);
-    sprite.tint = color;
-    sprite.width = 20;
-    sprite.height = 20;
-    sprite.x = sprite.y = 20;
-    sprite.alpha = 0.5;
-    app.stage.addChild(sprite);
-    if (parent) {
-      setParent(sprite, parent);
-    }
-    return sprite;
-  };
-
-  const a = createSprite(0xff0000);
-  const b = createSprite(0x00ff00, a);
-  createSprite(0x0000ff, b);
 
   const onNewClick = () => {
     const component = new DebugComponent({
@@ -29,7 +9,6 @@
       width: 20,
       height: 20,
     });
-    app.stage.addChild(component.view);
     app.addComponent(component);
     app.randColor();
   };

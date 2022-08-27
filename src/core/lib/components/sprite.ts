@@ -2,26 +2,21 @@ import type { Container } from 'pixi.js';
 import { Sprite, Texture } from 'pixi.js';
 
 import { type ModelSchema, createModelSchema } from '../model/schema';
-import { setParent } from '../util/transform';
-import { type DisplayObjectModel, DisplayObjectComponent, schema as DisplayObjectSchema } from './displayObject';
+import { type ContainerModel, ContainerComponent, schema as ContainerSchema } from './container';
 
-export interface SpriteModel extends DisplayObjectModel
+export interface SpriteModel extends ContainerModel
 {
-    width: number;
-    height: number;
     tint: number;
 }
 
 export const schema = createModelSchema<SpriteModel>({
-    ...DisplayObjectSchema.defaults,
-    width: 0,
-    height: 0,
+    ...ContainerSchema.defaults,
     tint: 0xffffff,
 }, {
-    ...DisplayObjectSchema.constraints,
+    ...ContainerSchema.constraints,
 });
 
-export class SpriteComponent extends DisplayObjectComponent<SpriteModel, Sprite>
+export class SpriteComponent extends ContainerComponent<SpriteModel, Sprite>
 {
     public modelSchema(): ModelSchema<SpriteModel>
     {
@@ -30,21 +25,16 @@ export class SpriteComponent extends DisplayObjectComponent<SpriteModel, Sprite>
 
     public createView(): Sprite
     {
-        const sprite = new Sprite(Texture.WHITE);
-
-        return sprite;
+        return new Sprite(Texture.WHITE);
     }
 
     public updateView(): void
     {
-        const { tint, width, height } = this.model.values;
-
-        this.view.tint = tint;
-
-        this.view.width = width;
-        this.view.height = height;
+        const { tint } = this.model.values;
 
         super.updateView();
+
+        this.view.tint = tint;
     }
 
     protected onAddedToParent(): void
@@ -54,7 +44,7 @@ export class SpriteComponent extends DisplayObjectComponent<SpriteModel, Sprite>
             const thisView = this.view;
             const parentView = this.parent.getView<Container>();
 
-            setParent(thisView, parentView);
+            parentView.addChild(thisView);
         }
     }
 }

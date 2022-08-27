@@ -1,4 +1,4 @@
-import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
+import { type IApplicationOptions, Application, Container, filters, Sprite, Texture } from 'pixi.js';
 
 import type { DebugComponent } from '../../core/lib/components/debug';
 
@@ -8,20 +8,22 @@ export class App extends Application
 {
     public selected?: DebugComponent;
     public selection: Sprite;
+    public container: Container;
 
     constructor(options?: IApplicationOptions | undefined)
     {
         super(options);
 
-        const selection = this.selection = new Sprite(Texture.WHITE);
+        this.container = new Container();
+        this.stage.addChild(this.container);
 
-        this.stage.sortableChildren = true;
+        const selection = this.selection = new Sprite(Texture.WHITE);
 
         selection.tint = 0xffffff;
         selection.visible = false;
-        // selection.filters = [new filters.BlurFilter(5)];
+        selection.filters = [new filters.BlurFilter(2)];
         this.selection.alpha = 0.33;
-        selection.zIndex = 10000;
+
         this.stage.addChild(selection);
     }
 
@@ -30,6 +32,10 @@ export class App extends Application
         if (this.selected)
         {
             this.selected.addChild(component);
+        }
+        else
+        {
+            this.container.addChild(component.view);
         }
         this.select(component);
     }
