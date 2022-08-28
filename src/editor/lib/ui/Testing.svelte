@@ -1,10 +1,8 @@
 <script lang="ts">
   import { app } from "../app";
-  import { DebugComponent } from "../../../core/lib/components/debug";
 
   const onNewClick = () => {
-    const component = new DebugComponent();
-    app.addComponent(component);
+    app.newComponent();
   };
 
   const onDeselectClick = () => {

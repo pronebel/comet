@@ -1,12 +1,13 @@
 import EventEmitter from 'eventemitter3';
 
+import type components from './components';
 import type { Model } from './model/model';
 import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
 
 export type AnyComponent = Component<any, any>;
 
-let id = 0;
+const ids = {} as Record<keyof typeof components, number>;
 
 export abstract class Component<M extends object, V> extends EventEmitter<'modified' | 'childAdded' | 'childRemoved'>
 {
@@ -23,8 +24,14 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
     {
         super();
 
-        this.id = `foo${++id}`;
-        (window as any)[this.id] = this;
+        const componentType = this.getComponentType();
+
+        if (!ids[componentType])
+        {
+            ids[componentType] = 0;
+        }
+
+        this.id = `${componentType}:${ids[componentType]++}`;
 
         this.children = [];
 
@@ -78,11 +85,30 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         this.update();
     }
 
-    public getComponentType()
+    public getComponentType(): keyof typeof components
     {
         return (Object.getPrototypeOf(this).constructor as {
             new (): object;
-        }).name;
+        }).name as keyof typeof components;
+    }
+
+    public findParent<T>(ctor: {
+        new (): AnyComponent;
+        name: string;
+    }): T | undefined
+    {
+        let ref: AnyComponent | undefined = this.parent;
+
+        while (ref)
+        {
+            if (ref.getComponentType() === ctor.name)
+            {
+                return ref as unknown as T;
+            }
+            ref = ref.parent;
+        }
+
+        return undefined;
     }
 
     public dispose()

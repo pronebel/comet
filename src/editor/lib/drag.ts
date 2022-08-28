@@ -1,9 +1,11 @@
 import type { DebugComponent } from '../../core/lib/components/debug';
+import { GroupComponent } from '../../core/lib/components/group';
 import { app } from './app';
 
 interface State
 {
     component?: DebugComponent;
+    group?: typeof GroupComponent;
     startX: number;
     startY: number;
     startClientX: number;
@@ -53,4 +55,5 @@ export function startDrag(component: DebugComponent)
     state.startClientX = state.clientX;
     state.startClientY = state.clientY;
     state.component = component;
+    state.group = component.findParent(GroupComponent);
 }

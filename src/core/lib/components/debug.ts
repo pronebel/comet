@@ -1,4 +1,4 @@
-import { type InteractionEvent, type Sprite, Container } from 'pixi.js';
+import type { InteractionEvent, Sprite } from 'pixi.js';
 
 import { app } from '../../../editor/lib/app';
 import { startDrag } from '../../../editor/lib/drag';
@@ -19,11 +19,7 @@ export class DebugComponent extends SpriteComponent
             e.stopPropagation();
         });
 
-        const container = new Container();
-
-        container.addChild(sprite);
-
-        return container as Sprite;
+        return sprite;
     }
 
     public updateView(): void
@@ -32,7 +28,7 @@ export class DebugComponent extends SpriteComponent
 
         super.updateView();
 
-        const sprite = ((this.view as Container).children[0] as Sprite);
+        const sprite = this.view;
 
         sprite.tint = tint;
         sprite.width = width;

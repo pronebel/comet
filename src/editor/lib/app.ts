@@ -1,7 +1,8 @@
-import { type IApplicationOptions, Application, Container, filters, Sprite, Texture } from 'pixi.js';
-import type { AnyComponent } from 'src/core/lib/component';
+import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
-import type { DebugComponent } from '../../core/lib/components/debug';
+import type { AnyComponent } from '../../core/lib/component';
+import { DebugComponent } from '../../core/lib/components/debug';
+import { GroupComponent } from '../../core/lib/components/group';
 
 export let app: TestApp;
 
@@ -9,14 +10,14 @@ export class TestApp extends Application
 {
     public selected?: DebugComponent;
     public selection: Sprite;
-    public container: Container;
+    public group: GroupComponent;
 
     constructor(options?: IApplicationOptions | undefined)
     {
         super(options);
 
-        this.container = new Container();
-        this.stage.addChild(this.container);
+        this.group = new GroupComponent();
+        this.stage.addChild(this.group.view);
 
         const selection = this.selection = new Sprite(Texture.WHITE);
 
@@ -28,16 +29,38 @@ export class TestApp extends Application
         this.stage.addChild(selection);
     }
 
+    public newComponent()
+    {
+        const component = new DebugComponent({
+            x: 20,
+            y: 20,
+            width: 20,
+            height: 20,
+        });
+
+        this.addComponent(component);
+        this.inspect();
+    }
+
     public addComponent(component: DebugComponent)
     {
         if (this.selected)
         {
+            // const group = new GroupComponent();
+
+            // group.addChild(component);
+            // this.selected.addChild(group);
             this.selected.addChild(component);
         }
         else
         {
-            this.container.addChild(component.view);
+            // const group = new GroupComponent();
+
+            // group.addChild(component);
+            // this.group.addChild(group);
+            this.group.addChild(component);
         }
+
         this.select(component);
     }
 

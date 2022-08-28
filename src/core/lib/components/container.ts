@@ -20,12 +20,12 @@ export interface ContainerModel
 }
 
 export const schema = createModelSchema<ContainerModel>({
-    x: 20,
-    y: 20,
+    x: 0,
+    y: 0,
     pivotX: 0,
     pivotY: 0,
-    width: 20,
-    height: 20,
+    width: 0,
+    height: 0,
     scaleX: 1,
     scaleY: 1,
     angle: 0,
