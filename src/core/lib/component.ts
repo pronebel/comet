@@ -78,6 +78,13 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         this.update();
     }
 
+    public getComponentType()
+    {
+        return (Object.getPrototypeOf(this).constructor as {
+            new (): object;
+        }).name;
+    }
+
     public dispose()
     {
         this.model.off('modified', this.onModelModified);
@@ -94,6 +101,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         const Ctor = Object.getPrototypeOf(this).constructor as {
             new (props: Partial<M>, spawner?: Component<M, V>, linked?: boolean): T;
         };
+
         const component = new Ctor({}, this, linked);
 
         this.children.forEach((child) =>
@@ -116,6 +124,10 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
             model.parent.removeChild(model);
             model.parent = undefined;
         }
+
+        delete this.spawner;
+
+        this.children.forEach((child) => child.unlink());
     }
 
     public setParent(component: AnyComponent)

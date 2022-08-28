@@ -3,9 +3,9 @@ import type { AnyComponent } from 'src/core/lib/component';
 
 import type { DebugComponent } from '../../core/lib/components/debug';
 
-export let app: App;
+export let app: TestApp;
 
-export class App extends Application
+export class TestApp extends Application
 {
     public selected?: DebugComponent;
     public selection: Sprite;
@@ -81,6 +81,14 @@ export class App extends Application
         return undefined;
     }
 
+    public unlink()
+    {
+        if (this.selected)
+        {
+            this.selected.unlink();
+        }
+    }
+
     public deleteSelected()
     {
         if (this.selected)
@@ -117,11 +125,19 @@ export class App extends Application
             this.fitSelection(this.selected);
         }
     }
+
+    public inspect()
+    {
+        if (this.selected)
+        {
+            console.dir(this.selected);
+        }
+    }
 }
 
 export function createApp(canvas: HTMLCanvasElement)
 {
-    app = new App({
+    app = new TestApp({
         view: canvas,
         resizeTo: canvas,
         backgroundColor: 0x333333,

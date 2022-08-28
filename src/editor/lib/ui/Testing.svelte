@@ -19,6 +19,10 @@
     app.copy(false);
   };
 
+  const onUnlink = () => {
+    app.unlink();
+  };
+
   const onDelete = () => {
     app.deleteSelected();
   };
@@ -34,6 +38,10 @@
   const onResetModel = () => {
     app.resetModel();
   };
+
+  const onInspect = () => {
+    app.inspect();
+  };
 </script>
 
 <buttons>
@@ -41,10 +49,12 @@
   <button on:click={onDeselectClick}>Deselect</button>
   <button on:click={onCopyLinkedClick}>Copy Linked</button>
   <button on:click={onCopyUnLinkedClick}>Copy UnLinked</button>
+  <button on:click={onUnlink}>Unlink</button>
   <button on:click={onDelete}>Delete</button>
   <button on:click={onRandColorClicked}>Rand Color</button>
   <button on:click={onRandSizeClicked}>Rand Size</button>
   <button on:click={onResetModel}>Reset Model</button>
+  <button on:click={onInspect}>Inspect</button>
   <test />
 </buttons>
 
