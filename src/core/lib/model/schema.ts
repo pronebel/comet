@@ -1,19 +1,15 @@
 import type { ModelConstraints } from './constraints';
 
-export interface ModelSchema<M extends object>
+export class ModelSchema<M extends object>
 {
-    keys: (keyof M)[];
-    defaults: M;
-    constraints: ModelConstraints<M>;
-}
+    public keys: (keyof M)[];
+    public defaults: M;
+    public constraints: ModelConstraints<M>;
 
-export function createModelSchema<M extends object>(defaults: M, constraints?: ModelConstraints<M>): ModelSchema<M>
-{
-    const keys = Object.getOwnPropertyNames(defaults) as (keyof M)[];
-
-    return {
-        keys,
-        defaults,
-        constraints: constraints ?? {} as ModelConstraints<M>,
-    };
+    constructor(defaults: M, constraints: ModelConstraints<M> = {})
+    {
+        this.keys = Object.getOwnPropertyNames(defaults) as (keyof M)[];
+        this.defaults = defaults;
+        this.constraints = constraints;
+    }
 }

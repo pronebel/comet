@@ -1,6 +1,6 @@
 import { Sprite, Texture } from 'pixi.js';
 
-import { type ModelSchema, createModelSchema } from '../model/schema';
+import { ModelSchema } from '../model/schema';
 import { type ContainerModel, ContainerComponent, schema as ContainerSchema } from './container';
 
 export interface SpriteModel extends ContainerModel
@@ -8,7 +8,7 @@ export interface SpriteModel extends ContainerModel
     tint: number;
 }
 
-export const schema = createModelSchema<SpriteModel>({
+export const schema = new ModelSchema<SpriteModel>({
     ...ContainerSchema.defaults,
     tint: 0xffffff,
 }, {

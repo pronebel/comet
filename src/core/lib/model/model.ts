@@ -134,7 +134,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     }
 }
 
-export function createModel<M extends object>(schema: ModelSchema<M>, props: Partial<M>): Model<M> & M
+export function createModel<M extends object>(schema: ModelSchema<M>, props: Partial<M> = {}): Model<M> & M
 {
     const data: Partial<M> = {
         ...props,

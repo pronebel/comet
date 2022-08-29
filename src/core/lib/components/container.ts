@@ -2,7 +2,7 @@ import type { Container } from 'pixi.js';
 
 import { Component } from '../component';
 import { NumericRangeLimitConstraint } from '../model/constraints';
-import { createModelSchema } from '../model/schema';
+import { ModelSchema } from '../model/schema';
 import { degToRad } from '../util/geom';
 
 export interface ContainerModel
@@ -19,7 +19,7 @@ export interface ContainerModel
     alpha: number;
 }
 
-export const schema = createModelSchema<ContainerModel>({
+export const schema = new ModelSchema<ContainerModel>({
     x: 0,
     y: 0,
     pivotX: 0,
