@@ -2,9 +2,11 @@ import EventEmitter from 'eventemitter3';
 
 import type { ModelSchema } from './schema';
 
+let id = 0;
+
 export class Model<M extends object> extends EventEmitter<'modified'>
 {
-    public id = 0;
+    public id: string;
     public parent?: Model<M>;
     public children: Model<M>[];
     public schema: ModelSchema<M>;
@@ -13,6 +15,8 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     constructor(schema: ModelSchema<M>, data: Partial<M>)
     {
         super();
+
+        this.id = `Model:${id++}`;
         this.schema = schema;
         this.data = data;
         this.children = [];
@@ -52,7 +56,10 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
             const value = (this as unknown as M)[key];
 
-            values[key] = value;
+            if (value !== undefined)
+            {
+                values[key] = value;
+            }
         }
 
         return values;

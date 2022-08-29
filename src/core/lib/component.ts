@@ -5,11 +5,13 @@ import type { Model } from './model/model';
 import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
 
-export type AnyComponent = Component<any, any>;
-
 const ids = {} as Record<keyof typeof components, number>;
 
-export abstract class Component<M extends object, V> extends EventEmitter<'modified' | 'childAdded' | 'childRemoved'>
+export type AnyComponent = Component<any, any>;
+
+export type ComponentEvents = 'modified' | 'childAdded' | 'childRemoved' | 'disposed' | 'unlinked';
+
+export abstract class Component<M extends object, V> extends EventEmitter<ComponentEvents>
 {
     public model: Model<M> & M;
     public view: V;
@@ -17,6 +19,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
     public parent?: AnyComponent;
     public children: AnyComponent[];
     public spawner?: Component<M, V>;
+    public spawned: Component<M, V>[];
 
     public id: string;
 
@@ -43,6 +46,8 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
 
         this.model.on('modified', this.onModelModified);
 
+        this.spawned = [];
+
         if (spawner)
         {
             this.setSpawner(spawner, linked);
@@ -60,39 +65,11 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         }).name as keyof typeof components;
     }
 
-    public findParent<T>(ctor: {
-        new (): AnyComponent;
-        name: string;
-    }): T | undefined
-    {
-        let ref: AnyComponent | undefined = this.parent;
-
-        while (ref)
-        {
-            if (ref.getComponentType() === ctor.name)
-            {
-                return ref as unknown as T;
-            }
-            ref = ref.parent;
-        }
-
-        return undefined;
-    }
-
-    public dispose()
-    {
-        this.model.off('modified', this.onModelModified);
-
-        if (this.spawner)
-        {
-            this.unlink();
-        }
-    }
-
     protected onModelModified = <T>(key: string, value: T, oldValue: T) =>
     {
-        this.emit('modified', key, value, oldValue);
         this.update();
+
+        this.emit('modified', key, value, oldValue);
     };
 
     protected onSpawnerChildAdded = (component: AnyComponent) =>
@@ -134,6 +111,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
     protected setSpawner(spawner: Component<M, V>, linked: boolean)
     {
         this.spawner = spawner;
+        spawner.spawned.push(this);
 
         const { model: sourceModel } = spawner;
 
@@ -152,6 +130,21 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         }
     }
 
+    public dispose()
+    {
+        this.model.off('modified', this.onModelModified);
+
+        if (this.spawner)
+        {
+            this.unlink();
+        }
+
+        this.emit('disposed');
+
+        this.spawned.forEach((component) => component.unlink());
+        this.children.forEach((child) => child.dispose());
+    }
+
     public unlink()
     {
         const { model, spawner } = this;
@@ -162,11 +155,22 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
 
             spawner.off('childAdded', this.onSpawnerChildAdded);
             spawner.off('childRemoved', this.onSpawnerChildRemoved);
+
+            delete this.spawner;
+
+            this.emit('unlinked');
         }
 
-        delete this.spawner;
-
         this.children.forEach((child) => child.unlink());
+    }
+
+    public deleteSelf()
+    {
+        if (this.parent)
+        {
+            this.parent.removeChild(this);
+            this.dispose();
+        }
     }
 
     public setParent(component: AnyComponent)
@@ -202,6 +206,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         {
             component.onRemoveFromParent();
             children.splice(index, 1);
+            delete component.parent;
             this.emit('childRemoved', component);
         }
         else
@@ -210,12 +215,14 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         }
     }
 
-    public deleteSelf()
+    public getChildAt<T extends AnyComponent>(index: number): T
     {
-        if (this.parent)
-        {
-            this.parent.removeChild(this);
-        }
+        return this.children[index] as T;
+    }
+
+    public containsChild(component: AnyComponent)
+    {
+        return this.children.indexOf(component) > -1;
     }
 
     protected onAddedToParent(): void
@@ -228,7 +235,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         // subclasses
     }
 
-    public getView<T>()
+    public getView<T = V>(): T
     {
         return this.view as unknown as T;
     }

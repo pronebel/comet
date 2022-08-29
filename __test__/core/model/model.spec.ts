@@ -1,8 +1,8 @@
 import { NumericRangeLimitConstraint } from '../../../src/core/lib/model/constraints';
 import { createModel } from '../../../src/core/lib/model/model';
-import { ModelSchema as TestModelSchema } from '../../../src/core/lib/model/schema';
+import { ModelSchema } from '../../../src/core/lib/model/schema';
 
-interface TestModel
+export interface TestModel
 {
     x: number;
     y: number;
@@ -10,9 +10,9 @@ interface TestModel
     obj: {name: string};
 }
 
-const constraint = new NumericRangeLimitConstraint(10, 20);
+export const constraint = new NumericRangeLimitConstraint(10, 20);
 
-const schema = new TestModelSchema<TestModel>({
+export const schema = new ModelSchema<TestModel>({
     x: 1,
     y: 2,
     visible: true,
@@ -31,9 +31,7 @@ describe('Model', () =>
         for (let i = 0; i < models.length - 1; i++)
         {
             models[i + 1].link(models[i]);
-            models[i].id = i;
         }
-        models[models.length - 1].id = models.length - 1;
 
         return models;
     };
@@ -170,23 +168,14 @@ describe('Model', () =>
 
             expect(modelA.ownValues).toStrictEqual({
                 x: 11,
-                y: undefined,
-                visible: undefined,
-                obj: undefined,
             });
 
             expect(modelB.ownValues).toStrictEqual({
-                x: undefined,
                 y: 12,
-                visible: undefined,
-                obj: undefined,
             });
 
             expect(modelC.ownValues).toStrictEqual({
-                x: undefined,
-                y: undefined,
                 visible: false,
-                obj: undefined,
             });
         });
 
@@ -202,7 +191,6 @@ describe('Model', () =>
                 x: 11,
                 y: 12,
                 visible: false,
-                obj: undefined,
             });
 
             expect(modelC.values).toStrictEqual({
@@ -215,8 +203,6 @@ describe('Model', () =>
             expect(modelB.ownValues).toStrictEqual({
                 x: 11,
                 y: 12,
-                visible: undefined,
-                obj: undefined,
             });
 
             expect(modelB.values).toStrictEqual({
@@ -228,9 +214,6 @@ describe('Model', () =>
 
             expect(modelA.ownValues).toStrictEqual({
                 x: 11,
-                y: undefined,
-                visible: undefined,
-                obj: undefined,
             });
 
             expect(modelA.values).toStrictEqual({
