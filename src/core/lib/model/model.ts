@@ -4,6 +4,7 @@ import type { ModelSchema } from './schema';
 
 export class Model<M extends object> extends EventEmitter<'modified'>
 {
+    public id = 0;
     public parent?: Model<M>;
     public children: Model<M>[];
     public schema: ModelSchema<M>;
@@ -15,6 +16,12 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         this.schema = schema;
         this.data = data;
         this.children = [];
+    }
+
+    public link(sourceModel: Model<M>)
+    {
+        this.parent = sourceModel;
+        sourceModel.children.push(this);
     }
 
     public get values(): M
@@ -81,20 +88,23 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
     public flatten()
     {
-        if (!this.parent)
+        if (this.parent)
         {
-            return;
-        }
+            const { schema: { keys, keys: { length: l }, defaults } } = this;
 
-        const { schema: { keys, keys: { length: l } } } = this;
+            for (let i = 0; i < l; i++)
+            {
+                const key = keys[i];
 
-        for (let i = 0; i < l; i++)
-        {
-            const key = keys[i];
+                const value = this.getValue(key);
 
-            const value = this.getValue(key);
+                if (value !== defaults[key])
+                {
+                    (this.data as M)[key] = value;
+                }
+            }
 
-            (this as unknown as M)[key] = value;
+            this.parent.removeChild(this);
         }
     }
 
@@ -105,6 +115,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         if (index > -1)
         {
             this.children.splice(index, 1);
+            model.parent = undefined;
         }
         else
         {
@@ -134,11 +145,27 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     }
 }
 
-export function createModel<M extends object>(schema: ModelSchema<M>, props: Partial<M> = {}): Model<M> & M
+export function createModel<M extends object>(schema: ModelSchema<M>, values: Partial<M> = {}): Model<M> & M
 {
     const data: Partial<M> = {
-        ...props,
     };
+
+    for (const [key, value] of Object.entries(values))
+    {
+        const constraints = schema.constraints[key as keyof M];
+
+        if (constraints)
+        {
+            constraints.forEach((constraint) =>
+            {
+                data[key as keyof M] = constraint.applyToValue(value);
+            });
+        }
+        else
+        {
+            data[key as keyof M] = value as M[keyof M];
+        }
+    }
 
     const { keys } = schema;
 
@@ -167,13 +194,13 @@ export function createModel<M extends object>(schema: ModelSchema<M>, props: Par
                     oldValue = model.getValue(key) as unknown as T;
                 }
 
-                let value = newValue === undefined ? props[key] : newValue;
+                let value = newValue === undefined ? values[key] : newValue;
 
-                const constrains = schema.constraints[key];
+                const constraints = schema.constraints[key];
 
-                if (constrains)
+                if (constraints)
                 {
-                    constrains.forEach((constraint) =>
+                    constraints.forEach((constraint) =>
                     {
                         value = constraint.applyToValue(value);
                     });

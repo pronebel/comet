@@ -20,7 +20,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
 
     public id: string;
 
-    constructor(props: Partial<M> = {}, spawner?: Component<M, V>, linked = true)
+    constructor(modelValues: Partial<M> = {}, spawner?: Component<M, V>, linked = true)
     {
         super();
 
@@ -37,48 +37,16 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
 
         const schema = this.modelSchema();
 
-        const model = this.model = createModel(schema, {
-            ...props,
+        this.model = createModel(schema, {
+            ...modelValues,
         });
+
+        this.model.on('modified', this.onModelModified);
 
         if (spawner)
         {
-            this.spawner = spawner;
-
-            const { model: sourceModel } = spawner;
-
-            if (linked)
-            {
-                model.parent = sourceModel;
-                sourceModel.children.push(model);
-
-                spawner.on('childAdded', (component: AnyComponent) =>
-                {
-                    const copy = component.copy(true);
-
-                    this.addChild(copy);
-                });
-
-                spawner.on('childRemoved', (component: AnyComponent) =>
-                {
-                    this.children.forEach((child: AnyComponent) =>
-                    {
-                        if (child.spawner === component)
-                        {
-                            child.deleteSelf();
-                        }
-                    });
-                });
-            }
-            else
-            {
-                const sourceValues = sourceModel.values;
-
-                model.setValues(sourceValues);
-            }
+            this.setSpawner(spawner, linked);
         }
-
-        this.model.on('modified', this.onModelModified);
 
         this.view = this.createView();
 
@@ -114,6 +82,11 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
     public dispose()
     {
         this.model.off('modified', this.onModelModified);
+
+        if (this.spawner)
+        {
+            this.unlink();
+        }
     }
 
     protected onModelModified = <T>(key: string, value: T, oldValue: T) =>
@@ -122,10 +95,28 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         this.update();
     };
 
+    protected onSpawnerChildAdded = (component: AnyComponent) =>
+    {
+        const copy = component.copy(true);
+
+        this.addChild(copy);
+    };
+
+    protected onSpawnerChildRemoved = (component: AnyComponent) =>
+    {
+        this.children.forEach((child: AnyComponent) =>
+        {
+            if (child.spawner === component)
+            {
+                child.deleteSelf();
+            }
+        });
+    };
+
     public copy<T extends Component<M, V>>(linked = true): T
     {
         const Ctor = Object.getPrototypeOf(this).constructor as {
-            new (props: Partial<M>, spawner?: Component<M, V>, linked?: boolean): T;
+            new (modelValues: Partial<M>, spawner?: Component<M, V>, linked?: boolean): T;
         };
 
         const component = new Ctor({}, this, linked);
@@ -140,15 +131,37 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         return component as unknown as T;
     }
 
+    protected setSpawner(spawner: Component<M, V>, linked: boolean)
+    {
+        this.spawner = spawner;
+
+        const { model: sourceModel } = spawner;
+
+        if (linked)
+        {
+            this.model.link(sourceModel);
+
+            spawner.on('childAdded', this.onSpawnerChildAdded);
+            spawner.on('childRemoved', this.onSpawnerChildRemoved);
+        }
+        else
+        {
+            const sourceValues = sourceModel.values;
+
+            this.model.setValues(sourceValues);
+        }
+    }
+
     public unlink()
     {
-        const { model } = this;
+        const { model, spawner } = this;
 
-        if (model.parent)
+        if (model.parent && spawner)
         {
             model.flatten();
-            model.parent.removeChild(model);
-            model.parent = undefined;
+
+            spawner.off('childAdded', this.onSpawnerChildAdded);
+            spawner.off('childRemoved', this.onSpawnerChildRemoved);
         }
 
         delete this.spawner;
@@ -205,14 +218,14 @@ export abstract class Component<M extends object, V> extends EventEmitter<'modif
         }
     }
 
-    protected onAddedToParent()
+    protected onAddedToParent(): void
     {
-        //
+        // subclasses
     }
 
     protected onRemoveFromParent()
     {
-        //
+        // subclasses
     }
 
     public getView<T>()

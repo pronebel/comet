@@ -1,6 +1,6 @@
 import { NumericRangeLimitConstraint } from '../../../src/core/lib/model/constraints';
 import { createModel } from '../../../src/core/lib/model/model';
-import { ModelSchema } from '../../../src/core/lib/model/schema';
+import { ModelSchema as TestModelSchema } from '../../../src/core/lib/model/schema';
 
 interface TestModel
 {
@@ -12,7 +12,7 @@ interface TestModel
 
 const constraint = new NumericRangeLimitConstraint(10, 20);
 
-const schema = new ModelSchema<TestModel>({
+const schema = new TestModelSchema<TestModel>({
     x: 1,
     y: 2,
     visible: true,
@@ -23,6 +23,21 @@ const schema = new ModelSchema<TestModel>({
 
 describe('Model', () =>
 {
+    const setup = (modelValues: Partial<TestModel>[]) =>
+    {
+        const models = modelValues
+            .map((values) => createModel(schema, values));
+
+        for (let i = 0; i < models.length - 1; i++)
+        {
+            models[i + 1].link(models[i]);
+            models[i].id = i;
+        }
+        models[models.length - 1].id = models.length - 1;
+
+        return models;
+    };
+
     describe('Basic Access', () =>
     {
         it('should return undefined for own values if no props passed', () =>
@@ -88,9 +103,225 @@ describe('Model', () =>
             expect(model.getValue('visible')).toBe(schema.defaults.visible);
             expect(model.getValue('obj')).toBe(schema.defaults.obj);
         });
+
+        it('should throw if removing a model which is not a child', () =>
+        {
+            const modelA = createModel(schema);
+            const modelB = createModel(schema);
+
+            expect(() => modelA.removeChild(modelB)).toThrow();
+        });
     });
 
-    describe('Nesting and linking', () => {});
+    describe('Nesting and linking', () =>
+    {
+        it('should return defaults if no overwrites', () =>
+        {
+            const [modelA, modelB, modelC] = setup([{}, {}, {}]);
 
-    describe('Events', () => {});
+            expect(modelA.getValue('x')).toBe(schema.defaults['x']);
+            expect(modelB.getValue('x')).toBe(schema.defaults['x']);
+            expect(modelC.getValue('x')).toBe(schema.defaults['x']);
+        });
+
+        it('should return earliest overwrite if no local overwrite', () =>
+        {
+            const [modelA, modelB, modelC] = setup([{ x: 11 }, {}, {}]);
+
+            expect(modelA.getValue('x')).toBe(11);
+            expect(modelB.getValue('x')).toBe(11);
+            expect(modelC.getValue('x')).toBe(11);
+        });
+
+        it('should return previous overwrite if no local overwrite', () =>
+        {
+            const [modelA, modelB, modelC] = setup([{}, { x: 11 }, {}]);
+
+            expect(modelA.getValue('x')).toBe(schema.defaults['x']);
+            expect(modelB.getValue('x')).toBe(11);
+            expect(modelC.getValue('x')).toBe(11);
+        });
+
+        it('should return latest overwrite if current local overwrite', () =>
+        {
+            const [modelA, modelB, modelC] = setup([{}, {}, { x: 11 }]);
+
+            expect(modelA.getValue('x')).toBe(schema.defaults['x']);
+            expect(modelB.getValue('x')).toBe(schema.defaults['x']);
+            expect(modelC.getValue('x')).toBe(11);
+        });
+
+        it('should return composite values of overwrites', () =>
+        {
+            const models = setup([{ x: 11 }, { y: 12 }, { visible: false }]);
+            const modelC = models[2];
+
+            expect(modelC.values).toStrictEqual({
+                x: 11,
+                y: 12,
+                visible: false,
+                obj: { name: 'foo' },
+            });
+        });
+
+        it('should return own values and undefined for missing overwrites', () =>
+        {
+            const [modelA, modelB, modelC] = setup([{ x: 11 }, { y: 12 }, { visible: false }]);
+
+            expect(modelA.ownValues).toStrictEqual({
+                x: 11,
+                y: undefined,
+                visible: undefined,
+                obj: undefined,
+            });
+
+            expect(modelB.ownValues).toStrictEqual({
+                x: undefined,
+                y: 12,
+                visible: undefined,
+                obj: undefined,
+            });
+
+            expect(modelC.ownValues).toStrictEqual({
+                x: undefined,
+                y: undefined,
+                visible: false,
+                obj: undefined,
+            });
+        });
+
+        it('should flatten current values', () =>
+        {
+            const [modelA, modelB, modelC] = setup([{ x: 11 }, { y: 12 }, { visible: false }]);
+
+            modelC.flatten();
+            modelB.flatten();
+            modelA.flatten();
+
+            expect(modelC.ownValues).toStrictEqual({
+                x: 11,
+                y: 12,
+                visible: false,
+                obj: undefined,
+            });
+
+            expect(modelC.values).toStrictEqual({
+                x: 11,
+                y: 12,
+                visible: false,
+                obj: schema.defaults.obj,
+            });
+
+            expect(modelB.ownValues).toStrictEqual({
+                x: 11,
+                y: 12,
+                visible: undefined,
+                obj: undefined,
+            });
+
+            expect(modelB.values).toStrictEqual({
+                x: 11,
+                y: 12,
+                visible: schema.defaults.visible,
+                obj: schema.defaults.obj,
+            });
+
+            expect(modelA.ownValues).toStrictEqual({
+                x: 11,
+                y: undefined,
+                visible: undefined,
+                obj: undefined,
+            });
+
+            expect(modelA.values).toStrictEqual({
+                x: 11,
+                y: schema.defaults.y,
+                visible: schema.defaults.visible,
+                obj: schema.defaults.obj,
+            });
+        });
+
+        it('should reset current values', () =>
+        {
+            const [model] = setup([{ x: 11, y: 12, visible: false }]);
+
+            expect(model.values).toStrictEqual({
+                x: 11,
+                y: 12,
+                visible: false,
+                obj: schema.defaults.obj,
+            });
+
+            model.reset();
+
+            expect(model.values).toStrictEqual({
+                x: schema.defaults.x,
+                y: schema.defaults.y,
+                visible: schema.defaults.visible,
+                obj: schema.defaults.obj,
+            });
+        });
+    });
+
+    describe('Events', () =>
+    {
+        it('should emit "modified" when value set', (done) =>
+        {
+            const model = createModel(schema, { x: 11 });
+
+            model.on('modified', (key, value, oldValue) =>
+            {
+                expect(key).toBe('x');
+                expect(value).toBe(12);
+                expect(oldValue).toBe(11);
+                done();
+            });
+
+            model.x = 12;
+        });
+
+        it('should cascade "modified" event through children when value set', (done) =>
+        {
+            const [modelA, modelB, modelC] = setup([{ }, { }, { }]);
+
+            const updates: {id: string; key: any; value: any; oldValue: any}[] = [];
+
+            modelA.on('modified', (key, value, oldValue) =>
+            {
+                updates.push({ id: 'modelA', key, value, oldValue });
+            });
+
+            modelB.on('modified', (key, value, oldValue) =>
+            {
+                updates.push({ id: 'modelB', key, value, oldValue });
+            });
+
+            modelC.on('modified', (key, value, oldValue) =>
+            {
+                updates.push({ id: 'modelC', key, value, oldValue });
+
+                expect(updates).toEqual([{
+                    id: 'modelA',
+                    key: 'x',
+                    value: 12,
+                    oldValue: schema.defaults.x,
+                },
+                {
+                    id: 'modelB',
+                    key: 'x',
+                    value: 12,
+                    oldValue: schema.defaults.x,
+                },
+                {
+                    id: 'modelC',
+                    key: 'x',
+                    value: 12,
+                    oldValue: schema.defaults.x,
+                }]);
+                done();
+            });
+
+            modelA.x = 12;
+        });
+    });
 });
