@@ -11,16 +11,8 @@ export function setParent(view: Container, newParentView: Container)
 
     const parentMatrix = newParentView.worldTransform.clone();
 
-    const { tx, ty } = viewMatrix;
-    const { a, d } = parentMatrix;
-
-    // console.log({ tx, ty, a, d });
-
     parentMatrix.invert();
     viewMatrix.prepend(parentMatrix);
-
-    viewMatrix.tx = tx / a;
-    viewMatrix.ty = ty / d;
 
     view.transform.setFromMatrix(viewMatrix);
 }

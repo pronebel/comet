@@ -154,6 +154,7 @@ export class TestApp extends Application
         if (this.selected)
         {
             console.dir(this.selected);
+            (window as any).foo = this.selected;
         }
     }
 }
