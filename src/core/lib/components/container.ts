@@ -3,7 +3,6 @@ import type { Container } from 'pixi.js';
 import { Component } from '../component';
 import { NumericRangeLimitConstraint } from '../model/constraints';
 import { ModelSchema } from '../model/schema';
-import { degToRad } from '../util/geom';
 
 export interface ContainerModel
 {
@@ -55,7 +54,7 @@ export abstract class ContainerComponent<M extends ContainerModel, V extends Con
         view.height = height;
         view.scale.x = scaleX;
         view.scale.y = scaleY;
-        view.angle = degToRad(angle);
+        view.angle = angle;
         view.alpha = alpha;
     }
 

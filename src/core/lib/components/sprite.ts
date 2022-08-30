@@ -5,11 +5,15 @@ import { type ContainerModel, ContainerComponent, schema as ContainerSchema } fr
 
 export interface SpriteModel extends ContainerModel
 {
+    anchorX: number;
+    anchorY: number;
     tint: number;
 }
 
 export const schema = new ModelSchema<SpriteModel>({
     ...ContainerSchema.defaults,
+    anchorX: 0,
+    anchorY: 0,
     tint: 0xffffff,
 }, {
     ...ContainerSchema.constraints,
@@ -29,10 +33,13 @@ export class SpriteComponent extends ContainerComponent<SpriteModel, Sprite>
 
     public updateView(): void
     {
-        const { tint } = this.model.values;
+        const view = this.view;
+        const { anchorX, anchorY, tint } = this.model.values;
 
         super.updateView();
 
-        this.view.tint = tint;
+        view.tint = tint;
+        view.anchor.x = anchorX;
+        view.anchor.y = anchorY;
     }
 }
