@@ -45,8 +45,8 @@
 <buttons>
   <button on:click={onNewClick}>New</button>
   <button on:click={onDeselectClick}>Deselect</button>
-  <button on:click={onCopyLinkedClick}>Copy Linked</button>
-  <button on:click={onCopyUnLinkedClick}>Copy UnLinked</button>
+  <button on:click={onCopyLinkedClick}>Clone</button>
+  <button on:click={onCopyUnLinkedClick}>Duplicate</button>
   <button on:click={onUnlink}>Unlink</button>
   <button on:click={onDelete}>Delete</button>
   <button on:click={onRandColorClicked}>Rand Color</button>

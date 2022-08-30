@@ -242,7 +242,10 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
     public update()
     {
-        this.updateView();
+        if (this.view)
+        {
+            this.updateView();
+        }
     }
 
     public abstract modelSchema(): ModelSchema<M>;

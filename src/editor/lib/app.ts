@@ -16,7 +16,10 @@ export class TestApp extends Application
     {
         super(options);
 
-        this.group = new GroupComponent();
+        this.group = new GroupComponent({
+            x: 0,
+            y: 0,
+        });
         this.stage.addChild(this.group.view);
 
         const selection = this.selection = new Sprite(Texture.WHITE);
