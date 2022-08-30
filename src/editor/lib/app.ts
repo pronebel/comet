@@ -46,18 +46,10 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            // const group = new GroupComponent();
-
-            // group.addChild(component);
-            // this.selected.addChild(group);
             this.selected.addChild(component);
         }
         else
         {
-            // const group = new GroupComponent();
-
-            // group.addChild(component);
-            // this.group.addChild(group);
             this.group.addChild(component);
         }
 

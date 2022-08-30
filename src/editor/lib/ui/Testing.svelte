@@ -79,5 +79,6 @@
     height: 20px;
     border: 1px dashed yellow;
     pointer-events: none;
+    box-sizing: border-box;
   }
 </style>
