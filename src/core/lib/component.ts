@@ -1,6 +1,7 @@
 import EventEmitter from 'eventemitter3';
 
 import type components from './components';
+import { EmptyComponent } from './components/empty';
 import type { Model } from './model/model';
 import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
@@ -11,19 +12,31 @@ export type AnyComponent = Component<any, any>;
 
 export type ComponentEvents = 'modified' | 'childAdded' | 'childRemoved' | 'disposed' | 'unlinked';
 
+export enum SpawnMode
+    {
+    None,
+    Variant,
+    Reference,
+    Duplicate,
+}
+
 export abstract class Component<M extends object, V> extends EventEmitter<ComponentEvents>
 {
     public model: Model<M> & M;
     public view: V;
 
+    public empty: EmptyComponent;
+
     public parent?: AnyComponent;
     public children: AnyComponent[];
+
+    public spawnMode: SpawnMode;
     public spawner?: Component<M, V>;
     public spawned: Component<M, V>[];
 
     public id: string;
 
-    constructor(modelValues: Partial<M> = {}, spawner?: Component<M, V>, linked = true)
+    constructor(modelValues: Partial<M> = {}, spawner?: Component<M, V>, spawnMode: SpawnMode = SpawnMode.None)
     {
         super();
 
@@ -35,22 +48,31 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         }
 
         this.id = `${componentType}:${ids[componentType]++}`;
-
         this.children = [];
+        this.spawnMode = spawnMode;
+        this.spawned = [];
 
-        const schema = this.modelSchema();
+        this.empty = new EmptyComponent();
+        this.empty.addChild(this);
 
-        this.model = createModel(schema, {
-            ...modelValues,
-        });
+        if (spawnMode === SpawnMode.Reference && spawner)
+        {
+            this.model = spawner.model;
+        }
+        else
+        {
+            const schema = this.modelSchema();
+
+            this.model = createModel(schema, {
+                ...modelValues,
+            });
+        }
 
         this.model.on('modified', this.onModelModified);
 
-        this.spawned = [];
-
         if (spawner)
         {
-            this.setSpawner(spawner, linked);
+            this.setSpawner(spawner, spawnMode);
         }
 
         this.view = this.createView();
@@ -74,7 +96,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
     protected onSpawnerChildAdded = (component: AnyComponent) =>
     {
-        const copy = component.copy(true);
+        const copy = component.copy(this.spawnMode);
 
         this.addChild(copy);
     };
@@ -90,17 +112,17 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         });
     };
 
-    public copy<T extends Component<M, V>>(linked = true): T
+    public copy<T extends Component<M, V>>(spawnMode: SpawnMode = SpawnMode.Variant): T
     {
         const Ctor = Object.getPrototypeOf(this).constructor as {
-            new (modelValues: Partial<M>, spawner?: Component<M, V>, linked?: boolean): T;
+            new (modelValues: Partial<M>, spawner?: Component<M, V>, spawnMode?: SpawnMode): T;
         };
 
-        const component = new Ctor({}, this, linked);
+        const component = new Ctor({}, this, spawnMode);
 
         this.children.forEach((child) =>
         {
-            const childComponent = child.copy(linked);
+            const childComponent = child.copy(spawnMode);
 
             childComponent.setParent(component);
         });
@@ -108,21 +130,21 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         return component as unknown as T;
     }
 
-    protected setSpawner(spawner: Component<M, V>, linked: boolean)
+    protected setSpawner(spawner: Component<M, V>, spawnMode: SpawnMode)
     {
         this.spawner = spawner;
         spawner.spawned.push(this);
 
         const { model: sourceModel } = spawner;
 
-        if (linked)
+        if (spawnMode === SpawnMode.Variant)
         {
             this.model.link(sourceModel);
 
             spawner.on('childAdded', this.onSpawnerChildAdded);
             spawner.on('childRemoved', this.onSpawnerChildRemoved);
         }
-        else
+        else if (spawnMode === SpawnMode.Duplicate)
         {
             const sourceValues = sourceModel.values;
 

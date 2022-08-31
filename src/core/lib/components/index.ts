@@ -1,9 +1,9 @@
 import { DebugComponent } from './debug';
-import { GroupComponent } from './group';
+import { EmptyComponent } from './empty';
 import { SpriteComponent } from './sprite';
 
 export default {
     DebugComponent,
-    GroupComponent,
+    EmptyComponent: GroupComponent,
     SpriteComponent,
 };

@@ -1,8 +1,8 @@
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
-import type { AnyComponent } from '../../core/lib/component';
+import type { AnyComponent, SpawnMode } from '../../core/lib/component';
 import { DebugComponent } from '../../core/lib/components/debug';
-import { GroupComponent } from '../../core/lib/components/group';
+import { EmptyComponent } from '../../core/lib/components/empty';
 
 export let app: TestApp;
 
@@ -10,13 +10,13 @@ export class TestApp extends Application
 {
     public selected?: DebugComponent;
     public selection: Sprite;
-    public group: GroupComponent;
+    public group: EmptyComponent;
 
     constructor(options?: IApplicationOptions | undefined)
     {
         super(options);
 
-        this.group = new GroupComponent({
+        this.group = new EmptyComponent({
             x: 0,
             y: 0,
         });
@@ -84,11 +84,11 @@ export class TestApp extends Application
         this.selection.height = bounds.height;
     }
 
-    public copy(linked: boolean)
+    public copy(spawnMode: SpawnMode)
     {
         if (this.selected)
         {
-            const component = this.selected.copy<DebugComponent>(linked);
+            const component = this.selected.copy<DebugComponent>(spawnMode);
 
             delete this.selected;
             this.addComponent(component);

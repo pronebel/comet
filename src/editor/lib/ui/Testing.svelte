@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { SpawnMode } from "../../../core/lib/component";
+
   import { app } from "../app";
 
   const onNewClick = () => {
@@ -9,12 +11,16 @@
     app.deselect();
   };
 
-  const onCopyLinkedClick = () => {
-    app.copy(true);
+  const onCopyVariantClick = () => {
+    app.copy(SpawnMode.Variant);
   };
 
-  const onCopyUnLinkedClick = () => {
-    app.copy(false);
+  const onCopyReferenceClick = () => {
+    app.copy(SpawnMode.Reference);
+  };
+
+  const onCopyDuplicateClick = () => {
+    app.copy(SpawnMode.Duplicate);
   };
 
   const onUnlink = () => {
@@ -38,6 +44,7 @@
   };
 
   const onInspect = () => {
+    console.clear();
     app.inspect();
   };
 </script>
@@ -45,8 +52,9 @@
 <buttons>
   <button on:click={onNewClick}>New</button>
   <button on:click={onDeselectClick}>Deselect</button>
-  <button on:click={onCopyLinkedClick}>Clone</button>
-  <button on:click={onCopyUnLinkedClick}>Duplicate</button>
+  <button on:click={onCopyVariantClick}>Copy as Variant</button>
+  <button on:click={onCopyReferenceClick}>Copy as Rererence</button>
+  <button on:click={onCopyDuplicateClick}>Copy as Duplicate</button>
   <button on:click={onUnlink}>Unlink</button>
   <button on:click={onDelete}>Delete</button>
   <button on:click={onRandColorClicked}>Rand Color</button>
