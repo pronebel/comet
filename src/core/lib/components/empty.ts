@@ -11,14 +11,27 @@ export class EmptyComponent extends ContainerComponent<ContainerModel, Container
         return containerSchema;
     }
 
+    public updateView(): void
+    {
+        const view = this.view;
+
+        super.updateView();
+
+        const bounds = view.getLocalBounds();
+
+        view.width = bounds.width;
+        view.height = bounds.height;
+    }
+
     public createView(): Container<DisplayObject>
     {
         const container = new Container();
         const graphics = new Graphics();
 
         container.addChild(graphics);
-        graphics.lineStyle(2, 0xFEEB77, 1);
-        graphics.beginFill(0x650A5A, 1);
+
+        graphics.lineStyle(1, 0xFEEB77, 1);
+        graphics.beginFill(0x650A5A, 0.01);
         graphics.drawCircle(0, 0, 10);
         graphics.endFill();
 

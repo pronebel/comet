@@ -31,24 +31,13 @@ export class ContainerComponent<M extends ContainerModel, V extends Container> e
     public updateView(): void
     {
         const { view, model: { values: {
-            x, y,
-            pivotX, pivotY,
             width, height,
-            scaleX, scaleY,
-            angle,
-            alpha,
         } } } = this;
 
-        view.x = x;
-        view.y = y;
-        view.pivot.x = pivotX;
-        view.pivot.y = pivotY;
+        super.updateView();
+
         view.width = width;
         view.height = height;
-        view.scale.x = scaleX;
-        view.scale.y = scaleY;
-        view.angle = angle;
-        view.alpha = alpha;
     }
 
     protected onAddedToParent(): void

@@ -38,8 +38,8 @@ export class SpriteComponent extends ContainerComponent<SpriteModel, Sprite>
 
         super.updateView();
 
-        view.tint = tint;
         view.anchor.x = anchorX;
         view.anchor.y = anchorY;
+        view.tint = tint;
     }
 }

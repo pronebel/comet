@@ -12,10 +12,10 @@ export type ComponentEvents = 'modified' | 'childAdded' | 'childRemoved' | 'disp
 
 export enum SpawnMode
     {
-    None,
-    Variant,
-    Reference,
-    Duplicate,
+    None = 'none',
+    Variant = 'variant',
+    Reference = 'reference',
+    Duplicate = 'duplicate',
 }
 
 export abstract class Component<M extends object, V> extends EventEmitter<ComponentEvents>
@@ -268,6 +268,15 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
     public getChildAt<T extends AnyComponent>(index: number): T
     {
         return this.children[index] as T;
+    }
+
+    public walk(fn: (component: AnyComponent) => void, includeSelf = true)
+    {
+        if (includeSelf)
+        {
+            fn(this);
+        }
+        this.children.forEach((child) => child.walk(fn));
     }
 
     public containsChild(component: AnyComponent)

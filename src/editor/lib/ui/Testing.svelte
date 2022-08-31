@@ -3,27 +3,27 @@
 
   import { app } from "../app";
 
-  const onNewContainerClick = () => {
+  const onNewContainer = () => {
     app.newContainer();
   };
 
-  const onNewChildClick = () => {
+  const onNewChild = () => {
     app.newChild();
   };
 
-  const onDeselectClick = () => {
+  const onDeselect = () => {
     app.deselect();
   };
 
-  const onCopyVariantClick = () => {
+  const onCopyVariant = () => {
     app.copy(SpawnMode.Variant);
   };
 
-  const onCopyReferenceClick = () => {
+  const onCopyReference = () => {
     app.copy(SpawnMode.Reference);
   };
 
-  const onCopyDuplicateClick = () => {
+  const onCopyDuplicate = () => {
     app.copy(SpawnMode.Duplicate);
   };
 
@@ -35,12 +35,16 @@
     app.deleteSelected();
   };
 
-  const onRandColorClicked = () => {
+  const onRandColor = () => {
     app.randColor();
   };
 
-  const onRandSizeClicked = () => {
+  const onRandSize = () => {
     app.randSize();
+  };
+
+  const onRandAlpha = () => {
+    app.randAlpha();
   };
 
   const onResetModel = () => {
@@ -54,16 +58,17 @@
 </script>
 
 <buttons>
-  <button on:click={onNewContainerClick}>New Container</button>
-  <button on:click={onNewChildClick}>New Child</button>
-  <button on:click={onDeselectClick}>Deselect</button>
-  <button on:click={onCopyVariantClick}>Copy as Variant</button>
-  <button on:click={onCopyReferenceClick}>Copy as Rererence</button>
-  <button on:click={onCopyDuplicateClick}>Copy as Duplicate</button>
+  <button on:click={onNewContainer}>New Container</button>
+  <button on:click={onNewChild}>New Child</button>
+  <button on:click={onDeselect}>Deselect</button>
+  <button on:click={onCopyVariant}>Copy as Variant</button>
+  <button on:click={onCopyReference}>Copy as Reference</button>
+  <button on:click={onCopyDuplicate}>Copy as Duplicate</button>
   <button on:click={onUnlink}>Unlink</button>
   <button on:click={onDelete}>Delete</button>
-  <button on:click={onRandColorClicked}>Rand Color</button>
-  <button on:click={onRandSizeClicked}>Rand Size</button>
+  <button on:click={onRandColor}>Rand Color</button>
+  <button on:click={onRandSize}>Rand Size</button>
+  <button on:click={onRandAlpha}>Rand Alpha</button>
   <button on:click={onResetModel}>Reset Model</button>
   <button on:click={onInspect}>Inspect</button>
   <test />
@@ -74,7 +79,7 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 150px;
+    width: 200px;
     display: flex;
     flex-direction: column;
   }

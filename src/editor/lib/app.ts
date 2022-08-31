@@ -55,6 +55,7 @@ export class TestApp extends Application
             y: 20,
             width: 20,
             height: 20,
+            tint: Math.round(Math.random() * 100000),
         });
 
         this.addComponent(component);
@@ -81,12 +82,9 @@ export class TestApp extends Application
         {
             const component = this.selected.copy<AnyContainer>(spawnMode);
 
-            const empty = component.getRoot();
+            const root = component.getRoot();
 
-            if (empty instanceof EmptyComponent)
-            {
-                empty.unlink(false);
-            }
+            root.unlink(false);
 
             delete this.selected;
 
@@ -100,17 +98,23 @@ export class TestApp extends Application
         return undefined;
     }
 
-    private makeInteractive(component: AnyContainer)
+    private makeInteractive(rootComponent: AnyContainer)
     {
-        const sprite = component.getView<Container>();
-
-        sprite.interactive = true;
-
-        sprite.on('mousedown', (e: InteractionEvent) =>
+        rootComponent.walk((component) =>
         {
-            this.select(component);
-            startDrag(component);
-            e.stopPropagation();
+            const sprite = component.getView<Container>();
+
+            console.log('interactive', component.id);
+
+            sprite.interactive = true;
+
+            sprite.on('mousedown', (e: InteractionEvent) =>
+            {
+                e.stopPropagation();
+                console.log(component.id);
+                this.select(component as AnyContainer);
+                startDrag(component as AnyContainer);
+            });
         });
     }
 
@@ -172,6 +176,14 @@ export class TestApp extends Application
             this.selected.model.width = Math.round(Math.random() * 50);
             this.selected.model.height = Math.round(Math.random() * 50);
             this.select(this.selected);
+        }
+    }
+
+    public randAlpha()
+    {
+        if (this.selected)
+        {
+            this.selected.model.alpha = ((Math.random() * 70) + 30) / 100;
         }
     }
 

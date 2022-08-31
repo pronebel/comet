@@ -53,4 +53,6 @@ export function startDrag(component: DebugComponent)
     state.startClientX = state.clientX;
     state.startClientY = state.clientY;
     state.component = component;
+
+    console.log('Start drag', component);
 }
