@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3';
 
 import type { ModelSchema } from './schema';
 
-let id = 0;
+let id = 1;
 
 export class Model<M extends object> extends EventEmitter<'modified'>
 {
@@ -113,6 +113,11 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
             this.parent.removeChild(this);
         }
+    }
+
+    public copy<T extends Model<M>>(): T
+    {
+        return createModel(this.schema, this.values) as unknown as T;
     }
 
     public removeChild(model: Model<M>)

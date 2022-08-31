@@ -3,8 +3,12 @@
 
   import { app } from "../app";
 
-  const onNewClick = () => {
-    app.newComponent();
+  const onNewContainerClick = () => {
+    app.newContainer();
+  };
+
+  const onNewChildClick = () => {
+    app.newChild();
   };
 
   const onDeselectClick = () => {
@@ -50,7 +54,8 @@
 </script>
 
 <buttons>
-  <button on:click={onNewClick}>New</button>
+  <button on:click={onNewContainerClick}>New Container</button>
+  <button on:click={onNewChildClick}>New Child</button>
   <button on:click={onDeselectClick}>Deselect</button>
   <button on:click={onCopyVariantClick}>Copy as Variant</button>
   <button on:click={onCopyReferenceClick}>Copy as Rererence</button>
@@ -81,8 +86,8 @@
 
   buttons test {
     position: fixed;
-    top: 20px;
-    left: 20px;
+    top: 0px;
+    left: 0px;
     width: 20px;
     height: 20px;
     border: 1px dashed yellow;

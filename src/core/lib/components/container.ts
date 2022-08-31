@@ -1,40 +1,33 @@
-import type { Container } from 'pixi.js';
+import { Container } from 'pixi.js';
 
-import { Component } from '../component';
-import { NumericRangeLimitConstraint } from '../model/constraints';
+import type { DisplayObjectModel } from '../displayObjectComponent';
+import { DisplayObjectContainer, schema as displayObjectSchema } from '../displayObjectComponent';
 import { ModelSchema } from '../model/schema';
 
-export interface ContainerModel
+export interface ContainerModel extends DisplayObjectModel
 {
-    x: number;
-    y: number;
-    pivotX: number;
-    pivotY: number;
     width: number;
     height: number;
-    scaleX: number;
-    scaleY: number;
-    angle: number;
-    alpha: number;
 }
 
 export const schema = new ModelSchema<ContainerModel>({
-    x: 20,
-    y: 20,
-    pivotX: 0,
-    pivotY: 0,
+    ...displayObjectSchema.defaults,
     width: 20,
     height: 20,
-    scaleX: 1,
-    scaleY: 1,
-    angle: 0,
-    alpha: 1,
-}, {
-    alpha: [new NumericRangeLimitConstraint(0, 1)],
-});
+}, displayObjectSchema.constraints);
 
-export abstract class ContainerComponent<M extends ContainerModel, V extends Container> extends Component<M, V>
+export class ContainerComponent<M extends ContainerModel, V extends Container> extends DisplayObjectContainer<M, V>
 {
+    public modelSchema(): ModelSchema<M>
+    {
+        return schema as unknown as ModelSchema<M>;
+    }
+
+    public createView(): V
+    {
+        return new Container() as V;
+    }
+
     public updateView(): void
     {
         const { view, model: { values: {

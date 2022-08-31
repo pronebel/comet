@@ -1,12 +1,10 @@
 import EventEmitter from 'eventemitter3';
 
-import type components from './components';
-import { EmptyComponent } from './components/empty';
 import type { Model } from './model/model';
 import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
 
-const ids = {} as Record<keyof typeof components, number>;
+const ids = {} as Record<string, number>;
 
 export type AnyComponent = Component<any, any>;
 
@@ -25,8 +23,6 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
     public model: Model<M> & M;
     public view: V;
 
-    public empty: EmptyComponent;
-
     public parent?: AnyComponent;
     public children: AnyComponent[];
 
@@ -44,16 +40,13 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
         if (!ids[componentType])
         {
-            ids[componentType] = 0;
+            ids[componentType] = 1;
         }
 
         this.id = `${componentType}:${ids[componentType]++}`;
         this.children = [];
         this.spawnMode = spawnMode;
         this.spawned = [];
-
-        this.empty = new EmptyComponent();
-        this.empty.addChild(this);
 
         if (spawnMode === SpawnMode.Reference && spawner)
         {
@@ -68,7 +61,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
             });
         }
 
-        this.model.on('modified', this.onModelModified);
+        this.initModel();
 
         if (spawner)
         {
@@ -80,11 +73,21 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         this.update();
     }
 
-    public getComponentType(): keyof typeof components
+    protected initModel()
+    {
+        this.model.on('modified', this.onModelModified);
+    }
+
+    public getComponentType(): string
     {
         return (Object.getPrototypeOf(this).constructor as {
             new (): object;
-        }).name as keyof typeof components;
+        }).name;
+    }
+
+    public getView<T = V>(): T
+    {
+        return this.view as unknown as T;
     }
 
     protected onModelModified = <T>(key: string, value: T, oldValue: T) =>
@@ -167,11 +170,11 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         this.children.forEach((child) => child.dispose());
     }
 
-    public unlink()
+    public unlink(unlinkChildren = true)
     {
-        const { model, spawner } = this;
+        const { model, spawner, spawnMode } = this;
 
-        if (model.parent && spawner)
+        if (spawnMode === SpawnMode.Variant && model.parent && spawner)
         {
             model.flatten();
 
@@ -182,8 +185,16 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
             this.emit('unlinked');
         }
+        else if (spawnMode === SpawnMode.Reference && spawner)
+        {
+            this.model = spawner.model.copy();
+            this.initModel();
+        }
 
-        this.children.forEach((child) => child.unlink());
+        if (unlinkChildren)
+        {
+            this.children.forEach((child) => child.unlink());
+        }
     }
 
     public deleteSelf()
@@ -193,6 +204,23 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
             this.parent.removeChild(this);
             this.dispose();
         }
+    }
+
+    public getRoot<T extends AnyComponent>(): T
+    {
+        if (!this.parent)
+        {
+            return this as unknown as T;
+        }
+
+        let ref: AnyComponent | undefined = this.parent;
+
+        while (ref)
+        {
+            ref = ref.parent;
+        }
+
+        return ref as unknown as T;
     }
 
     public setParent(component: AnyComponent)
@@ -257,18 +285,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         // subclasses
     }
 
-    public getView<T = V>(): T
-    {
-        return this.view as unknown as T;
-    }
-
-    public update()
-    {
-        if (this.view)
-        {
-            this.updateView();
-        }
-    }
+    public abstract update(): void;
 
     public abstract modelSchema(): ModelSchema<M>;
 

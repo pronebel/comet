@@ -1,26 +1,32 @@
+import type { Container, InteractionEvent } from 'pixi.js';
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
 import type { AnyComponent, SpawnMode } from '../../core/lib/component';
+import { ContainerComponent } from '../../core/lib/components/container';
 import { DebugComponent } from '../../core/lib/components/debug';
 import { EmptyComponent } from '../../core/lib/components/empty';
+import { startDrag } from './drag';
 
 export let app: TestApp;
 
+type AnyContainer = ContainerComponent<any, any>;
+
 export class TestApp extends Application
 {
-    public selected?: DebugComponent;
+    public selected?: AnyContainer;
     public selection: Sprite;
-    public group: EmptyComponent;
+    public root: EmptyComponent;
 
     constructor(options?: IApplicationOptions | undefined)
     {
         super(options);
 
-        this.group = new EmptyComponent({
+        this.root = new ContainerComponent({
             x: 0,
             y: 0,
         });
-        this.stage.addChild(this.group.view);
+
+        this.stage.addChild(this.root.view);
 
         const selection = this.selection = new Sprite(Texture.WHITE);
 
@@ -32,7 +38,17 @@ export class TestApp extends Application
         this.stage.addChild(selection);
     }
 
-    public newComponent()
+    public newContainer()
+    {
+        const empty = new EmptyComponent({
+            x: 20,
+            y: 20,
+        });
+
+        this.addComponent(empty);
+    }
+
+    public newChild()
     {
         const component = new DebugComponent({
             x: 20,
@@ -42,10 +58,9 @@ export class TestApp extends Application
         });
 
         this.addComponent(component);
-        this.inspect();
     }
 
-    public addComponent(component: DebugComponent)
+    public addComponent(component: AnyContainer)
     {
         if (this.selected)
         {
@@ -53,13 +68,53 @@ export class TestApp extends Application
         }
         else
         {
-            this.group.addChild(component);
+            this.root.addChild(component);
         }
 
+        this.makeInteractive(component);
         this.select(component);
     }
 
-    public select(component: DebugComponent)
+    public copy(spawnMode: SpawnMode)
+    {
+        if (this.selected)
+        {
+            const component = this.selected.copy<AnyContainer>(spawnMode);
+
+            const empty = component.getRoot();
+
+            if (empty instanceof EmptyComponent)
+            {
+                empty.unlink(false);
+            }
+
+            delete this.selected;
+
+            this.addComponent(component);
+
+            this.inspect();
+
+            return component;
+        }
+
+        return undefined;
+    }
+
+    private makeInteractive(component: AnyContainer)
+    {
+        const sprite = component.getView<Container>();
+
+        sprite.interactive = true;
+
+        sprite.on('mousedown', (e: InteractionEvent) =>
+        {
+            this.select(component);
+            startDrag(component);
+            e.stopPropagation();
+        });
+    }
+
+    public select(component: AnyContainer)
     {
         this.deselect();
         this.selected = component;
@@ -82,21 +137,6 @@ export class TestApp extends Application
         this.selection.y = bounds.top;
         this.selection.width = bounds.width;
         this.selection.height = bounds.height;
-    }
-
-    public copy(spawnMode: SpawnMode)
-    {
-        if (this.selected)
-        {
-            const component = this.selected.copy<DebugComponent>(spawnMode);
-
-            delete this.selected;
-            this.addComponent(component);
-
-            return component;
-        }
-
-        return undefined;
     }
 
     public unlink()
