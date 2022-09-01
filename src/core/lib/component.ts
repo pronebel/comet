@@ -140,14 +140,14 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
         spawner.on('childAdded', this.onSpawnerChildAdded);
         spawner.on('childRemoved', this.onSpawnerChildRemoved);
-
-        // this.on('childAdded', spawner.onSpawnerChildAdded);
-        // this.on('childRemoved', spawner.onSpawnerChildRemoved);
     }
 
     protected onSpawnerChildAdded = (component: AnyComponent) =>
     {
-        const copy = component.copy(this.spawnMode === SpawnMode.ReferenceRoot ? SpawnMode.Reference : this.spawnMode);
+        const copy = component.copy(
+            this.spawnMode === SpawnMode.ReferenceRoot ? SpawnMode.Reference : this.spawnMode,
+            false,
+        );
 
         this.addChild(copy);
     };
@@ -234,16 +234,25 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         return ref as unknown as T;
     }
 
-    public setParent(component: AnyComponent)
+    public setParent(parent: AnyComponent)
     {
         if (this.parent)
         {
             this.parent.removeChild(this);
         }
 
-        this.parent = component;
-        component.children.push(this);
-        component.emit('childAdded', this);
+        this.parent = parent;
+        parent.children.push(this);
+        parent.emit('childAdded', this);
+
+        if (parent.spawner && parent.spawnMode === SpawnMode.Reference)
+        {
+            if (parent.children.length !== parent.spawner.children.length)
+            {
+                // parent.spawner.onSpawnerChildAdded(this);
+                console.log('!!');
+            }
+        }
 
         this.onAddedToParent();
     }

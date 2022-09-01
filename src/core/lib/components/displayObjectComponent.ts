@@ -16,6 +16,7 @@ export interface DisplayObjectModel
     scaleY: number;
     angle: number;
     alpha: number;
+    visible: boolean;
 }
 
 export const schema = new ModelSchema<DisplayObjectModel>({
@@ -29,6 +30,7 @@ export const schema = new ModelSchema<DisplayObjectModel>({
     scaleY: 1,
     angle: 0,
     alpha: 1,
+    visible: true,
 }, {
     alpha: [new NumericRangeLimitConstraint(0, 1)],
 });
@@ -48,6 +50,7 @@ export abstract class DisplayObjectContainer<M extends DisplayObjectModel, V ext
             scaleX, scaleY,
             angle,
             alpha,
+            visible,
         } } } = this;
 
         view.x = x;
@@ -58,6 +61,7 @@ export abstract class DisplayObjectContainer<M extends DisplayObjectModel, V ext
         view.scale.y = scaleY;
         view.angle = angle;
         view.alpha = alpha;
+        view.visible = visible;
     }
 
     public update()
