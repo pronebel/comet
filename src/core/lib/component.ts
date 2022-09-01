@@ -152,6 +152,19 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         this.addChild(copy);
     };
 
+    protected onSpawnedChildAdded = (component: AnyComponent) =>
+    {
+        const copy = component.copy(
+            SpawnMode.Reference,
+            false,
+        );
+
+        copy.parent = this;
+        this.children.push(copy);
+
+        copy.onAddedToParent();
+    };
+
     protected onSpawnerChildRemoved = (component: AnyComponent) =>
     {
         this.children.forEach((child: AnyComponent) =>
@@ -245,12 +258,13 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         parent.children.push(this);
         parent.emit('childAdded', this);
 
-        if (parent.spawner && parent.spawnMode === SpawnMode.Reference)
+        const { spawner, spawnMode }  = parent;
+
+        if (spawner && (spawnMode === SpawnMode.Reference || spawnMode === SpawnMode.ReferenceRoot))
         {
-            if (parent.children.length !== parent.spawner.children.length)
+            if (parent.children.length !== spawner.children.length)
             {
-                // parent.spawner.onSpawnerChildAdded(this);
-                console.log('!!');
+                spawner.onSpawnedChildAdded(this);
             }
         }
 
@@ -278,6 +292,27 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
             children.splice(index, 1);
             delete component.parent;
             this.emit('childRemoved', component);
+
+            const { spawner, spawnMode } = component;
+
+            if (spawner && (spawnMode === SpawnMode.Reference || spawnMode === SpawnMode.ReferenceRoot))
+            {
+                spawner.deleteSelf();
+            }
+            else
+            {
+                component.spawned.forEach((spawnedComponent) =>
+                {
+                    const { spawner, spawnMode } = spawnedComponent;
+
+                    const isSameComponent = spawner === component;
+
+                    if (isSameComponent && spawnMode === (SpawnMode.Reference || spawnMode === SpawnMode.ReferenceRoot))
+                    {
+                        spawnedComponent.deleteSelf();
+                    }
+                });
+            }
         }
         else
         {
