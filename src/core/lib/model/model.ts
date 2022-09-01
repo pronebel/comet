@@ -13,7 +13,10 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     public schema: ModelSchema<M>;
     public data: Partial<M>;
     public customProperties: Map<string, any>;
-    public customPropertyAssignments: Map<keyof M, string>;
+    public customPropertyAssignments: Map<keyof M, {
+        name: string;
+        previousValue: any;
+    }>;
 
     constructor(schema: ModelSchema<M>, data: Partial<M>)
     {
@@ -76,11 +79,11 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     {
         const { parent, customProperties, customPropertyAssignments } = this;
 
-        const propertyName = customPropertyAssignments.get(key);
+        const property = customPropertyAssignments.get(key);
 
-        if (propertyName)
+        if (property)
         {
-            return customProperties.get(propertyName);
+            return customProperties.get(property.name);
         }
 
         if (parent)
@@ -245,7 +248,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
         for (let i = 0; i < modelKeys.length; i++)
         {
-            if (this.customPropertyAssignments.get(modelKeys[i]) === customPropertyName)
+            if (this.customPropertyAssignments.get(modelKeys[i])?.name === customPropertyName)
             {
                 return modelKeys[i];
             }
@@ -261,7 +264,12 @@ export class Model<M extends object> extends EventEmitter<'modified'>
             throw new Error(`"Cannot find custom property with name "${customPropertyName}"`);
         }
 
-        this.customPropertyAssignments.set(modelKey, customPropertyName);
+        const previousValue = this.data[modelKey];
+
+        this.customPropertyAssignments.set(modelKey, {
+            name: customPropertyName,
+            previousValue,
+        });
 
         const value = this.customProperties.get(customPropertyName) || project.customProperties.get(customPropertyName);
 
@@ -270,11 +278,14 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
     public unassignCustomProperty(modelKey: keyof M)
     {
+        const property = this.customPropertyAssignments.get(modelKey);
+
         this.customPropertyAssignments.delete(modelKey);
 
-        const value = this.schema.defaults[modelKey];
-
-        this.setValue(modelKey, value);
+        if (property)
+        {
+            this.setValue(modelKey, property.previousValue || this.schema.defaults[modelKey]);
+        }
     }
 
     public getCustomPropertyNames()
