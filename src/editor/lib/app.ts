@@ -72,7 +72,7 @@ export class TestApp extends Application
             this.root.addChild(component);
         }
 
-        // this.makeInteractive(component);
+        this.makeInteractiveDeep(component);
         this.select(component);
         this.inspect();
     }
@@ -93,25 +93,30 @@ export class TestApp extends Application
         return undefined;
     }
 
-    public makeInteractive(rootComponent: AnyContainer)
+    public makeInteractiveDeep(rootComponent: AnyContainer)
     {
         rootComponent.walk((component) =>
         {
-            const sprite = component.getView<Container>();
-
-            if (!sprite.interactive)
-            {
-                sprite.interactive = true;
-
-                sprite.on('mousedown', (e: InteractionEvent) =>
-                {
-                    e.stopPropagation();
-
-                    this.select(component as AnyContainer);
-                    startDrag(component as AnyContainer);
-                });
-            }
+            this.makeInteractive(component as AnyContainer);
         });
+    }
+
+    public makeInteractive(component: AnyContainer)
+    {
+        const sprite = component.getView<Container>();
+
+        if (!sprite.interactive)
+        {
+            sprite.interactive = true;
+
+            sprite.on('mousedown', (e: InteractionEvent) =>
+            {
+                e.stopPropagation();
+
+                this.select(component);
+                startDrag(component);
+            });
+        }
     }
 
     public select(component: AnyContainer)
