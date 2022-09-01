@@ -1,6 +1,6 @@
 import { Sprite } from 'pixi.js';
 
-import { Component } from '../../../src/core/lib/component';
+import { Component, SpawnMode } from '../../../src/core/lib/component';
 import { ModelSchema } from '../../../src/core/lib/model/schema';
 
 export interface TestModel
@@ -18,9 +18,9 @@ const clearLog = () => log.length = 0;
 
 class TestComponent extends Component<TestModel, Sprite>
 {
-    constructor(modelValues: Partial<TestModel> = {}, spawner?: Component<TestModel, Sprite>, linked = true)
+    constructor(modelValues: Partial<TestModel> = {}, spawner?: Component<TestModel, Sprite>, spawnMode = SpawnMode.None)
     {
-        super(modelValues, spawner, linked);
+        super(modelValues, spawner, spawnMode);
     }
 
     public modelSchema(): ModelSchema<TestModel>
@@ -51,7 +51,7 @@ describe('Component', () =>
         {
             const component = new TestComponent();
 
-            expect(component.id).toBe('TestComponent:0');
+            expect(component.id).toBe('TestComponent:1');
         });
 
         it('should create model, view, and update view when constructed', () =>
@@ -195,7 +195,7 @@ describe('Component', () =>
 
     describe('Copy', () =>
     {
-        const setup = (linked = true) =>
+        const setup = (spawnMode = SpawnMode.Variant) =>
         {
             const parent = new TestComponent();
             const childA = new TestComponent();
@@ -204,7 +204,7 @@ describe('Component', () =>
             parent.addChild(childA);
             childA.addChild(childB);
 
-            const copy = parent.copy(linked);
+            const copy = parent.copy(spawnMode);
 
             const copyChildA = copy.children[0];
             const copyChildB = copyChildA.children[0];
@@ -234,18 +234,17 @@ describe('Component', () =>
 
             expect(copy.spawner).toBe(component);
             expect(copy.model.parent).toBe(component.model);
-            expect(copy.model.x).toBeUndefined();
-            expect(copy.model.getValue('x')).toBe(15);
+            expect(copy.model.x).toBe(15);
         });
 
         it('should not reference spawner model when copied unlinked', () =>
         {
             const component = new TestComponent({ x: 15 });
-            const copy = component.copy(false);
+            const copy = component.copy(SpawnMode.None);
 
             expect(copy.spawner).toBe(component);
             expect(copy.model.parent).toBeUndefined();
-            expect(copy.model.x).toBe(15);
+            expect(copy.model.x).toBe(schema.defaults.x);
         });
 
         it('should copy children when copied', () =>

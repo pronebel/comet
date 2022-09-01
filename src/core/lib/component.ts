@@ -349,7 +349,13 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         // subclasses
     }
 
-    public abstract update(): void;
+    public update()
+    {
+        if (this.view)
+        {
+            this.updateView();
+        }
+    }
 
     public abstract modelSchema(): ModelSchema<M>;
 

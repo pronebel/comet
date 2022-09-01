@@ -63,12 +63,4 @@ export abstract class DisplayObjectContainer<M extends DisplayObjectModel, V ext
         view.alpha = alpha;
         view.visible = visible;
     }
-
-    public update()
-    {
-        if (this.view)
-        {
-            this.updateView();
-        }
-    }
 }

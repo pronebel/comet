@@ -38,14 +38,14 @@ describe('Model', () =>
 
     describe('Basic Access', () =>
     {
-        it('should return undefined for own values if no props passed', () =>
+        it('should return defaults for values if no props passed', () =>
         {
             const model = createModel(schema);
 
-            expect(model.x).toBeUndefined();
-            expect(model.y).toBeUndefined();
-            expect(model.visible).toBeUndefined();
-            expect(model.obj).toBeUndefined();
+            expect(model.getValue('x')).toBe(schema.defaults.x);
+            expect(model.getValue('y')).toBe(schema.defaults.y);
+            expect(model.getValue('visible')).toBe(schema.defaults.visible);
+            expect(model.getValue('obj')).toBe(schema.defaults.obj);
         });
 
         it('should return given prop values for own values if props passed', () =>
@@ -62,16 +62,6 @@ describe('Model', () =>
             expect(model.y).toBe(props.y);
             expect(model.visible).toBe(props.visible);
             expect(model.obj).toBe(props.obj);
-        });
-
-        it('should return defaults for values if no props passed and .getValue<T> used', () =>
-        {
-            const model = createModel(schema);
-
-            expect(model.getValue('x')).toBe(schema.defaults.x);
-            expect(model.getValue('y')).toBe(schema.defaults.y);
-            expect(model.getValue('visible')).toBe(schema.defaults.visible);
-            expect(model.getValue('obj')).toBe(schema.defaults.obj);
         });
 
         it('should apply constraints if given', () =>
