@@ -74,6 +74,7 @@ export class TestApp extends Application
 
         this.makeInteractive(component);
         this.select(component);
+        this.inspect();
     }
 
     public copy(spawnMode: SpawnMode)
@@ -89,8 +90,6 @@ export class TestApp extends Application
             delete this.selected;
 
             this.addComponent(component);
-
-            this.inspect();
 
             return component;
         }
@@ -199,7 +198,7 @@ export class TestApp extends Application
         if (this.selected)
         {
             console.dir(this.selected);
-            (window as any).foo = this.selected;
+            (window as any).$ = this.selected;
         }
     }
 }

@@ -1,8 +1,6 @@
-import type { CustomProperties } from './model/customProperty';
-
 export interface Project
 {
-    customProperties: CustomProperties;
+    customProperties: Map<string, any>;
 }
 
 export const project: Project = {

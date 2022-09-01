@@ -1,6 +1,5 @@
 import EventEmitter from 'eventemitter3';
 
-import type { CustomProperties, CustomProperty } from './customProperty';
 import type { ModelSchema } from './schema';
 
 let id = 1;
@@ -12,7 +11,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     public children: Model<M>[];
     public schema: ModelSchema<M>;
     public data: Partial<M>;
-    public customProperties: CustomProperties;
+    public customProperties: Map<string, any>;
     public customPropertyAssignments: Map<keyof M, string>;
 
     constructor(schema: ModelSchema<M>, data: Partial<M>)
@@ -72,9 +71,40 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         return values;
     }
 
+    public getValue<T extends M[keyof M]>(key: keyof M): T
+    {
+        const { data, parent, schema: { defaults }, customProperties, customPropertyAssignments } = this;
+
+        const propertyName = customPropertyAssignments.get(key);
+
+        if (propertyName)
+        {
+            const customPropertyValue = customProperties.get(propertyName);
+
+            if (customPropertyValue !== undefined)
+            {
+                return customPropertyValue as T;
+            }
+        }
+
+        const value = (data as M)[key];
+
+        if (value === undefined)
+        {
+            if (parent)
+            {
+                return parent.getValue(key);
+            }
+
+            return defaults[key] as T;
+        }
+
+        return value as T;
+    }
+
     public setValue<T>(key: keyof M, newValue: T)
     {
-        const { data, schema, schema: { keys } } = this;
+        const { data, schema, schema: { keys }, customPropertyAssignments } = this;
 
         let oldValue = Reflect.get(data, key) as T;
 
@@ -95,7 +125,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
             });
         }
 
-        const rtn = Reflect.set(data, key, value);
+        const rtn = customPropertyAssignments.has(key) ? true : Reflect.set(data, key, value);
 
         if (keys.indexOf(key) > -1)
         {
@@ -113,37 +143,6 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         {
             this.setValue(key, values[key]);
         });
-    }
-
-    public getValue<T extends M[keyof M]>(key: keyof M): T
-    {
-        const { data, parent, schema: { defaults }, customProperties, customPropertyAssignments } = this;
-
-        const propertyName = customPropertyAssignments.get(key);
-
-        if (propertyName)
-        {
-            const customProperty = customProperties.get(propertyName);
-
-            if (customProperty)
-            {
-                return customProperty.value as T;
-            }
-        }
-
-        const value = (data as M)[key];
-
-        if (value === undefined)
-        {
-            if (parent)
-            {
-                return parent.getValue(key);
-            }
-
-            return defaults[key] as T;
-        }
-
-        return value as T;
     }
 
     public flatten()
@@ -209,26 +208,68 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         this.children.forEach((childModel) => childModel.onModified(key, value, oldValue));
     }
 
-    public addCustomProperty(property: CustomProperty<any>)
+    public setCustomProperty<T>(name: string, value: T)
     {
-        this.customProperties.set(property.name, property);
+        this.customProperties.set(name, value);
     }
 
-    public removeCustomPRoperty(name: string)
+    public removeCustomProperty(name: string)
     {
         this.customProperties.delete(name);
+        const modelKey = this.getCustomPropertyAssignment(name);
+
+        if (modelKey)
+        {
+            this.unassignCustomProperty(modelKey);
+        }
     }
 
-    public assignCustomProperty(customPropertyName: string, modelKey: keyof M)
+    public getCustomPropertyAssignment(customPropertyName: string)
     {
-        const property = this.customProperties.get(customPropertyName);
+        const modelKeys = Array.from(this.customPropertyAssignments.keys());
 
-        if (property === undefined)
+        for (let i = 0; i < modelKeys.length; i++)
+        {
+            if (this.customPropertyAssignments.get(modelKeys[i]) === customPropertyName)
+            {
+                return modelKeys[i];
+            }
+        }
+
+        return undefined;
+    }
+
+    public assignCustomProperty(modelKey: keyof M, customPropertyName: string)
+    {
+        if (!this.customProperties.has(customPropertyName))
         {
             throw new Error(`"Cannot find custom property with name "${customPropertyName}"`);
         }
 
         this.customPropertyAssignments.set(modelKey, customPropertyName);
+
+        const value = this.customProperties.get(customPropertyName);
+
+        this.setValue(modelKey, value);
+    }
+
+    public unassignCustomProperty(modelKey: keyof M)
+    {
+        this.customPropertyAssignments.delete(modelKey);
+
+        const value = this.getValue(modelKey);
+
+        this.setValue(modelKey, value);
+    }
+
+    public getCustomPropertyNames()
+    {
+        return Array.from(this.customProperties.keys());
+    }
+
+    public getCustomPropertyType(name: string)
+    {
+        return typeof this.customProperties.get(name);
     }
 }
 
