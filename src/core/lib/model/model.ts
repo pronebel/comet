@@ -1,5 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
+import { project } from '../project';
 import type { ModelSchema } from './schema';
 
 let id = 1;
@@ -118,7 +119,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
     public setValue<T>(key: keyof M, newValue: T)
     {
-        const { data, schema, schema: { keys }, customPropertyAssignments } = this;
+        const { data, schema, schema: { keys } } = this;
 
         let oldValue = Reflect.get(data, key) as T;
 
@@ -139,7 +140,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
             });
         }
 
-        const rtn = customPropertyAssignments.has(key) ? true : Reflect.set(data, key, value);
+        const rtn = Reflect.set(data, key, value);
 
         if (keys.indexOf(key) > -1)
         {
@@ -230,7 +231,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     public removeCustomProperty(name: string)
     {
         this.customProperties.delete(name);
-        const modelKey = this.getCustomPropertyAssignment(name);
+        const modelKey = this.getModelKeyForCustomPropertyAssignment(name);
 
         if (modelKey)
         {
@@ -238,7 +239,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         }
     }
 
-    public getCustomPropertyAssignment(customPropertyName: string)
+    public getModelKeyForCustomPropertyAssignment(customPropertyName: string)
     {
         const modelKeys = Array.from(this.customPropertyAssignments.keys());
 
@@ -255,14 +256,14 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
     public assignCustomProperty(modelKey: keyof M, customPropertyName: string)
     {
-        if (!this.customProperties.has(customPropertyName))
+        if (!this.customProperties.has(customPropertyName) && !project.customProperties.has(customPropertyName))
         {
             throw new Error(`"Cannot find custom property with name "${customPropertyName}"`);
         }
 
         this.customPropertyAssignments.set(modelKey, customPropertyName);
 
-        const value = this.customProperties.get(customPropertyName);
+        const value = this.customProperties.get(customPropertyName) || project.customProperties.get(customPropertyName);
 
         this.setValue(modelKey, value);
     }
@@ -271,7 +272,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     {
         this.customPropertyAssignments.delete(modelKey);
 
-        const value = this.getValue(modelKey);
+        const value = this.schema.defaults[modelKey];
 
         this.setValue(modelKey, value);
     }
