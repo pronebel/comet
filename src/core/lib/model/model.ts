@@ -71,20 +71,34 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         return values;
     }
 
-    public getValue<T extends M[keyof M]>(key: keyof M): T
+    public getCustomPropertyValue(key: keyof M): unknown
     {
-        const { data, parent, schema: { defaults }, customProperties, customPropertyAssignments } = this;
+        const { parent, customProperties, customPropertyAssignments } = this;
 
         const propertyName = customPropertyAssignments.get(key);
 
         if (propertyName)
         {
-            const customPropertyValue = customProperties.get(propertyName);
+            return customProperties.get(propertyName);
+        }
 
-            if (customPropertyValue !== undefined)
-            {
-                return customPropertyValue as T;
-            }
+        if (parent)
+        {
+            return parent.getCustomPropertyValue(key);
+        }
+
+        return undefined;
+    }
+
+    public getValue<T extends M[keyof M]>(key: keyof M): T
+    {
+        const { data, parent, schema: { defaults } } = this;
+
+        const customPropertyValue = this.getCustomPropertyValue(key);
+
+        if (customPropertyValue !== undefined)
+        {
+            return customPropertyValue as T;
         }
 
         const value = (data as M)[key];

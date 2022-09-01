@@ -1,4 +1,4 @@
-import { type DisplayObject, Container, Graphics } from 'pixi.js';
+import { type DisplayObject, Container, Graphics, Text } from 'pixi.js';
 
 import type { ModelSchema } from '../model/schema';
 import type { ContainerModel } from './container';
@@ -34,6 +34,16 @@ export class EmptyComponent extends ContainerComponent<ContainerModel, Container
         graphics.beginFill(0x650A5A, 0.01);
         graphics.drawCircle(0, 0, 10);
         graphics.endFill();
+
+        const label = new Text(this.id.replace('Component', ''), {
+            fontSize: 10,
+            fill: 0xffffff,
+        });
+
+        label.x = 15;
+        label.y = -5;
+
+        container.addChild(label);
 
         return container;
     }

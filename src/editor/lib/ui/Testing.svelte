@@ -3,6 +3,8 @@
 
   import { app } from "../app";
 
+  let customPropValue: string = "30";
+
   const onNewContainer = () => {
     app.newContainer();
   };
@@ -55,6 +57,15 @@
     console.clear();
     app.inspect();
   };
+
+  const onSetCustomProp = () => {
+    const value = parseFloat(customPropValue);
+    app.setCustomProp(value);
+  };
+
+  const onRemoveCustomProp = () => {
+    app.removeCustomProp();
+  };
 </script>
 
 <buttons>
@@ -71,6 +82,10 @@
   <button on:click={onRandAlpha}>Rand Alpha</button>
   <button on:click={onResetModel}>Reset Model</button>
   <button on:click={onInspect}>Inspect</button>
+  <br />
+  <button on:click={onSetCustomProp}>Set Custom Prop</button>
+  <input bind:value={customPropValue} />
+  <button on:click={onRemoveCustomProp}>Remove Custom Prop</button>
   <test />
 </buttons>
 
@@ -98,5 +113,17 @@
     border: 1px dashed yellow;
     pointer-events: none;
     box-sizing: border-box;
+  }
+
+  buttons input {
+    margin-bottom: 10px;
+    font-size: 16px;
+    text-align: center;
+    border-color: #666;
+    padding: 5px;
+  }
+
+  buttons br {
+    width: 100%;
   }
 </style>

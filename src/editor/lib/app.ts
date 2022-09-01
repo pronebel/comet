@@ -201,6 +201,23 @@ export class TestApp extends Application
             (window as any).$ = this.selected;
         }
     }
+
+    public setCustomProp(value: number)
+    {
+        if (this.selected)
+        {
+            this.selected.model.setCustomProperty('testCustomProp', value);
+            this.selected.model.assignCustomProperty('label', 'testCustomProp');
+        }
+    }
+
+    public removeCustomProp()
+    {
+        if (this.selected)
+        {
+            this.selected.model.removeCustomProperty('testCustomProp');
+        }
+    }
 }
 
 export function createApp(canvas: HTMLCanvasElement)

@@ -19,16 +19,16 @@ export const schema = new ModelSchema<SpriteModel>({
     ...ContainerSchema.constraints,
 });
 
-export class SpriteComponent extends ContainerComponent<SpriteModel, Sprite>
+export class SpriteComponent<M extends SpriteModel, V extends Sprite> extends ContainerComponent<M, V>
 {
-    public modelSchema(): ModelSchema<SpriteModel>
+    public modelSchema(): ModelSchema<M>
     {
-        return schema;
+        return schema as unknown as ModelSchema<M>;
     }
 
-    public createView(): Sprite
+    public createView(): V
     {
-        return new Sprite(Texture.WHITE);
+        return new Sprite(Texture.WHITE) as V;
     }
 
     public updateView(): void
