@@ -1,8 +1,8 @@
 import { Container } from 'pixi.js';
 
-import type { DisplayObjectModel } from '../displayObjectComponent';
-import { DisplayObjectContainer, schema as displayObjectSchema } from '../displayObjectComponent';
 import { ModelSchema } from '../model/schema';
+import type { DisplayObjectModel } from './displayObjectComponent';
+import { DisplayObjectContainer, schema as displayObjectSchema } from './displayObjectComponent';
 
 export interface ContainerModel extends DisplayObjectModel
 {

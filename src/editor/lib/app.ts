@@ -9,7 +9,7 @@ import { startDrag } from './drag';
 
 export let app: TestApp;
 
-type AnyContainer = ContainerComponent<any, any>;
+export type AnyContainer = ContainerComponent<any, any>;
 
 export class TestApp extends Application
 {
@@ -72,7 +72,7 @@ export class TestApp extends Application
             this.root.addChild(component);
         }
 
-        this.makeInteractive(component);
+        // this.makeInteractive(component);
         this.select(component);
         this.inspect();
     }
@@ -82,10 +82,6 @@ export class TestApp extends Application
         if (this.selected)
         {
             const component = this.selected.copy<AnyContainer>(spawnMode);
-
-            const root = component.getRoot();
-
-            root.unlink(false);
 
             delete this.selected;
 
@@ -97,21 +93,24 @@ export class TestApp extends Application
         return undefined;
     }
 
-    private makeInteractive(rootComponent: AnyContainer)
+    public makeInteractive(rootComponent: AnyContainer)
     {
         rootComponent.walk((component) =>
         {
             const sprite = component.getView<Container>();
 
-            sprite.interactive = true;
-
-            sprite.on('mousedown', (e: InteractionEvent) =>
+            if (!sprite.interactive)
             {
-                e.stopPropagation();
+                sprite.interactive = true;
 
-                this.select(component as AnyContainer);
-                startDrag(component as AnyContainer);
-            });
+                sprite.on('mousedown', (e: InteractionEvent) =>
+                {
+                    e.stopPropagation();
+
+                    this.select(component as AnyContainer);
+                    startDrag(component as AnyContainer);
+                });
+            }
         });
     }
 
@@ -202,7 +201,7 @@ export class TestApp extends Application
         }
     }
 
-    public setCustomProp(value: number)
+    public setCustomProp(value: any)
     {
         if (this.selected)
         {

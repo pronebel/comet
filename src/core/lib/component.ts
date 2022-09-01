@@ -15,6 +15,7 @@ export enum SpawnMode
     None = 'none',
     Variant = 'variant',
     Reference = 'reference',
+    ReferenceRoot = 'referenceRoot',
     Duplicate = 'duplicate',
 }
 
@@ -48,7 +49,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         this.spawnMode = spawnMode;
         this.spawned = [];
 
-        if (spawnMode === SpawnMode.Reference && spawner)
+        if (spawner && spawnMode === SpawnMode.Reference)
         {
             this.model = spawner.model;
         }
@@ -97,35 +98,21 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         this.emit('modified', key, value, oldValue);
     };
 
-    protected onSpawnerChildAdded = (component: AnyComponent) =>
-    {
-        const copy = component.copy(this.spawnMode);
-
-        this.addChild(copy);
-    };
-
-    protected onSpawnerChildRemoved = (component: AnyComponent) =>
-    {
-        this.children.forEach((child: AnyComponent) =>
-        {
-            if (child.spawner === component)
-            {
-                child.deleteSelf();
-            }
-        });
-    };
-
-    public copy<T extends Component<M, V>>(spawnMode: SpawnMode = SpawnMode.Variant): T
+    public copy<T extends Component<M, V>>(spawnMode: SpawnMode = SpawnMode.Variant, isRoot = true): T
     {
         const Ctor = Object.getPrototypeOf(this).constructor as {
             new (modelValues: Partial<M>, spawner?: Component<M, V>, spawnMode?: SpawnMode): T;
         };
 
-        const component = new Ctor({}, this, spawnMode);
+        const component = new Ctor(
+            {},
+            this,
+            spawnMode === SpawnMode.Reference && isRoot ? SpawnMode.ReferenceRoot : spawnMode,
+        );
 
         this.children.forEach((child) =>
         {
-            const childComponent = child.copy(spawnMode);
+            const childComponent = child.copy(spawnMode, false);
 
             childComponent.setParent(component);
         });
@@ -140,12 +127,9 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
         const { model: sourceModel } = spawner;
 
-        if (spawnMode === SpawnMode.Variant)
+        if (spawnMode === SpawnMode.Variant || spawnMode === SpawnMode.ReferenceRoot)
         {
             this.model.link(sourceModel);
-
-            spawner.on('childAdded', this.onSpawnerChildAdded);
-            spawner.on('childRemoved', this.onSpawnerChildRemoved);
         }
         else if (spawnMode === SpawnMode.Duplicate)
         {
@@ -153,7 +137,31 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
             this.model.setValues(sourceValues);
         }
+
+        spawner.on('childAdded', this.onSpawnerChildAdded);
+        spawner.on('childRemoved', this.onSpawnerChildRemoved);
+
+        // this.on('childAdded', spawner.onSpawnerChildAdded);
+        // this.on('childRemoved', spawner.onSpawnerChildRemoved);
     }
+
+    protected onSpawnerChildAdded = (component: AnyComponent) =>
+    {
+        const copy = component.copy(this.spawnMode === SpawnMode.ReferenceRoot ? SpawnMode.Reference : this.spawnMode);
+
+        this.addChild(copy);
+    };
+
+    protected onSpawnerChildRemoved = (component: AnyComponent) =>
+    {
+        this.children.forEach((child: AnyComponent) =>
+        {
+            if (child.spawner === component)
+            {
+                child.deleteSelf();
+            }
+        });
+    };
 
     public dispose()
     {
@@ -174,21 +182,24 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
     {
         const { model, spawner, spawnMode } = this;
 
-        if (spawnMode === SpawnMode.Variant && model.parent && spawner)
+        if (spawner)
         {
-            model.flatten();
+            if (spawnMode === SpawnMode.Variant && model.parent)
+            {
+                model.flatten();
+
+                delete this.spawner;
+
+                this.emit('unlinked');
+            }
+            else if (spawnMode === SpawnMode.Reference)
+            {
+                this.model = spawner.model.copy();
+                this.initModel();
+            }
 
             spawner.off('childAdded', this.onSpawnerChildAdded);
             spawner.off('childRemoved', this.onSpawnerChildRemoved);
-
-            delete this.spawner;
-
-            this.emit('unlinked');
-        }
-        else if (spawnMode === SpawnMode.Reference && spawner)
-        {
-            this.model = spawner.model.copy();
-            this.initModel();
         }
 
         if (unlinkChildren)

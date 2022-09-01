@@ -1,9 +1,8 @@
-import type { DebugComponent } from '../../core/lib/components/debug';
-import { app } from './app';
+import { type AnyContainer, app } from './app';
 
 interface State
 {
-    component?: DebugComponent;
+    component?: AnyContainer;
     startX: number;
     startY: number;
     startClientX: number;
@@ -46,10 +45,10 @@ window.addEventListener('mouseup', () =>
     delete state.component;
 });
 
-export function startDrag(component: DebugComponent)
+export function startDrag(component: AnyContainer)
 {
-    state.startX = component.model.getValue<number>('x');
-    state.startY = component.model.getValue<number>('y');
+    state.startX = component.model.getValue('x');
+    state.startY = component.model.getValue('y');
     state.startClientX = state.clientX;
     state.startClientY = state.clientY;
     state.component = component;

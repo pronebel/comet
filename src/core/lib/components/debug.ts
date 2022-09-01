@@ -1,5 +1,6 @@
 import { Sprite, Text, Texture } from 'pixi.js';
 
+import { app } from '../../../editor/lib/app';
 import { ModelSchema } from '../model/schema';
 import type { SpriteModel } from './sprite';
 import { schema as spriteSchema, SpriteComponent } from './sprite';
@@ -11,7 +12,7 @@ interface DebugModel extends SpriteModel
 
 export const schema = new ModelSchema<DebugModel>({
     ...spriteSchema.defaults,
-    label: '?',
+    label: '',
 }, {
     ...spriteSchema.constraints,
 });
@@ -45,6 +46,13 @@ export class DebugComponent extends SpriteComponent<DebugModel, Sprite>
 
         const label = this.view.getChildAt(0) as Text;
 
-        label.text = `${this.id.replace('Component', '')}=${this.model.label}`;
+        label.text = `${this.id.replace('Component', '')}${this.model.label ? `=${this.model.label}` : ''}`;
+    }
+
+    protected onAddedToParent(): void
+    {
+        super.onAddedToParent();
+
+        app.makeInteractive(this);
     }
 }

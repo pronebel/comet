@@ -1,8 +1,8 @@
 import type { DisplayObject } from 'pixi.js';
 
-import { Component } from './component';
-import { NumericRangeLimitConstraint } from './model/constraints';
-import { ModelSchema } from './model/schema';
+import { Component } from '../component';
+import { NumericRangeLimitConstraint } from '../model/constraints';
+import { ModelSchema } from '../model/schema';
 
 export interface DisplayObjectModel
 {

@@ -3,7 +3,7 @@
 
   import { app } from "../app";
 
-  let customPropValue: string = "30";
+  let customPropValue: string = "foo";
 
   const onNewContainer = () => {
     app.newContainer();
@@ -59,8 +59,7 @@
   };
 
   const onSetCustomProp = () => {
-    const value = parseFloat(customPropValue);
-    app.setCustomProp(value);
+    app.setCustomProp(customPropValue);
   };
 
   const onRemoveCustomProp = () => {
