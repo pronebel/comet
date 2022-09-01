@@ -104,14 +104,12 @@ export class TestApp extends Application
         {
             const sprite = component.getView<Container>();
 
-            console.log('interactive', component.id);
-
             sprite.interactive = true;
 
             sprite.on('mousedown', (e: InteractionEvent) =>
             {
                 e.stopPropagation();
-                console.log(component.id);
+
                 this.select(component as AnyContainer);
                 startDrag(component as AnyContainer);
             });

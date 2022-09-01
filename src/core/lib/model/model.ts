@@ -1,5 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
+import type { CustomProperties, CustomProperty } from './customProperty';
 import type { ModelSchema } from './schema';
 
 let id = 1;
@@ -11,6 +12,8 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     public children: Model<M>[];
     public schema: ModelSchema<M>;
     public data: Partial<M>;
+    public customProperties: CustomProperties;
+    public customPropertyAssignments: Map<keyof M, string>;
 
     constructor(schema: ModelSchema<M>, data: Partial<M>)
     {
@@ -20,6 +23,10 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         this.schema = schema;
         this.data = data;
         this.children = [];
+        this.customProperties = new Map();
+        this.customPropertyAssignments = new Map();
+
+        this.setValues(data);
     }
 
     public link(sourceModel: Model<M>)
@@ -47,14 +54,14 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
     public get ownValues(): M
     {
-        const { schema: { keys, keys: { length: l } } } = this;
+        const { data, schema: { keys, keys: { length: l } } } = this;
         const values: M = {} as M;
 
         for (let i = 0; i < l; i++)
         {
             const key = keys[i];
 
-            const value = (this as unknown as M)[key];
+            const value = (data as unknown as M)[key];
 
             if (value !== undefined)
             {
@@ -65,20 +72,66 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         return values;
     }
 
+    public setValue<T>(key: keyof M, newValue: T)
+    {
+        const { data, schema, schema: { keys } } = this;
+
+        let oldValue = Reflect.get(data, key) as T;
+
+        if (oldValue === undefined)
+        {
+            oldValue = this.getValue(key) as unknown as T;
+        }
+
+        let value = newValue === undefined ? data[key] : newValue;
+
+        const constraints = schema.constraints[key];
+
+        if (constraints)
+        {
+            constraints.forEach((constraint) =>
+            {
+                value = constraint.applyToValue(value);
+            });
+        }
+
+        const rtn = Reflect.set(data, key, value);
+
+        if (keys.indexOf(key) > -1)
+        {
+            this.onModified(key, value as M[keyof M], oldValue as unknown as M[keyof M]);
+        }
+
+        return rtn;
+    }
+
     public setValues(values: Partial<M>)
     {
         const keys = Object.getOwnPropertyNames(values) as (keyof M)[];
 
         keys.forEach((key) =>
         {
-            (this as unknown as Partial<M>)[key] = values[key];
+            this.setValue(key, values[key]);
         });
     }
 
     public getValue<T extends M[keyof M]>(key: keyof M): T
     {
-        const { parent, schema: { defaults } } = this;
-        const value = (this as unknown as M)[key];
+        const { data, parent, schema: { defaults }, customProperties, customPropertyAssignments } = this;
+
+        const propertyName = customPropertyAssignments.get(key);
+
+        if (propertyName)
+        {
+            const customProperty = customProperties.get(propertyName);
+
+            if (customProperty)
+            {
+                return customProperty.value as T;
+            }
+        }
+
+        const value = (data as M)[key];
 
         if (value === undefined)
         {
@@ -155,79 +208,53 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
         this.children.forEach((childModel) => childModel.onModified(key, value, oldValue));
     }
+
+    public addCustomProperty(property: CustomProperty<any>)
+    {
+        this.customProperties.set(property.name, property);
+    }
+
+    public removeCustomPRoperty(name: string)
+    {
+        this.customProperties.delete(name);
+    }
+
+    public assignCustomProperty(customPropertyName: string, modelKey: keyof M)
+    {
+        const property = this.customProperties.get(customPropertyName);
+
+        if (property === undefined)
+        {
+            throw new Error(`"Cannot find custom property with name "${customPropertyName}"`);
+        }
+
+        this.customPropertyAssignments.set(modelKey, customPropertyName);
+    }
 }
 
 export function createModel<M extends object>(schema: ModelSchema<M>, values: Partial<M> = {}): Model<M> & M
 {
-    const data: Partial<M> = {
-    };
-
-    for (const [key, value] of Object.entries(values))
-    {
-        const constraints = schema.constraints[key as keyof M];
-
-        if (constraints)
-        {
-            constraints.forEach((constraint) =>
-            {
-                data[key as keyof M] = constraint.applyToValue(value);
-            });
-        }
-        else
-        {
-            data[key as keyof M] = value as M[keyof M];
-        }
-    }
-
     const { keys } = schema;
 
-    const model = new Model(schema, data) as Model<M> & M;
-
-    const propHash = keys.reduce((map, obj) =>
-    {
-        map[String(obj)] = true;
-
-        return map;
-    }, {} as {[k: string]: boolean});
+    const model = new Model(schema, values) as Model<M> & M;
 
     keys.forEach((key) =>
     {
         Object.defineProperty(model, key, {
             get<T>()
             {
-                return Reflect.get(data, key) as T;
+                return this.getValue(key) as T;
             },
             set<T>(newValue: T)
             {
-                let oldValue = Reflect.get(data, key) as T;
-
-                if (oldValue === undefined)
-                {
-                    oldValue = model.getValue(key) as unknown as T;
-                }
-
-                let value = newValue === undefined ? values[key] : newValue;
-
-                const constraints = schema.constraints[key];
-
-                if (constraints)
-                {
-                    constraints.forEach((constraint) =>
-                    {
-                        value = constraint.applyToValue(value);
-                    });
-                }
-
-                const rtn = Reflect.set(data, key, value);
-
-                if (propHash[String(key)])
-                {
-                    model.onModified(key, value as M[keyof M], oldValue as unknown as M[keyof M]);
-                }
-
-                return rtn;
+                return model.setValue(key, newValue);
             },
         });
+
+        if (values[key] !== undefined)
+        {
+            model.setValue(key, values[key]);
+        }
     });
 
     return model;
