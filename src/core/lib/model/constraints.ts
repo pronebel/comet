@@ -1,7 +1,13 @@
+import type { Model } from './model';
+
 export abstract class ModelConstraint<T>
 {
-    public abstract applyToValue(value: T): T;
+    public abstract applyToValue(value: T, key: string, model: Model<any>): T;
 }
+
+export type ModelConstraints<
+    M extends object> = Partial<Record<keyof M, ModelConstraint<any>[]> & { '*': ModelConstraint<any>[]}
+    >;
 
 export class NumericRangeLimitConstraint extends ModelConstraint<number>
 {
@@ -11,6 +17,7 @@ export class NumericRangeLimitConstraint extends ModelConstraint<number>
     constructor(min: number, max: number)
     {
         super();
+
         this.min = min;
         this.max = max;
     }
@@ -23,4 +30,28 @@ export class NumericRangeLimitConstraint extends ModelConstraint<number>
     }
 }
 
-export type ModelConstraints<M extends object> = Partial<Record<keyof M, ModelConstraint<any>[]>>;
+export class ReferenceRootConstraint<M extends object> extends ModelConstraint<unknown>
+{
+    public mutableKeys: (keyof M)[];
+
+    constructor(mutableKeys: (keyof M)[])
+    {
+        super();
+
+        this.mutableKeys = mutableKeys;
+    }
+
+    public applyToValue(value: any, key: string, model: Model<M>): unknown
+    {
+        const modelKey = key as keyof M;
+
+        const ref = model.getReferenceParent();
+
+        if (ref && this.mutableKeys.indexOf(modelKey) === -1)
+        {
+            ref.rawSetValue(modelKey, value);
+        }
+
+        return value;
+    }
+}

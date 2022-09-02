@@ -18,6 +18,8 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         previousValue: any;
     }>;
 
+    public isReference: boolean;
+
     constructor(schema: ModelSchema<M>, data: Partial<M>)
     {
         super();
@@ -28,6 +30,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         this.children = [];
         this.customProperties = new Map();
         this.customPropertyAssignments = new Map();
+        this.isReference = false;
 
         this.setValues(data);
     }
@@ -133,13 +136,13 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
         let value = newValue === undefined ? data[key] : newValue;
 
-        const constraints = schema.constraints[key];
+        const constraints = schema.getConstraints(key);
 
         if (constraints)
         {
             constraints.forEach((constraint) =>
             {
-                value = constraint.applyToValue(value);
+                value = constraint.applyToValue(value, String(key), this);
             });
         }
 
@@ -148,6 +151,31 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         if (keys.indexOf(key) > -1)
         {
             this.onModified(key, value as M[keyof M], oldValue as unknown as M[keyof M]);
+        }
+
+        return rtn;
+    }
+
+    public rawSetValue<T>(key: keyof M, newValue: T)
+    {
+        const { data, schema: { keys } } = this;
+
+        let oldValue = Reflect.get(data, key) as T;
+
+        if (oldValue === undefined)
+        {
+            oldValue = this.getValue(key) as unknown as T;
+        }
+
+        const value = newValue === undefined ? data[key] : newValue;
+
+        const rtn = Reflect.set(data, key, value);
+
+        if (keys.indexOf(key) > -1)
+        {
+            this.emit('modified', key, value, oldValue);
+
+            this.children.forEach((childModel) => childModel.rawSetValue(key, value));
         }
 
         return rtn;
@@ -296,6 +324,21 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     public getCustomPropertyType(name: string)
     {
         return typeof this.customProperties.get(name);
+    }
+
+    public getReferenceParent(): Model<M> | undefined
+    {
+        if (this.isReference)
+        {
+            if (this.parent)
+            {
+                return this.parent.getReferenceParent();
+            }
+
+            return this;
+        }
+
+        return undefined;
     }
 }
 

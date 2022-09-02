@@ -15,7 +15,7 @@ export enum SpawnMode
     Original = 'original',
     Variant = 'variant',
     Reference = 'reference',
-    ReferenceRoot = 'referenceRoot',
+    ReferenceRoot = 'reference_root',
     Duplicate = 'duplicate',
 }
 
@@ -130,6 +130,12 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         if (spawnMode === SpawnMode.Variant || spawnMode === SpawnMode.ReferenceRoot)
         {
             this.model.link(sourceModel);
+
+            if (spawnMode === SpawnMode.ReferenceRoot)
+            {
+                spawner.model.isReference = true;
+                this.model.isReference = true;
+            }
         }
         else if (spawnMode === SpawnMode.Duplicate)
         {

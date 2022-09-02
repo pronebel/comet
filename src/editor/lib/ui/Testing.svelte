@@ -49,6 +49,10 @@
     app.randAlpha();
   };
 
+  const onRotate = () => {
+    app.rotate();
+  };
+
   const onResetModel = () => {
     app.resetModel();
   };
@@ -78,14 +82,15 @@
   <button on:click={onNewContainer}>New Container</button>
   <button on:click={onNewChild}>New Child</button>
   <button on:click={onDeselect}>Deselect</button>
-  <button on:click={onCopyVariant}>Copy as Variant</button>
-  <button on:click={onCopyReference}>Copy as Reference</button>
-  <button on:click={onCopyDuplicate}>Copy as Duplicate</button>
-  <button on:click={onUnlink}>Unlink</button>
+  <button on:click={onCopyVariant}>Copy Variant</button>
+  <button on:click={onCopyReference}>Copy Reference</button>
+  <button on:click={onCopyDuplicate}>Duplicate</button>
   <button on:click={onDelete}>Delete</button>
+  <button on:click={onUnlink}>Unlink</button>
   <button on:click={onRandColor}>Rand Color</button>
   <button on:click={onRandSize}>Rand Size</button>
   <button on:click={onRandAlpha}>Rand Alpha</button>
+  <button on:click={onRotate}>Rotate</button>
   <button on:click={onResetModel}>Reset Model</button>
   <button on:click={onInspect}>Inspect</button>
   <br />
@@ -136,10 +141,10 @@
 
   buttons pre {
     position: fixed;
-    bottom: 10px;
-    right: 10px;
-    left: 10px;
-    height: 400px;
+    bottom: 0;
+    right: 0;
+    left: 0;
+    height: 600px;
     background-color: #000;
     overflow-y: auto;
     font-family: "Courier New", Courier, monospace;

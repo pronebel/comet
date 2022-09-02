@@ -49,8 +49,8 @@ export class TestApp extends Application
         const component = new DebugComponent({
             x: 20,
             y: 20,
-            width: 20,
-            height: 20,
+            width: 16,
+            height: 16,
             tint: Math.round(Math.random() * 100000),
         });
 
@@ -184,6 +184,15 @@ export class TestApp extends Application
         }
     }
 
+    public rotate()
+    {
+        if (this.selected)
+        {
+            this.selected.model.angle += 15;
+            this.select(this.selected);
+        }
+    }
+
     public resetModel()
     {
         if (this.selected)
@@ -231,16 +240,25 @@ export class TestApp extends Application
             const id = componentId(component);
             const modelId = component.model.id;
             const spawnerInfo = component.spawner
-                ? `${componentId(component.spawner)}="${component.spawnMode}"`
-                : component.spawnMode;
-            const spawnedInfo = `[${component.spawned.length}] ${component.spawned
-                .map((component) => `${componentId(component)}="${component.spawnMode}"`).join(',')}`;
+                ? `<span style="color:lime"><- ${componentId(component.spawner)}</span>`
+                : '';
+            const spawnedInfo = component.spawned.length > 0
+                ? `<span style="color:green">-> [${component.spawned.length}] ${component.spawned
+                    .map((component) => `${componentId(component)}`).join(',')}</span>`
+                : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
             const modelLine = `${modelId} <span style="color:cyan;font-size:12px">${modelValues}</span>`;
 
-            const line = `${pad} 🔵 ${id} ⭐ ${spawnerInfo} 🌟 ${spawnedInfo}\n${pad}    💾 ${modelLine}\n`;
+            const isLinked = this.selected
+                ? this.selected === component.spawner || component.spawned.includes(this.selected)
+                : false;
+            const spawnModeInfo = component.spawnMode.toUpperCase();
 
-            html += component === this.selected ? `<b>${line}</b>` : line;
+            const output = `${pad} ${id} ${spawnModeInfo} ${spawnerInfo} ${spawnedInfo}\n${pad}  ... ${modelLine}\n`;
+
+            const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
+
+            html += isLinked ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
         }, false);
 
         element.innerHTML = html;

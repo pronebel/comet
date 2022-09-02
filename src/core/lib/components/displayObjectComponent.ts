@@ -1,7 +1,7 @@
 import type { DisplayObject } from 'pixi.js';
 
 import { Component } from '../component';
-import { NumericRangeLimitConstraint } from '../model/constraints';
+import { NumericRangeLimitConstraint, ReferenceRootConstraint } from '../model/constraints';
 import { ModelSchema } from '../model/schema';
 
 export interface DisplayObjectModel
@@ -32,6 +32,7 @@ export const schema = new ModelSchema<DisplayObjectModel>({
     alpha: 1,
     visible: true,
 }, {
+    '*': [new ReferenceRootConstraint<DisplayObjectModel>(['x', 'y'])],
     alpha: [new NumericRangeLimitConstraint(0, 1)],
 });
 
