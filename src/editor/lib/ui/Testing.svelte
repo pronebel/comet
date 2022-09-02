@@ -66,6 +66,14 @@
     app.setCustomProp(customPropValue);
   };
 
+  const onAssignCustomProp = () => {
+    app.assignCustomProp();
+  };
+
+  const onGetCustomProp = () => {
+    app.getCustomProp();
+  };
+
   const onRemoveCustomProp = () => {
     app.removeCustomProp();
   };
@@ -95,7 +103,9 @@
   <button on:click={onInspect}>Inspect</button>
   <br />
   <button on:click={onSetCustomProp}>Set Custom Prop</button>
+  <button on:click={onAssignCustomProp}>Assign Custom Prop</button>
   <input bind:value={customPropValue} />
+  <button on:click={onGetCustomProp}>Get Custom Prop</button>
   <button on:click={onRemoveCustomProp}>Remove Custom Prop</button>
   <test />
   <pre id="debug" />

@@ -78,7 +78,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         return values;
     }
 
-    public getCustomPropertyValue(key: keyof M): unknown
+    public getAssignedCustomPropertyValue(key: keyof M): unknown
     {
         const { parent, customProperties, customPropertyAssignments } = this;
 
@@ -91,7 +91,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
         if (parent)
         {
-            return parent.getCustomPropertyValue(key);
+            return parent.getAssignedCustomPropertyValue(key);
         }
 
         return undefined;
@@ -101,11 +101,11 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     {
         const { data, parent, schema: { defaults } } = this;
 
-        const customPropertyValue = this.getCustomPropertyValue(key);
+        const customPropertyModelValue = this.getAssignedCustomPropertyValue(key);
 
-        if (customPropertyValue !== undefined)
+        if (customPropertyModelValue !== undefined)
         {
-            return customPropertyValue as T;
+            return customPropertyModelValue as T;
         }
 
         const value = (data as M)[key];

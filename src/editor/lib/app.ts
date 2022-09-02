@@ -213,10 +213,25 @@ export class TestApp extends Application
 
     public setCustomProp(value: any)
     {
-        if (this.selected && this.selected instanceof DebugComponent)
+        if (this.selected)
         {
             this.selected.model.setCustomProperty('testCustomProp', value);
+        }
+    }
+
+    public assignCustomProp()
+    {
+        if (this.selected && this.selected instanceof DebugComponent)
+        {
             this.selected.model.assignCustomProperty('label', 'testCustomProp');
+        }
+    }
+
+    public getCustomProp()
+    {
+        if (this.selected)
+        {
+            // const propValue = this.selected.model.getCustomPropertyValue('testCustomProp');
         }
     }
 
@@ -247,15 +262,14 @@ export class TestApp extends Application
                     .map((component) => `${componentId(component)}`).join(',')}</span>`
                 : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
-            const modelLine = `${modelId} <span style="color:cyan;font-size:14px">${modelValues}</span>`;
-
+            const customPropInfo = Array.from(component.model.customProperties.keys())
+                .map((key) => `${key}:${component.model.customProperties.get(key)}`).join(',');
+            const modelLine = `${modelId} <span style="color:cyan;font-size:14px">${modelValues}</span> ${customPropInfo}`;
             const isLinked = this.selected
                 ? this.selected === component.spawner || component.spawned.includes(this.selected)
                 : false;
             const spawnModeInfo = `${component.spawnMode.toUpperCase()}`;
-
             const output = `${pad} ${id} ${spawnModeInfo} ${spawnerInfo} ${spawnedInfo}\n${pad}  ... ${modelLine}\n`;
-
             const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
 
             html += isLinked ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
