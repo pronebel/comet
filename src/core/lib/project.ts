@@ -8,4 +8,4 @@ export const project: Project = {
 };
 
 project.customProperties.set('label', 'default');
-project.customProperties.set('width', 100);
+project.customProperties.set('foo', 100);

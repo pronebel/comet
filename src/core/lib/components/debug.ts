@@ -2,6 +2,7 @@ import { Sprite, Text, Texture } from 'pixi.js';
 
 import { app } from '../../../editor/lib/app';
 import { ModelSchema } from '../model/schema';
+import type { ContainerComponent } from './container';
 import type { SpriteModel } from './sprite';
 import { schema as spriteSchema, SpriteComponent } from './sprite';
 
@@ -53,6 +54,6 @@ export class DebugComponent extends SpriteComponent<DebugModel, Sprite>
     {
         super.onAddedToParent();
 
-        app.makeInteractive(this);
+        app.makeInteractive(this as unknown as ContainerComponent);
     }
 }

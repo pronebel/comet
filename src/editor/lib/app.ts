@@ -49,8 +49,8 @@ export class TestApp extends Application
         const component = new DebugComponent({
             x: 20,
             y: 20,
-            width: 16,
-            height: 16,
+            width: 20,
+            height: 20,
             tint: Math.round(Math.random() * 100000),
         });
 
