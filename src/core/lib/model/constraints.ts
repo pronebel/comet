@@ -30,7 +30,7 @@ export class NumericRangeLimitConstraint extends ModelConstraint<number>
     }
 }
 
-export class ReferenceRootConstraint<M extends object> extends ModelConstraint<unknown>
+export class ReferenceConstraint<M extends object> extends ModelConstraint<unknown>
 {
     public mutableKeys: (keyof M)[];
 

@@ -203,22 +203,25 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
         if (spawner)
         {
-            if (spawnMode === SpawnMode.Variant && model.parent)
+            if ((model.parent && spawnMode === SpawnMode.Variant) || spawnMode === SpawnMode.ReferenceRoot)
             {
                 model.flatten();
-
-                delete this.spawner;
-
-                this.emit('unlinked');
             }
             else if (spawnMode === SpawnMode.Reference)
             {
                 this.model = spawner.model.copy();
+
                 this.initModel();
             }
 
             spawner.off('childAdded', this.onSpawnerChildAdded);
             spawner.off('childRemoved', this.onSpawnerChildRemoved);
+
+            delete this.spawner;
+            this.spawnMode = SpawnMode.Original;
+
+            this.emit('unlinked');
+            this.update();
         }
 
         if (unlinkChildren)

@@ -237,7 +237,7 @@ export class TestApp extends Application
         this.scene.root.walk((component, depth) =>
         {
             const pad = ''.padStart(depth, '+');
-            const id = componentId(component);
+            const id = `&lt;${componentId(component)}&gt;`;
             const modelId = component.model.id;
             const spawnerInfo = component.spawner
                 ? `<span style="color:lime"><- ${componentId(component.spawner)}</span>`
@@ -247,12 +247,12 @@ export class TestApp extends Application
                     .map((component) => `${componentId(component)}`).join(',')}</span>`
                 : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
-            const modelLine = `${modelId} <span style="color:cyan;font-size:12px">${modelValues}</span>`;
+            const modelLine = `${modelId} <span style="color:cyan;font-size:14px">${modelValues}</span>`;
 
             const isLinked = this.selected
                 ? this.selected === component.spawner || component.spawned.includes(this.selected)
                 : false;
-            const spawnModeInfo = component.spawnMode.toUpperCase();
+            const spawnModeInfo = `${component.spawnMode.toUpperCase()}`;
 
             const output = `${pad} ${id} ${spawnModeInfo} ${spawnerInfo} ${spawnedInfo}\n${pad}  ... ${modelLine}\n`;
 

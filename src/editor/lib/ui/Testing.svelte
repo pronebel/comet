@@ -79,9 +79,9 @@
 </script>
 
 <buttons>
+  <button on:click={onDeselect}>Deselect</button>
   <button on:click={onNewContainer}>New Container</button>
   <button on:click={onNewChild}>New Child</button>
-  <button on:click={onDeselect}>Deselect</button>
   <button on:click={onCopyVariant}>Copy Variant</button>
   <button on:click={onCopyReference}>Copy Reference</button>
   <button on:click={onCopyDuplicate}>Duplicate</button>
@@ -117,6 +117,7 @@
   }
 
   buttons test {
+    display: none;
     position: fixed;
     top: 0px;
     left: 0px;

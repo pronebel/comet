@@ -7,5 +7,6 @@ export class Scene
     constructor()
     {
         this.root = new ContainerComponent();
+        (window as any)['root'] = this.root;
     }
 }
