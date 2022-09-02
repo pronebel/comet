@@ -133,11 +133,12 @@
   buttons br {
     width: 100%;
   }
-  pre {
+
+  buttons pre {
     position: fixed;
     bottom: 10px;
     right: 10px;
-    width: 600px;
+    left: 10px;
     height: 400px;
     background-color: #000;
     overflow-y: auto;

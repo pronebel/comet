@@ -18,7 +18,7 @@ const clearLog = () => log.length = 0;
 
 class TestComponent extends Component<TestModel, Sprite>
 {
-    constructor(modelValues: Partial<TestModel> = {}, spawner?: Component<TestModel, Sprite>, spawnMode = SpawnMode.None)
+    constructor(modelValues: Partial<TestModel> = {}, spawner?: Component<TestModel, Sprite>, spawnMode = SpawnMode.Original)
     {
         super(modelValues, spawner, spawnMode);
     }
@@ -240,7 +240,7 @@ describe('Component', () =>
         it('should not reference spawner model when copied unlinked', () =>
         {
             const component = new TestComponent({ x: 15 });
-            const copy = component.copy(SpawnMode.None);
+            const copy = component.copy(SpawnMode.Original);
 
             expect(copy.spawner).toBe(component);
             expect(copy.model.parent).toBeUndefined();

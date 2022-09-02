@@ -230,14 +230,18 @@ export class TestApp extends Application
             const pad = ''.padStart(depth, '+');
             const id = componentId(component);
             const modelId = component.model.id;
-            const spawnerInfo = component.spawner ? `${componentId(component.spawner)}="${component.spawnMode}"` : 'none';
-            const spawnedInfo = component.spawned
-                .map((component) => `${componentId(component)}="${component.spawnMode}"`).join(',');
+            const spawnerInfo = component.spawner
+                ? `${componentId(component.spawner)}="${component.spawnMode}"`
+                : component.spawnMode;
+            const spawnedInfo = `[${component.spawned.length}] ${component.spawned
+                .map((component) => `${componentId(component)}="${component.spawnMode}"`).join(',')}`;
+            const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
+            const modelLine = `${modelId} <span style="color:cyan;font-size:12px">${modelValues}</span>`;
 
-            const line = `${pad} 🔵 ${id}~(${modelId}) <- ${spawnerInfo} -> ${spawnedInfo}\n`;
+            const line = `${pad} 🔵 ${id} ⭐ ${spawnerInfo} 🌟 ${spawnedInfo}\n${pad}    💾 ${modelLine}\n`;
 
             html += component === this.selected ? `<b>${line}</b>` : line;
-        }, false, -1);
+        }, false);
 
         element.innerHTML = html;
     }

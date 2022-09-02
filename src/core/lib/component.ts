@@ -12,7 +12,7 @@ export type ComponentEvents = 'modified' | 'childAdded' | 'childRemoved' | 'disp
 
 export enum SpawnMode
     {
-    None = 'none',
+    Original = 'original',
     Variant = 'variant',
     Reference = 'reference',
     ReferenceRoot = 'referenceRoot',
@@ -33,7 +33,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
     public id: string;
 
-    constructor(modelValues: Partial<M> = {}, spawner?: Component<M, V>, spawnMode: SpawnMode = SpawnMode.None)
+    constructor(modelValues: Partial<M> = {}, spawner?: Component<M, V>, spawnMode: SpawnMode = SpawnMode.Original)
     {
         super();
 
