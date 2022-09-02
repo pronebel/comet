@@ -229,9 +229,11 @@ export class TestApp extends Application
 
     public getCustomProp()
     {
-        if (this.selected)
+        if (this.selected && this.selected instanceof DebugComponent)
         {
-            // const propValue = this.selected.model.getCustomPropertyValue('testCustomProp');
+            const propValue = this.selected.model.getAssignedCustomPropertyValue('label');
+
+            console.log(propValue);
         }
     }
 
@@ -253,7 +255,7 @@ export class TestApp extends Application
         {
             const pad = ''.padStart(depth, '+');
             const id = `&lt;${componentId(component)}&gt;`;
-            const modelId = component.model.id;
+            const modelId = `${component.model.id} (${componentId(component.model.component)})`;
             const spawnerInfo = component.spawner
                 ? `<span style="color:lime"><- ${componentId(component.spawner)}</span>`
                 : '';

@@ -76,6 +76,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
     protected initModel()
     {
+        this.model.component = this;
         this.model.on('modified', this.onModelModified);
     }
 

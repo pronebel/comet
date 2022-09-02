@@ -1,5 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
+import type { Component } from '../component';
 import { project } from '../project';
 import type { ModelSchema } from './schema';
 
@@ -19,6 +20,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     }>;
 
     public isReference: boolean;
+    public component?: Component<M, any>;
 
     constructor(schema: ModelSchema<M>, data: Partial<M>)
     {
@@ -287,19 +289,33 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
     public assignCustomProperty(modelKey: keyof M, customPropertyName: string)
     {
-        if (!this.customProperties.has(customPropertyName) && !project.customProperties.has(customPropertyName))
+        const previousValue = this.data[modelKey];
+
+        let value = this.customProperties.get(customPropertyName) || project.customProperties.get(customPropertyName);
+
+        if (value === undefined)
+        {
+            let ref = this.component;
+
+            while (ref)
+            {
+                if (ref.model.customProperties.has(customPropertyName))
+                {
+                    value = ref.model.customProperties.get(customPropertyName);
+                }
+                ref = ref.parent;
+            }
+        }
+
+        if (value === undefined)
         {
             throw new Error(`"Cannot find custom property with name "${customPropertyName}"`);
         }
-
-        const previousValue = this.data[modelKey];
 
         this.customPropertyAssignments.set(modelKey, {
             name: customPropertyName,
             previousValue,
         });
-
-        const value = this.customProperties.get(customPropertyName) || project.customProperties.get(customPropertyName);
 
         this.setValue(modelKey, value);
     }
@@ -342,7 +358,10 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     }
 }
 
-export function createModel<M extends object>(schema: ModelSchema<M>, values: Partial<M> = {}): Model<M> & M
+export function createModel<M extends object>(
+    schema: ModelSchema<M>,
+    values: Partial<M> = {},
+): Model<M> & M
 {
     const { keys } = schema;
 

@@ -103,8 +103,8 @@
   <button on:click={onInspect}>Inspect</button>
   <br />
   <button on:click={onSetCustomProp}>Set Custom Prop</button>
-  <button on:click={onAssignCustomProp}>Assign Custom Prop</button>
   <input bind:value={customPropValue} />
+  <button on:click={onAssignCustomProp}>Assign Custom Prop</button>
   <button on:click={onGetCustomProp}>Get Custom Prop</button>
   <button on:click={onRemoveCustomProp}>Remove Custom Prop</button>
   <test />
@@ -155,7 +155,7 @@
     bottom: 0;
     right: 0;
     left: 0;
-    height: 600px;
+    height: 500px;
     background-color: #000;
     overflow-y: auto;
     font-family: "Courier New", Courier, monospace;
