@@ -325,13 +325,14 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         return this.children[index] as T;
     }
 
-    public walk(fn: (component: AnyComponent) => void, includeSelf = true)
+    public walk(fn: (component: AnyComponent, depth: number) => void, includeSelf = true, depth = 0)
     {
         if (includeSelf)
         {
-            fn(this);
+            fn(this, depth);
         }
-        this.children.forEach((child) => child.walk(fn));
+
+        this.children.forEach((child) => child.walk(fn, true, depth + 1));
     }
 
     public containsChild(component: AnyComponent)

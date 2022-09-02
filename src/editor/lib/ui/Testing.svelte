@@ -65,6 +65,13 @@
   const onRemoveCustomProp = () => {
     app.removeCustomProp();
   };
+
+  setInterval(() => {
+    const debug = document.getElementById("debug") as HTMLPreElement;
+    if (debug) {
+      app.debug(debug);
+    }
+  }, 500);
 </script>
 
 <buttons>
@@ -86,6 +93,7 @@
   <input bind:value={customPropValue} />
   <button on:click={onRemoveCustomProp}>Remove Custom Prop</button>
   <test />
+  <pre id="debug" />
 </buttons>
 
 <style>
@@ -124,5 +132,16 @@
 
   buttons br {
     width: 100%;
+  }
+  pre {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    width: 600px;
+    height: 400px;
+    background-color: #000;
+    overflow-y: auto;
+    font-family: "Courier New", Courier, monospace;
+    padding: 5px;
   }
 </style>

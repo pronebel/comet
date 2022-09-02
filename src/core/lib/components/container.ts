@@ -16,7 +16,10 @@ export const schema = new ModelSchema<ContainerModel>({
     height: 20,
 }, displayObjectSchema.constraints);
 
-export class ContainerComponent<M extends ContainerModel, V extends Container> extends DisplayObjectContainer<M, V>
+export class ContainerComponent<
+    M extends ContainerModel = ContainerModel,
+    V extends Container = Container,
+> extends DisplayObjectContainer<M, V>
 {
     public modelSchema(): ModelSchema<M>
     {

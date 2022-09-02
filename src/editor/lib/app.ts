@@ -2,31 +2,27 @@ import type { Container, InteractionEvent } from 'pixi.js';
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
 import type { AnyComponent, SpawnMode } from '../../core/lib/component';
-import { ContainerComponent } from '../../core/lib/components/container';
+import type { ContainerComponent } from '../../core/lib/components/container';
 import { DebugComponent } from '../../core/lib/components/debug';
 import { EmptyComponent } from '../../core/lib/components/empty';
+import { Scene } from '../../core/lib/scene';
 import { startDrag } from './drag';
 
 export let app: TestApp;
 
-export type AnyContainer = ContainerComponent<any, any>;
-
 export class TestApp extends Application
 {
-    public selected?: AnyContainer;
+    public selected?: ContainerComponent;
     public selection: Sprite;
-    public root: EmptyComponent;
+    public scene: Scene;
 
     constructor(options?: IApplicationOptions | undefined)
     {
         super(options);
 
-        this.root = new ContainerComponent({
-            x: 0,
-            y: 0,
-        });
+        this.scene = new Scene();
 
-        this.stage.addChild(this.root.view);
+        this.stage.addChild(this.scene.root.view);
 
         const selection = this.selection = new Sprite(Texture.WHITE);
 
@@ -58,10 +54,10 @@ export class TestApp extends Application
             tint: Math.round(Math.random() * 100000),
         });
 
-        this.addComponent(component);
+        this.addComponent(component as unknown as ContainerComponent);
     }
 
-    public addComponent(component: AnyContainer)
+    public addComponent(component: ContainerComponent)
     {
         if (this.selected)
         {
@@ -69,7 +65,7 @@ export class TestApp extends Application
         }
         else
         {
-            this.root.addChild(component);
+            this.scene.root.addChild(component);
         }
 
         this.makeInteractiveDeep(component);
@@ -81,7 +77,7 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            const component = this.selected.copy<AnyContainer>(spawnMode);
+            const component = this.selected.copy<ContainerComponent>(spawnMode);
 
             delete this.selected;
 
@@ -93,15 +89,15 @@ export class TestApp extends Application
         return undefined;
     }
 
-    public makeInteractiveDeep(rootComponent: AnyContainer)
+    public makeInteractiveDeep(rootComponent: ContainerComponent)
     {
         rootComponent.walk((component) =>
         {
-            this.makeInteractive(component as AnyContainer);
+            this.makeInteractive(component as ContainerComponent);
         });
     }
 
-    public makeInteractive(component: AnyContainer)
+    public makeInteractive(component: ContainerComponent)
     {
         const sprite = component.getView<Container>();
 
@@ -119,7 +115,7 @@ export class TestApp extends Application
         }
     }
 
-    public select(component: AnyContainer)
+    public select(component: ContainerComponent)
     {
         this.deselect();
         this.selected = component;
@@ -164,7 +160,7 @@ export class TestApp extends Application
 
     public randColor()
     {
-        if (this.selected)
+        if (this.selected && this.selected instanceof DebugComponent)
         {
             this.selected.model.tint = Math.round(Math.random() * 100000);
         }
@@ -208,7 +204,7 @@ export class TestApp extends Application
 
     public setCustomProp(value: any)
     {
-        if (this.selected)
+        if (this.selected && this.selected instanceof DebugComponent)
         {
             this.selected.model.setCustomProperty('testCustomProp', value);
             this.selected.model.assignCustomProperty('label', 'testCustomProp');
@@ -221,6 +217,29 @@ export class TestApp extends Application
         {
             this.selected.model.removeCustomProperty('testCustomProp');
         }
+    }
+
+    public debug(element: HTMLPreElement)
+    {
+        let html = '';
+
+        const componentId = (component: AnyComponent) => component.id.replace('Component', '');
+
+        this.scene.root.walk((component, depth) =>
+        {
+            const pad = ''.padStart(depth, '+');
+            const id = componentId(component);
+            const modelId = component.model.id;
+            const spawnerInfo = component.spawner ? `${componentId(component.spawner)}="${component.spawnMode}"` : 'none';
+            const spawnedInfo = component.spawned
+                .map((component) => `${componentId(component)}="${component.spawnMode}"`).join(',');
+
+            const line = `${pad} 🔵 ${id}~(${modelId}) <- ${spawnerInfo} -> ${spawnedInfo}\n`;
+
+            html += component === this.selected ? `<b>${line}</b>` : line;
+        }, false, -1);
+
+        element.innerHTML = html;
     }
 }
 
