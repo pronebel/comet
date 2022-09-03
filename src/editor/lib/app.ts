@@ -5,6 +5,7 @@ import type { AnyComponent } from '../../core/lib/component';
 import type { ContainerComponent } from '../../core/lib/components/container';
 import { DebugComponent } from '../../core/lib/components/debug';
 import { EmptyComponent } from '../../core/lib/components/empty';
+import type { Nestable } from '../../core/lib/nestable';
 import { Scene } from '../../core/lib/scene';
 import type { SpawnMode } from '../../core/lib/spawn';
 import { startDrag } from './drag';
@@ -62,11 +63,11 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            this.selected.addChild(component);
+            this.selected.addChild(component as Nestable);
         }
         else
         {
-            this.scene.root.addChild(component);
+            this.scene.root.addChild(component as Nestable);
         }
 
         this.makeInteractiveDeep(component);
@@ -252,14 +253,14 @@ export class TestApp extends Application
 
         const componentId = (component: AnyComponent) => component.id.replace('Component', '');
 
-        this.scene.root.walk((component, depth) =>
+        this.scene.root.walk<AnyComponent>((component, options) =>
         {
             const {
                 model: { id: modelId, component: modelComponent },
                 spawnInfo: { spawner, spawned, spawnMode },
             } = component;
 
-            const pad = ''.padStart(depth, '+');
+            const pad = ''.padStart(options.depth, '+');
             const id = `&lt;${componentId(component)}&gt;`;
             const modelInfo = `${modelId} (${componentId(modelComponent)})`;
             const spawnerInfo = spawner
@@ -281,7 +282,9 @@ export class TestApp extends Application
             const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
 
             html += isLinked ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
-        }, false);
+        }, {
+            includeSelf: false,
+        });
 
         element.innerHTML = html;
     }

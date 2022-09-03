@@ -1,6 +1,7 @@
 import { Container } from 'pixi.js';
 
 import { ModelSchema } from '../model/schema';
+import type { Nestable } from '../nestable';
 import type { DisplayObjectModel } from './displayObjectComponent';
 import { DisplayObjectContainer, schema as displayObjectSchema } from './displayObjectComponent';
 
@@ -45,23 +46,28 @@ export class ContainerComponent<
 
     protected onAddedToParent(): void
     {
+        super.onAddedToParent();
+
         if (this.parent)
         {
             const thisView = this.view;
-            const parentView = this.parent.getView<Container>();
+            const parentView = this.getParent<ContainerComponent>().getView<Container>();
 
             parentView.addChild(thisView);
         }
     }
 
-    protected onRemoveFromParent(): void
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onRemovedFromParent(oldParent: Nestable): void
     {
-        if (this.parent)
-        {
-            const thisView = this.view;
-            const parentView = this.parent.getView<Container>();
+        super.onRemovedFromParent(oldParent);
 
-            parentView.removeChild(thisView);
-        }
+        const parent = oldParent as unknown as ContainerComponent;
+
+        const thisView = this.view;
+        const parentView = parent.getView<Container>();
+
+        parentView.removeChild(thisView);
     }
 }

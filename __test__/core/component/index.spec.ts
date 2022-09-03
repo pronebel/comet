@@ -202,8 +202,8 @@ describe('Component', () =>
 
             const copy = parent.copy(spawnMode);
 
-            const copyChildA = copy.children[0];
-            const copyChildB = copyChildA.children[0];
+            const copyChildA = copy.children[0] as TestComponent;
+            const copyChildB = copyChildA.children[0] as TestComponent;
 
             return { parent, childA, childB, copy, copyChildA, copyChildB };
         };

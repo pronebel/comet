@@ -1,8 +1,8 @@
-import EventEmitter from 'eventemitter3';
-
 import type { Model } from './model/model';
 import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
+import type { NestableEvents } from './nestable';
+import { Nestable } from './nestable';
 import { SpawnInfo, SpawnMode } from './spawn';
 
 const ids = {} as Record<string, number>;
@@ -10,15 +10,12 @@ const ids = {} as Record<string, number>;
 export type AnyComponent = Component<any, any>;
 
 // todo: this might need to be extended by subclasses, may need to be generic parameter
-export type ComponentEvents = 'modified' | 'childAdded' | 'childRemoved' | 'disposed' | 'unlinked';
+export type ComponentEvents = NestableEvents | 'modified' | 'unlinked';
 
-export abstract class Component<M extends object, V> extends EventEmitter<ComponentEvents>
+export abstract class Component<M extends object, V> extends Nestable<ComponentEvents>
 {
     public model: Model<M> & M;
     public view: V;
-
-    public parent?: AnyComponent;
-    public children: AnyComponent[];
 
     public spawnInfo: SpawnInfo<Component<M, V>>;
 
@@ -69,7 +66,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
     protected initModel()
     {
-        // todo: check this
+        // todo: investigate best way for model->component relationship
         this.model.component = this;
         this.model.on('modified', this.onModelModified);
     }
@@ -94,9 +91,9 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
         this.children.forEach((child) =>
         {
-            const childComponent = child.copy(spawnMode, false);
+            const childComponent = (child as AnyComponent).copy(spawnMode, false);
 
-            childComponent.setParent(component);
+            childComponent.setParent(component as Nestable);
         });
 
         return component as unknown as T;
@@ -143,7 +140,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
             false,
         );
 
-        this.addChild(copy);
+        this.addChild(copy as Nestable);
     };
 
     protected onSpawnedChildAdded = (component: AnyComponent) =>
@@ -153,29 +150,22 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
             false,
         );
 
-        copy.parent = this;
-        this.children.push(copy);
+        copy.parent = this as Nestable;
+        this.children.push(copy as Nestable);
 
         copy.onAddedToParent();
     };
 
     protected onSpawnerChildRemoved = (component: AnyComponent) =>
     {
-        this.children.forEach((child: AnyComponent) =>
+        this.children.forEach((child) =>
         {
-            if (child.spawnInfo.isSpawner(component))
+            if ((child as AnyComponent).spawnInfo.isSpawner(component))
             {
                 child.deleteSelf();
             }
         });
     };
-
-    public getComponentType(): string
-    {
-        return (Object.getPrototypeOf(this).constructor as {
-            new (): object;
-        }).name;
-    }
 
     public getView<T = V>(): T
     {
@@ -184,6 +174,8 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
     public dispose()
     {
+        super.dispose();
+
         this.model.off('modified', this.onModelModified);
 
         if (this.spawnInfo.wasSpawned)
@@ -195,7 +187,10 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
         this.spawnInfo.spawned.forEach((component) => component.unlink());
 
-        this.children.forEach((child) => child.dispose());
+        this.children.forEach((child) =>
+        {
+            child.dispose();
+        });
     }
 
     public unlink(unlinkChildren = true)
@@ -227,46 +222,13 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
         if (unlinkChildren)
         {
-            this.children.forEach((child) => child.unlink());
+            this.children.forEach((child) => (child as AnyComponent).unlink());
         }
     }
 
-    public deleteSelf()
+    protected onAddedToParent(): void
     {
-        if (this.parent)
-        {
-            this.parent.removeChild(this);
-            this.dispose();
-        }
-    }
-
-    public getRoot<T extends AnyComponent>(): T
-    {
-        if (!this.parent)
-        {
-            return this as unknown as T;
-        }
-
-        let ref: AnyComponent | undefined = this.parent;
-
-        while (ref)
-        {
-            ref = ref.parent;
-        }
-
-        return ref as unknown as T;
-    }
-
-    public setParent(parent: AnyComponent)
-    {
-        if (this.parent)
-        {
-            this.parent.removeChild(this);
-        }
-
-        this.parent = parent;
-        parent.children.push(this);
-        parent.emit('childAdded', this);
+        const parent = this.getParent<AnyComponent>();
 
         const { spawnInfo: { spawner, isReferenceOrRoot } }  = parent;
 
@@ -277,87 +239,32 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
                 spawner.onSpawnedChildAdded(this);
             }
         }
-
-        this.onAddedToParent();
     }
 
-    public addChild(component: AnyComponent)
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onRemovedFromParent(oldParent: Nestable)
     {
-        if (component === this)
+        const { spawnInfo: { spawner, isReferenceOrRoot, spawned } } = this;
+
+        if (spawner && isReferenceOrRoot)
         {
-            throw new Error('"Cannot add component to self"');
-        }
-
-        component.setParent(this);
-    }
-
-    public removeChild(component: AnyComponent)
-    {
-        const { children } = this;
-        const index = children.indexOf(component);
-
-        if (index > -1)
-        {
-            component.onRemoveFromParent();
-            children.splice(index, 1);
-            delete component.parent;
-            this.emit('childRemoved', component);
-
-            const { spawnInfo: { spawner, isReferenceOrRoot } } = component;
-
-            if (spawner && isReferenceOrRoot)
-            {
-                spawner.deleteSelf();
-            }
-            else
-            {
-                component.spawnInfo.spawned.forEach((spawnedComponent) =>
-                {
-                    const { spawnInfo: { spawner, isReferenceOrRoot } } = spawnedComponent;
-
-                    const isSameComponent = spawner === component;
-
-                    if (isSameComponent && isReferenceOrRoot)
-                    {
-                        spawnedComponent.deleteSelf();
-                    }
-                });
-            }
+            spawner.deleteSelf();
         }
         else
         {
-            throw new Error('"Cannot remove child which is not in parent"');
+            spawned.forEach((spawnedComponent) =>
+            {
+                const { spawnInfo: { spawner, isReferenceOrRoot } } = spawnedComponent;
+
+                const isSameComponent = spawner === this;
+
+                if (isSameComponent && isReferenceOrRoot)
+                {
+                    spawnedComponent.deleteSelf();
+                }
+            });
         }
-    }
-
-    public getChildAt<T extends AnyComponent>(index: number): T
-    {
-        return this.children[index] as T;
-    }
-
-    public walk(fn: (component: AnyComponent, depth: number) => void, includeSelf = true, depth = 0)
-    {
-        if (includeSelf)
-        {
-            fn(this, depth);
-        }
-
-        this.children.forEach((child) => child.walk(fn, true, depth + 1));
-    }
-
-    public containsChild(component: AnyComponent)
-    {
-        return this.children.indexOf(component) > -1;
-    }
-
-    protected onAddedToParent(): void
-    {
-        // subclasses
-    }
-
-    protected onRemoveFromParent()
-    {
-        // subclasses
     }
 
     public update()

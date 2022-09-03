@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
-import type { Component } from '../component';
+import type { AnyComponent, Component } from '../component';
 import { project } from '../project';
 import type { ModelSchema } from './schema';
 
@@ -295,15 +295,16 @@ export class Model<M extends object> extends EventEmitter<'modified'>
 
         if (value === undefined)
         {
-            let ref = this.component;
-
-            while (ref)
+            if (this.component)
             {
-                if (ref.model.customProperties.has(customPropertyName))
+                this.component.walk<AnyComponent>((parent, options) =>
                 {
-                    value = ref.model.customProperties.get(customPropertyName);
-                }
-                ref = ref.parent;
+                    if (parent.model.customProperties.has(customPropertyName))
+                    {
+                        value = parent.model.customProperties.get(customPropertyName);
+                        options.cancel = true;
+                    }
+                }, { direction: 'up', includeSelf: false });
             }
         }
 
