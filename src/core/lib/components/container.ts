@@ -2,8 +2,8 @@ import { Container } from 'pixi.js';
 
 import { ModelSchema } from '../model/schema';
 import type { Nestable } from '../nestable';
-import type { DisplayObjectModel } from './displayObjectComponent';
-import { DisplayObjectContainer, schema as displayObjectSchema } from './displayObjectComponent';
+import type { DisplayObjectModel } from './displayObject';
+import { DisplayObjectComponent, schema as displayObjectSchema } from './displayObject';
 
 export interface ContainerModel extends DisplayObjectModel
 {
@@ -20,7 +20,7 @@ export const schema = new ModelSchema<ContainerModel>({
 export class ContainerComponent<
     M extends ContainerModel = ContainerModel,
     V extends Container = Container,
-> extends DisplayObjectContainer<M, V>
+> extends DisplayObjectComponent<M, V>
 {
     public modelSchema(): ModelSchema<M>
     {

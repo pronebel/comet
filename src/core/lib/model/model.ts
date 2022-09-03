@@ -1,7 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
-import type { AnyComponent, Component } from '../component';
-import { project } from '../project';
+import type { AnyComponent } from '../component';
 import type { ModelSchema } from './schema';
 
 let id = 1;
@@ -20,7 +19,6 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     }>;
 
     public isReference: boolean;
-    public component?: Component<M, any>;
 
     constructor(schema: ModelSchema<M>, data: Partial<M>)
     {
@@ -287,26 +285,11 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         return undefined;
     }
 
-    public assignCustomProperty(modelKey: keyof M, customPropertyName: string)
+    public assignCustomProperty(component: AnyComponent, modelKey: keyof M, customPropertyName: string)
     {
         const previousValue = this.data[modelKey];
 
-        let value = this.customProperties.get(customPropertyName) || project.customProperties.get(customPropertyName);
-
-        if (value === undefined)
-        {
-            if (this.component)
-            {
-                this.component.walk<AnyComponent>((parent, options) =>
-                {
-                    if (parent.model.customProperties.has(customPropertyName))
-                    {
-                        value = parent.model.customProperties.get(customPropertyName);
-                        options.cancel = true;
-                    }
-                }, { direction: 'up', includeSelf: false });
-            }
-        }
+        const value = component.getCustomPropertyValueForKey(customPropertyName);
 
         if (value === undefined)
         {

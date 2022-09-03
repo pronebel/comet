@@ -70,8 +70,12 @@
     app.assignCustomProp();
   };
 
-  const onGetCustomProp = () => {
-    app.getCustomProp();
+  const onUnAssignCustomProp = () => {
+    app.unAssignCustomProp();
+  };
+
+  const onGetAssignedCustomProp = () => {
+    app.getAssignedCustomProp();
   };
 
   const onRemoveCustomProp = () => {
@@ -104,9 +108,10 @@
   <br />
   <button on:click={onSetCustomProp}>Set Custom Prop</button>
   <input bind:value={customPropValue} />
-  <button on:click={onAssignCustomProp}>Assign Custom Prop</button>
-  <button on:click={onGetCustomProp}>Get Custom Prop</button>
   <button on:click={onRemoveCustomProp}>Remove Custom Prop</button>
+  <button on:click={onAssignCustomProp}>Assign Custom Prop</button>
+  <button on:click={onUnAssignCustomProp}>UnAssign Custom Prop</button>
+  <button on:click={onGetAssignedCustomProp}>Get Assigned Custom Prop</button>
   <test />
   <pre id="debug" />
 </buttons>
@@ -116,7 +121,7 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 200px;
+    width: 250px;
     display: flex;
     flex-direction: column;
   }
@@ -155,7 +160,7 @@
     bottom: 0;
     right: 0;
     left: 0;
-    height: 500px;
+    height: 450px;
     background-color: #000;
     overflow-y: auto;
     font-family: "Courier New", Courier, monospace;

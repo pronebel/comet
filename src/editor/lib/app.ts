@@ -225,11 +225,19 @@ export class TestApp extends Application
     {
         if (this.selected && this.selected instanceof DebugComponent)
         {
-            this.selected.model.assignCustomProperty('label', 'testCustomProp');
+            this.selected.assignCustomProperty('label', 'testCustomProp');
         }
     }
 
-    public getCustomProp()
+    public unAssignCustomProp()
+    {
+        if (this.selected && this.selected instanceof DebugComponent)
+        {
+            this.selected.unAssignCustomProperty('label');
+        }
+    }
+
+    public getAssignedCustomProp()
     {
         if (this.selected && this.selected instanceof DebugComponent)
         {
@@ -256,13 +264,13 @@ export class TestApp extends Application
         this.scene.root.walk<AnyComponent>((component, options) =>
         {
             const {
-                model: { id: modelId, component: modelComponent },
+                model: { id: modelId },
                 spawnInfo: { spawner, spawned, spawnMode },
             } = component;
 
             const pad = ''.padStart(options.depth, '+');
             const id = `&lt;${componentId(component)}&gt;`;
-            const modelInfo = `${modelId} (${componentId(modelComponent)})`;
+            const modelInfo = `${modelId}`;
             const spawnerInfo = spawner
                 ? `<span style="color:lime"><- ${componentId(spawner)}</span>`
                 : '';

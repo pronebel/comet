@@ -36,7 +36,7 @@ export const schema = new ModelSchema<DisplayObjectModel>({
     alpha: [new NumericRangeLimitConstraint(0, 1)],
 });
 
-export abstract class DisplayObjectContainer<M extends DisplayObjectModel, V extends DisplayObject> extends Component<M, V>
+export abstract class DisplayObjectComponent<M extends DisplayObjectModel, V extends DisplayObject> extends Component<M, V>
 {
     public modelSchema(): ModelSchema<M>
     {

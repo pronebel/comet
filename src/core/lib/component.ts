@@ -3,6 +3,7 @@ import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
 import type { NestableEvents } from './nestable';
 import { Nestable } from './nestable';
+import { project } from './project';
 import { SpawnInfo, SpawnMode } from './spawn';
 
 const ids = {} as Record<string, number>;
@@ -66,8 +67,6 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
     protected initModel()
     {
-        // todo: investigate best way for model->component relationship
-        this.model.component = this;
         this.model.on('modified', this.onModelModified);
     }
 
@@ -273,6 +272,35 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         {
             this.updateView();
         }
+    }
+
+    public getCustomPropertyValueForKey(customPropertyName: string): any
+    {
+        let value = this.model.customProperties.get(customPropertyName) || project.customProperties.get(customPropertyName);
+
+        if (value === undefined)
+        {
+            this.walk<AnyComponent>((parent, options) =>
+            {
+                if (parent.model.customProperties.has(customPropertyName))
+                {
+                    value = parent.model.customProperties.get(customPropertyName);
+                    options.cancel = true;
+                }
+            }, { direction: 'up', includeSelf: false });
+        }
+
+        return value;
+    }
+
+    public assignCustomProperty(modelKey: keyof M, customPropertyName: string)
+    {
+        this.model.assignCustomProperty(this, modelKey, customPropertyName);
+    }
+
+    public unAssignCustomProperty(modelKey: keyof M)
+    {
+        this.model.unassignCustomProperty(modelKey);
     }
 
     public abstract modelSchema(): ModelSchema<M>;
