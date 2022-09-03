@@ -1,22 +1,14 @@
-import EventEmitter from 'eventemitter3';
-
-import type { AnyComponent } from '../component';
+import type { NestableEvents } from '../nestable';
+import { Nestable } from '../nestable';
 import type { ModelSchema } from './schema';
 
 let id = 1;
 
-export class Model<M extends object> extends EventEmitter<'modified'>
+export class Model<M extends object> extends Nestable<NestableEvents | 'modified'>
 {
     public id: string;
-    public parent?: Model<M>;
-    public children: Model<M>[];
     public schema: ModelSchema<M>;
     public data: Partial<M>;
-    public customProperties: Map<string, any>;
-    public customPropertyAssignments: Map<keyof M, {
-        name: string;
-        previousValue: any;
-    }>;
 
     public isReference: boolean;
 
@@ -28,8 +20,6 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         this.schema = schema;
         this.data = data;
         this.children = [];
-        this.customProperties = new Map();
-        this.customPropertyAssignments = new Map();
         this.isReference = false;
 
         this.setValues(data);
@@ -78,35 +68,9 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         return values;
     }
 
-    public getAssignedCustomPropertyValue(key: keyof M): unknown
-    {
-        const { parent, customProperties, customPropertyAssignments } = this;
-
-        const property = customPropertyAssignments.get(key);
-
-        if (property)
-        {
-            return customProperties.get(property.name);
-        }
-
-        if (parent)
-        {
-            return parent.getAssignedCustomPropertyValue(key);
-        }
-
-        return undefined;
-    }
-
     public getValue<T extends M[keyof M]>(key: keyof M): T
     {
         const { data, parent, schema: { defaults } } = this;
-
-        const customPropertyModelValue = this.getAssignedCustomPropertyValue(key);
-
-        if (customPropertyModelValue !== undefined)
-        {
-            return customPropertyModelValue as T;
-        }
 
         const value = (data as M)[key];
 
@@ -114,7 +78,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         {
             if (parent)
             {
-                return parent.getValue(key);
+                return (parent as Model<any>).getValue(key);
             }
 
             return defaults[key] as T;
@@ -175,7 +139,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         {
             this.emit('modified', key, value, oldValue);
 
-            this.children.forEach((childModel) => childModel.rawSetValue(key, value));
+            this.children.forEach((childModel) => (childModel as Model<any>).rawSetValue(key, value));
         }
 
         return rtn;
@@ -218,21 +182,6 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         return createModel(this.schema, this.values) as unknown as T;
     }
 
-    public removeChild(model: Model<M>)
-    {
-        const index = this.children.indexOf(model);
-
-        if (index > -1)
-        {
-            this.children.splice(index, 1);
-            model.parent = undefined;
-        }
-        else
-        {
-            throw new Error('"Cannot remove a model which is not in children"');
-        }
-    }
-
     public reset()
     {
         const { schema: { keys, keys: { length: l } } } = this;
@@ -251,79 +200,8 @@ export class Model<M extends object> extends EventEmitter<'modified'>
     {
         this.emit('modified', key, value, oldValue);
 
-        this.children.forEach((childModel) => childModel.onModified(key, value, oldValue));
-    }
-
-    public setCustomProperty<T>(name: string, value: T)
-    {
-        this.customProperties.set(name, value);
-    }
-
-    public removeCustomProperty(name: string)
-    {
-        this.customProperties.delete(name);
-        const modelKey = this.getModelKeyForCustomPropertyAssignment(name);
-
-        if (modelKey)
-        {
-            this.unassignCustomProperty(modelKey);
-        }
-    }
-
-    public getModelKeyForCustomPropertyAssignment(customPropertyName: string)
-    {
-        const modelKeys = Array.from(this.customPropertyAssignments.keys());
-
-        for (let i = 0; i < modelKeys.length; i++)
-        {
-            if (this.customPropertyAssignments.get(modelKeys[i])?.name === customPropertyName)
-            {
-                return modelKeys[i];
-            }
-        }
-
-        return undefined;
-    }
-
-    public assignCustomProperty(component: AnyComponent, modelKey: keyof M, customPropertyName: string)
-    {
-        const previousValue = this.data[modelKey];
-
-        const value = component.getCustomPropertyValueForKey(customPropertyName);
-
-        if (value === undefined)
-        {
-            throw new Error(`"Cannot find custom property with name "${customPropertyName}"`);
-        }
-
-        this.customPropertyAssignments.set(modelKey, {
-            name: customPropertyName,
-            previousValue,
-        });
-
-        this.setValue(modelKey, value);
-    }
-
-    public unassignCustomProperty(modelKey: keyof M)
-    {
-        const property = this.customPropertyAssignments.get(modelKey);
-
-        this.customPropertyAssignments.delete(modelKey);
-
-        if (property)
-        {
-            this.setValue(modelKey, property.previousValue || this.schema.defaults[modelKey]);
-        }
-    }
-
-    public getCustomPropertyNames()
-    {
-        return Array.from(this.customProperties.keys());
-    }
-
-    public getCustomPropertyType(name: string)
-    {
-        return typeof this.customProperties.get(name);
+        this.forEach<Model<any>>((childModel) => childModel.onModified(key, value, oldValue));
+        // this.children.forEach((childModel) => childModel.onModified(key, value, oldValue));
     }
 
     public getReferenceParent(): Model<M> | undefined
@@ -332,7 +210,7 @@ export class Model<M extends object> extends EventEmitter<'modified'>
         {
             if (this.parent)
             {
-                return this.parent.getReferenceParent();
+                return this.getParent<Model<any>>().getReferenceParent();
             }
 
             return this;

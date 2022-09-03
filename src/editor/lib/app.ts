@@ -5,7 +5,6 @@ import type { AnyComponent } from '../../core/lib/component';
 import type { ContainerComponent } from '../../core/lib/components/container';
 import { DebugComponent } from '../../core/lib/components/debug';
 import { EmptyComponent } from '../../core/lib/components/empty';
-import type { Nestable } from '../../core/lib/nestable';
 import { Scene } from '../../core/lib/scene';
 import type { SpawnMode } from '../../core/lib/spawn';
 import { startDrag } from './drag';
@@ -63,11 +62,11 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            this.selected.addChild(component as Nestable);
+            this.selected.addChild(component);
         }
         else
         {
-            this.scene.root.addChild(component as Nestable);
+            this.scene.root.addChild(component);
         }
 
         this.makeInteractiveDeep(component);
@@ -213,11 +212,12 @@ export class TestApp extends Application
         }
     }
 
-    public setCustomProp(value: any)
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public setCustomProp(_value: any)
     {
         if (this.selected)
         {
-            this.selected.model.setCustomProperty('testCustomProp', value);
+            // this.selected.model.setCustomProperty('testCustomProp', value);
         }
     }
 
@@ -225,7 +225,7 @@ export class TestApp extends Application
     {
         if (this.selected && this.selected instanceof DebugComponent)
         {
-            this.selected.assignCustomProperty('label', 'testCustomProp');
+            // this.selected.assignCustomProperty('label', 'testCustomProp');
         }
     }
 
@@ -233,7 +233,7 @@ export class TestApp extends Application
     {
         if (this.selected && this.selected instanceof DebugComponent)
         {
-            this.selected.unAssignCustomProperty('label');
+            // this.selected.unAssignCustomProperty('label');
         }
     }
 
@@ -241,9 +241,9 @@ export class TestApp extends Application
     {
         if (this.selected && this.selected instanceof DebugComponent)
         {
-            const propValue = this.selected.model.getAssignedCustomPropertyValue('label');
+            // const propValue = this.selected.model.getAssignedCustomPropertyValue('label');
 
-            console.log(propValue);
+            // console.log(propValue);
         }
     }
 
@@ -251,7 +251,7 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            this.selected.model.removeCustomProperty('testCustomProp');
+            // this.selected.model.removeCustomProperty('testCustomProp');
         }
     }
 
@@ -279,9 +279,9 @@ export class TestApp extends Application
                     .map((component) => `${componentId(component)}`).join(',')}</span>`
                 : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
-            const customPropInfo = Array.from(component.model.customProperties.keys())
-                .map((key) => `${key}:${component.model.customProperties.get(key)}`).join(',');
-            const modelLine = `${modelInfo} <span style="color:cyan;font-size:14px">${modelValues}</span> ${customPropInfo}`;
+            // const customPropInfo = Array.from(component.model.customProperties.keys())
+            // .map((key) => `${key}:${component.model.customProperties.get(key)}`).join(',');
+            const modelLine = `${modelInfo} <span style="color:cyan;font-size:14px">${modelValues}</span>`;
             const isLinked = this.selected
                 ? this.selected === spawner || spawned.includes(this.selected)
                 : false;

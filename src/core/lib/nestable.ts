@@ -17,10 +17,10 @@ export const defaultWalkOptions: WalkOptions = {
     direction: 'down',
 };
 
-export abstract class Nestable<E extends string = NestableEvents> extends EventEmitter<NestableEvents | E>
+export abstract class Nestable<E extends string> extends EventEmitter<NestableEvents | E>
 {
-    public parent?: Nestable;
-    public children: Nestable[];
+    public parent?: Nestable<any>;
+    public children: Nestable<any>[];
 
     constructor()
     {
@@ -45,7 +45,7 @@ export abstract class Nestable<E extends string = NestableEvents> extends EventE
     {
         if (this.parent)
         {
-            this.parent.removeChild(this as Nestable);
+            this.parent.removeChild(this);
             this.dispose();
         }
     }
@@ -62,7 +62,7 @@ export abstract class Nestable<E extends string = NestableEvents> extends EventE
             return this as unknown as T;
         }
 
-        let ref: Nestable | undefined = this.parent;
+        let ref: Nestable<any> | undefined = this.parent;
 
         while (ref)
         {
@@ -76,12 +76,12 @@ export abstract class Nestable<E extends string = NestableEvents> extends EventE
     {
         if (this.parent)
         {
-            this.parent.removeChild(this as Nestable);
+            this.parent.removeChild(this);
         }
 
         this.parent = parent;
 
-        parent.children.push(this as Nestable);
+        parent.children.push(this);
         parent.emit('childAdded', this);
 
         this.onAddedToParent();
@@ -94,7 +94,7 @@ export abstract class Nestable<E extends string = NestableEvents> extends EventE
             throw new Error(`"Cannot add ${this.getComponentType()} to self"`);
         }
 
-        component.setParent(this as Nestable);
+        component.setParent(this);
     }
 
     public removeChild(component: Nestable<any>)
@@ -111,7 +111,7 @@ export abstract class Nestable<E extends string = NestableEvents> extends EventE
 
             this.emit('childRemoved', component);
 
-            component.onRemovedFromParent(this as Nestable);
+            component.onRemovedFromParent(this);
         }
         else
         {
@@ -122,6 +122,11 @@ export abstract class Nestable<E extends string = NestableEvents> extends EventE
     public getChildAt<T extends Nestable<any>>(index: number): T
     {
         return this.children[index] as T;
+    }
+
+    public forEach<T extends Nestable<any>>(fn: (child: T, index: number, array: T[]) => void)
+    {
+        this.children.forEach((child, i, array) => fn(child as T, i, array as T[]));
     }
 
     public walk<T extends Nestable<any>>(
@@ -168,7 +173,7 @@ export abstract class Nestable<E extends string = NestableEvents> extends EventE
 
     public containsChild<T extends Nestable<any>>(component: T)
     {
-        return this.children.indexOf(component as unknown as Nestable) > -1;
+        return this.children.indexOf(component) > -1;
     }
 
     protected onAddedToParent(): void

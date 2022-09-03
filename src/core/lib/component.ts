@@ -3,7 +3,6 @@ import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
 import type { NestableEvents } from './nestable';
 import { Nestable } from './nestable';
-import { project } from './project';
 import { SpawnInfo, SpawnMode } from './spawn';
 
 const ids = {} as Record<string, number>;
@@ -92,7 +91,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         {
             const childComponent = (child as AnyComponent).copy(spawnMode, false);
 
-            childComponent.setParent(component as Nestable);
+            childComponent.setParent(component);
         });
 
         return component as unknown as T;
@@ -139,7 +138,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             false,
         );
 
-        this.addChild(copy as Nestable);
+        this.addChild(copy);
     };
 
     protected onSpawnedChildAdded = (component: AnyComponent) =>
@@ -149,8 +148,8 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             false,
         );
 
-        copy.parent = this as Nestable;
-        this.children.push(copy as Nestable);
+        copy.parent = this;
+        this.children.push(copy);
 
         copy.onAddedToParent();
     };
@@ -272,35 +271,6 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         {
             this.updateView();
         }
-    }
-
-    public getCustomPropertyValueForKey(customPropertyName: string): any
-    {
-        let value = this.model.customProperties.get(customPropertyName) || project.customProperties.get(customPropertyName);
-
-        if (value === undefined)
-        {
-            this.walk<AnyComponent>((parent, options) =>
-            {
-                if (parent.model.customProperties.has(customPropertyName))
-                {
-                    value = parent.model.customProperties.get(customPropertyName);
-                    options.cancel = true;
-                }
-            }, { direction: 'up', includeSelf: false });
-        }
-
-        return value;
-    }
-
-    public assignCustomProperty(modelKey: keyof M, customPropertyName: string)
-    {
-        this.model.assignCustomProperty(this, modelKey, customPropertyName);
-    }
-
-    public unAssignCustomProperty(modelKey: keyof M)
-    {
-        this.model.unassignCustomProperty(modelKey);
     }
 
     public get(modelKey: keyof M)
