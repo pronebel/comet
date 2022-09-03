@@ -3,21 +3,14 @@ import EventEmitter from 'eventemitter3';
 import type { Model } from './model/model';
 import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
+import { SpawnInfo, SpawnMode } from './spawn';
 
 const ids = {} as Record<string, number>;
 
 export type AnyComponent = Component<any, any>;
 
+// todo: this might need to be extended by subclasses, may need to be generic parameter
 export type ComponentEvents = 'modified' | 'childAdded' | 'childRemoved' | 'disposed' | 'unlinked';
-
-export enum SpawnMode
-    {
-    Original = 'original',
-    Variant = 'variant',
-    Reference = 'reference',
-    ReferenceRoot = 'reference_root',
-    Duplicate = 'duplicate',
-}
 
 export abstract class Component<M extends object, V> extends EventEmitter<ComponentEvents>
 {
@@ -27,13 +20,14 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
     public parent?: AnyComponent;
     public children: AnyComponent[];
 
-    public spawnMode: SpawnMode;
-    public spawner?: Component<M, V>;
-    public spawned: Component<M, V>[];
+    public spawnInfo: SpawnInfo<Component<M, V>>;
 
     public id: string;
 
-    constructor(modelValues: Partial<M> = {}, spawner?: Component<M, V>, spawnMode: SpawnMode = SpawnMode.Original)
+    constructor(
+        modelValues: Partial<M> = {},
+        spawnInfo: SpawnInfo<Component<M, V>> = new SpawnInfo<Component<M, V>>(),
+    )
     {
         super();
 
@@ -46,10 +40,12 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
         this.id = `${componentType}:${ids[componentType]++}`;
         this.children = [];
-        this.spawnMode = spawnMode;
-        this.spawned = [];
 
-        if (spawner && spawnMode === SpawnMode.Reference)
+        this.spawnInfo = spawnInfo;
+
+        const { spawner } = this.spawnInfo;
+
+        if (spawner && spawnInfo.isReference)
         {
             this.model = spawner.model;
         }
@@ -64,10 +60,7 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
         this.initModel();
 
-        if (spawner)
-        {
-            this.setSpawner(spawner, spawnMode);
-        }
+        this.initSpawning();
 
         this.view = this.createView();
 
@@ -76,20 +69,9 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
 
     protected initModel()
     {
+        // todo: check this
         this.model.component = this;
         this.model.on('modified', this.onModelModified);
-    }
-
-    public getComponentType(): string
-    {
-        return (Object.getPrototypeOf(this).constructor as {
-            new (): object;
-        }).name;
-    }
-
-    public getView<T = V>(): T
-    {
-        return this.view as unknown as T;
     }
 
     protected onModelModified = <T>(key: string, value: T, oldValue: T) =>
@@ -102,13 +84,12 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
     public copy<T extends Component<M, V>>(spawnMode: SpawnMode = SpawnMode.Variant, isRoot = true): T
     {
         const Ctor = Object.getPrototypeOf(this).constructor as {
-            new (modelValues: Partial<M>, spawner?: Component<M, V>, spawnMode?: SpawnMode): T;
+            new (modelValues: Partial<M>, spawnInfo?: SpawnInfo<Component<M, V>>): T;
         };
 
         const component = new Ctor(
             {},
-            this,
-            spawnMode === SpawnMode.Reference && isRoot ? SpawnMode.ReferenceRoot : spawnMode,
+            new SpawnInfo(spawnMode === SpawnMode.Reference && isRoot ? SpawnMode.ReferenceRoot : spawnMode, this),
         );
 
         this.children.forEach((child) =>
@@ -121,38 +102,44 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         return component as unknown as T;
     }
 
-    protected setSpawner(spawner: Component<M, V>, spawnMode: SpawnMode)
+    protected initSpawning()
     {
-        this.spawner = spawner;
-        spawner.spawned.push(this);
+        const { spawner, spawnMode } = this.spawnInfo;
 
-        const { model: sourceModel } = spawner;
-
-        if (spawnMode === SpawnMode.Variant || spawnMode === SpawnMode.ReferenceRoot)
+        if (spawner)
         {
-            this.model.link(sourceModel);
+            spawner.spawnInfo.spawned.push(this);
 
-            if (spawnMode === SpawnMode.ReferenceRoot)
+            const { model: sourceModel } = spawner;
+
+            if (spawnMode === SpawnMode.Variant || spawnMode === SpawnMode.ReferenceRoot)
             {
-                spawner.model.isReference = true;
-                this.model.isReference = true;
+                this.model.link(sourceModel);
+
+                if (spawnMode === SpawnMode.ReferenceRoot)
+                {
+                    spawner.model.isReference = true;
+                    this.model.isReference = true;
+                }
             }
-        }
-        else if (spawnMode === SpawnMode.Duplicate)
-        {
-            const sourceValues = sourceModel.values;
+            else if (spawnMode === SpawnMode.Duplicate)
+            {
+                const sourceValues = sourceModel.values;
 
-            this.model.setValues(sourceValues);
-        }
+                this.model.setValues(sourceValues);
+            }
 
-        spawner.on('childAdded', this.onSpawnerChildAdded);
-        spawner.on('childRemoved', this.onSpawnerChildRemoved);
+            spawner.on('childAdded', this.onSpawnerChildAdded);
+            spawner.on('childRemoved', this.onSpawnerChildRemoved);
+        }
     }
 
     protected onSpawnerChildAdded = (component: AnyComponent) =>
     {
+        const { spawnMode } = this.spawnInfo;
+
         const copy = component.copy(
-            this.spawnMode === SpawnMode.ReferenceRoot ? SpawnMode.Reference : this.spawnMode,
+            spawnMode === SpawnMode.ReferenceRoot ? SpawnMode.Reference : spawnMode,
             false,
         );
 
@@ -176,39 +163,52 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
     {
         this.children.forEach((child: AnyComponent) =>
         {
-            if (child.spawner === component)
+            if (child.spawnInfo.isSpawner(component))
             {
                 child.deleteSelf();
             }
         });
     };
 
+    public getComponentType(): string
+    {
+        return (Object.getPrototypeOf(this).constructor as {
+            new (): object;
+        }).name;
+    }
+
+    public getView<T = V>(): T
+    {
+        return this.view as unknown as T;
+    }
+
     public dispose()
     {
         this.model.off('modified', this.onModelModified);
 
-        if (this.spawner)
+        if (this.spawnInfo.wasSpawned)
         {
             this.unlink();
         }
 
         this.emit('disposed');
 
-        this.spawned.forEach((component) => component.unlink());
+        this.spawnInfo.spawned.forEach((component) => component.unlink());
+
         this.children.forEach((child) => child.dispose());
     }
 
     public unlink(unlinkChildren = true)
     {
-        const { model, spawner, spawnMode } = this;
+        const { model, spawnInfo: { spawner, isVariant, isReference, isReferenceRoot } } = this;
 
         if (spawner)
         {
-            if ((model.parent && spawnMode === SpawnMode.Variant) || spawnMode === SpawnMode.ReferenceRoot)
+            if ((model.parent && isVariant) || isReferenceRoot)
             {
                 model.flatten();
             }
-            else if (spawnMode === SpawnMode.Reference)
+            else if (isReference)
             {
                 this.model = spawner.model.copy();
 
@@ -218,10 +218,10 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
             spawner.off('childAdded', this.onSpawnerChildAdded);
             spawner.off('childRemoved', this.onSpawnerChildRemoved);
 
-            delete this.spawner;
-            this.spawnMode = SpawnMode.Original;
+            this.spawnInfo.unlink();
 
             this.emit('unlinked');
+
             this.update();
         }
 
@@ -268,9 +268,9 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
         parent.children.push(this);
         parent.emit('childAdded', this);
 
-        const { spawner, spawnMode }  = parent;
+        const { spawnInfo: { spawner, isReferenceOrRoot } }  = parent;
 
-        if (spawner && (spawnMode === SpawnMode.Reference || spawnMode === SpawnMode.ReferenceRoot))
+        if (spawner && isReferenceOrRoot)
         {
             if (parent.children.length !== spawner.children.length)
             {
@@ -303,21 +303,21 @@ export abstract class Component<M extends object, V> extends EventEmitter<Compon
             delete component.parent;
             this.emit('childRemoved', component);
 
-            const { spawner, spawnMode } = component;
+            const { spawnInfo: { spawner, isReferenceOrRoot } } = component;
 
-            if (spawner && (spawnMode === SpawnMode.Reference || spawnMode === SpawnMode.ReferenceRoot))
+            if (spawner && isReferenceOrRoot)
             {
                 spawner.deleteSelf();
             }
             else
             {
-                component.spawned.forEach((spawnedComponent) =>
+                component.spawnInfo.spawned.forEach((spawnedComponent) =>
                 {
-                    const { spawner, spawnMode } = spawnedComponent;
+                    const { spawnInfo: { spawner, isReferenceOrRoot } } = spawnedComponent;
 
                     const isSameComponent = spawner === component;
 
-                    if (isSameComponent && spawnMode === (SpawnMode.Reference || spawnMode === SpawnMode.ReferenceRoot))
+                    if (isSameComponent && isReferenceOrRoot)
                     {
                         spawnedComponent.deleteSelf();
                     }

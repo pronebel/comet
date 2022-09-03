@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { SpawnMode } from "../../../core/lib/component";
+  import { SpawnMode } from "../../../core/lib/spawn";
 
   import { app } from "../app";
 

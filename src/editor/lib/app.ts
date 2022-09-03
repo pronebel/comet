@@ -1,11 +1,12 @@
 import type { Container, InteractionEvent } from 'pixi.js';
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
-import type { AnyComponent, SpawnMode } from '../../core/lib/component';
+import type { AnyComponent } from '../../core/lib/component';
 import type { ContainerComponent } from '../../core/lib/components/container';
 import { DebugComponent } from '../../core/lib/components/debug';
 import { EmptyComponent } from '../../core/lib/components/empty';
 import { Scene } from '../../core/lib/scene';
+import type { SpawnMode } from '../../core/lib/spawn';
 import { startDrag } from './drag';
 
 export let app: TestApp;
@@ -253,24 +254,29 @@ export class TestApp extends Application
 
         this.scene.root.walk((component, depth) =>
         {
+            const {
+                model: { id: modelId, component: modelComponent },
+                spawnInfo: { spawner, spawned, spawnMode },
+            } = component;
+
             const pad = ''.padStart(depth, '+');
             const id = `&lt;${componentId(component)}&gt;`;
-            const modelId = `${component.model.id} (${componentId(component.model.component)})`;
-            const spawnerInfo = component.spawner
-                ? `<span style="color:lime"><- ${componentId(component.spawner)}</span>`
+            const modelInfo = `${modelId} (${componentId(modelComponent)})`;
+            const spawnerInfo = spawner
+                ? `<span style="color:lime"><- ${componentId(spawner)}</span>`
                 : '';
-            const spawnedInfo = component.spawned.length > 0
-                ? `<span style="color:green">-> [${component.spawned.length}] ${component.spawned
+            const spawnedInfo = spawned.length > 0
+                ? `<span style="color:green">-> [${spawned.length}] ${spawned
                     .map((component) => `${componentId(component)}`).join(',')}</span>`
                 : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
             const customPropInfo = Array.from(component.model.customProperties.keys())
                 .map((key) => `${key}:${component.model.customProperties.get(key)}`).join(',');
-            const modelLine = `${modelId} <span style="color:cyan;font-size:14px">${modelValues}</span> ${customPropInfo}`;
+            const modelLine = `${modelInfo} <span style="color:cyan;font-size:14px">${modelValues}</span> ${customPropInfo}`;
             const isLinked = this.selected
-                ? this.selected === component.spawner || component.spawned.includes(this.selected)
+                ? this.selected === spawner || spawned.includes(this.selected)
                 : false;
-            const spawnModeInfo = `${component.spawnMode.toUpperCase()}`;
+            const spawnModeInfo = `${spawnMode.toUpperCase()}`;
             const output = `${pad} ${id} ${spawnModeInfo} ${spawnerInfo} ${spawnedInfo}\n${pad}  ... ${modelLine}\n`;
             const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
 
