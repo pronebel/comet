@@ -33,8 +33,7 @@ export class SpriteComponent<M extends SpriteModel, V extends Sprite> extends Co
 
     public updateView(): void
     {
-        const view = this.view;
-        const { anchorX, anchorY, tint } = this.model.values;
+        const { view, values: { anchorX, anchorY, tint } } = this;
 
         super.updateView();
 

@@ -303,9 +303,30 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         this.model.unassignCustomProperty(modelKey);
     }
 
+    public get(modelKey: keyof M)
+    {
+        return this.model.getValue(modelKey);
+    }
+
+    public get values()
+    {
+        const values = this.model.values;
+
+        return values;
+    }
+
+    public set<K extends keyof M>(modelKey: K, value: M[K])
+    {
+        this.model.setValue(modelKey, value);
+    }
+
     public abstract modelSchema(): ModelSchema<M>;
 
     public abstract createView(): V;
 
     public abstract updateView(): void;
 }
+
+// type JWT = { a: string; b: number };
+// declare function onChange<K extends keyof JWT>(key: K, value: JWT[K]): void;
+// onChange('a', 1);

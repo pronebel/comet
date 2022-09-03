@@ -45,14 +45,17 @@ export abstract class DisplayObjectComponent<M extends DisplayObjectModel, V ext
 
     public updateView(): void
     {
-        const { view, model: { values: {
-            x, y,
-            pivotX, pivotY,
-            scaleX, scaleY,
-            angle,
-            alpha,
-            visible,
-        } } } = this;
+        const {
+            values: {
+                x, y,
+                pivotX, pivotY,
+                scaleX, scaleY,
+                angle,
+                alpha,
+                visible,
+            },
+            view,
+        } = this;
 
         view.x = x;
         view.y = y;

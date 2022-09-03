@@ -34,9 +34,9 @@ export class ContainerComponent<
 
     public updateView(): void
     {
-        const { view, model: { values: {
+        const { view, values: {
             width, height,
-        } } } = this;
+        } } = this;
 
         super.updateView();
 
