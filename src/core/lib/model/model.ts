@@ -68,7 +68,7 @@ export class Model<M extends object> extends Nestable<NestableEvents | 'modified
         return values;
     }
 
-    public getValue<T extends M[keyof M]>(key: keyof M): T
+    public getValue(key: keyof M): M[keyof M]
     {
         const { data, parent, schema: { defaults } } = this;
 
@@ -78,24 +78,24 @@ export class Model<M extends object> extends Nestable<NestableEvents | 'modified
         {
             if (parent)
             {
-                return (parent as Model<any>).getValue(key);
+                return (parent as Model<any>).getValue(key) as M[keyof M];
             }
 
-            return defaults[key] as T;
+            return defaults[key];
         }
 
-        return value as T;
+        return value;
     }
 
-    public setValue<T>(key: keyof M, newValue: T)
+    public setValue<K extends keyof M>(key: K, newValue: M[K])
     {
         const { data, schema, schema: { keys } } = this;
 
-        let oldValue = Reflect.get(data, key) as T;
+        let oldValue = Reflect.get(data, key);
 
         if (oldValue === undefined)
         {
-            oldValue = this.getValue(key) as unknown as T;
+            oldValue = this.getValue(key);
         }
 
         let value = newValue === undefined ? data[key] : newValue;
@@ -151,7 +151,7 @@ export class Model<M extends object> extends Nestable<NestableEvents | 'modified
 
         keys.forEach((key) =>
         {
-            this.setValue(key, values[key]);
+            this.setValue(key, values[key] as M[keyof M]);
         });
     }
 
@@ -201,7 +201,6 @@ export class Model<M extends object> extends Nestable<NestableEvents | 'modified
         this.emit('modified', key, value, oldValue);
 
         this.forEach<Model<any>>((childModel) => childModel.onModified(key, value, oldValue));
-        // this.children.forEach((childModel) => childModel.onModified(key, value, oldValue));
     }
 
     public getReferenceParent(): Model<M> | undefined
@@ -232,11 +231,11 @@ export function createModel<M extends object>(
     keys.forEach((key) =>
     {
         Object.defineProperty(model, key, {
-            get<T>()
+            get()
             {
-                return this.getValue(key) as T;
+                return this.getValue(key) as M[keyof M];
             },
-            set<T>(newValue: T)
+            set<K extends keyof M>(newValue: M[K])
             {
                 return model.setValue(key, newValue);
             },
@@ -244,7 +243,7 @@ export function createModel<M extends object>(
 
         if (values[key] !== undefined)
         {
-            model.setValue(key, values[key]);
+            model.setValue(key, values[key] as M[keyof M]);
         }
     });
 
