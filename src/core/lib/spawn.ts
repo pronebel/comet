@@ -30,6 +30,11 @@ export class SpawnInfo<C>
         return this.spawner !== undefined;
     }
 
+    public get hasSpawned()
+    {
+        return this.spawned.length > 0;
+    }
+
     public get isOriginal()
     {
         return this.spawnMode === SpawnMode.Original;
@@ -58,6 +63,13 @@ export class SpawnInfo<C>
     public get isReferenceRoot()
     {
         return this.spawnMode === SpawnMode.ReferenceRoot;
+    }
+
+    public get isLinked()
+    {
+        const { spawnMode } = this;
+
+        return spawnMode === SpawnMode.Reference || spawnMode === SpawnMode.ReferenceRoot || spawnMode === SpawnMode.Variant;
     }
 
     public getSpawnedAt(index: number)

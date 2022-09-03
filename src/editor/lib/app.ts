@@ -5,6 +5,7 @@ import type { AnyComponent } from '../../core/lib/component';
 import type { ContainerComponent } from '../../core/lib/components/container';
 import { DebugComponent } from '../../core/lib/components/debug';
 import { EmptyComponent } from '../../core/lib/components/empty';
+import { Project } from '../../core/lib/project';
 import { Scene } from '../../core/lib/scene';
 import type { SpawnMode } from '../../core/lib/spawn';
 import { startDrag } from './drag';
@@ -15,15 +16,19 @@ export class TestApp extends Application
 {
     public selected?: ContainerComponent;
     public selection: Sprite;
+    public project: Project;
     public scene: Scene;
 
     constructor(options?: IApplicationOptions | undefined)
     {
         super(options);
 
+        this.project = new Project();
         this.scene = new Scene();
 
-        this.stage.addChild(this.scene.root.view);
+        this.project.addChild(this.scene);
+
+        this.stage.addChild(this.scene.view);
 
         const selection = this.selection = new Sprite(Texture.WHITE);
 
@@ -66,7 +71,7 @@ export class TestApp extends Application
         }
         else
         {
-            this.scene.root.addChild(component);
+            this.scene.addChild(component);
         }
 
         this.makeInteractiveDeep(component);
@@ -177,14 +182,6 @@ export class TestApp extends Application
         }
     }
 
-    public randAlpha()
-    {
-        if (this.selected)
-        {
-            this.selected.model.alpha = ((Math.random() * 70) + 30) / 100;
-        }
-    }
-
     public rotate()
     {
         if (this.selected)
@@ -213,11 +210,25 @@ export class TestApp extends Application
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public setCustomProp(_value: any)
+    public setCustomProp(name: string, value: any)
     {
-        if (this.selected)
+        const { selected } = this;
+
+        if (selected)
         {
-            // this.selected.model.setCustomProperty('testCustomProp', value);
+            const propType = isNaN(value) ? 'string' : 'number';
+
+            selected.defineCustomProperty(name, propType, propType === 'string' ? value : parseFloat(value));
+        }
+    }
+
+    public removeCustomProp(name: string)
+    {
+        const { selected } = this;
+
+        if (selected)
+        {
+            selected.unDefineCustomProperty(name);
         }
     }
 
@@ -247,21 +258,13 @@ export class TestApp extends Application
         }
     }
 
-    public removeCustomProp()
-    {
-        if (this.selected)
-        {
-            // this.selected.model.removeCustomProperty('testCustomProp');
-        }
-    }
-
     public debug(element: HTMLPreElement)
     {
         let html = '';
 
         const componentId = (component: AnyComponent) => component.id.replace('Component', '');
 
-        this.scene.root.walk<AnyComponent>((component, options) =>
+        this.scene.walk<AnyComponent>((component, options) =>
         {
             const {
                 model: { id: modelId },
@@ -279,14 +282,29 @@ export class TestApp extends Application
                     .map((component) => `${componentId(component)}`).join(',')}</span>`
                 : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
-            // const customPropInfo = Array.from(component.model.customProperties.keys())
-            // .map((key) => `${key}:${component.model.customProperties.get(key)}`).join(',');
+            const customPropDefineInfo = component.getDefinedCustomProps()
+                .map((prop, i) =>
+                {
+                    if (prop)
+                    {
+                        const creatorId = componentId(prop.creator);
+                        const isFirst = i === 0 ? '!' : '+';
+
+                        return `${prop.name}(${prop.type})${creatorId}${isFirst}:${JSON.stringify(prop.value)}`;
+                    }
+
+                    return '!ERROR!';
+                })
+                .join(', ');
             const modelLine = `${modelInfo} <span style="color:cyan;font-size:14px">${modelValues}</span>`;
             const isLinked = this.selected
                 ? this.selected === spawner || spawned.includes(this.selected)
                 : false;
             const spawnModeInfo = `${spawnMode.toUpperCase()}`;
-            const output = `${pad} ${id} ${spawnModeInfo} ${spawnerInfo} ${spawnedInfo}\n${pad}  ... ${modelLine}\n`;
+            let output = `${pad} ${id} ${spawnModeInfo} ${spawnerInfo} ${spawnedInfo}\n`;
+
+            output += `${pad}  ... ${modelLine}\n`;
+            output += `<span style="color:salmon">${pad}  ... ${customPropDefineInfo}</span>\n`;
             const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
 
             html += isLinked ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;

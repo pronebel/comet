@@ -1,12 +1,13 @@
-import { ContainerComponent } from './components/container';
+import type { Container } from 'pixi.js';
 
-export class Scene
+import { type ContainerModel, ContainerComponent } from './components/container';
+
+export class Scene extends ContainerComponent<ContainerModel, Container>
 {
-    public root: ContainerComponent;
-
-    constructor()
+    protected init(): void
     {
-        this.root = new ContainerComponent();
-        (window as any)['root'] = this.root;
+        super.init();
+
+        this.defineCustomProperty('sp', 'string', 'sv');
     }
 }

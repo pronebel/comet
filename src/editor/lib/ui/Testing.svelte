@@ -3,7 +3,9 @@
 
   import { app } from "../app";
 
-  let customPropValue: string = "foo";
+  let customPropName: string = "prop1";
+  let customPropValue: string = "foo1";
+  let assignCustomPropName: string = "label";
 
   const onNewContainer = () => {
     app.newContainer();
@@ -45,10 +47,6 @@
     app.randSize();
   };
 
-  const onRandAlpha = () => {
-    app.randAlpha();
-  };
-
   const onRotate = () => {
     app.rotate();
   };
@@ -63,7 +61,7 @@
   };
 
   const onSetCustomProp = () => {
-    app.setCustomProp(customPropValue);
+    app.setCustomProp(customPropName, customPropValue);
   };
 
   const onAssignCustomProp = () => {
@@ -79,7 +77,7 @@
   };
 
   const onRemoveCustomProp = () => {
-    app.removeCustomProp();
+    app.removeCustomProp(customPropName);
   };
 
   setInterval(() => {
@@ -101,17 +99,21 @@
   <button on:click={onUnlink}>Unlink</button>
   <button on:click={onRandColor}>Rand Color</button>
   <button on:click={onRandSize}>Rand Size</button>
-  <button on:click={onRandAlpha}>Rand Alpha</button>
   <button on:click={onRotate}>Rotate</button>
   <button on:click={onResetModel}>Reset Model</button>
   <button on:click={onInspect}>Inspect</button>
   <br />
   <button on:click={onSetCustomProp}>Set Custom Prop</button>
-  <input bind:value={customPropValue} />
+  <keyvalue>
+    <input bind:value={customPropName} />
+    <input bind:value={customPropValue} />
+  </keyvalue>
   <button on:click={onRemoveCustomProp}>Remove Custom Prop</button>
+  <br />
   <button on:click={onAssignCustomProp}>Assign Custom Prop</button>
   <button on:click={onUnAssignCustomProp}>UnAssign Custom Prop</button>
   <button on:click={onGetAssignedCustomProp}>Get Assigned Custom Prop</button>
+  <input bind:value={assignCustomPropName} />
   <test />
   <pre id="debug" />
 </buttons>
@@ -128,7 +130,7 @@
   buttons button {
     width: 100%;
     margin-bottom: 10px;
-    font-size: 12pt;
+    font-size: 10pt;
   }
 
   buttons test {
@@ -143,9 +145,19 @@
     box-sizing: border-box;
   }
 
-  buttons input {
+  keyvalue {
+    display: flex;
+    width: 100%;
+  }
+
+  keyvalue input {
+    width: 50%;
+  }
+
+  input {
+    flex-grow: 0;
     margin-bottom: 10px;
-    font-size: 16px;
+    font-size: 12px;
     text-align: center;
     border-color: #666;
     padding: 5px;
@@ -160,10 +172,12 @@
     bottom: 0;
     right: 0;
     left: 0;
-    height: 450px;
+    height: 500px;
     background-color: #000;
     overflow-y: auto;
+    font-size: 12px;
     font-family: "Courier New", Courier, monospace;
     padding: 5px;
+    line-height: 13px;
   }
 </style>

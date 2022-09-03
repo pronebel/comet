@@ -1,3 +1,5 @@
+import type { CustomProperty, CustomPropertyType } from './model/customProps';
+import { CustomProperties } from './model/customProps';
 import type { Model } from './model/model';
 import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
@@ -10,16 +12,18 @@ const ids = {} as Record<string, number>;
 export type AnyComponent = Component<any, any>;
 
 // todo: this might need to be extended by subclasses, may need to be generic parameter
-export type ComponentEvents = NestableEvents | 'modified' | 'unlinked';
+export type ComponentEvents = NestableEvents | 'unlinked';
 
 export abstract class Component<M extends object, V> extends Nestable<ComponentEvents>
 {
+    public id: string;
+
     public model: Model<M> & M;
     public view: V;
 
     public spawnInfo: SpawnInfo<Component<M, V>>;
 
-    public id: string;
+    public customProperties: CustomProperties;
 
     constructor(
         modelValues: Partial<M> = {},
@@ -36,6 +40,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         }
 
         this.id = `${componentType}:${ids[componentType]++}`;
+
         this.children = [];
 
         this.spawnInfo = spawnInfo;
@@ -55,13 +60,18 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             });
         }
 
+        this.customProperties = new CustomProperties();
+
         this.initModel();
-
         this.initSpawning();
-
         this.view = this.createView();
-
+        this.init();
         this.update();
+    }
+
+    protected init()
+    {
+        // for subclasses...
     }
 
     protected initModel()
@@ -99,7 +109,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
     protected initSpawning()
     {
-        const { spawner, spawnMode } = this.spawnInfo;
+        const { spawner, spawnMode, isVariant, isReferenceRoot, isLinked } = this.spawnInfo;
 
         if (spawner)
         {
@@ -107,11 +117,11 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
             const { model: sourceModel } = spawner;
 
-            if (spawnMode === SpawnMode.Variant || spawnMode === SpawnMode.ReferenceRoot)
+            if (isVariant || isReferenceRoot)
             {
                 this.model.link(sourceModel);
 
-                if (spawnMode === SpawnMode.ReferenceRoot)
+                if (isReferenceRoot)
                 {
                     spawner.model.isReference = true;
                     this.model.isReference = true;
@@ -122,6 +132,11 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
                 const sourceValues = sourceModel.values;
 
                 this.model.setValues(sourceValues);
+            }
+
+            if (isLinked)
+            {
+                this.customProperties = spawner.customProperties.clone();
             }
 
             spawner.on('childAdded', this.onSpawnerChildAdded);
@@ -189,6 +204,8 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         {
             child.dispose();
         });
+
+        this.removeAllListeners();
     }
 
     public unlink(unlinkChildren = true)
@@ -273,21 +290,45 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         }
     }
 
+    public get values()
+    {
+        const values = this.model.values;
+
+        // todo: override with customProps as discoverable
+
+        return values;
+    }
+
     public get(modelKey: keyof M)
     {
         return this.model.getValue(modelKey);
     }
 
-    public get values()
-    {
-        const values = this.model.values;
-
-        return values;
-    }
-
     public set<K extends keyof M>(modelKey: K, value: M[K])
     {
         this.model.setValue(modelKey, value);
+    }
+
+    public defineCustomProperty(name: string, type: CustomPropertyType, value: any)
+    {
+        this.customProperties.define(this, name, type, value);
+    }
+
+    public unDefineCustomProperty(name: string)
+    {
+        this.customProperties.unDefine(this, name);
+    }
+
+    public getDefinedCustomProps(props: CustomProperty[] = [])
+    {
+        this.walk<AnyComponent>((component) =>
+        {
+            component.customProperties.values().forEach((array) => props.push(...array));
+        }, {
+            direction: 'up',
+        });
+
+        return props;
     }
 
     public abstract modelSchema(): ModelSchema<M>;
@@ -297,6 +338,3 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
     public abstract updateView(): void;
 }
 
-// type JWT = { a: string; b: number };
-// declare function onChange<K extends keyof JWT>(key: K, value: JWT[K]): void;
-// onChange('a', 1);

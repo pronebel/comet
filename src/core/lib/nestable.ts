@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
-export type NestableEvents = 'childAdded' | 'childRemoved' | 'disposed';
+export type NestableEvents = 'modified' | 'childAdded' | 'childRemoved' | 'disposed';
 
 export interface WalkOptions
 {

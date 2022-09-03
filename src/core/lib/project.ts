@@ -1,11 +1,13 @@
-export interface Project
+import type { Container } from 'pixi.js';
+
+import { type ContainerModel, ContainerComponent } from './components/container';
+
+export class Project extends ContainerComponent<ContainerModel, Container>
 {
-    customProperties: Map<string, any>;
+    protected init(): void
+    {
+        super.init();
+
+        this.defineCustomProperty('pp', 'string', 'pv');
+    }
 }
-
-export const project: Project = {
-    customProperties: new Map(),
-};
-
-project.customProperties.set('label', 'default');
-project.customProperties.set('foo', 100);
