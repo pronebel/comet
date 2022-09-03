@@ -1,7 +1,8 @@
 import { Sprite } from 'pixi.js';
 
-import { Component, SpawnMode } from '../../../src/core/lib/component';
+import { Component } from '../../../src/core/lib/component';
 import { ModelSchema } from '../../../src/core/lib/model/schema';
+import { SpawnMode } from '../../../src/core/lib/spawn';
 
 export interface TestModel
 {
@@ -18,11 +19,6 @@ const clearLog = () => log.length = 0;
 
 class TestComponent extends Component<TestModel, Sprite>
 {
-    constructor(modelValues: Partial<TestModel> = {}, spawner?: Component<TestModel, Sprite>, spawnMode = SpawnMode.Original)
-    {
-        super(modelValues, spawner, spawnMode);
-    }
-
     public modelSchema(): ModelSchema<TestModel>
     {
         log.push('modelSchema');
@@ -216,15 +212,15 @@ describe('Component', () =>
         {
             const { parent, childA, childB, copy, copyChildA, copyChildB } = setup();
 
-            expect(copy.spawner).toBe(parent);
-            expect(copyChildA.spawner).toBe(childA);
-            expect(copyChildB.spawner).toBe(childB);
-            expect(parent.spawned).toHaveLength(1);
-            expect(childA.spawned).toHaveLength(1);
-            expect(childB.spawned).toHaveLength(1);
-            expect(parent.spawned[0]).toBe(copy);
-            expect(childA.spawned[0]).toBe(copyChildA);
-            expect(childB.spawned[0]).toBe(copyChildB);
+            expect(copy.spawnInfo.isSpawner(parent)).toBeTruthy();
+            expect(copyChildA.spawnInfo.isSpawner(childA)).toBeTruthy();
+            expect(copyChildB.spawnInfo.isSpawner(childB)).toBeTruthy();
+            expect(parent.spawnInfo.spawnedCount).toBe(1);
+            expect(childA.spawnInfo.spawnedCount).toBe(1);
+            expect(childB.spawnInfo.spawnedCount).toBe(1);
+            expect(parent.spawnInfo.getSpawnedAt(0)).toBe(copy);
+            expect(childA.spawnInfo.getSpawnedAt(0)).toBe(copyChildA);
+            expect(childB.spawnInfo.getSpawnedAt(0)).toBe(copyChildB);
         });
 
         it('should reference spawner model when copied linked', () =>
@@ -232,7 +228,7 @@ describe('Component', () =>
             const component = new TestComponent({ x: 15 });
             const copy = component.copy();
 
-            expect(copy.spawner).toBe(component);
+            expect(copy.spawnInfo.isSpawner(component)).toBeTruthy();
             expect(copy.model.parent).toBe(component.model);
             expect(copy.model.x).toBe(15);
         });
@@ -242,7 +238,7 @@ describe('Component', () =>
             const component = new TestComponent({ x: 15 });
             const copy = component.copy(SpawnMode.Original);
 
-            expect(copy.spawner).toBe(component);
+            expect(copy.spawnInfo.isSpawner(component)).toBeTruthy();
             expect(copy.model.parent).toBeUndefined();
             expect(copy.model.x).toBe(schema.defaults.x);
         });

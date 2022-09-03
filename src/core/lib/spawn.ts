@@ -20,6 +20,11 @@ export class SpawnInfo<C>
         this.spawned = [];
     }
 
+    public get spawnedCount()
+    {
+        return this.spawned.length;
+    }
+
     public get wasSpawned()
     {
         return this.spawner !== undefined;
@@ -53,6 +58,11 @@ export class SpawnInfo<C>
     public get isReferenceRoot()
     {
         return this.spawnMode === SpawnMode.ReferenceRoot;
+    }
+
+    public getSpawnedAt(index: number)
+    {
+        return this.spawned[index];
     }
 
     public isSpawner(component: C)
