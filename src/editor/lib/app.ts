@@ -282,20 +282,32 @@ export class TestApp extends Application
                     .map((component) => `${componentId(component)}`).join(',')}</span>`
                 : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
-            const customPropDefineInfo = component.getDefinedCustomProps()
-                .map((prop, i) =>
+            const customProps = component.getDefinedCustomProps();
+            const customPropArray: string[] = [];
+
+            Array.from(customProps.keys()).forEach((key) =>
+            {
+                const array = customProps.properties.get(key);
+
+                if (array)
                 {
-                    if (prop)
+                    customPropArray.push(array.map((prop, i) =>
                     {
+                        const isActive = i === 0;
                         const creatorId = componentId(prop.creator);
-                        const isFirst = i === 0 ? '!' : '+';
+                        const isCreator = component === prop.creator;
 
-                        return `${prop.name}(${prop.type})${creatorId}${isFirst}:${JSON.stringify(prop.value)}`;
-                    }
+                        let line = `${prop.name}~${creatorId}:${JSON.stringify(prop.value)}`;
 
-                    return '!ERROR!';
-                })
-                .join(', ');
+                        line = isActive ? `<u>${line}</u>` : `<span style="font-style:italic">${line}</span>`;
+                        line = isCreator ? `<span style="color:salmon">${line}</span>` : line;
+
+                        // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                        return line;
+                    }).join(', '));
+                }
+            });
+            const customPropDefineInfo = customPropArray.join(' / ');
             const modelLine = `${modelInfo} <span style="color:cyan;font-size:14px">${modelValues}</span>`;
             const isLinked = this.selected
                 ? this.selected === spawner || spawned.includes(this.selected)
@@ -304,7 +316,7 @@ export class TestApp extends Application
             let output = `${pad} ${id} ${spawnModeInfo} ${spawnerInfo} ${spawnedInfo}\n`;
 
             output += `${pad}  ... ${modelLine}\n`;
-            output += `<span style="color:salmon">${pad}  ... ${customPropDefineInfo}</span>\n`;
+            output += `${pad}  ... ${customPropDefineInfo}\n`;
             const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
 
             html += isLinked ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;

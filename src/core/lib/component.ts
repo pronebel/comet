@@ -319,7 +319,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         this.customProperties.unDefine(this, name);
     }
 
-    public getDefinedCustomProps(props: CustomProperty[] = [])
+    public getDefinedCustomPropsAsArray(props: CustomProperty[] = [])
     {
         this.walk<AnyComponent>((component) =>
         {
@@ -329,6 +329,19 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         });
 
         return props;
+    }
+
+    public getDefinedCustomProps()
+    {
+        const array = this.getDefinedCustomPropsAsArray();
+        const customProps = new CustomProperties();
+
+        array.forEach((property) =>
+        {
+            customProps.addProperty(property);
+        });
+
+        return customProps;
     }
 
     public abstract modelSchema(): ModelSchema<M>;

@@ -1,4 +1,5 @@
-Demo:
+# Custom Props
 
-* SpawnModes - Original, Duplicate, Variant, Reference, ReferenceRoot
-* Custom Properties
+* Duplicate or unlinking needs to get unique copy of current set
+* Do we need event emitter for CustomProps?
+* Testing, testing, testing...

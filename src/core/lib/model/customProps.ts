@@ -69,6 +69,23 @@ export class CustomProperties extends EventEmitter
         return this.properties.get(name);
     }
 
+    public addProperty(property: CustomProperty)
+    {
+        const { name } = property;
+
+        if (!this.properties.has(name))
+        {
+            this.properties.set(name, []);
+        }
+
+        const array = this.properties.get(name);
+
+        if (array)
+        {
+            array.push(property);
+        }
+    }
+
     public define(creator: AnyComponent, name: string, type: CustomPropertyType, value: any)
     {
         if (!this.properties.has(name))

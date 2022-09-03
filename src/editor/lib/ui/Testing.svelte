@@ -127,6 +127,7 @@
     display: flex;
     flex-direction: column;
   }
+
   buttons button {
     width: 100%;
     margin-bottom: 10px;
@@ -175,9 +176,9 @@
     height: 500px;
     background-color: #000;
     overflow-y: auto;
-    font-size: 12px;
+    font-size: 14px;
     font-family: "Courier New", Courier, monospace;
     padding: 5px;
-    line-height: 13px;
+    line-height: 16px;
   }
 </style>
