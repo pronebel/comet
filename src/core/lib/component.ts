@@ -79,65 +79,6 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         this.model.on('modified', this.onModelModified);
     }
 
-    protected onModelModified = <T>(key: string, value: T, oldValue: T) =>
-    {
-        this.update();
-
-        this.emit('modified', key, value, oldValue);
-    };
-
-    public clone<T extends Component<M, V>>(cloneMode: CloneMode = CloneMode.Variant, isRoot = true): T
-    {
-        const Ctor = Object.getPrototypeOf(this).constructor as {
-            new (modelValues: Partial<M>, cloneInfo?: CloneInfo<Component<M, V>>): T;
-        };
-
-        const component = new Ctor(
-            {},
-            new CloneInfo(cloneMode === CloneMode.Reference && isRoot ? CloneMode.ReferenceRoot : cloneMode, this),
-        );
-
-        this.children.forEach((child) =>
-        {
-            const childComponent = (child as AnyComponent).clone(cloneMode, false);
-
-            childComponent.setParent(component);
-        });
-
-        component.onCloned();
-
-        return component as unknown as T;
-    }
-
-    public onCloned()
-    {
-        const { cloneInfo: { cloner, isDuplicate } } = this;
-
-        if (cloner)
-        {
-            if (isDuplicate)
-            {
-                this.walk<AnyComponent>((component) =>
-                {
-                    const componentCloner = component.cloneInfo.cloner;
-
-                    if (componentCloner)
-                    {
-                        const props = componentCloner.customProperties;
-
-                        component.customProperties = props.clone().unlink(component);
-                    }
-                });
-            }
-            else
-            {
-                this.customProperties = cloner.customProperties.clone();
-            }
-
-            this.updateRecursive();
-        }
-    }
-
     protected initCloning()
     {
         const { cloner, cloneMode, isVariant, isReferenceRoot } = this.cloneInfo;
@@ -172,45 +113,27 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         }
     }
 
-    protected onClonerChildAdded = (component: AnyComponent) =>
+    public clone<T extends Component<M, V>>(cloneMode: CloneMode = CloneMode.Variant, isRoot = true): T
     {
-        const { cloneMode } = this.cloneInfo;
+        const Ctor = Object.getPrototypeOf(this).constructor as {
+            new (modelValues: Partial<M>, cloneInfo?: CloneInfo<Component<M, V>>): T;
+        };
 
-        const copy = component.clone(
-            cloneMode === CloneMode.ReferenceRoot ? CloneMode.Reference : cloneMode,
-            false,
+        const component = new Ctor(
+            {},
+            new CloneInfo(cloneMode === CloneMode.Reference && isRoot ? CloneMode.ReferenceRoot : cloneMode, this),
         );
 
-        this.addChild(copy);
-    };
-
-    protected onClonedChildAdded = (component: AnyComponent) =>
-    {
-        const copy = component.clone(
-            CloneMode.Reference,
-            false,
-        );
-
-        copy.parent = this;
-        this.children.push(copy);
-
-        copy.onAddedToParent();
-    };
-
-    protected onClonerChildRemoved = (component: AnyComponent) =>
-    {
         this.children.forEach((child) =>
         {
-            if ((child as AnyComponent).cloneInfo.isClonedFrom(component))
-            {
-                child.deleteSelf();
-            }
-        });
-    };
+            const childComponent = (child as AnyComponent).clone(cloneMode, false);
 
-    public getView<T = V>(): T
-    {
-        return this.view as unknown as T;
+            childComponent.setParent(component);
+        });
+
+        component.onCloned();
+
+        return component as unknown as T;
     }
 
     public dispose()
@@ -270,6 +193,111 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         }
     }
 
+    public update(recursive = false)
+    {
+        if (this.view)
+        {
+            this.updateView();
+        }
+
+        if (recursive)
+        {
+            this.forEach<AnyComponent>((child) => child.update(true));
+        }
+    }
+
+    public updateRecursive()
+    {
+        return this.update(true);
+    }
+
+    public updateRecursiveWithClones()
+    {
+        this.walk<AnyComponent>((component) =>
+        {
+            component.update();
+
+            component.cloneInfo.forEachCloned((cloned) => cloned.updateRecursiveWithClones());
+        });
+    }
+
+    protected onModelModified = <T>(key: string, value: T, oldValue: T) =>
+    {
+        this.update();
+
+        this.emit('modified', key, value, oldValue);
+    };
+
+    public onCloned()
+    {
+        const { cloneInfo: { cloner, isDuplicate } } = this;
+
+        if (cloner)
+        {
+            if (isDuplicate)
+            {
+                this.walk<AnyComponent>((component) =>
+                {
+                    const componentCloner = component.cloneInfo.cloner;
+
+                    if (componentCloner)
+                    {
+                        const props = componentCloner.customProperties;
+
+                        component.customProperties = props.clone().unlink(component);
+                    }
+                });
+            }
+            else
+            {
+                this.customProperties = cloner.customProperties.clone();
+            }
+
+            this.updateRecursive();
+        }
+    }
+
+    protected onClonerChildAdded = (component: AnyComponent) =>
+    {
+        const { cloneMode } = this.cloneInfo;
+
+        const copy = component.clone(
+            cloneMode === CloneMode.ReferenceRoot ? CloneMode.Reference : cloneMode,
+            false,
+        );
+
+        this.addChild(copy);
+    };
+
+    protected onClonedChildAdded = (component: AnyComponent) =>
+    {
+        const copy = component.clone(
+            CloneMode.Reference,
+            false,
+        );
+
+        copy.parent = this;
+        this.children.push(copy);
+
+        copy.onAddedToParent();
+    };
+
+    protected onClonerChildRemoved = (component: AnyComponent) =>
+    {
+        this.children.forEach((child) =>
+        {
+            if ((child as AnyComponent).cloneInfo.isClonedFrom(component))
+            {
+                child.deleteSelf();
+            }
+        });
+    };
+
+    public getView<T = V>(): T
+    {
+        return this.view as unknown as T;
+    }
+
     protected onAddedToParent(): void
     {
         const parent = this.getParent<AnyComponent>();
@@ -309,34 +337,6 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
                 }
             });
         }
-    }
-
-    public update(recursive = false)
-    {
-        if (this.view)
-        {
-            this.updateView();
-        }
-
-        if (recursive)
-        {
-            this.forEach<AnyComponent>((child) => child.update(true));
-        }
-    }
-
-    public updateRecursive()
-    {
-        return this.update(true);
-    }
-
-    public updateRecursiveWithClones()
-    {
-        this.walk<AnyComponent>((component) =>
-        {
-            component.update();
-
-            component.cloneInfo.forEachCloned((cloned) => cloned.updateRecursiveWithClones());
-        });
     }
 
     public get values()
