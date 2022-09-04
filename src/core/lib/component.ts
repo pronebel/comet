@@ -104,20 +104,30 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             childComponent.setParent(component);
         });
 
-        component.customProperties = this.customProperties.clone();
-
-        if (spawnMode === SpawnMode.Duplicate)
-        {
-            component.walk<AnyComponent>((component) =>
-            {
-                const customProps = component.getDefinedCustomProps();
-
-                component.customProperties = customProps;
-                customProps.unlink(component);
-            });
-        }
+        component.onCopied();
 
         return component as unknown as T;
+    }
+
+    public onCopied()
+    {
+        const { spawnInfo: { spawner, isDuplicate } } = this;
+
+        if (spawner)
+        {
+            this.customProperties = spawner.customProperties.clone();
+
+            if (isDuplicate)
+            {
+                this.walk<AnyComponent>((component) =>
+                {
+                    const customProps = component.getDefinedCustomProps();
+
+                    component.customProperties = customProps;
+                    customProps.unlink(component);
+                });
+            }
+        }
     }
 
     protected initSpawning()
@@ -146,22 +156,6 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
                 this.model.setValues(sourceValues);
             }
-
-            // if (spawner)
-            // {
-            //     this.customProperties = spawner.customProperties.clone();
-
-            //     if (isDuplicate)
-            //     {
-            //         this.walk<AnyComponent>((component) =>
-            //         {
-            //             const customProps = component.getDefinedCustomProps();
-
-            //             component.customProperties = customProps;
-            //             customProps.flatten(component);
-            //         });
-            //     }
-            // }
 
             spawner.on('childAdded', this.onSpawnerChildAdded);
             spawner.on('childRemoved', this.onSpawnerChildRemoved);
@@ -253,6 +247,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             spawner.off('childRemoved', this.onSpawnerChildRemoved);
 
             this.spawnInfo.unlink();
+            this.customProperties.unlink(this);
 
             this.emit('unlinked');
 
