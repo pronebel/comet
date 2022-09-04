@@ -3,7 +3,7 @@ import { Container } from 'pixi.js';
 import { ModelSchema } from '../model/schema';
 import type { Nestable } from '../nestable';
 import type { DisplayObjectModel } from './displayObject';
-import { DisplayObjectComponent, schema as displayObjectSchema } from './displayObject';
+import { DisplayObjectComponent, displayObjectSchema } from './displayObject';
 
 export interface ContainerModel extends DisplayObjectModel
 {
@@ -11,7 +11,7 @@ export interface ContainerModel extends DisplayObjectModel
     height: number;
 }
 
-export const schema = new ModelSchema<ContainerModel>({
+export const containerSchema = new ModelSchema<ContainerModel>({
     ...displayObjectSchema.defaults,
     width: 16,
     height: 16,
@@ -24,7 +24,7 @@ export class ContainerComponent<
 {
     public modelSchema(): ModelSchema<M>
     {
-        return schema as unknown as ModelSchema<M>;
+        return containerSchema as unknown as ModelSchema<M>;
     }
 
     public createView(): V

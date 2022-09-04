@@ -9,25 +9,27 @@ import { Nestable } from './nestable';
 
 const ids = {} as Record<string, number>;
 
-export type AnyComponent = Component<any, any>;
-
 // todo: this might need to be extended by subclasses, may need to be generic parameter
 export type ComponentEvents = NestableEvents | 'unlinked';
 
-export abstract class Component<M extends object, V> extends Nestable<ComponentEvents>
+export abstract class Component<
+    M = any,
+    V = any,
+    E extends string = ComponentEvents,
+> extends Nestable<ComponentEvents | E>
 {
     public id: string;
 
     public model: Model<M> & M;
     public view: V;
 
-    public cloneInfo: CloneInfo<Component<M, V>>;
+    public cloneInfo: CloneInfo<Component>;
 
     public customProperties: CustomProperties;
 
     constructor(
         modelValues: Partial<M> = {},
-        cloneInfo: CloneInfo<Component<M, V>> = new CloneInfo<Component<M, V>>(),
+        cloneInfo: CloneInfo<Component> = new CloneInfo<Component>(),
     )
     {
         super();
@@ -49,7 +51,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
         if (cloner && cloneInfo.isReference)
         {
-            this.model = cloner.model;
+            this.model = cloner.model as unknown as Model<M> & M;
         }
         else
         {
@@ -64,7 +66,9 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
         this.initModel();
         this.initCloning();
+
         this.view = this.createView();
+
         this.init();
         this.update();
     }
@@ -85,7 +89,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
         if (cloner)
         {
-            cloner.cloneInfo.cloned.push(this);
+            cloner.cloneInfo.cloned.push(this as unknown as Component);
 
             const { model: sourceModel } = cloner;
 
@@ -93,7 +97,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
             if (isVariant || isReferenceRoot)
             {
-                this.model.link(sourceModel);
+                this.model.link(sourceModel as unknown as Model<M>);
 
                 if (isReferenceRoot)
                 {
@@ -103,7 +107,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             }
             else if (cloneMode === CloneMode.Duplicate)
             {
-                const sourceValues = sourceModel.values;
+                const sourceValues = sourceModel.values as Partial<M>;
 
                 this.model.setValues(sourceValues);
             }
@@ -113,20 +117,25 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         }
     }
 
-    public clone<T extends Component<M, V>>(cloneMode: CloneMode = CloneMode.Variant, isRoot = true): T
+    public clone<T extends Component>(cloneMode: CloneMode = CloneMode.Variant, isRoot = true): T
     {
         const Ctor = Object.getPrototypeOf(this).constructor as {
-            new (modelValues: Partial<M>, cloneInfo?: CloneInfo<Component<M, V>>): T;
+            new (modelValues: Partial<M>, cloneInfo?: CloneInfo<Component>): T;
         };
 
         const component = new Ctor(
             {},
-            new CloneInfo(cloneMode === CloneMode.Reference && isRoot ? CloneMode.ReferenceRoot : cloneMode, this),
+            new CloneInfo(
+                cloneMode === CloneMode.Reference && isRoot
+                    ? CloneMode.ReferenceRoot
+                    : cloneMode,
+                this as unknown as Component,
+            ),
         );
 
         this.children.forEach((child) =>
         {
-            const childComponent = (child as AnyComponent).clone(cloneMode, false);
+            const childComponent = (child as Component).clone(cloneMode, false);
 
             childComponent.setParent(component);
         });
@@ -171,7 +180,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             }
             else if (isReference)
             {
-                this.model = cloner.model.clone();
+                this.model = cloner.model.clone() as unknown as Model<M> & M;
 
                 this.initModel();
             }
@@ -180,7 +189,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             cloner.off('childRemoved', this.onClonerChildRemoved);
 
             this.cloneInfo.unlink();
-            this.customProperties.unlink(this);
+            this.customProperties.unlink(this as unknown as Component);
 
             this.emit('unlinked');
 
@@ -189,7 +198,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
         if (unlinkChildren)
         {
-            this.forEach<AnyComponent>((child) => child.unlink());
+            this.forEach<Component>((child) => child.unlink());
         }
     }
 
@@ -202,7 +211,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
         if (recursive)
         {
-            this.forEach<AnyComponent>((child) => child.update(true));
+            this.forEach<Component>((child) => child.update(true));
         }
     }
 
@@ -213,7 +222,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
     public updateRecursiveWithClones()
     {
-        this.walk<AnyComponent>((component) =>
+        this.walk<Component>((component) =>
         {
             component.update();
 
@@ -236,7 +245,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         {
             if (isDuplicate)
             {
-                this.walk<AnyComponent>((component) =>
+                this.walk<Component>((component) =>
                 {
                     const componentCloner = component.cloneInfo.cloner;
 
@@ -257,7 +266,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         }
     }
 
-    protected onClonerChildAdded = (component: AnyComponent) =>
+    protected onClonerChildAdded = (component: Component) =>
     {
         const { cloneMode } = this.cloneInfo;
 
@@ -269,7 +278,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         this.addChild(copy);
     };
 
-    protected onClonedChildAdded = (component: AnyComponent) =>
+    protected onClonedChildAdded = (component: Component) =>
     {
         const copy = component.clone(
             CloneMode.Reference,
@@ -282,11 +291,11 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         copy.onAddedToParent();
     };
 
-    protected onClonerChildRemoved = (component: AnyComponent) =>
+    protected onClonerChildRemoved = (component: Component) =>
     {
         this.children.forEach((child) =>
         {
-            if ((child as AnyComponent).cloneInfo.isClonedFrom(component))
+            if ((child as Component).cloneInfo.isClonedFrom(component))
             {
                 child.deleteSelf();
             }
@@ -300,7 +309,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
     protected onAddedToParent(): void
     {
-        const parent = this.getParent<AnyComponent>();
+        const parent = this.getParent<Component>();
 
         const { cloneInfo: { cloner, isReferenceOrRoot } }  = parent;
 
@@ -308,7 +317,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         {
             if (parent.children.length !== cloner.children.length)
             {
-                cloner.onClonedChildAdded(this);
+                cloner.onClonedChildAdded(this as unknown as Component);
             }
         }
     }
@@ -329,7 +338,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             {
                 const { cloneInfo: { cloner, isReferenceOrRoot } } = clonedComponent;
 
-                const isSameComponent = cloner === this;
+                const isSameComponent = cloner === this as unknown as Component;
 
                 if (isSameComponent && isReferenceOrRoot)
                 {
@@ -370,7 +379,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
     public setCustomProperty(name: string, type: CustomPropertyType, value: any): CustomProperty
     {
-        const property = this.customProperties.set(this, name, type, value);
+        const property = this.customProperties.set(this as unknown as Component, name, type, value);
 
         this.updateRecursiveWithClones();
 
@@ -379,7 +388,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
     public removeCustomProperty(name: string)
     {
-        this.customProperties.remove(this, name);
+        this.customProperties.remove(this as unknown as Component, name);
 
         this.updateRecursiveWithClones();
     }
@@ -430,7 +439,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
     public getAvailableCustomPropsAsArray(props: CustomProperty[] = [])
     {
-        this.walk<AnyComponent>((component) =>
+        this.walk<Component>((component) =>
         {
             component.customProperties.values().forEach((array) => props.push(...array));
         }, {

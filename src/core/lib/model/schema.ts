@@ -1,6 +1,6 @@
 import type { ModelConstraint, ModelConstraints } from './constraints';
 
-export class ModelSchema<M extends object>
+export class ModelSchema<M>
 {
     public keys: (keyof M)[];
     public defaults: M;

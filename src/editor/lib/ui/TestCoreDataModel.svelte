@@ -89,7 +89,6 @@
 </script>
 
 <buttons>
-  <button on:click={onDeselect}>Deselect</button>
   <button on:click={onNewContainer}>New Container</button>
   <button on:click={onNewChild}>New Child</button>
   <button on:click={onCloneVariant}>Clone Variant</button>
@@ -98,6 +97,7 @@
   <button on:click={onUnlink}>Unlink</button>
   <button on:click={onDelete}>Delete</button>
   <br />
+  <button on:click={onDeselect}>Deselect</button>
   <button on:click={onRandColor}>Rand Color</button>
   <button on:click={onRandSize}>Rand Size</button>
   <button on:click={onRotate}>Rotate</button>

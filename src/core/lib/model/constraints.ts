@@ -6,7 +6,7 @@ export abstract class ModelConstraint<T>
 }
 
 export type ModelConstraints<
-    M extends object> = Partial<Record<keyof M, ModelConstraint<any>[]> & { '*': ModelConstraint<any>[]}
+    M> = Partial<Record<keyof M, ModelConstraint<any>[]> & { '*': ModelConstraint<any>[]}
     >;
 
 export class NumericRangeLimitConstraint extends ModelConstraint<number>

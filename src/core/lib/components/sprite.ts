@@ -1,7 +1,7 @@
 import { Sprite, Texture } from 'pixi.js';
 
 import { ModelSchema } from '../model/schema';
-import { type ContainerModel, ContainerComponent, schema as ContainerSchema } from './container';
+import { type ContainerModel, ContainerComponent, containerSchema } from './container';
 
 export interface SpriteModel extends ContainerModel
 {
@@ -10,20 +10,20 @@ export interface SpriteModel extends ContainerModel
     tint: number;
 }
 
-export const schema = new ModelSchema<SpriteModel>({
-    ...ContainerSchema.defaults,
+export const spriteSchema = new ModelSchema<SpriteModel>({
+    ...containerSchema.defaults,
     anchorX: 0,
     anchorY: 0,
     tint: 0xffffff,
 }, {
-    ...ContainerSchema.constraints,
+    ...containerSchema.constraints,
 });
 
 export class SpriteComponent<M extends SpriteModel, V extends Sprite> extends ContainerComponent<M, V>
 {
     public modelSchema(): ModelSchema<M>
     {
-        return schema as unknown as ModelSchema<M>;
+        return spriteSchema as unknown as ModelSchema<M>;
     }
 
     public createView(): V

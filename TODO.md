@@ -1,9 +1,5 @@
 # Custom Props
 
-* Need assignment of available props mechanism
-    - unique to each component
-    - cascading?
-* Do we need event emitter for CustomProps?
 * Testing, testing, testing...
 
 # Document

@@ -4,7 +4,7 @@ import type { ModelSchema } from './schema';
 
 let id = 1;
 
-export class Model<M extends object> extends Nestable<NestableEvents>
+export class Model<M> extends Nestable<NestableEvents>
 {
     public id: string;
     public schema: ModelSchema<M>;
@@ -224,7 +224,7 @@ export class Model<M extends object> extends Nestable<NestableEvents>
     }
 }
 
-export function createModel<M extends object>(
+export function createModel<M>(
     schema: ModelSchema<M>,
     values: Partial<M> = {},
 ): Model<M> & M

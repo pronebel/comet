@@ -4,7 +4,7 @@ import { app } from '../../../editor/lib/app';
 import { ModelSchema } from '../model/schema';
 import type { ContainerComponent } from './container';
 import type { SpriteModel } from './sprite';
-import { schema as spriteSchema, SpriteComponent } from './sprite';
+import { SpriteComponent, spriteSchema } from './sprite';
 
 export interface DebugModel extends SpriteModel
 {

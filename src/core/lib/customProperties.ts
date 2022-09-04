@@ -1,13 +1,11 @@
-import EventEmitter  from 'eventemitter3';
-
 import { CloneInfo, CloneMode } from './clone';
-import type { AnyComponent } from './component';
+import type { Component } from './component';
 
 export type CustomPropertyType = 'string' | 'number' | 'boolean';
 
-export class CustomProperty extends EventEmitter<'modified'>
+export class CustomProperty
 {
-    public creator: AnyComponent;
+    public creator: Component;
     public name: string;
     public type: CustomPropertyType;
     public value: any;
@@ -24,10 +22,8 @@ export class CustomProperty extends EventEmitter<'modified'>
         return copy;
     }
 
-    constructor(creator: AnyComponent, name: string, type: CustomPropertyType, value: any)
+    constructor(creator: Component, name: string, type: CustomPropertyType, value: any)
     {
-        super();
-
         this.creator = creator;
         this.name = name;
         this.type = type;
@@ -43,7 +39,7 @@ export class CustomProperty extends EventEmitter<'modified'>
     }
 }
 
-export class CustomProperties extends EventEmitter
+export class CustomProperties
 {
     public cloneInfo: CloneInfo<CustomProperties>;
     public properties: Map<string, CustomProperty[]>;
@@ -51,8 +47,6 @@ export class CustomProperties extends EventEmitter
 
     constructor(cloneInfo: CloneInfo<CustomProperties> = new CloneInfo())
     {
-        super();
-
         this.properties = new Map();
         this.cloneInfo = cloneInfo;
         this.assignments = new Map();
@@ -100,7 +94,7 @@ export class CustomProperties extends EventEmitter
         }
     }
 
-    public set(creator: AnyComponent, customKey: string, type: CustomPropertyType, value: any)
+    public set(creator: Component, customKey: string, type: CustomPropertyType, value: any)
     {
         if (!this.properties.has(customKey))
         {
@@ -142,7 +136,7 @@ export class CustomProperties extends EventEmitter
         return property;
     }
 
-    public remove(creator: AnyComponent, customKey: string)
+    public remove(creator: Component, customKey: string)
     {
         const array = this.properties.get(customKey);
 
@@ -198,7 +192,7 @@ export class CustomProperties extends EventEmitter
         return clone;
     }
 
-    public unlink(newCreator: AnyComponent)
+    public unlink(newCreator: Component)
     {
         this.cloneInfo.unlink();
 

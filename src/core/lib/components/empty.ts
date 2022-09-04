@@ -2,7 +2,7 @@ import { type DisplayObject, Container, Graphics, Text } from 'pixi.js';
 
 import type { ModelSchema } from '../model/schema';
 import type { ContainerModel } from './container';
-import { ContainerComponent, schema as containerSchema } from './container';
+import { ContainerComponent, containerSchema } from './container';
 
 export class EmptyComponent extends ContainerComponent<ContainerModel, Container>
 {

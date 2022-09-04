@@ -19,7 +19,7 @@ export interface DisplayObjectModel
     visible: boolean;
 }
 
-export const schema = new ModelSchema<DisplayObjectModel>({
+export const displayObjectSchema = new ModelSchema<DisplayObjectModel>({
     x: 0,
     y: 0,
     pivotX: 0,
@@ -36,11 +36,14 @@ export const schema = new ModelSchema<DisplayObjectModel>({
     alpha: [new NumericRangeLimitConstraint(0, 1)],
 });
 
-export abstract class DisplayObjectComponent<M extends DisplayObjectModel, V extends DisplayObject> extends Component<M, V>
+export abstract class DisplayObjectComponent<
+    M extends DisplayObjectModel,
+    V extends DisplayObject,
+> extends Component<M, V>
 {
     public modelSchema(): ModelSchema<M>
     {
-        return schema as unknown as ModelSchema<M>;
+        return displayObjectSchema as unknown as ModelSchema<M>;
     }
 
     public updateView(): void

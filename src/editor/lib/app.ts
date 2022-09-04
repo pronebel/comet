@@ -2,7 +2,7 @@ import type { Container, InteractionEvent } from 'pixi.js';
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
 import type { CloneMode } from '../../core/lib/clone';
-import type { AnyComponent } from '../../core/lib/component';
+import type { Component } from '../../core/lib/component';
 import type { ContainerComponent } from '../../core/lib/components/container';
 import type { DebugModel } from '../../core/lib/components/debug';
 import { DebugComponent } from '../../core/lib/components/debug';
@@ -136,7 +136,7 @@ export class TestApp extends Application
         this.selection.visible = false;
     }
 
-    public fitSelection(component?: AnyComponent)
+    public fitSelection(component?: Component)
     {
         if (!component)
         {
@@ -261,9 +261,9 @@ export class TestApp extends Application
     {
         let html = '';
 
-        const componentId = (component: AnyComponent) => component.id.replace('Component', '');
+        const componentId = (component: Component) => component.id.replace('Component', '');
 
-        this.project.walk<AnyComponent>((component, options) =>
+        this.project.walk<Component>((component, options) =>
         {
             const {
                 model: { id: modelId },
