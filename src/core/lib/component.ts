@@ -321,12 +321,18 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         return this.update(true);
     }
 
-    public updateRecursiveWithClones()
+    public updateRecursiveWithClones(fn?: (component: AnyComponent) => void)
     {
         this.walk<AnyComponent>((component) =>
         {
             component.update();
-            component.cloneInfo.forEachCloned((cloned) => cloned.updateRecursiveWithClones());
+
+            if (fn)
+            {
+                fn(component);
+            }
+
+            component.cloneInfo.forEachCloned((cloned) => cloned.updateRecursiveWithClones(fn));
         });
     }
 
@@ -336,7 +342,6 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
         const customProps = this.getCustomProps();
 
-        // todo: override with customProps as discoverable
         for (const [key] of Object.entries(values))
         {
             const assignedValue = customProps.getAssignedValue(String(key));
@@ -372,7 +377,52 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
     public removeCustomProperty(name: string)
     {
         this.customProperties.remove(this, name);
+
         this.updateRecursiveWithClones();
+    }
+
+    public assignCustomProperty(modelKey: keyof M, customPropertyKey: string)
+    {
+        this.customProperties.assign(String(modelKey), customPropertyKey);
+
+        const customProps = this.getCustomProps();
+
+        this.customProperties.assignments.forEach((assignedCustomKey, assignedModelKey) =>
+        {
+            const array = customProps.properties.get(assignedCustomKey);
+
+            if (assignedCustomKey === customPropertyKey && array && array.length === 0)
+            {
+                this.customProperties.assignments.delete(assignedModelKey);
+            }
+        });
+
+        this.update();
+
+        this.cloneInfo.forEachCloned((component) =>
+        {
+            if (!component.customProperties.hasAssignedValue(String(modelKey)))
+            {
+                component.assignCustomProperty(modelKey, customPropertyKey);
+            }
+            component.update();
+        });
+    }
+
+    public unAssignCustomProperty(modelKey: keyof M)
+    {
+        this.customProperties.unAssign(String(modelKey));
+
+        this.update();
+
+        this.cloneInfo.forEachCloned((component) =>
+        {
+            if (component.customProperties.hasAssignedValue(String(modelKey)))
+            {
+                component.unAssignCustomProperty(modelKey);
+            }
+            component.update();
+        });
     }
 
     public getAvailableCustomPropsAsArray(props: CustomProperty[] = [])
@@ -400,19 +450,6 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         customProps.assignments = this.customProperties.assignments;
 
         return customProps;
-    }
-
-    public assignCustomProperty(modelKey: keyof M, customPropertyKey: string)
-    {
-        this.customProperties.assign(String(modelKey), customPropertyKey);
-        // todo: will this update do children and cloned?
-        this.update();
-    }
-
-    public unAssignCustomProperty(modelKey: keyof M)
-    {
-        this.customProperties.unAssign(String(modelKey));
-        this.update();
     }
 
     public abstract modelSchema(): ModelSchema<M>;

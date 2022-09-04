@@ -2,7 +2,7 @@
   import { onMount } from "svelte";
   import { createApp } from "../app";
   import HotReload from "./HotReload.svelte";
-  import Testing from "./Testing.svelte";
+  import TestCoreDataModel from "./TestCoreDataModel.svelte";
 
   let canvas: HTMLCanvasElement;
 
@@ -14,7 +14,7 @@
 <main>
   <canvas bind:this={canvas} />
   {#if canvas}
-    <Testing />
+    <TestCoreDataModel />
   {/if}
   <HotReload />
 </main>

@@ -265,7 +265,7 @@ export class TestApp extends Application
 
         const componentId = (component: AnyComponent) => component.id.replace('Component', '');
 
-        this.scene.walk<AnyComponent>((component, options) =>
+        this.project.walk<AnyComponent>((component, options) =>
         {
             const {
                 model: { id: modelId },
@@ -331,7 +331,7 @@ export class TestApp extends Application
 
             html += isLinked ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
         }, {
-            includeSelf: false,
+            includeSelf: true,
         });
 
         element.innerHTML = html;

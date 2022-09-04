@@ -165,14 +165,6 @@ export class CustomProperties extends EventEmitter
 
             this.properties.set(customKey, array.filter((property) => toRemove.indexOf(property) === -1));
         }
-
-        this.assignments.forEach((assignedCustomKey, assignedModelKey) =>
-        {
-            if (assignedCustomKey === customKey)
-            {
-                this.assignments.delete(assignedModelKey);
-            }
-        });
     }
 
     public onSpawnerDefined(property: CustomProperty)
@@ -255,5 +247,10 @@ export class CustomProperties extends EventEmitter
         }
 
         return undefined;
+    }
+
+    public hasAssignedValue(modelKey: string)
+    {
+        return this.assignments.has(modelKey);
     }
 }
