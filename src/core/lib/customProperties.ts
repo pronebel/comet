@@ -198,7 +198,7 @@ export class CustomProperties extends EventEmitter
         return clone;
     }
 
-    public unlink(creator: AnyComponent)
+    public unlink(newCreator: AnyComponent)
     {
         this.cloneInfo.unlink();
 
@@ -211,15 +211,17 @@ export class CustomProperties extends EventEmitter
                 const firstElement = array[0];
                 const property = CustomProperty.copy(firstElement);
 
-                property.creator = creator;
+                property.creator = newCreator;
 
                 this.properties.set(key, [property]);
             }
         });
 
-        const assignments = creator.customProperties.assignments;
+        const assignments = newCreator.customProperties.assignments;
 
         assignments.forEach((value, key) => this.assignments.set(key, value));
+
+        return this;
     }
 
     public assign(modelKey: string, customPropertyKey: string)

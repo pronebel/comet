@@ -62,22 +62,22 @@
 
   const onSetCustomProp = () => {
     app.setCustomProp(customPropName, customPropValue);
+    app.fitSelection();
   };
 
   const onAssignCustomProp = () => {
     app.assignCustomProp(assignModelKey, customPropName);
+    app.fitSelection();
   };
 
   const onUnAssignCustomProp = () => {
     app.unAssignCustomProp(assignModelKey);
-  };
-
-  const onGetAssignedCustomProp = () => {
-    app.getAssignedCustomProp();
+    app.fitSelection();
   };
 
   const onRemoveCustomProp = () => {
     app.removeCustomProp(customPropName);
+    app.fitSelection();
   };
 
   setInterval(() => {
@@ -113,7 +113,6 @@
   <br />
   <button on:click={onAssignCustomProp}>Assign Custom Prop</button>
   <button on:click={onUnAssignCustomProp}>UnAssign Custom Prop</button>
-  <button on:click={onGetAssignedCustomProp}>Get Assigned Custom Prop</button>
   <input bind:value={assignModelKey} />
   <marker />
   <pre id="debug" />

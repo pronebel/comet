@@ -136,15 +136,23 @@ export class TestApp extends Application
         this.selection.visible = false;
     }
 
-    public fitSelection(component: AnyComponent)
+    public fitSelection(component?: AnyComponent)
     {
-        const sprite = component.getView<Sprite>();
-        const bounds = sprite.getBounds();
+        if (!component)
+        {
+            component = this.selected;
+        }
 
-        this.selection.x = bounds.left;
-        this.selection.y = bounds.top;
-        this.selection.width = bounds.width;
-        this.selection.height = bounds.height;
+        if (component)
+        {
+            const sprite = component.getView<Sprite>();
+            const bounds = sprite.getBounds();
+
+            this.selection.x = bounds.left;
+            this.selection.y = bounds.top;
+            this.selection.width = bounds.width;
+            this.selection.height = bounds.height;
+        }
     }
 
     public unlink()
@@ -246,16 +254,6 @@ export class TestApp extends Application
         if (this.selected && this.selected instanceof DebugComponent)
         {
             this.selected.unAssignCustomProperty(modelKey as keyof DebugModel);
-        }
-    }
-
-    public getAssignedCustomProp()
-    {
-        if (this.selected && this.selected instanceof DebugComponent)
-        {
-            // const propValue = this.selected.model.getAssignedCustomPropertyValue('label');
-
-            // console.log(propValue);
         }
     }
 

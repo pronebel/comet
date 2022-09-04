@@ -115,17 +115,25 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
         if (cloner)
         {
-            this.customProperties = cloner.customProperties.clone();
-
             if (isDuplicate)
             {
                 this.walk<AnyComponent>((component) =>
                 {
-                    const customProps = component.getCustomProps();
+                    const componentCloner = component.cloneInfo.cloner;
 
-                    customProps.unlink(component);
-                    component.customProperties = customProps;
+                    if (componentCloner)
+                    {
+                        const props = component === this
+                            ? componentCloner.getCustomProps()
+                            : componentCloner.customProperties;
+
+                        component.customProperties = props.clone().unlink(component);
+                    }
                 });
+            }
+            else
+            {
+                this.customProperties = cloner.customProperties.clone();
             }
 
             this.updateRecursive();
@@ -321,18 +329,13 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         return this.update(true);
     }
 
-    public updateRecursiveWithClones(fn?: (component: AnyComponent) => void)
+    public updateRecursiveWithClones()
     {
         this.walk<AnyComponent>((component) =>
         {
             component.update();
 
-            if (fn)
-            {
-                fn(component);
-            }
-
-            component.cloneInfo.forEachCloned((cloned) => cloned.updateRecursiveWithClones(fn));
+            component.cloneInfo.forEachCloned((cloned) => cloned.updateRecursiveWithClones());
         });
     }
 
