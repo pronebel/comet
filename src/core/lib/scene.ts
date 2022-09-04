@@ -8,6 +8,6 @@ export class Scene extends ContainerComponent<ContainerModel, Container>
     {
         super.init();
 
-        this.defineCustomProperty('sp', 'string', 'sv');
+        this.setCustomProperty('sp', 'string', 'sv');
     }
 }

@@ -6,7 +6,7 @@ import type { ContainerComponent } from './container';
 import type { SpriteModel } from './sprite';
 import { schema as spriteSchema, SpriteComponent } from './sprite';
 
-interface DebugModel extends SpriteModel
+export interface DebugModel extends SpriteModel
 {
     label: string;
 }
@@ -45,9 +45,11 @@ export class DebugComponent extends SpriteComponent<DebugModel, Sprite>
     {
         super.updateView();
 
-        const label = this.view.getChildAt(0) as Text;
+        const textLabel = this.view.getChildAt(0) as Text;
 
-        label.text = `${this.id.replace('Component', '')}${this.model.label ? `=${this.model.label}` : ''}`;
+        const { label } = this.values;
+
+        textLabel.text = `${this.id.replace('Component', '')}${label ? `=${label}` : ''}`;
     }
 
     protected onAddedToParent(): void

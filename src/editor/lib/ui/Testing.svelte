@@ -5,7 +5,7 @@
 
   let customPropName: string = "prop1";
   let customPropValue: string = "foo1";
-  let assignCustomPropName: string = "label";
+  let assignModelKey: string = "label";
 
   const onNewContainer = () => {
     app.newContainer();
@@ -65,11 +65,11 @@
   };
 
   const onAssignCustomProp = () => {
-    app.assignCustomProp();
+    app.assignCustomProp(assignModelKey, customPropName);
   };
 
   const onUnAssignCustomProp = () => {
-    app.unAssignCustomProp();
+    app.unAssignCustomProp(assignModelKey);
   };
 
   const onGetAssignedCustomProp = () => {
@@ -114,7 +114,7 @@
   <button on:click={onAssignCustomProp}>Assign Custom Prop</button>
   <button on:click={onUnAssignCustomProp}>UnAssign Custom Prop</button>
   <button on:click={onGetAssignedCustomProp}>Get Assigned Custom Prop</button>
-  <input bind:value={assignCustomPropName} />
+  <input bind:value={assignModelKey} />
   <marker />
   <pre id="debug" />
 </buttons>

@@ -1,7 +1,7 @@
 import EventEmitter  from 'eventemitter3';
 
-import { CloneInfo, CloneMode } from '../clone';
-import type { AnyComponent } from '../component';
+import { CloneInfo, CloneMode } from './clone';
+import type { AnyComponent } from './component';
 
 export type CustomPropertyType = 'string' | 'number' | 'boolean';
 
@@ -47,6 +47,7 @@ export class CustomProperties extends EventEmitter
 {
     public cloneInfo: CloneInfo<CustomProperties>;
     public properties: Map<string, CustomProperty[]>;
+    public assignments: Map<string, string>;
 
     constructor(cloneInfo: CloneInfo<CustomProperties> = new CloneInfo())
     {
@@ -54,6 +55,7 @@ export class CustomProperties extends EventEmitter
 
         this.properties = new Map();
         this.cloneInfo = cloneInfo;
+        this.assignments = new Map();
     }
 
     public get hasDefinitions()
@@ -98,16 +100,16 @@ export class CustomProperties extends EventEmitter
         }
     }
 
-    public define(creator: AnyComponent, name: string, type: CustomPropertyType, value: any)
+    public set(creator: AnyComponent, customKey: string, type: CustomPropertyType, value: any)
     {
-        if (!this.properties.has(name))
+        if (!this.properties.has(customKey))
         {
-            this.properties.set(name, []);
+            this.properties.set(customKey, []);
         }
 
-        let property = new CustomProperty(creator, name, type, value);
+        let property = new CustomProperty(creator, customKey, type, value);
 
-        const array = this.properties.get(name);
+        const array = this.properties.get(customKey);
 
         if (array)
         {
@@ -140,9 +142,9 @@ export class CustomProperties extends EventEmitter
         return property;
     }
 
-    public unDefine(creator: AnyComponent, name: string)
+    public remove(creator: AnyComponent, customKey: string)
     {
-        const array = this.properties.get(name);
+        const array = this.properties.get(customKey);
 
         if (array)
         {
@@ -161,18 +163,26 @@ export class CustomProperties extends EventEmitter
                 }
             });
 
-            this.properties.set(name, array.filter((property) => toRemove.indexOf(property) === -1));
+            this.properties.set(customKey, array.filter((property) => toRemove.indexOf(property) === -1));
         }
+
+        this.assignments.forEach((assignedCustomKey, assignedModelKey) =>
+        {
+            if (assignedCustomKey === customKey)
+            {
+                this.assignments.delete(assignedModelKey);
+            }
+        });
     }
 
     public onSpawnerDefined(property: CustomProperty)
     {
-        this.define(property.creator, property.name, property.type, property.value);
+        this.set(property.creator, property.name, property.type, property.value);
     }
 
     public onSpawnerUnDefined(property: CustomProperty)
     {
-        this.unDefine(property.creator, property.name);
+        this.remove(property.creator, property.name);
     }
 
     public clone()
@@ -190,6 +200,8 @@ export class CustomProperties extends EventEmitter
                 clone.properties.set(key, [...array]);
             }
         });
+
+        this.assignments.forEach((value, key) => clone.assignments.set(key, value));
 
         return clone;
     }
@@ -212,5 +224,36 @@ export class CustomProperties extends EventEmitter
                 this.properties.set(key, [property]);
             }
         });
+
+        const assignments = creator.customProperties.assignments;
+
+        assignments.forEach((value, key) => this.assignments.set(key, value));
+    }
+
+    public assign(modelKey: string, customPropertyKey: string)
+    {
+        this.assignments.set(modelKey, customPropertyKey);
+    }
+
+    public unAssign(modelKey: string)
+    {
+        this.assignments.delete(modelKey);
+    }
+
+    public getAssignedValue(modelKey: string): any
+    {
+        const customKey = this.assignments.get(modelKey);
+
+        if (customKey)
+        {
+            const array = this.properties.get(customKey);
+
+            if (array)
+            {
+                return array[0].value;
+            }
+        }
+
+        return undefined;
     }
 }

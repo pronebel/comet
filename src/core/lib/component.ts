@@ -1,6 +1,6 @@
 import { CloneInfo, CloneMode } from './clone';
-import type { CustomProperty, CustomPropertyType } from './model/customProps';
-import { CustomProperties } from './model/customProps';
+import type { CustomProperty, CustomPropertyType } from './customProperties';
+import { CustomProperties } from './customProperties';
 import type { Model } from './model/model';
 import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
@@ -63,7 +63,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         this.customProperties = new CustomProperties();
 
         this.initModel();
-        this.initSpawning();
+        this.initCloning();
         this.view = this.createView();
         this.init();
         this.update();
@@ -121,16 +121,16 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             {
                 this.walk<AnyComponent>((component) =>
                 {
-                    const customProps = component.getDefinedCustomProps();
+                    const customProps = component.getCustomProps();
 
-                    component.customProperties = customProps;
                     customProps.unlink(component);
+                    component.customProperties = customProps;
                 });
             }
         }
     }
 
-    protected initSpawning()
+    protected initCloning()
     {
         const { cloner, cloneMode, isVariant, isReferenceRoot } = this.cloneInfo;
 
@@ -157,12 +157,12 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
                 this.model.setValues(sourceValues);
             }
 
-            cloner.on('childAdded', this.onSpawnerChildAdded);
-            cloner.on('childRemoved', this.onSpawnerChildRemoved);
+            cloner.on('childAdded', this.onClonerChildAdded);
+            cloner.on('childRemoved', this.onClonerChildRemoved);
         }
     }
 
-    protected onSpawnerChildAdded = (component: AnyComponent) =>
+    protected onClonerChildAdded = (component: AnyComponent) =>
     {
         const { cloneMode } = this.cloneInfo;
 
@@ -174,7 +174,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         this.addChild(copy);
     };
 
-    protected onSpawnedChildAdded = (component: AnyComponent) =>
+    protected onClonedChildAdded = (component: AnyComponent) =>
     {
         const copy = component.clone(
             CloneMode.Reference,
@@ -187,7 +187,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         copy.onAddedToParent();
     };
 
-    protected onSpawnerChildRemoved = (component: AnyComponent) =>
+    protected onClonerChildRemoved = (component: AnyComponent) =>
     {
         this.children.forEach((child) =>
         {
@@ -238,13 +238,13 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             }
             else if (isReference)
             {
-                this.model = cloner.model.copy();
+                this.model = cloner.model.clone();
 
                 this.initModel();
             }
 
-            cloner.off('childAdded', this.onSpawnerChildAdded);
-            cloner.off('childRemoved', this.onSpawnerChildRemoved);
+            cloner.off('childAdded', this.onClonerChildAdded);
+            cloner.off('childRemoved', this.onClonerChildRemoved);
 
             this.cloneInfo.unlink();
             this.customProperties.unlink(this);
@@ -256,7 +256,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
         if (unlinkChildren)
         {
-            this.children.forEach((child) => (child as AnyComponent).unlink());
+            this.forEach<AnyComponent>((child) => child.unlink());
         }
     }
 
@@ -270,7 +270,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         {
             if (parent.children.length !== cloner.children.length)
             {
-                cloner.onSpawnedChildAdded(this);
+                cloner.onClonedChildAdded(this);
             }
         }
     }
@@ -279,7 +279,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onRemovedFromParent(oldParent: Nestable)
     {
-        const { cloneInfo: { cloner, isReferenceOrRoot, cloned: cloneed } } = this;
+        const { cloneInfo: { cloner, isReferenceOrRoot, cloned } } = this;
 
         if (cloner && isReferenceOrRoot)
         {
@@ -287,25 +287,30 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         }
         else
         {
-            cloneed.forEach((cloneedComponent) =>
+            cloned.forEach((clonedComponent) =>
             {
-                const { cloneInfo: { cloner, isReferenceOrRoot } } = cloneedComponent;
+                const { cloneInfo: { cloner, isReferenceOrRoot } } = clonedComponent;
 
                 const isSameComponent = cloner === this;
 
                 if (isSameComponent && isReferenceOrRoot)
                 {
-                    cloneedComponent.deleteSelf();
+                    clonedComponent.deleteSelf();
                 }
             });
         }
     }
 
-    public update()
+    public update(recursive = false)
     {
         if (this.view)
         {
             this.updateView();
+        }
+
+        if (recursive)
+        {
+            this.forEach<AnyComponent>((child) => child.update(true));
         }
     }
 
@@ -313,7 +318,18 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
     {
         const values = this.model.values;
 
+        const customProps = this.getCustomProps();
+
         // todo: override with customProps as discoverable
+        for (const [key] of Object.entries(values))
+        {
+            const assignedValue = customProps.getAssignedValue(String(key));
+
+            if (assignedValue !== undefined)
+            {
+                values[key as keyof M] = assignedValue;
+            }
+        }
 
         return values;
     }
@@ -328,17 +344,22 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         this.model.setValue(modelKey, value);
     }
 
-    public defineCustomProperty(name: string, type: CustomPropertyType, value: any): CustomProperty
+    public setCustomProperty(name: string, type: CustomPropertyType, value: any): CustomProperty
     {
-        return this.customProperties.define(this, name, type, value);
+        const property = this.customProperties.set(this, name, type, value);
+
+        this.update(true);
+
+        return property;
     }
 
-    public unDefineCustomProperty(name: string)
+    public removeCustomProperty(name: string)
     {
-        this.customProperties.unDefine(this, name);
+        this.customProperties.remove(this, name);
+        this.update();
     }
 
-    public getDefinedCustomPropsAsArray(props: CustomProperty[] = [])
+    public getAvailableCustomPropsAsArray(props: CustomProperty[] = [])
     {
         this.walk<AnyComponent>((component) =>
         {
@@ -350,9 +371,9 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         return props;
     }
 
-    public getDefinedCustomProps()
+    public getCustomProps()
     {
-        const array = this.getDefinedCustomPropsAsArray();
+        const array = this.getAvailableCustomPropsAsArray();
         const customProps = new CustomProperties();
 
         array.forEach((property) =>
@@ -360,7 +381,22 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             customProps.addProperty(property);
         });
 
+        customProps.assignments = this.customProperties.assignments;
+
         return customProps;
+    }
+
+    public assignCustomProperty(modelKey: keyof M, customPropertyKey: string)
+    {
+        this.customProperties.assign(String(modelKey), customPropertyKey);
+        // todo: will this update do children and cloned?
+        this.update();
+    }
+
+    public unAssignCustomProperty(modelKey: keyof M)
+    {
+        this.customProperties.unAssign(String(modelKey));
+        this.update();
     }
 
     public abstract modelSchema(): ModelSchema<M>;

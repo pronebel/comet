@@ -177,7 +177,7 @@ export class Model<M extends object> extends Nestable<NestableEvents>
         }
     }
 
-    public copy<T extends Model<M>>(): T
+    public clone<T extends Model<M>>(): T
     {
         return createModel(this.schema, this.values) as unknown as T;
     }

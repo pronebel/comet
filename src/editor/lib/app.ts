@@ -4,6 +4,7 @@ import { type IApplicationOptions, Application, filters, Sprite, Texture } from 
 import type { CloneMode } from '../../core/lib/clone';
 import type { AnyComponent } from '../../core/lib/component';
 import type { ContainerComponent } from '../../core/lib/components/container';
+import type { DebugModel } from '../../core/lib/components/debug';
 import { DebugComponent } from '../../core/lib/components/debug';
 import { EmptyComponent } from '../../core/lib/components/empty';
 import { Project } from '../../core/lib/project';
@@ -218,7 +219,7 @@ export class TestApp extends Application
         {
             const propType = isNaN(value) ? 'string' : 'number';
 
-            selected.defineCustomProperty(name, propType, propType === 'string' ? value : parseFloat(value));
+            selected.setCustomProperty(name, propType, propType === 'string' ? value : parseFloat(value));
         }
     }
 
@@ -228,23 +229,23 @@ export class TestApp extends Application
 
         if (selected)
         {
-            selected.unDefineCustomProperty(name);
+            selected.removeCustomProperty(name);
         }
     }
 
-    public assignCustomProp()
+    public assignCustomProp(modelKey: string, customKey: string)
     {
         if (this.selected && this.selected instanceof DebugComponent)
         {
-            // this.selected.assignCustomProperty('label', 'testCustomProp');
+            this.selected.assignCustomProperty(modelKey as keyof DebugModel, customKey);
         }
     }
 
-    public unAssignCustomProp()
+    public unAssignCustomProp(modelKey: string)
     {
         if (this.selected && this.selected instanceof DebugComponent)
         {
-            // this.selected.unAssignCustomProperty('label');
+            this.selected.unAssignCustomProperty(modelKey as keyof DebugModel);
         }
     }
 
@@ -268,7 +269,7 @@ export class TestApp extends Application
         {
             const {
                 model: { id: modelId },
-                cloneInfo: { cloner, cloned: cloneed, cloneMode },
+                cloneInfo: { cloner, cloned, cloneMode },
             } = component;
 
             const pad = ''.padStart(options.depth, '+');
@@ -277,12 +278,12 @@ export class TestApp extends Application
             const clonerInfo = cloner
                 ? `<span style="color:lime"><- ${componentId(cloner)}</span>`
                 : '';
-            const cloneedInfo = cloneed.length > 0
-                ? `<span style="color:green">-> [${cloneed.length}] ${cloneed
+            const clonedInfo = cloned.length > 0
+                ? `<span style="color:green">-> [${cloned.length}] ${cloned
                     .map((component) => `${componentId(component)}`).join(',')}</span>`
                 : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
-            const customProps = component.getDefinedCustomProps();
+            const customProps = component.getCustomProps();
             const customPropArray: string[] = [];
 
             Array.from(customProps.keys()).forEach((key) =>
@@ -308,15 +309,24 @@ export class TestApp extends Application
                 }
             });
             const customPropDefineInfo = customPropArray.join(' / ');
+            const customPropAssignmentsArray: string[] = [];
+
+            Array.from(component.customProperties.assignments.keys()).forEach((key) =>
+            {
+                const customKey = component.customProperties.assignments.get(key);
+
+                customPropAssignmentsArray.push(`${key} -> ${customKey}`);
+            });
+
             const modelLine = `${modelInfo} <span style="color:cyan;font-size:14px">${modelValues}</span>`;
             const isLinked = this.selected
-                ? this.selected === cloner || cloneed.includes(this.selected)
+                ? this.selected === cloner || cloned.includes(this.selected)
                 : false;
             const cloneModeInfo = `${cloneMode.toUpperCase()}`;
-            let output = `${pad} ${id} ${cloneModeInfo} ${clonerInfo} ${cloneedInfo}\n`;
+            let output = `${pad} ${id} ${cloneModeInfo} ${clonerInfo} ${clonedInfo}\n`;
 
             output += `${pad}  ... ${modelLine}\n`;
-            output += `${pad}  ... ${customPropDefineInfo}\n`;
+            output += `${pad}  ... ${customPropDefineInfo} : ${customPropAssignmentsArray.join(', ')}\n`;
             const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
 
             html += isLinked ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
