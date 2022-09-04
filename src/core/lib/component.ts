@@ -127,6 +127,8 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
                     component.customProperties = customProps;
                 });
             }
+
+            this.updateRecursive();
         }
     }
 
@@ -314,6 +316,20 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         }
     }
 
+    public updateRecursive()
+    {
+        return this.update(true);
+    }
+
+    public updateRecursiveWithClones()
+    {
+        this.walk<AnyComponent>((component) =>
+        {
+            component.update();
+            component.cloneInfo.forEachCloned((cloned) => cloned.updateRecursiveWithClones());
+        });
+    }
+
     public get values()
     {
         const values = this.model.values;
@@ -348,7 +364,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
     {
         const property = this.customProperties.set(this, name, type, value);
 
-        this.update(true);
+        this.updateRecursiveWithClones();
 
         return property;
     }
@@ -356,7 +372,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
     public removeCustomProperty(name: string)
     {
         this.customProperties.remove(this, name);
-        this.update();
+        this.updateRecursiveWithClones();
     }
 
     public getAvailableCustomPropsAsArray(props: CustomProperty[] = [])
