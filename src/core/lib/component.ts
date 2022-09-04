@@ -104,12 +104,25 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             childComponent.setParent(component);
         });
 
+        component.customProperties = this.customProperties.clone();
+
+        if (spawnMode === SpawnMode.Duplicate)
+        {
+            component.walk<AnyComponent>((component) =>
+            {
+                const customProps = component.getDefinedCustomProps();
+
+                component.customProperties = customProps;
+                customProps.unlink(component);
+            });
+        }
+
         return component as unknown as T;
     }
 
     protected initSpawning()
     {
-        const { spawner, spawnMode, isVariant, isReferenceRoot, isLinked } = this.spawnInfo;
+        const { spawner, spawnMode, isVariant, isReferenceRoot } = this.spawnInfo;
 
         if (spawner)
         {
@@ -134,10 +147,21 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
                 this.model.setValues(sourceValues);
             }
 
-            if (isLinked)
-            {
-                this.customProperties = spawner.customProperties.clone();
-            }
+            // if (spawner)
+            // {
+            //     this.customProperties = spawner.customProperties.clone();
+
+            //     if (isDuplicate)
+            //     {
+            //         this.walk<AnyComponent>((component) =>
+            //         {
+            //             const customProps = component.getDefinedCustomProps();
+
+            //             component.customProperties = customProps;
+            //             customProps.flatten(component);
+            //         });
+            //     }
+            // }
 
             spawner.on('childAdded', this.onSpawnerChildAdded);
             spawner.on('childRemoved', this.onSpawnerChildRemoved);
@@ -309,9 +333,9 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         this.model.setValue(modelKey, value);
     }
 
-    public defineCustomProperty(name: string, type: CustomPropertyType, value: any)
+    public defineCustomProperty(name: string, type: CustomPropertyType, value: any): CustomProperty
     {
-        this.customProperties.define(this, name, type, value);
+        return this.customProperties.define(this, name, type, value);
     }
 
     public unDefineCustomProperty(name: string)

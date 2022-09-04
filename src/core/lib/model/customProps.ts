@@ -12,6 +12,18 @@ export class CustomProperty extends EventEmitter<'modified'>
     public type: CustomPropertyType;
     public value: any;
 
+    public static copy(property: CustomProperty)
+    {
+        const copy = new CustomProperty(
+            property.creator,
+            property.name,
+            property.type,
+            property.value,
+        );
+
+        return copy;
+    }
+
     constructor(creator: AnyComponent, name: string, type: CustomPropertyType, value: any)
     {
         super();
@@ -101,13 +113,13 @@ export class CustomProperties extends EventEmitter
         {
             if (array.length > 0)
             {
-                const firstProperty = array[0];
+                const existingProperty = array.find((property) => property.creator === creator);
 
-                if (firstProperty.creator === creator)
+                if (existingProperty)
                 {
-                    firstProperty.copy(property);
+                    existingProperty.copy(property);
 
-                    property = firstProperty;
+                    property = existingProperty;
                 }
                 else
                 {
@@ -180,5 +192,25 @@ export class CustomProperties extends EventEmitter
         });
 
         return clone;
+    }
+
+    public unlink(creator: AnyComponent)
+    {
+        this.spawnInfo.unlink();
+
+        this.keys().forEach((key) =>
+        {
+            const array = this.get(key);
+
+            if (array)
+            {
+                const firstElement = array[0];
+                const property = CustomProperty.copy(firstElement);
+
+                property.creator = creator;
+
+                this.properties.set(key, [property]);
+            }
+        });
     }
 }
