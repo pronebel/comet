@@ -151,7 +151,12 @@ export class Model<M extends object> extends Nestable<NestableEvents>
 
         keys.forEach((key) =>
         {
-            this.setValue(key, values[key] as M[keyof M]);
+            const value = values[key] as M[keyof M];
+
+            if (value !== this.schema.defaults[key])
+            {
+                this.setValue(key, value);
+            }
         });
     }
 

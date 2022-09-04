@@ -123,9 +123,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
                     if (componentCloner)
                     {
-                        const props = component === this
-                            ? componentCloner.getCustomProps()
-                            : componentCloner.customProperties;
+                        const props = componentCloner.customProperties;
 
                         component.customProperties = props.clone().unlink(component);
                     }
@@ -149,6 +147,8 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             cloner.cloneInfo.cloned.push(this);
 
             const { model: sourceModel } = cloner;
+
+            // Reference case is handled immediately in constructor
 
             if (isVariant || isReferenceRoot)
             {

@@ -8,6 +8,6 @@ export class Project extends ContainerComponent<ContainerModel, Container>
     {
         super.init();
 
-        this.setCustomProperty('pp', 'string', 'pv');
+        this.setCustomProperty('project', 'string', 'bar');
     }
 }
