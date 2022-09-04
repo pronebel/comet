@@ -1,13 +1,13 @@
 import type { Container, InteractionEvent } from 'pixi.js';
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
+import type { CloneMode } from '../../core/lib/clone';
 import type { AnyComponent } from '../../core/lib/component';
 import type { ContainerComponent } from '../../core/lib/components/container';
 import { DebugComponent } from '../../core/lib/components/debug';
 import { EmptyComponent } from '../../core/lib/components/empty';
 import { Project } from '../../core/lib/project';
 import { Scene } from '../../core/lib/scene';
-import type { SpawnMode } from '../../core/lib/spawn';
 import { startDrag } from './drag';
 
 export let app: TestApp;
@@ -79,11 +79,11 @@ export class TestApp extends Application
         this.inspect();
     }
 
-    public copy(spawnMode: SpawnMode)
+    public clone(cloneMode: CloneMode): ContainerComponent | undefined
     {
         if (this.selected)
         {
-            const component = this.selected.copy<ContainerComponent>(spawnMode);
+            const component = this.selected.clone<ContainerComponent>(cloneMode);
 
             delete this.selected;
 
@@ -268,17 +268,17 @@ export class TestApp extends Application
         {
             const {
                 model: { id: modelId },
-                spawnInfo: { spawner, spawned, spawnMode },
+                cloneInfo: { cloner, cloned: cloneed, cloneMode },
             } = component;
 
             const pad = ''.padStart(options.depth, '+');
             const id = `&lt;${componentId(component)}&gt;`;
             const modelInfo = `${modelId}`;
-            const spawnerInfo = spawner
-                ? `<span style="color:lime"><- ${componentId(spawner)}</span>`
+            const clonerInfo = cloner
+                ? `<span style="color:lime"><- ${componentId(cloner)}</span>`
                 : '';
-            const spawnedInfo = spawned.length > 0
-                ? `<span style="color:green">-> [${spawned.length}] ${spawned
+            const cloneedInfo = cloneed.length > 0
+                ? `<span style="color:green">-> [${cloneed.length}] ${cloneed
                     .map((component) => `${componentId(component)}`).join(',')}</span>`
                 : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
@@ -310,10 +310,10 @@ export class TestApp extends Application
             const customPropDefineInfo = customPropArray.join(' / ');
             const modelLine = `${modelInfo} <span style="color:cyan;font-size:14px">${modelValues}</span>`;
             const isLinked = this.selected
-                ? this.selected === spawner || spawned.includes(this.selected)
+                ? this.selected === cloner || cloneed.includes(this.selected)
                 : false;
-            const spawnModeInfo = `${spawnMode.toUpperCase()}`;
-            let output = `${pad} ${id} ${spawnModeInfo} ${spawnerInfo} ${spawnedInfo}\n`;
+            const cloneModeInfo = `${cloneMode.toUpperCase()}`;
+            let output = `${pad} ${id} ${cloneModeInfo} ${clonerInfo} ${cloneedInfo}\n`;
 
             output += `${pad}  ... ${modelLine}\n`;
             output += `${pad}  ... ${customPropDefineInfo}\n`;

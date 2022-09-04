@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { SpawnMode } from "../../../core/lib/spawn";
+  import { CloneMode } from "../../../core/lib/clone";
 
   import { app } from "../app";
 
@@ -19,16 +19,16 @@
     app.deselect();
   };
 
-  const onCopyVariant = () => {
-    app.copy(SpawnMode.Variant);
+  const onCloneVariant = () => {
+    app.clone(CloneMode.Variant);
   };
 
-  const onCopyReference = () => {
-    app.copy(SpawnMode.Reference);
+  const onCloneReference = () => {
+    app.clone(CloneMode.Reference);
   };
 
-  const onCopyDuplicate = () => {
-    app.copy(SpawnMode.Duplicate);
+  const onDuplicate = () => {
+    app.clone(CloneMode.Duplicate);
   };
 
   const onUnlink = () => {
@@ -92,11 +92,12 @@
   <button on:click={onDeselect}>Deselect</button>
   <button on:click={onNewContainer}>New Container</button>
   <button on:click={onNewChild}>New Child</button>
-  <button on:click={onCopyVariant}>Copy Variant</button>
-  <button on:click={onCopyReference}>Copy Reference</button>
-  <button on:click={onCopyDuplicate}>Duplicate</button>
-  <button on:click={onDelete}>Delete</button>
+  <button on:click={onCloneVariant}>Clone Variant</button>
+  <button on:click={onCloneReference}>Clone Reference</button>
+  <button on:click={onDuplicate}>Duplicate</button>
   <button on:click={onUnlink}>Unlink</button>
+  <button on:click={onDelete}>Delete</button>
+  <br />
   <button on:click={onRandColor}>Rand Color</button>
   <button on:click={onRandSize}>Rand Size</button>
   <button on:click={onRotate}>Rotate</button>
@@ -114,7 +115,7 @@
   <button on:click={onUnAssignCustomProp}>UnAssign Custom Prop</button>
   <button on:click={onGetAssignedCustomProp}>Get Assigned Custom Prop</button>
   <input bind:value={assignCustomPropName} />
-  <test />
+  <marker />
   <pre id="debug" />
 </buttons>
 
@@ -128,13 +129,13 @@
     flex-direction: column;
   }
 
-  buttons button {
+  button {
     width: 100%;
     margin-bottom: 10px;
     font-size: 10pt;
   }
 
-  buttons test {
+  marker {
     display: none;
     position: fixed;
     top: 0px;
@@ -164,11 +165,11 @@
     padding: 5px;
   }
 
-  buttons br {
+  br {
     width: 100%;
   }
 
-  buttons pre {
+  pre {
     position: fixed;
     bottom: 0;
     right: 0;

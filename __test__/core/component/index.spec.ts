@@ -1,8 +1,8 @@
 import { Sprite } from 'pixi.js';
 
+import { CloneMode } from '../../../src/core/lib/clone';
 import { Component } from '../../../src/core/lib/component';
 import { ModelSchema } from '../../../src/core/lib/model/schema';
-import { SpawnMode } from '../../../src/core/lib/spawn';
 
 export interface TestModel
 {
@@ -191,7 +191,7 @@ describe('Component', () =>
 
     describe('Copy', () =>
     {
-        const setup = (spawnMode = SpawnMode.Variant) =>
+        const setup = (cloneMode = CloneMode.Variant) =>
         {
             const parent = new TestComponent();
             const childA = new TestComponent();
@@ -200,7 +200,7 @@ describe('Component', () =>
             parent.addChild(childA);
             childA.addChild(childB);
 
-            const copy = parent.copy(spawnMode);
+            const copy = parent.clone(cloneMode);
 
             const copyChildA = copy.children[0] as TestComponent;
             const copyChildB = copyChildA.children[0] as TestComponent;
@@ -208,37 +208,37 @@ describe('Component', () =>
             return { parent, childA, childB, copy, copyChildA, copyChildB };
         };
 
-        it('should reference spawner when copied', () =>
+        it('should reference cloner when copied', () =>
         {
             const { parent, childA, childB, copy, copyChildA, copyChildB } = setup();
 
-            expect(copy.spawnInfo.isSpawner(parent)).toBeTruthy();
-            expect(copyChildA.spawnInfo.isSpawner(childA)).toBeTruthy();
-            expect(copyChildB.spawnInfo.isSpawner(childB)).toBeTruthy();
-            expect(parent.spawnInfo.spawnedCount).toBe(1);
-            expect(childA.spawnInfo.spawnedCount).toBe(1);
-            expect(childB.spawnInfo.spawnedCount).toBe(1);
-            expect(parent.spawnInfo.getSpawnedAt(0)).toBe(copy);
-            expect(childA.spawnInfo.getSpawnedAt(0)).toBe(copyChildA);
-            expect(childB.spawnInfo.getSpawnedAt(0)).toBe(copyChildB);
+            expect(copy.cloneInfo.isClonedFrom(parent)).toBeTruthy();
+            expect(copyChildA.cloneInfo.isClonedFrom(childA)).toBeTruthy();
+            expect(copyChildB.cloneInfo.isClonedFrom(childB)).toBeTruthy();
+            expect(parent.cloneInfo.clonedCount).toBe(1);
+            expect(childA.cloneInfo.clonedCount).toBe(1);
+            expect(childB.cloneInfo.clonedCount).toBe(1);
+            expect(parent.cloneInfo.getClonedAt(0)).toBe(copy);
+            expect(childA.cloneInfo.getClonedAt(0)).toBe(copyChildA);
+            expect(childB.cloneInfo.getClonedAt(0)).toBe(copyChildB);
         });
 
-        it('should reference spawner model when copied linked', () =>
+        it('should reference cloner model when copied linked', () =>
         {
             const component = new TestComponent({ x: 15 });
-            const copy = component.copy();
+            const copy = component.clone();
 
-            expect(copy.spawnInfo.isSpawner(component)).toBeTruthy();
+            expect(copy.cloneInfo.isClonedFrom(component)).toBeTruthy();
             expect(copy.model.parent).toBe(component.model);
             expect(copy.model.x).toBe(15);
         });
 
-        it('should not reference spawner model when copied unlinked', () =>
+        it('should not reference cloner model when copied unlinked', () =>
         {
             const component = new TestComponent({ x: 15 });
-            const copy = component.copy(SpawnMode.Original);
+            const copy = component.clone(CloneMode.Original);
 
-            expect(copy.spawnInfo.isSpawner(component)).toBeTruthy();
+            expect(copy.cloneInfo.isClonedFrom(component)).toBeTruthy();
             expect(copy.model.parent).toBeUndefined();
             expect(copy.model.x).toBe(schema.defaults.x);
         });
@@ -310,7 +310,7 @@ describe('Component', () =>
             childA.deleteSelf();
         });
 
-        it('should receive child when spawner adds child', () =>
+        it('should receive child when cloner adds child', () =>
         {
             const { parent, copy } = setup();
 
@@ -324,7 +324,7 @@ describe('Component', () =>
             expect(copy.getChildAt<TestComponent>(1).model.getValue('x')).toBe(123);
         });
 
-        it('should remove child when spawner removes child', () =>
+        it('should remove child when cloner removes child', () =>
         {
             const { parent, childA, copy, copyChildA } = setup();
 

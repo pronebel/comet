@@ -1,4 +1,7 @@
-import { type AnyContainer, app } from './app';
+import type { ContainerComponent } from '../../core/lib/components/container';
+import { app } from './app';
+
+type AnyContainer = ContainerComponent<any, any>;
 
 interface State
 {

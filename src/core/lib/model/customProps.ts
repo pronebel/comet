@@ -1,7 +1,7 @@
 import EventEmitter  from 'eventemitter3';
 
+import { CloneInfo, CloneMode } from '../clone';
 import type { AnyComponent } from '../component';
-import { SpawnInfo, SpawnMode } from '../spawn';
 
 export type CustomPropertyType = 'string' | 'number' | 'boolean';
 
@@ -45,15 +45,15 @@ export class CustomProperty extends EventEmitter<'modified'>
 
 export class CustomProperties extends EventEmitter
 {
-    public spawnInfo: SpawnInfo<CustomProperties>;
+    public cloneInfo: CloneInfo<CustomProperties>;
     public properties: Map<string, CustomProperty[]>;
 
-    constructor(spawnInfo: SpawnInfo<CustomProperties> = new SpawnInfo())
+    constructor(cloneInfo: CloneInfo<CustomProperties> = new CloneInfo())
     {
         super();
 
         this.properties = new Map();
-        this.spawnInfo = spawnInfo;
+        this.cloneInfo = cloneInfo;
     }
 
     public get hasDefinitions()
@@ -132,7 +132,7 @@ export class CustomProperties extends EventEmitter
             }
         }
 
-        this.spawnInfo.spawned.forEach((customProps) =>
+        this.cloneInfo.cloned.forEach((customProps) =>
         {
             customProps.onSpawnerDefined(property);
         });
@@ -154,7 +154,7 @@ export class CustomProperties extends EventEmitter
                 {
                     toRemove.push(property);
 
-                    this.spawnInfo.spawned.forEach((customProps) =>
+                    this.cloneInfo.cloned.forEach((customProps) =>
                     {
                         customProps.onSpawnerUnDefined(property);
                     });
@@ -177,9 +177,9 @@ export class CustomProperties extends EventEmitter
 
     public clone()
     {
-        const clone = new CustomProperties(new SpawnInfo(SpawnMode.Variant, this));
+        const clone = new CustomProperties(new CloneInfo(CloneMode.Variant, this));
 
-        this.spawnInfo.spawned.push(clone);
+        this.cloneInfo.cloned.push(clone);
 
         this.keys().forEach((key) =>
         {
@@ -196,7 +196,7 @@ export class CustomProperties extends EventEmitter
 
     public unlink(creator: AnyComponent)
     {
-        this.spawnInfo.unlink();
+        this.cloneInfo.unlink();
 
         this.keys().forEach((key) =>
         {

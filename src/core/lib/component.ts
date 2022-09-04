@@ -1,3 +1,4 @@
+import { CloneInfo, CloneMode } from './clone';
 import type { CustomProperty, CustomPropertyType } from './model/customProps';
 import { CustomProperties } from './model/customProps';
 import type { Model } from './model/model';
@@ -5,7 +6,6 @@ import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
 import type { NestableEvents } from './nestable';
 import { Nestable } from './nestable';
-import { SpawnInfo, SpawnMode } from './spawn';
 
 const ids = {} as Record<string, number>;
 
@@ -21,13 +21,13 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
     public model: Model<M> & M;
     public view: V;
 
-    public spawnInfo: SpawnInfo<Component<M, V>>;
+    public cloneInfo: CloneInfo<Component<M, V>>;
 
     public customProperties: CustomProperties;
 
     constructor(
         modelValues: Partial<M> = {},
-        spawnInfo: SpawnInfo<Component<M, V>> = new SpawnInfo<Component<M, V>>(),
+        cloneInfo: CloneInfo<Component<M, V>> = new CloneInfo<Component<M, V>>(),
     )
     {
         super();
@@ -43,13 +43,13 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
         this.children = [];
 
-        this.spawnInfo = spawnInfo;
+        this.cloneInfo = cloneInfo;
 
-        const { spawner } = this.spawnInfo;
+        const { cloner } = this.cloneInfo;
 
-        if (spawner && spawnInfo.isReference)
+        if (cloner && cloneInfo.isReference)
         {
-            this.model = spawner.model;
+            this.model = cloner.model;
         }
         else
         {
@@ -86,36 +86,36 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
         this.emit('modified', key, value, oldValue);
     };
 
-    public copy<T extends Component<M, V>>(spawnMode: SpawnMode = SpawnMode.Variant, isRoot = true): T
+    public clone<T extends Component<M, V>>(cloneMode: CloneMode = CloneMode.Variant, isRoot = true): T
     {
         const Ctor = Object.getPrototypeOf(this).constructor as {
-            new (modelValues: Partial<M>, spawnInfo?: SpawnInfo<Component<M, V>>): T;
+            new (modelValues: Partial<M>, cloneInfo?: CloneInfo<Component<M, V>>): T;
         };
 
         const component = new Ctor(
             {},
-            new SpawnInfo(spawnMode === SpawnMode.Reference && isRoot ? SpawnMode.ReferenceRoot : spawnMode, this),
+            new CloneInfo(cloneMode === CloneMode.Reference && isRoot ? CloneMode.ReferenceRoot : cloneMode, this),
         );
 
         this.children.forEach((child) =>
         {
-            const childComponent = (child as AnyComponent).copy(spawnMode, false);
+            const childComponent = (child as AnyComponent).clone(cloneMode, false);
 
             childComponent.setParent(component);
         });
 
-        component.onCopied();
+        component.onCloned();
 
         return component as unknown as T;
     }
 
-    public onCopied()
+    public onCloned()
     {
-        const { spawnInfo: { spawner, isDuplicate } } = this;
+        const { cloneInfo: { cloner, isDuplicate } } = this;
 
-        if (spawner)
+        if (cloner)
         {
-            this.customProperties = spawner.customProperties.clone();
+            this.customProperties = cloner.customProperties.clone();
 
             if (isDuplicate)
             {
@@ -132,13 +132,13 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
     protected initSpawning()
     {
-        const { spawner, spawnMode, isVariant, isReferenceRoot } = this.spawnInfo;
+        const { cloner, cloneMode, isVariant, isReferenceRoot } = this.cloneInfo;
 
-        if (spawner)
+        if (cloner)
         {
-            spawner.spawnInfo.spawned.push(this);
+            cloner.cloneInfo.cloned.push(this);
 
-            const { model: sourceModel } = spawner;
+            const { model: sourceModel } = cloner;
 
             if (isVariant || isReferenceRoot)
             {
@@ -146,28 +146,28 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
                 if (isReferenceRoot)
                 {
-                    spawner.model.isReference = true;
+                    cloner.model.isReference = true;
                     this.model.isReference = true;
                 }
             }
-            else if (spawnMode === SpawnMode.Duplicate)
+            else if (cloneMode === CloneMode.Duplicate)
             {
                 const sourceValues = sourceModel.values;
 
                 this.model.setValues(sourceValues);
             }
 
-            spawner.on('childAdded', this.onSpawnerChildAdded);
-            spawner.on('childRemoved', this.onSpawnerChildRemoved);
+            cloner.on('childAdded', this.onSpawnerChildAdded);
+            cloner.on('childRemoved', this.onSpawnerChildRemoved);
         }
     }
 
     protected onSpawnerChildAdded = (component: AnyComponent) =>
     {
-        const { spawnMode } = this.spawnInfo;
+        const { cloneMode } = this.cloneInfo;
 
-        const copy = component.copy(
-            spawnMode === SpawnMode.ReferenceRoot ? SpawnMode.Reference : spawnMode,
+        const copy = component.clone(
+            cloneMode === CloneMode.ReferenceRoot ? CloneMode.Reference : cloneMode,
             false,
         );
 
@@ -176,8 +176,8 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
     protected onSpawnedChildAdded = (component: AnyComponent) =>
     {
-        const copy = component.copy(
-            SpawnMode.Reference,
+        const copy = component.clone(
+            CloneMode.Reference,
             false,
         );
 
@@ -191,7 +191,7 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
     {
         this.children.forEach((child) =>
         {
-            if ((child as AnyComponent).spawnInfo.isSpawner(component))
+            if ((child as AnyComponent).cloneInfo.isClonedFrom(component))
             {
                 child.deleteSelf();
             }
@@ -209,14 +209,14 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
         this.model.off('modified', this.onModelModified);
 
-        if (this.spawnInfo.wasSpawned)
+        if (this.cloneInfo.wasCloned)
         {
             this.unlink();
         }
 
         this.emit('disposed');
 
-        this.spawnInfo.spawned.forEach((component) => component.unlink());
+        this.cloneInfo.cloned.forEach((component) => component.unlink());
 
         this.children.forEach((child) =>
         {
@@ -228,9 +228,9 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
 
     public unlink(unlinkChildren = true)
     {
-        const { model, spawnInfo: { spawner, isVariant, isReference, isReferenceRoot } } = this;
+        const { model, cloneInfo: { cloner, isVariant, isReference, isReferenceRoot } } = this;
 
-        if (spawner)
+        if (cloner)
         {
             if ((model.parent && isVariant) || isReferenceRoot)
             {
@@ -238,15 +238,15 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
             }
             else if (isReference)
             {
-                this.model = spawner.model.copy();
+                this.model = cloner.model.copy();
 
                 this.initModel();
             }
 
-            spawner.off('childAdded', this.onSpawnerChildAdded);
-            spawner.off('childRemoved', this.onSpawnerChildRemoved);
+            cloner.off('childAdded', this.onSpawnerChildAdded);
+            cloner.off('childRemoved', this.onSpawnerChildRemoved);
 
-            this.spawnInfo.unlink();
+            this.cloneInfo.unlink();
             this.customProperties.unlink(this);
 
             this.emit('unlinked');
@@ -264,13 +264,13 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
     {
         const parent = this.getParent<AnyComponent>();
 
-        const { spawnInfo: { spawner, isReferenceOrRoot } }  = parent;
+        const { cloneInfo: { cloner, isReferenceOrRoot } }  = parent;
 
-        if (spawner && isReferenceOrRoot)
+        if (cloner && isReferenceOrRoot)
         {
-            if (parent.children.length !== spawner.children.length)
+            if (parent.children.length !== cloner.children.length)
             {
-                spawner.onSpawnedChildAdded(this);
+                cloner.onSpawnedChildAdded(this);
             }
         }
     }
@@ -279,23 +279,23 @@ export abstract class Component<M extends object, V> extends Nestable<ComponentE
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onRemovedFromParent(oldParent: Nestable)
     {
-        const { spawnInfo: { spawner, isReferenceOrRoot, spawned } } = this;
+        const { cloneInfo: { cloner, isReferenceOrRoot, cloned: cloneed } } = this;
 
-        if (spawner && isReferenceOrRoot)
+        if (cloner && isReferenceOrRoot)
         {
-            spawner.deleteSelf();
+            cloner.deleteSelf();
         }
         else
         {
-            spawned.forEach((spawnedComponent) =>
+            cloneed.forEach((cloneedComponent) =>
             {
-                const { spawnInfo: { spawner, isReferenceOrRoot } } = spawnedComponent;
+                const { cloneInfo: { cloner, isReferenceOrRoot } } = cloneedComponent;
 
-                const isSameComponent = spawner === this;
+                const isSameComponent = cloner === this;
 
                 if (isSameComponent && isReferenceOrRoot)
                 {
-                    spawnedComponent.deleteSelf();
+                    cloneedComponent.deleteSelf();
                 }
             });
         }
