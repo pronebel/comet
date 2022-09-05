@@ -1,8 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import { createApp } from "../app";
+  import { createApp } from "../test/testCoreDataModelApp";
   import HotReload from "./HotReload.svelte";
-  import TestCoreDataModel from "./TestCoreDataModel.svelte";
+  import TestCoreDataModel from "../test/TestCoreDataModel.svelte";
 
   let canvas: HTMLCanvasElement;
 

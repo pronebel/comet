@@ -1,15 +1,9 @@
 import type { Container, InteractionEvent } from 'pixi.js';
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
-import type { CloneMode } from '../../core/lib/clone';
-import type { Component } from '../../core/lib/component';
-import type { ContainerComponent } from '../../core/lib/components/container';
-import type { DebugModel } from '../../core/lib/components/debug';
-import { DebugComponent } from '../../core/lib/components/debug';
-import { EmptyComponent } from '../../core/lib/components/empty';
-import { Project } from '../../core/lib/project';
-import { Scene } from '../../core/lib/scene';
-import { startDrag } from './drag';
+import { type CloneMode, type Component, type ContainerComponent, EmptyComponent, Project, Scene } from '../../../core/lib';
+import { startDrag } from '../drag';
+import { type DebugModel, DebugComponent } from './debug';
 
 export let app: TestApp;
 

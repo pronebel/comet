@@ -1,10 +1,10 @@
 import { Sprite, Text, Texture } from 'pixi.js';
 
-import { app } from '../../../editor/lib/app';
-import { ModelSchema } from '../model/schema';
-import type { ContainerComponent } from './container';
-import type { SpriteModel } from './sprite';
-import { SpriteComponent, spriteSchema } from './sprite';
+import type { ContainerComponent } from '../../../core/lib/components/container';
+import type { SpriteModel } from '../../../core/lib/components/sprite';
+import { SpriteComponent, spriteSchema } from '../../../core/lib/components/sprite';
+import { ModelSchema } from '../../../core/lib/model/schema';
+import { app } from '../test/testCoreDataModelApp';
 
 export interface DebugModel extends SpriteModel
 {

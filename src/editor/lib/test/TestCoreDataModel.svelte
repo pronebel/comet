@@ -1,7 +1,7 @@
 <script lang="ts">
   import { CloneMode } from "../../../core/lib/clone";
 
-  import { app } from "../app";
+  import { app } from "./testCoreDataModelApp";
 
   let customPropName: string = "prop1";
   let customPropValue: string = "foo1";
