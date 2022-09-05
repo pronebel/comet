@@ -51,7 +51,7 @@ export abstract class Component<
 
         if (cloner && cloneInfo.isReference)
         {
-            this.model = cloner.model as unknown as Model<M> & M;
+            this.model = cloner.model as Model<M> & M;
         }
         else
         {
@@ -89,15 +89,15 @@ export abstract class Component<
 
         if (cloner)
         {
-            cloner.cloneInfo.cloned.push(this as unknown as Component);
+            cloner.cloneInfo.cloned.push(this as Component);
 
             const { model: sourceModel } = cloner;
 
-            // Reference case is handled immediately in constructor
+            // note: Reference case is handled immediately in constructor
 
             if (isVariant || isReferenceRoot)
             {
-                this.model.link(sourceModel as unknown as Model<M>);
+                this.model.link(sourceModel as Model<M>);
 
                 if (isReferenceRoot)
                 {
@@ -129,7 +129,7 @@ export abstract class Component<
                 cloneMode === CloneMode.Reference && isRoot
                     ? CloneMode.ReferenceRoot
                     : cloneMode,
-                this as unknown as Component,
+                this as Component,
             ),
         );
 
@@ -145,27 +145,40 @@ export abstract class Component<
         return component as unknown as T;
     }
 
-    public dispose()
+    public onCloned()
     {
-        super.dispose();
+        const { cloneInfo: { cloner, isDuplicate } } = this;
 
-        this.model.off('modified', this.onModelModified);
-
-        if (this.cloneInfo.wasCloned)
+        if (cloner)
         {
-            this.unlink();
+            if (isDuplicate)
+            {
+                this.unlinkCustomProperties();
+            }
+            else
+            {
+                this.customProperties = cloner.customProperties.clone();
+            }
+
+            this.updateRecursive();
         }
+    }
 
-        this.emit('disposed');
-
-        this.cloneInfo.cloned.forEach((component) => component.unlink());
-
-        this.children.forEach((child) =>
+    public unlinkCustomProperties()
+    {
+        this.walk<Component>((component) =>
         {
-            child.dispose();
-        });
+            const componentCloner = component.cloneInfo.cloner;
 
-        this.removeAllListeners();
+            if (componentCloner)
+            {
+                const props = componentCloner.customProperties;
+
+                component.customProperties = props.clone().unlink(component);
+
+                componentCloner.customProperties.cloneInfo.removeCloned(component.customProperties);
+            }
+        });
     }
 
     public unlink(unlinkChildren = true)
@@ -180,7 +193,7 @@ export abstract class Component<
             }
             else if (isReference)
             {
-                this.model = cloner.model.clone() as unknown as Model<M> & M;
+                this.model = cloner.model.clone() as Model<M> & M;
 
                 this.initModel();
             }
@@ -188,8 +201,10 @@ export abstract class Component<
             cloner.off('childAdded', this.onClonerChildAdded);
             cloner.off('childRemoved', this.onClonerChildRemoved);
 
+            this.unlinkCustomProperties();
+
+            cloner.cloneInfo.removeCloned(this as Component);
             this.cloneInfo.unlink();
-            this.customProperties.unlink(this as unknown as Component);
 
             this.emit('unlinked');
 
@@ -200,6 +215,29 @@ export abstract class Component<
         {
             this.forEach<Component>((child) => child.unlink());
         }
+    }
+
+    public dispose()
+    {
+        super.dispose();
+
+        this.model.off('modified', this.onModelModified);
+
+        if (this.cloneInfo.wasCloned)
+        {
+            this.unlink();
+        }
+
+        this.emit('disposed');
+
+        this.cloneInfo.forEachCloned<Component>((component) => component.unlink());
+
+        this.children.forEach((child) =>
+        {
+            child.dispose();
+        });
+
+        this.removeAllListeners();
     }
 
     public update(recursive = false)
@@ -236,35 +274,6 @@ export abstract class Component<
 
         this.emit('modified', key, value, oldValue);
     };
-
-    public onCloned()
-    {
-        const { cloneInfo: { cloner, isDuplicate } } = this;
-
-        if (cloner)
-        {
-            if (isDuplicate)
-            {
-                this.walk<Component>((component) =>
-                {
-                    const componentCloner = component.cloneInfo.cloner;
-
-                    if (componentCloner)
-                    {
-                        const props = componentCloner.customProperties;
-
-                        component.customProperties = props.clone().unlink(component);
-                    }
-                });
-            }
-            else
-            {
-                this.customProperties = cloner.customProperties.clone();
-            }
-
-            this.updateRecursive();
-        }
-    }
 
     protected onClonerChildAdded = (component: Component) =>
     {
@@ -317,7 +326,7 @@ export abstract class Component<
         {
             if (parent.children.length !== cloner.children.length)
             {
-                cloner.onClonedChildAdded(this as unknown as Component);
+                cloner.onClonedChildAdded(this as Component);
             }
         }
     }
@@ -338,7 +347,7 @@ export abstract class Component<
             {
                 const { cloneInfo: { cloner, isReferenceOrRoot } } = clonedComponent;
 
-                const isSameComponent = cloner === this as unknown as Component;
+                const isSameComponent = cloner === this as Component;
 
                 if (isSameComponent && isReferenceOrRoot)
                 {
@@ -356,11 +365,16 @@ export abstract class Component<
 
         for (const [key] of Object.entries(values))
         {
-            const assignedValue = customProps.getAssignedValue(String(key));
+            const assignedProperty = customProps.getAssignedPropertyForModelKey(String(key));
 
-            if (assignedValue !== undefined)
+            if (assignedProperty)
             {
-                values[key as keyof M] = assignedValue;
+                const assignedValue = assignedProperty.value;
+
+                if (assignedValue !== undefined)
+                {
+                    values[key as keyof M] = assignedValue;
+                }
             }
         }
 
@@ -377,18 +391,25 @@ export abstract class Component<
         this.model.setValue(modelKey, value);
     }
 
-    public setCustomProperty(name: string, type: CustomPropertyType, value: any): CustomProperty
+    public setCustomProperty(customKey: string, type: CustomPropertyType, value: any): CustomProperty
     {
-        const property = this.customProperties.set(this as unknown as Component, name, type, value);
+        const property = this.customProperties.set(this as Component, customKey, type, value);
 
         this.updateRecursiveWithClones();
 
         return property;
     }
 
-    public removeCustomProperty(name: string)
+    public removeCustomProperty(customKey: string)
     {
-        this.customProperties.remove(this as unknown as Component, name);
+        this.customProperties.remove(this as Component, customKey);
+
+        const modelKey = this.customProperties.getAssignedModelKeyForCustomKey(customKey);
+
+        if (modelKey)
+        {
+            this.unAssignCustomProperty(modelKey as keyof M);
+        }
 
         this.updateRecursiveWithClones();
     }
@@ -413,7 +434,12 @@ export abstract class Component<
 
         this.cloneInfo.forEachCloned((component) =>
         {
-            if (!component.customProperties.hasAssignedValue(String(modelKey)))
+            if (component.cloneInfo.isDuplicate)
+            {
+                return;
+            }
+
+            if (!component.customProperties.hasAssignedToModelKey(String(modelKey)))
             {
                 component.assignCustomProperty(modelKey, customPropertyKey);
             }
@@ -429,7 +455,12 @@ export abstract class Component<
 
         this.cloneInfo.forEachCloned((component) =>
         {
-            if (component.customProperties.hasAssignedValue(String(modelKey)))
+            if (component.cloneInfo.isDuplicate)
+            {
+                return;
+            }
+
+            if (component.customProperties.hasAssignedToModelKey(String(modelKey)))
             {
                 component.unAssignCustomProperty(modelKey);
             }

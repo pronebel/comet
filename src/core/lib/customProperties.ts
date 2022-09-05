@@ -200,7 +200,7 @@ export class CustomProperties
         {
             const array = this.get(key);
 
-            if (array)
+            if (array && array.length > 0)
             {
                 const firstElement = array[0];
                 const property = CustomProperty.copy(firstElement);
@@ -228,7 +228,7 @@ export class CustomProperties
         this.assignments.delete(modelKey);
     }
 
-    public getAssignedValue(modelKey: string): any
+    public getAssignedPropertyForModelKey(modelKey: string): CustomProperty | undefined
     {
         const customKey = this.assignments.get(modelKey);
 
@@ -236,16 +236,29 @@ export class CustomProperties
         {
             const array = this.properties.get(customKey);
 
-            if (array)
+            if (array && array.length > 0)
             {
-                return array[0].value;
+                return array[0];
             }
         }
 
         return undefined;
     }
 
-    public hasAssignedValue(modelKey: string)
+    public getAssignedModelKeyForCustomKey(customKey: string)
+    {
+        for (const [modelKey, ck] of this.assignments.entries())
+        {
+            if (ck === customKey)
+            {
+                return modelKey;
+            }
+        }
+
+        return undefined;
+    }
+
+    public hasAssignedToModelKey(modelKey: string)
     {
         return this.assignments.has(modelKey);
     }
