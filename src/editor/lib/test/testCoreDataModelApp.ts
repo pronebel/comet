@@ -2,8 +2,8 @@ import type { Container, InteractionEvent } from 'pixi.js';
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
 import { type CloneMode, type Component, type ContainerComponent, EmptyComponent, Project, Scene } from '../../../core/lib';
-import { startDrag } from '../drag';
 import { type DebugModel, DebugComponent } from './debug';
+import { startDrag } from './drag';
 
 export let app: TestApp;
 
@@ -290,9 +290,9 @@ export class TestApp extends Application
                         const creatorId = componentId(prop.creator);
                         const isCreator = component === prop.creator;
 
-                        let line = `${prop.name}~${creatorId}:${JSON.stringify(prop.value)}`;
+                        let line = `&lt;${creatorId}&gt;~"${prop.name}":${JSON.stringify(prop.value)}`;
 
-                        line = isActive ? `<u>${line}</u>` : `<span style="font-style:italic">${line}</span>`;
+                        line = isActive ? `<b>${line}</b>` : `<span style="font-style:italic">${line}</span>`;
                         line = isCreator ? `<span style="color:salmon">${line}</span>` : line;
 
                         // eslint-disable-next-line @typescript-eslint/no-unsafe-return

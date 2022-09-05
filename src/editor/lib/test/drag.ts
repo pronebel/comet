@@ -1,5 +1,5 @@
-import type { ContainerComponent } from '../../core/lib/components/container';
-import { app } from './test/testCoreDataModelApp';
+import type { ContainerComponent } from '../../../core/lib/components/container';
+import { app } from './testCoreDataModelApp';
 
 type AnyContainer = ContainerComponent<any, any>;
 

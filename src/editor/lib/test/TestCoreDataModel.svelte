@@ -7,6 +7,8 @@
   let customPropValue: string = "foo1";
   let assignModelKey: string = "label";
 
+  let shouldUpdateDebug = true;
+
   const onNewContainer = () => {
     app.newContainer();
   };
@@ -82,7 +84,7 @@
 
   setInterval(() => {
     const debug = document.getElementById("debug") as HTMLPreElement;
-    if (debug) {
+    if (debug && shouldUpdateDebug) {
       app.debug(debug);
     }
   }, 500);
@@ -115,7 +117,12 @@
   <button on:click={onUnAssignCustomProp}>UnAssign Custom Prop</button>
   <input bind:value={assignModelKey} />
   <marker />
-  <pre id="debug" />
+  <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+  <pre
+    id="debug"
+    on:mouseover={() => (shouldUpdateDebug = false)}
+    on:mouseout={() => (shouldUpdateDebug = true)}>
+  <span /></pre>
 </buttons>
 
 <style>
