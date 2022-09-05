@@ -88,6 +88,16 @@ export class CloneInfo<C>
         this.cloneMode = CloneMode.Original;
     }
 
+    public removeCloned(component: C)
+    {
+        const index = this.cloned.indexOf(component);
+
+        if (index > -1)
+        {
+            this.cloned.splice(index, 1);
+        }
+    }
+
     public forEachCloned<T = C>(fn: (clone: T) => void)
     {
         this.cloned.forEach((cloned) => fn(cloned as unknown as T));

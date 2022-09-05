@@ -130,7 +130,7 @@ export class CustomProperties
 
         this.cloneInfo.cloned.forEach((customProps) =>
         {
-            customProps.onSpawnerDefined(property);
+            customProps.onClonerSetCustomProperty(property);
         });
 
         return property;
@@ -152,7 +152,7 @@ export class CustomProperties
 
                     this.cloneInfo.cloned.forEach((customProps) =>
                     {
-                        customProps.onSpawnerUnDefined(property);
+                        customProps.onClonerRemoveCustomProperty(property);
                     });
                 }
             });
@@ -161,12 +161,12 @@ export class CustomProperties
         }
     }
 
-    public onSpawnerDefined(property: CustomProperty)
+    public onClonerSetCustomProperty(property: CustomProperty)
     {
         this.set(property.creator, property.name, property.type, property.value);
     }
 
-    public onSpawnerUnDefined(property: CustomProperty)
+    public onClonerRemoveCustomProperty(property: CustomProperty)
     {
         this.remove(property.creator, property.name);
     }
