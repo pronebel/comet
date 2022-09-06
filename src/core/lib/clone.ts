@@ -7,13 +7,18 @@ export enum CloneMode
     Reference = 'reference',
 }
 
-export class CloneInfo<C>
+export interface Clonable
+{
+    cloneInfo: CloneInfo;
+}
+
+export class CloneInfo
 {
     public cloneMode: CloneMode;
-    public cloner?: C;
-    public cloned: C[];
+    public cloner?: Clonable;
+    public cloned: Clonable[];
 
-    constructor(cloneMode: CloneMode = CloneMode.Original, cloner?: C)
+    constructor(cloneMode: CloneMode = CloneMode.Original, cloner?: Clonable)
     {
         this.cloneMode = cloneMode;
         this.cloner = cloner;
@@ -72,14 +77,14 @@ export class CloneInfo<C>
         return cloneMode === CloneMode.Reference || cloneMode === CloneMode.ReferenceRoot || cloneMode === CloneMode.Variant;
     }
 
-    public getClonedAt(index: number)
+    public getClonedAt<T>(index: number)
     {
-        return this.cloned[index];
+        return this.cloned[index] as unknown as T;
     }
 
-    public isClonedFrom(component: C)
+    public isClonedFrom(cloner: Clonable)
     {
-        return this.cloner === component;
+        return this.cloner === cloner;
     }
 
     public unlink()
@@ -88,9 +93,9 @@ export class CloneInfo<C>
         this.cloneMode = CloneMode.Original;
     }
 
-    public removeCloned(component: C)
+    public removeCloned(cloned: Clonable)
     {
-        const index = this.cloned.indexOf(component);
+        const index = this.cloned.indexOf(cloned);
 
         if (index > -1)
         {
@@ -98,7 +103,12 @@ export class CloneInfo<C>
         }
     }
 
-    public forEachCloned<T = C>(fn: (clone: T) => void)
+    public getCloner<T = unknown>()
+    {
+        return this.cloner as unknown as T;
+    }
+
+    public forEachCloned<T>(fn: (clone: T) => void)
     {
         this.cloned.forEach((cloned) => fn(cloned as unknown as T));
     }

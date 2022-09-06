@@ -1,3 +1,4 @@
+import type { Clonable } from './clone';
 import { CloneInfo, CloneMode } from './clone';
 import type { Component } from './component';
 
@@ -39,13 +40,13 @@ export class CustomProperty
     }
 }
 
-export class CustomProperties
+export class CustomProperties<C extends Component> implements Clonable
 {
-    public cloneInfo: CloneInfo<CustomProperties>;
+    public cloneInfo: CloneInfo;
     public properties: Map<string, CustomProperty[]>;
     public assignments: Map<string, string>;
 
-    constructor(cloneInfo: CloneInfo<CustomProperties> = new CloneInfo())
+    constructor(cloneInfo: CloneInfo = new CloneInfo())
     {
         this.properties = new Map();
         this.cloneInfo = cloneInfo;
@@ -94,7 +95,7 @@ export class CustomProperties
         }
     }
 
-    public set(creator: Component, customKey: string, type: CustomPropertyType, value: any)
+    public set(creator: C, customKey: string, type: CustomPropertyType, value: any)
     {
         if (!this.properties.has(customKey))
         {
@@ -128,7 +129,7 @@ export class CustomProperties
             }
         }
 
-        this.cloneInfo.cloned.forEach((customProps) =>
+        this.cloneInfo.forEachCloned<CustomProperties<C>>((customProps) =>
         {
             customProps.onClonerSetCustomProperty(property);
         });
@@ -136,7 +137,7 @@ export class CustomProperties
         return property;
     }
 
-    public remove(creator: Component, customKey: string)
+    public remove(creator: C, customKey: string)
     {
         const array = this.properties.get(customKey);
 
@@ -150,7 +151,7 @@ export class CustomProperties
                 {
                     toRemove.push(property);
 
-                    this.cloneInfo.cloned.forEach((customProps) =>
+                    this.cloneInfo.forEachCloned<CustomProperties<C>>((customProps) =>
                     {
                         customProps.onClonerRemoveCustomProperty(property);
                     });
@@ -163,12 +164,12 @@ export class CustomProperties
 
     public onClonerSetCustomProperty(property: CustomProperty)
     {
-        this.set(property.creator, property.name, property.type, property.value);
+        this.set(property.creator as C, property.name, property.type, property.value);
     }
 
     public onClonerRemoveCustomProperty(property: CustomProperty)
     {
-        this.remove(property.creator, property.name);
+        this.remove(property.creator as C, property.name);
     }
 
     public clone()
@@ -192,7 +193,7 @@ export class CustomProperties
         return clone;
     }
 
-    public unlink(newCreator: Component)
+    public unlink(newCreator: C)
     {
         this.cloneInfo.unlink();
 
@@ -213,7 +214,7 @@ export class CustomProperties
 
         const assignments = newCreator.customProperties.assignments;
 
-        assignments.forEach((value, key) => this.assignments.set(key, value));
+        assignments.forEach((value: string, key: string) => this.assignments.set(key, value));
 
         return this;
     }
