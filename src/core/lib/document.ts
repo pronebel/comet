@@ -1,93 +1,87 @@
 import EventEmitter from 'eventemitter3';
 
 import type { CloneMode } from './clone';
+import { AddChildCommand } from './commands/addChild';
+import { AssignCustomPropCommand } from './commands/assignCustomProp';
+import { CloneCommand } from './commands/clone';
+import { ConstructCommand } from './commands/construct';
+import { DeleteCommand } from './commands/delete';
+import { ModifyModelCommand } from './commands/modifyModel';
+import { RemoveChildCommand } from './commands/removeChild';
+import { RemoveCustomPropCommand } from './commands/removeCustomProp';
+import { SetCustomPropCommand } from './commands/setCustomProp';
+import { UnAssignCustomPropCommand } from './commands/unassignCustomProp';
+import { UnlinkCommand } from './commands/unlink';
 import type { Component } from './component';
-import type { CustomProperty } from './customProperties';
+import type { CustomPropertyType } from './customProperties';
 
-export type DocumentEvents = 'constructed'
-| 'cloned'
-| 'modelModified'
-| 'childAdded'
-| 'childRemoved'
-| 'unlink'
-| 'delete'
-| 'setCustomProp'
-| 'removeCustomProp'
-| 'assignCustomProp'
-| 'unassignCustomProp';
-
-export class Document extends EventEmitter<DocumentEvents>
+export class Document extends EventEmitter<'modified'>
 {
-    constructor()
+    public componentsById: Map<string, Component>;
+    public enableCommands: boolean;
+
+    constructor(enableCommands = true)
     {
         super();
-        this.on('constructed', this.onConstructed);
-        this.on('cloned', this.onCloned);
-        this.on('modelModified', this.onModified);
-        this.on('childAdded', this.onChildAdded);
-        this.on('childRemoved', this.onChildRemoved);
-        this.on('unlink', this.onUnlink);
-        this.on('delete', this.onDelete);
-        this.on('setCustomProp', this.onSetCustomProp);
-        this.on('removeCustomProp', this.onRemoveCustomProp);
-        this.on('assignCustomProp', this.onAssignCustomProp);
-        this.on('unassignCustomProp', this.onUnAssignCustomProp);
+
+        this.componentsById = new Map();
+        this.enableCommands = enableCommands;
     }
 
-    public onConstructed = (component: Component) =>
+    public onConstruct(id: string, componentType: string, modelValues: object, cloneMode: CloneMode)
     {
-        console.log('constructed', { id: component.id });
-    };
+        this.enableCommands && this.emit('modified', new ConstructCommand(id, componentType, modelValues, cloneMode));
+    }
 
-    public onCloned = (cloner: Component, cloned: Component, cloneMode: CloneMode, depth: number) =>
+    public onClone(clonerId: string, clonedId: string, cloneMode: CloneMode, depth: number)
     {
-        console.log('cloned', { cloner: cloner.id, cloned: cloned.id, cloneMode, depth });
-    };
+        this.enableCommands && this.emit('modified', new CloneCommand(clonerId, clonedId, cloneMode, depth));
+    }
 
-    public onModified = (component: Component, key: string, value: any, oldValue: any) =>
+    public onModifyModel(id: string, key: string, value: any, oldValue: any)
     {
-        console.log('modelModified', { id: component.id, key, value, oldValue });
-    };
+        this.enableCommands && this.emit('modified', new ModifyModelCommand(id, key, value, oldValue));
+    }
 
-    public onChildAdded = (parent: Component, child: Component) =>
+    public onAddChild(parentId: string, childId: string)
     {
-        console.log('childAdded', { parent: parent.id, child: child.id });
-    };
+        this.enableCommands && this.emit('modified', new AddChildCommand(parentId, childId));
+    }
 
-    public onChildRemoved = (parent: Component, child: Component) =>
+    public onRemoveChild(parentId: string, childId: string)
     {
-        console.log('childRemoved', { parent: parent.id, child: child.id });
-    };
+        this.enableCommands && this.emit('modified', new RemoveChildCommand(parentId, childId));
+    }
 
-    public onUnlink = (component: Component, unlinkChildren: boolean) =>
+    public onUnlink(id: string, unlinkChildren: boolean)
     {
-        console.log('unlink', { component: component.id, unlinkChildren });
-    };
+        this.enableCommands && this.emit('modified', new UnlinkCommand(id, unlinkChildren));
+    }
 
-    public onDelete = (component: Component) =>
+    public onDelete(id: string)
     {
-        console.log('delete', { component: component.id });
-    };
+        this.enableCommands && this.emit('modified', new DeleteCommand(id));
+    }
 
-    public onSetCustomProp = (component: Component, property: CustomProperty) =>
+    public onSetCustomProp(id: string, creatorId: string, name: string, type: CustomPropertyType, value: any)
     {
-        console.log('setCustomProp', { id: component.id, key: property.name, value: property.value });
-    };
+        this.enableCommands && this.emit('modified', new SetCustomPropCommand(id, creatorId, name, type, value));
+    }
 
-    public onRemoveCustomProp = (component: Component, property: CustomProperty) =>
+    public onRemoveCustomProp(id: string, customKey: string)
     {
-        console.log('removeCustomProp', { id: component.id, key: property.name, value: property.value });
-    };
+        this.enableCommands && this.emit('modified', new RemoveCustomPropCommand(id, customKey));
+    }
 
-    public onAssignCustomProp = (component: Component, modelKey: string, property: CustomProperty) =>
+    public onAssignCustomProp(id: string, modelKey: string, customKey: string)
     {
-        console.log('assignCustomProp', { id: component.id, modelKey, customKey: property.name, value: property.value });
-    };
+        this.enableCommands && this.emit('modified', new AssignCustomPropCommand(id, modelKey, customKey));
+    }
 
-    public onUnAssignCustomProp = (component: Component, modelKey: string) =>
+    public onUnAssignCustomProp(id: string, modelKey: string)
     {
-        console.log('unassignCustomProp', { id: component.id, modelKey });
-    };
+        this.enableCommands && this.emit('modified', new UnAssignCustomPropCommand(id, modelKey));
+    }
 }
 
 export const doc = new Document();

@@ -91,6 +91,12 @@
 </script>
 
 <buttons>
+  <!-- svelte-ignore a11y-mouse-events-have-key-events -->
+  <pre
+    id="debug"
+    on:mouseover={() => (shouldUpdateDebug = false)}
+    on:mouseout={() => (shouldUpdateDebug = true)}>
+  <span /></pre>
   <button on:click={onNewContainer}>New Container</button>
   <button on:click={onNewChild}>New Child</button>
   <button on:click={onCloneVariant}>Clone Variant</button>
@@ -117,12 +123,6 @@
   <button on:click={onUnAssignCustomProp}>UnAssign Custom Prop</button>
   <input bind:value={assignModelKey} />
   <marker />
-  <!-- svelte-ignore a11y-mouse-events-have-key-events -->
-  <pre
-    id="debug"
-    on:mouseover={() => (shouldUpdateDebug = false)}
-    on:mouseout={() => (shouldUpdateDebug = true)}>
-  <span /></pre>
 </buttons>
 
 <style>
@@ -139,6 +139,7 @@
     width: 100%;
     margin-bottom: 10px;
     font-size: 10pt;
+    z-index: 100;
   }
 
   marker {
@@ -169,6 +170,7 @@
     text-align: center;
     border-color: #666;
     padding: 5px;
+    z-index: 100;
   }
 
   br {
@@ -180,7 +182,7 @@
     bottom: 0;
     right: 0;
     left: 0;
-    height: 500px;
+    height: 50%;
     background-color: #000;
     overflow-y: auto;
     font-size: 14px;

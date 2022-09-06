@@ -2,9 +2,11 @@ import type { Container, InteractionEvent } from 'pixi.js';
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
 import type { CloneMode } from '../../../core/lib/clone';
+import type { Command } from '../../../core/lib/commands';
 import type { Component } from '../../../core/lib/component';
 import type { ContainerComponent } from '../../../core/lib/components/container';
 import { EmptyComponent } from '../../../core/lib/components/empty';
+import { doc } from '../../../core/lib/document';
 import { Project } from '../../../core/lib/project';
 import { Scene } from '../../../core/lib/scene';
 import { type DebugModel, DebugComponent } from './debug';
@@ -23,6 +25,8 @@ export class TestApp extends Application
     {
         super(options);
 
+        doc.on('modified', this.onDocModified);
+
         this.project = new Project();
         this.scene = new Scene();
 
@@ -39,6 +43,13 @@ export class TestApp extends Application
 
         this.stage.addChild(selection);
     }
+
+    public onDocModified = (command: Command) =>
+    {
+        const output = `%c${command.getCommandType().replace('Command', '')}:\n%c${command.toString()}`;
+
+        console.log(output, 'color:cyan;', 'color:white');
+    };
 
     public newContainer()
     {
