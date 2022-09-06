@@ -9,7 +9,7 @@
         "check:types": "tsc --noEmit",
         "check:svelte": "svelte-check --tsconfig ./tsconfig.json",
         "dev": "vite --config vite.editor.config.js --port=3000",
-        "doc": "typedoc src/core/lib/index.ts",
+        "doc": "typedoc src/typedocEntry.ts",
         "lint": "eslint \"src/**/*.ts\" --fix",
         "postinstall": "husky install && chmod +x .husky/{pre*,commit*} && chmod +x gc",
         "preview": "vite preview",

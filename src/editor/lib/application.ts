@@ -1,6 +1,6 @@
 import { EventEmitter } from 'eventemitter3';
 
-import { Project } from '../../core/lib';
+import { Project } from '../../core/lib/project';
 
 export class Application extends EventEmitter
 {

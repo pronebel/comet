@@ -1,7 +1,12 @@
 import type { Container, InteractionEvent } from 'pixi.js';
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
-import { type CloneMode, type Component, type ContainerComponent, EmptyComponent, Project, Scene } from '../../../core/lib';
+import type { CloneMode } from '../../../core/lib/clone';
+import type { Component } from '../../../core/lib/component';
+import type { ContainerComponent } from '../../../core/lib/components/container';
+import { EmptyComponent } from '../../../core/lib/components/empty';
+import { Project } from '../../../core/lib/project';
+import { Scene } from '../../../core/lib/scene';
 import { type DebugModel, DebugComponent } from './debug';
 import { startDrag } from './drag';
 
@@ -261,8 +266,10 @@ export class TestApp extends Application
         {
             const {
                 model: { id: modelId },
-                cloneInfo: { cloner, cloned, cloneMode },
+                cloneInfo, cloneInfo: { cloned, cloneMode },
             } = component;
+
+            const cloner = cloneInfo.getCloner<Component>();
 
             const pad = ''.padStart(options.depth, '+');
             const id = `&lt;${componentId(component)}&gt;`;
@@ -272,7 +279,7 @@ export class TestApp extends Application
                 : '';
             const clonedInfo = cloned.length > 0
                 ? `<span style="color:green">-> [${cloned.length}] ${cloned
-                    .map((component) => `${componentId(component)}`).join(',')}</span>`
+                    .map((component) => `${componentId(component as Component)}`).join(',')}</span>`
                 : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
             const customProps = component.getCustomProps();

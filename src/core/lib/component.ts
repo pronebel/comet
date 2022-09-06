@@ -2,6 +2,7 @@ import type { Clonable } from './clone';
 import { CloneInfo, CloneMode } from './clone';
 import type { CustomProperty, CustomPropertyType } from './customProperties';
 import { CustomProperties } from './customProperties';
+import { doc } from './document';
 import type { Model } from './model/model';
 import { createModel } from './model/model';
 import type { ModelSchema } from './model/schema';
@@ -25,7 +26,6 @@ export abstract class Component<
     public view: V;
 
     public cloneInfo: CloneInfo;
-
     public customProperties: CustomProperties<Component>;
 
     constructor(
@@ -65,10 +65,13 @@ export abstract class Component<
 
         this.customProperties = new CustomProperties();
 
-        this.initModel();
-        this.initCloning();
-
         this.view = this.createView();
+
+        this.initModel();
+
+        doc.emit('constructed', this);
+
+        this.initCloning();
 
         this.init();
         this.update();
@@ -135,6 +138,8 @@ export abstract class Component<
                 this,
             ),
         );
+
+        doc.emit('cloned', this, component, cloneMode, depth);
 
         this.forEach<Component>((child) =>
         {
@@ -248,6 +253,13 @@ export abstract class Component<
         this.removeAllListeners();
     }
 
+    public deleteSelf(): void
+    {
+        super.deleteSelf();
+
+        doc.emit('delete', this);
+    }
+
     public update(recursive = false)
     {
         if (this.view)
@@ -281,6 +293,7 @@ export abstract class Component<
         this.update();
 
         this.emit('modified', key, value, oldValue);
+        // doc.emit('modelModified', this, key, value, oldValue);
     };
 
     protected onClonerChildAdded = (component: Component) =>
@@ -306,6 +319,8 @@ export abstract class Component<
         this.children.push(copy);
 
         copy.onAddedToParent();
+
+        doc.emit('childAdded', this, copy);
     };
 
     protected onClonerChildRemoved = (component: Component) =>
@@ -314,6 +329,7 @@ export abstract class Component<
         {
             if ((child).cloneInfo.isClonedFrom(component))
             {
+                doc.emit('childRemoved', this, child);
                 child.deleteSelf();
             }
         });
@@ -322,6 +338,20 @@ export abstract class Component<
     public getView<T = V>(): T
     {
         return this.view as unknown as T;
+    }
+
+    public setParent<T extends Nestable<any>>(parent: T): void
+    {
+        super.setParent(parent);
+
+        doc.emit('childAdded', parent, this);
+    }
+
+    public removeChild(component: Nestable<any>): void
+    {
+        super.removeChild(component);
+
+        doc.emit('childRemoved', this, component);
     }
 
     protected onAddedToParent(): void
