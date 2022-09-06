@@ -6,7 +6,7 @@ import type { Command } from '../../../core/lib/commands';
 import type { Component } from '../../../core/lib/component';
 import type { ContainerComponent } from '../../../core/lib/components/container';
 import { EmptyComponent } from '../../../core/lib/components/empty';
-import { doc } from '../../../core/lib/document';
+import { Document } from '../../../core/lib/document';
 import { Project } from '../../../core/lib/project';
 import { Scene } from '../../../core/lib/scene';
 import { type DebugModel, DebugComponent } from './debug';
@@ -25,7 +25,10 @@ export class TestApp extends Application
     {
         super(options);
 
-        doc.on('modified', this.onDocModified);
+        const document = new Document();
+
+        // document.enableCommands = false;
+        document.on('modified', this.onDocModified);
 
         this.project = new Project();
         this.scene = new Scene();

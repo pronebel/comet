@@ -69,7 +69,7 @@ export abstract class Component<
 
         this.initModel();
 
-        doc.onConstruct(id, componentType, modelValues, cloneInfo.cloneMode);
+        doc().onConstruct(id, componentType, modelValues, cloneInfo.cloneMode);
 
         this.initCloning();
 
@@ -139,7 +139,7 @@ export abstract class Component<
             ),
         );
 
-        doc.onModifyModel(this.id, component.id, cloneMode, depth);
+        doc().onModifyModel(this.id, component.id, cloneMode, depth);
 
         this.forEach<Component>((child) =>
         {
@@ -221,7 +221,7 @@ export abstract class Component<
 
             this.emit('unlinked');
 
-            doc.onUnlink(this.id, unlinkChildren);
+            doc().onUnlink(this.id, unlinkChildren);
 
             this.update();
         }
@@ -259,7 +259,7 @@ export abstract class Component<
     {
         super.deleteSelf();
 
-        doc.onDelete(this.id);
+        doc().onDelete(this.id);
     }
 
     public update(recursive = false)
@@ -295,7 +295,7 @@ export abstract class Component<
         this.update();
 
         this.emit('modified', key, value, oldValue);
-        doc.onModifyModel(this.id, key, value, oldValue);
+        doc().onModifyModel(this.id, key, value, oldValue);
     };
 
     protected onClonerChildAdded = (component: Component) =>
@@ -322,7 +322,7 @@ export abstract class Component<
 
         copy.onAddedToParent();
 
-        doc.onAddChild(this.id, copy.id);
+        doc().onAddChild(this.id, copy.id);
     };
 
     protected onClonerChildRemoved = (component: Component) =>
@@ -331,7 +331,7 @@ export abstract class Component<
         {
             if ((child).cloneInfo.isClonedFrom(component))
             {
-                doc.onRemoveChild(this.id, child.id);
+                doc().onRemoveChild(this.id, child.id);
 
                 child.deleteSelf();
             }
@@ -347,14 +347,14 @@ export abstract class Component<
     {
         super.setParent(parent);
 
-        doc.onAddChild((parent as unknown as Component).id, this.id);
+        doc().onAddChild((parent as unknown as Component).id, this.id);
     }
 
     public removeChild(component: Nestable<any>): void
     {
         super.removeChild(component);
 
-        doc.onRemoveChild(this.id, (component as unknown as Component).id);
+        doc().onRemoveChild(this.id, (component as unknown as Component).id);
     }
 
     protected onAddedToParent(): void
@@ -440,7 +440,7 @@ export abstract class Component<
 
         this.updateRecursiveWithClones();
 
-        doc.onSetCustomProp(this.id, property.creator.id, property.name, property.type, property.value);
+        doc().onSetCustomProp(this.id, property.creator.id, property.name, property.type, property.value);
 
         return property;
     }
@@ -477,7 +477,7 @@ export abstract class Component<
 
         this.update();
 
-        doc.onAssignCustomProp(this.id, String(modelKey), customPropertyKey);
+        doc().onAssignCustomProp(this.id, String(modelKey), customPropertyKey);
 
         this.cloneInfo.forEachCloned<Component>((component) =>
         {
@@ -500,7 +500,7 @@ export abstract class Component<
 
         this.update();
 
-        doc.onUnAssignCustomProp(this.id, String(modelKey));
+        doc().onUnAssignCustomProp(this.id, String(modelKey));
 
         this.cloneInfo.forEachCloned<Component>((component) =>
         {

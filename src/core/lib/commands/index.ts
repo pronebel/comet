@@ -22,9 +22,7 @@ export abstract class Command
 
     public toJSON()
     {
-        const json: any = {
-
-        };
+        const json: any = { };
 
         Object.getOwnPropertyNames(this).forEach((key) =>
         {

@@ -12,19 +12,23 @@ import { RemoveCustomPropCommand } from './commands/removeCustomProp';
 import { SetCustomPropCommand } from './commands/setCustomProp';
 import { UnAssignCustomPropCommand } from './commands/unassignCustomProp';
 import { UnlinkCommand } from './commands/unlink';
-import type { Component } from './component';
 import type { CustomPropertyType } from './customProperties';
 
 export class Document extends EventEmitter<'modified'>
 {
-    public componentsById: Map<string, Component>;
     public enableCommands: boolean;
+
+    public static instance: Document;
 
     constructor(enableCommands = true)
     {
         super();
 
-        this.componentsById = new Map();
+        if (!Document.instance)
+        {
+            Document.instance = this;
+        }
+
         this.enableCommands = enableCommands;
     }
 
@@ -84,4 +88,4 @@ export class Document extends EventEmitter<'modified'>
     }
 }
 
-export const doc = new Document();
+export const doc = () => Document.instance;
