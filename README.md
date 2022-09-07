@@ -26,6 +26,19 @@ $ pnpm dev
 
 Then visit [localhost:3000](http://localhost:3000)
 
+## Running YJS Websocket Server
+
+To persist data and sync between users you'll need to run the local server. This will
+create a `dbDir` folder in the repo root which will store the data.
+
+To start the wsProvider server component, run the `server` npm script.
+
+```
+$ yarn server
+```
+
+> NOTE: For some reason `pnpm server` does not work, use npm/yarn directly or run the script directly `./scripts/server.sh`.
+
 ## Git workflow
 
 This repo uses [Commitizen](https://www.npmjs.com/package/commitizen) with [commitlint](https://www.npmjs.com/package/commitlint) to ensure [conventional commits](https://www.conventionalcommits.org/en/v1.0.0/) as well as [Husky](https://typicode.github.io/husky/#/) to manage Git hooks.
