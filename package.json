@@ -15,7 +15,8 @@
         "preview": "vite preview",
         "test": "jest",
         "test:coverage": "jest --coverage",
-        "test:watch": "jest --watchAll"
+        "test:watch": "jest --watchAll",
+        "server": "HOST=localhost PORT=3333 YPERSISTENCE=./dbDir node ./node_modules/y-websocket/bin/server.js"
     },
     "config": {
         "commitizen": {

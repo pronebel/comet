@@ -1,3 +1,5 @@
+window.global ||= window;
+
 import '../style/theme.css';
 import '../style/app.css';
 import '../style/dark-theme.css';

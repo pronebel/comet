@@ -9,6 +9,7 @@ import { EmptyComponent } from '../../../core/lib/components/empty';
 import { Document } from '../../../core/lib/document';
 import { Project } from '../../../core/lib/project';
 import { Scene } from '../../../core/lib/scene';
+import { Database } from '../sync/database';
 import { type DebugModel, DebugComponent } from './debug';
 import { startDrag } from './drag';
 
@@ -20,10 +21,13 @@ export class TestApp extends Application
     public selection: Sprite;
     public project: Project;
     public scene: Scene;
+    public database: Database;
 
     constructor(options?: IApplicationOptions | undefined)
     {
         super(options);
+
+        this.database = new Database();
 
         const document = new Document();
 
