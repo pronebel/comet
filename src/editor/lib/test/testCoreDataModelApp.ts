@@ -27,7 +27,12 @@ export class TestApp extends Application
     {
         super(options);
 
-        this.database = new Database();
+        const database = this.database = new Database();
+
+        (window as any).db = database;
+
+        database.createProject('testProject');
+        database.dump();
 
         const document = new Document();
 
@@ -233,6 +238,8 @@ export class TestApp extends Application
             console.dir(this.selected);
             (window as any).$ = this.selected;
         }
+
+        this.database.dump();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars

@@ -85,7 +85,7 @@
   setInterval(() => {
     const debug = document.getElementById("debug") as HTMLPreElement;
     if (debug && shouldUpdateDebug) {
-      app.debug(debug);
+      app && app.debug(debug);
     }
   }, 500);
 </script>
@@ -104,13 +104,13 @@
   <button on:click={onDuplicate}>Duplicate</button>
   <button on:click={onUnlink}>Unlink</button>
   <button on:click={onDelete}>Delete</button>
+  <button on:click={onInspect}>Inspect</button>
   <br />
   <button on:click={onDeselect}>Deselect</button>
   <button on:click={onRandColor}>Rand Color</button>
   <button on:click={onRandSize}>Rand Size</button>
   <button on:click={onRotate}>Rotate</button>
   <button on:click={onResetModel}>Reset Model</button>
-  <button on:click={onInspect}>Inspect</button>
   <br />
   <button on:click={onSetCustomProp}>Set Custom Prop</button>
   <keyvalue>

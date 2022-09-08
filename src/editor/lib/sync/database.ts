@@ -2,6 +2,8 @@ import { EventEmitter } from 'eventemitter3';
 import { WebsocketProvider } from 'y-websocket';
 import * as Y from 'yjs';
 
+import { exportDB } from './exportDB';
+
 export type DatabaseEvents = 'connect' | 'disconnect' | 'awarenessChange';
 
 export class Database extends EventEmitter<DatabaseEvents>
@@ -15,6 +17,8 @@ export class Database extends EventEmitter<DatabaseEvents>
         super();
 
         const doc = this.doc = new Y.Doc();
+
+        doc.load();
 
         const wsProvider = this.wsProvider = new WebsocketProvider(
             SYNC_SERVER,
@@ -49,34 +53,33 @@ export class Database extends EventEmitter<DatabaseEvents>
         this.awareness.setLocalStateField(key, value);
     }
 
-    public clear()
-    {
-        this.doc.getMap().delete('comet');
-    }
-
-    public install()
-    {
-        this.doc.getMap().set('comet', new Y.Doc());
-    }
-
-    public getCometMap()
-    {
-        return this.doc.getMap().get('comet') as Y.Doc;
-    }
-
     public getProjectsMap()
     {
-        return this.getCometMap().getMap('projects');
+        return this.doc.getMap('projects');
     }
 
     public createProject(projectName: string)
     {
-        const project = new Y.Doc();
+        this.doc.transact(() =>
+        {
+            const project = new Y.Doc();
 
-        this.getProjectsMap().set(projectName, project);
-        const meta = project.getMap('meta');
+            this.getProjectsMap().set(projectName, project);
 
-        meta.set('name', projectName);
-        meta.set('version', APP_VERSION);
+            const meta = project.getMap('meta');
+
+            meta.set('name', projectName);
+            meta.set('version', APP_VERSION);
+        });
+    }
+
+    public toJSON()
+    {
+        return exportDB(this);
+    }
+
+    public dump()
+    {
+        console.log(JSON.stringify(this.toJSON(), null, 4));
     }
 }
