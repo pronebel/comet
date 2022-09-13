@@ -29,9 +29,7 @@
         "pixi.js": "~6.5.1",
         "svelte-routing": "^1.6.0",
         "tslib": "~2.4.0",
-        "uuid": "^8.3.2",
-        "y-websocket": "~1.4.3",
-        "yjs": "~13.5.41"
+        "uuid": "^8.3.2"
     },
     "devDependencies": {
         "@commitlint/config-conventional": "^17.0.3",
