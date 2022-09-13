@@ -31,8 +31,8 @@ export class TestApp extends Application
 
         (window as any).db = database;
 
-        database.createProject('testProject');
-        database.dump();
+        // database.createProject('testProject');
+        // database.dump();
 
         const document = new Document();
 

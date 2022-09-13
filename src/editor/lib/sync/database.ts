@@ -62,14 +62,21 @@ export class Database extends EventEmitter<DatabaseEvents>
     {
         this.doc.transact(() =>
         {
-            const project = new Y.Doc();
+            const project = new Y.Map();
+            const meta = new Y.Map();
+            const subDoc = new Y.Doc();
+            const test = subDoc.getMap('test');
 
             this.getProjectsMap().set(projectName, project);
+            project.set('meta', meta);
+            project.set('doc', subDoc);
 
-            const meta = project.getMap('meta');
+            test.set('foo', 'bar');
 
             meta.set('name', projectName);
             meta.set('version', APP_VERSION);
+
+            console.log(subDoc.guid);
         });
     }
 

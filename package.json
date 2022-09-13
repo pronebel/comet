@@ -24,6 +24,7 @@
         }
     },
     "dependencies": {
+        "@convergence/convergence": "1.0.0-rc.12",
         "eventemitter3": "~4.0.7",
         "pixi.js": "~6.5.1",
         "svelte-routing": "^1.6.0",

@@ -1,17 +1,16 @@
-window.global ||= window;
+// import '../style/theme.css';
+// import '../style/app.css';
+// import '../style/dark-theme.css';
+// import '../style/light-theme.css';
 
-import '../style/theme.css';
-import '../style/app.css';
-import '../style/dark-theme.css';
-import '../style/light-theme.css';
+// import App from './ui/App.svelte';
 
-import App from './ui/App.svelte';
+// const target = document.getElementById('app') as HTMLElement;
 
-const target = document.getElementById('app') as HTMLElement;
+// const app = new App({
+//     target,
+// });
 
-const app = new App({
-    target,
-});
+// export default app;
 
-export default app;
-
+import './sync/testing';
