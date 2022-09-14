@@ -26,18 +26,26 @@ $ pnpm dev
 
 Then visit [localhost:3000](http://localhost:3000)
 
-## Running YJS Websocket Server
+## Running Convergence Server
 
-To persist data and sync between users you'll need to run the local server. This will
-create a `dbDir` folder in the repo root which will store the data.
+To run the [Convergence](https://convergence.io/) server locally you'll need [Docker](https://docs.docker.com/get-docker/) installed.
 
-To start the wsProvider server component, run the `server` npm script.
+You'll also need to clone the [play-co/convergence-docker-compose](https://github.com/play-co/convergence-docker-compose) repository.
+This is a forked version which patches the server to use `1.0.0-rc13` version due to this [bug](https://github.com/convergencelabs/convergence-project/issues/261).
+
+Once the project is cloned locally, start up the server with docker-compose.
 
 ```
-$ yarn server
+$ docker-compose up
 ```
 
-> NOTE: For some reason `pnpm server` does not work, use npm/yarn directly or run the script directly `./scripts/server.sh`.
+Visit [https://localhost/console/](https://localhost/console/) to use the console. The default admin username is `admin` with password `password`.
+
+To restart the container later, use the Docker `start` command.
+
+```
+$ docker start -a convergence
+```
 
 ## Git workflow
 

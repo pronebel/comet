@@ -9,7 +9,7 @@ import { EmptyComponent } from '../../../core/lib/components/empty';
 import { Document } from '../../../core/lib/document';
 import { Project } from '../../../core/lib/project';
 import { Scene } from '../../../core/lib/scene';
-import { Database } from '../sync/database';
+import { Datastore } from '../sync/datastore';
 import { type DebugModel, DebugComponent } from './debug';
 import { startDrag } from './drag';
 
@@ -21,13 +21,13 @@ export class TestApp extends Application
     public selection: Sprite;
     public project: Project;
     public scene: Scene;
-    public database: Database;
+    public database: Datastore;
 
     constructor(options?: IApplicationOptions | undefined)
     {
         super(options);
 
-        const database = this.database = new Database();
+        const database = this.database = new Datastore();
 
         (window as any).db = database;
 
