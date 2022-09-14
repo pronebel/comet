@@ -1,15 +1,11 @@
-import type {  Container,  IApplicationOptions,  InteractionEvent } from 'pixi.js';
-import { Application, filters, Sprite, Texture } from 'pixi.js';
+import type {  Container,  InteractionEvent } from 'pixi.js';
+import { filters, Sprite, Texture } from 'pixi.js';
 
-import { Document } from '../../../core/lib/document';
 import type { CloneMode } from '../../../core/lib/node/cloneInfo';
 import type { ContainerNode } from '../../../core/lib/node/types/container';
 import { EmptyNode } from '../../../core/lib/node/types/empty';
-import { ProjectNode } from '../../../core/lib/node/types/project';
 import { SceneNode } from '../../../core/lib/node/types/scene';
-import type { Command } from '../commands';
-import { Datastore } from '../sync/datastore';
-import { Sync } from '../sync/sync';
+import { type AppOptions, Application } from '../application';
 import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
 
@@ -19,32 +15,15 @@ export class TestApp extends Application
 {
     public selected?: ContainerNode;
     public selection: Sprite;
-    public project: ProjectNode;
     public scene: SceneNode;
-    public database: Datastore;
 
-    constructor(options?: IApplicationOptions | undefined)
+    constructor(options: AppOptions)
     {
         super(options);
 
-        const database = this.database = new Datastore();
-
-        (window as any).db = database;
-
-        // database.createProject('testProject');
-        // database.dump();
-
-        const document = new Document(new Sync());
-
-        // document.enableCommands = false;
-        document.sync.on('sync', this.onDocSync);
-
-        this.project = new ProjectNode();
         this.scene = new SceneNode();
 
         this.project.addChild(this.scene);
-
-        this.stage.addChild(this.scene.view);
 
         const selection = this.selection = new Sprite(Texture.WHITE);
 
@@ -56,12 +35,10 @@ export class TestApp extends Application
         this.stage.addChild(selection);
     }
 
-    public onDocSync = (command: Command) =>
+    public static getInstance()
     {
-        const output = `%c${command.getCommandType().replace('Command', '')}:\n%c${command.toString()}`;
-
-        console.log(output, 'color:cyan;', 'color:white');
-    };
+        return Application.instance as TestApp;
+    }
 
     public newContainer()
     {
@@ -359,13 +336,4 @@ export class TestApp extends Application
 
         element.innerHTML = html;
     }
-}
-
-export function createApp(canvas: HTMLCanvasElement)
-{
-    app = new TestApp({
-        view: canvas,
-        resizeTo: canvas,
-        backgroundColor: 0x333333,
-    });
 }

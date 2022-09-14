@@ -1,13 +1,15 @@
 <script lang="ts">
   import { CloneMode } from "../../../core/lib/node/cloneInfo";
 
-  import { app } from "./testCoreDataModelApp";
+  import { TestApp } from "./testApp";
 
   let customPropName: string = "prop1";
   let customPropValue: string = "foo1";
   let assignModelKey: string = "label";
 
   let shouldUpdateDebug = true;
+
+  const app = TestApp.getInstance();
 
   const onNewContainer = () => {
     app.newContainer();

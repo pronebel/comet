@@ -3,7 +3,7 @@ import { Sprite, Text, Texture } from 'pixi.js';
 import { ModelSchema } from '../../../core/lib/model/schema';
 import type { ContainerNode } from '../../../core/lib/node/types/container';
 import { type SpriteModel, SpriteNode, spriteSchema } from '../../../core/lib/node/types/sprite';
-import { app } from './testCoreDataModelApp';
+import { app } from './testApp';
 
 export interface DebugModel extends SpriteModel
 {

@@ -1,10 +1,10 @@
 <script lang="ts">
-  import { createApp } from "../test/testCoreDataModelApp";
-  import TestCoreDataModel from "../test/TestCoreDataModel.svelte";
+  import TestCoreDataModel from "../test/TestApp.svelte";
 
   import { onMount } from "svelte";
   import HotReload from "./util/HotReload.svelte";
-  import { Application } from "../application";
+  import { TestApp } from "../test/testApp";
+  import { Editor } from "../editor";
 
   const isTestingDataModel = true;
 
@@ -12,9 +12,9 @@
 
   onMount(() => {
     if (isTestingDataModel) {
-      createApp(canvas);
+      new TestApp({ canvas });
     } else {
-      new Application();
+      new Editor({ canvas });
     }
   });
 </script>
@@ -25,7 +25,7 @@
     {#if isTestingDataModel}
       <TestCoreDataModel />
     {:else}
-      <!-- todo: application-->
+      <!-- todo: EditorApp-->
     {/if}
   {/if}
   <HotReload />

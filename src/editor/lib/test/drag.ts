@@ -1,5 +1,5 @@
 import type { ContainerNode } from '../../../core/lib/node/types/container';
-import { app } from './testCoreDataModelApp';
+import { TestApp } from './testApp';
 
 type AnyContainer = ContainerNode<any, any>;
 
@@ -39,7 +39,7 @@ window.addEventListener('mousemove', (e: MouseEvent) =>
         state.component.model.x = newX;
         state.component.model.y = newY;
 
-        app.fitSelection(state.component);
+        TestApp.getInstance().fitSelection(state.component);
     }
 });
 

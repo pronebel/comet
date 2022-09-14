@@ -1,7 +1,7 @@
 import type { ConvergenceDomain } from '@convergence/convergence';
 import Convergence from '@convergence/convergence';
 
-export class Datastore
+export class DataStore
 {
     public _domain?: ConvergenceDomain;
 
@@ -11,7 +11,7 @@ export class Datastore
         {
             const url = 'https://localhost/realtime/convergence/default';
 
-            Convergence.connect(url, 'achamas', 'password').then((domain) =>
+            Convergence.connect(url, 'ali', 'password').then((domain) =>
             {
                 this._domain = domain;
                 resolve(domain);
