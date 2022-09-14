@@ -15,15 +15,15 @@ export class TestApp extends Application
 {
     public selected?: ContainerNode;
     public selection: Sprite;
-    public scene: SceneNode;
+
+    public static getInstance()
+    {
+        return Application.instance as TestApp;
+    }
 
     constructor(options: AppOptions)
     {
         super(options);
-
-        this.scene = new SceneNode();
-
-        this.project.addChild(this.scene);
 
         const selection = this.selection = new Sprite(Texture.WHITE);
 
@@ -35,9 +35,17 @@ export class TestApp extends Application
         this.stage.addChild(selection);
     }
 
-    public static getInstance()
+    protected onConnect(): void
     {
-        return Application.instance as TestApp;
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        this.dataStore.openProject('test-project').then((model) =>
+        {
+            super.onConnect();
+
+            const scene = new SceneNode();
+
+            this.project.addChild(scene);
+        });
     }
 
     public newContainer()
@@ -71,7 +79,7 @@ export class TestApp extends Application
         }
         else
         {
-            this.scene.addChild(component);
+            this.project.getChildAt(0).addChild(component);
         }
 
         this.makeInteractiveDeep(component);

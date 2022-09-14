@@ -17,14 +17,26 @@ export const defaultWalkOptions: WalkOptions = {
     direction: 'down',
 };
 
+export const nodeIdCount = {} as Record<string, number>;
+
 export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEvents | E>
 {
+    public id: string;
     public parent?: BaseNode<any>;
     public children: BaseNode<any>[];
 
     constructor()
     {
         super();
+
+        const componentType = this.getNodeType();
+
+        if (!nodeIdCount[componentType])
+        {
+            nodeIdCount[componentType] = 1;
+        }
+
+        this.id = `${componentType}:${nodeIdCount[componentType]++}`;
 
         this.children = [];
     }

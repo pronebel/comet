@@ -15,7 +15,8 @@ export class ConstructCommand extends Command
 
     public apply(): void
     {
-        throw new Error('Method not implemented.');
+        // throw new Error('Method not implemented.');
+        // todo: get document model and add new node...detect updates on other side
     }
 
     public undo(): void

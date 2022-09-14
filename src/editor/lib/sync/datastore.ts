@@ -1,9 +1,12 @@
-import type { ConvergenceDomain } from '@convergence/convergence';
+import type { ConvergenceDomain, RealTimeModel } from '@convergence/convergence';
 import Convergence from '@convergence/convergence';
+
+import { defaultProject } from './schema';
 
 export class DataStore
 {
-    public _domain?: ConvergenceDomain;
+    protected _domain?: ConvergenceDomain;
+    protected _model?: RealTimeModel;
 
     public async connect()
     {
@@ -11,7 +14,9 @@ export class DataStore
         {
             const url = 'https://localhost/realtime/convergence/default';
 
-            Convergence.connect(url, 'ali', 'password').then((domain) =>
+            const user = this.getUser();
+
+            Convergence.connect(url, user, 'password').then((domain) =>
             {
                 this._domain = domain;
                 resolve(domain);
@@ -20,6 +25,20 @@ export class DataStore
                 reject(e);
             });
         });
+    }
+
+    public getUser()
+    {
+        const url = new URL(window.location.href);
+        const params = new URLSearchParams(url.search);
+        const user = params.get('user');
+
+        if (!user)
+        {
+            throw new Error('Missing "?user=" query parameter');
+        }
+
+        return user;
     }
 
     public get domain()
@@ -32,6 +51,16 @@ export class DataStore
         return this._domain;
     }
 
+    public get model()
+    {
+        if (!this._model)
+        {
+            throw new Error('Model not found');
+        }
+
+        return this._model;
+    }
+
     public disconnect(): void
     {
         if (!this.domain.isDisposed())
@@ -39,5 +68,43 @@ export class DataStore
             this.domain.dispose();
             console.log('Domain disposed');
         }
+    }
+
+    public openProject(id: string)
+    {
+        return new Promise<RealTimeModel>((resolve, reject) =>
+        {
+            const { domain } = this;
+            const data = defaultProject();
+
+            domain.models().openAutoCreate({
+                collection: 'projects',
+                id,
+                data,
+                overrideCollectionWorldPermissions: false,
+                worldPermissions: { read: true, write: true, remove: true, manage: true },
+                // userPermissions: {
+                //     ted: { read: true, write: false, remove: false, manage: false },
+                // },
+                ephemeral: false,
+            }).then((model) =>
+            {
+                this._model = model;
+
+                domain.activities().join('project', id, {
+                    autoCreate: {
+                        ephemeral: true,
+                        worldPermissions: ['join', 'view_state', 'set_state'],
+                    },
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                }).then((activity) =>
+                {
+                    resolve(model);
+                });
+            }).catch((e) =>
+            {
+                reject(e);
+            });
+        });
     }
 }

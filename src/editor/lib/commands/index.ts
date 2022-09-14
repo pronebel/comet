@@ -1,7 +1,14 @@
+import { Document } from '../../../core/lib/document';
+
 export abstract class Command
 {
     public abstract apply(): void;
     public abstract undo(): void;
+
+    protected get doc()
+    {
+        return Document.instance;
+    }
 
     public redo()
     {

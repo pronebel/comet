@@ -1,3 +1,4 @@
+import type { id } from '../../../editor/lib/sync/schema';
 import { Document } from '../document';
 import type { Model, ModelBase } from '../model/model';
 import { createModel } from '../model/model';
@@ -9,11 +10,13 @@ import { CloneInfo, CloneMode } from './cloneInfo';
 import type { CustomProperty, CustomPropertyType } from './customProperties';
 import { CustomProperties } from './customProperties';
 
-const ids = {} as Record<string, number>;
-
 export type ClonableNodeEvents = BaseNodeEvents | 'modelChanged' | 'unlinked';
 
+export type AnyNode = ClonableNode<any, any, any>;
+
 const modelBase = {} as ModelBase;
+
+export const nodesById: Map<id, AnyNode> = new Map();
 
 export abstract class ClonableNode<
     M extends ModelBase = typeof modelBase,
@@ -21,8 +24,6 @@ export abstract class ClonableNode<
     E extends string = ClonableNodeEvents,
 > extends BaseNode<ClonableNodeEvents | E> implements Clonable
 {
-    public id: string;
-
     public model: Model<M> & M;
     public view: V;
 
@@ -36,16 +37,7 @@ export abstract class ClonableNode<
     {
         super();
 
-        const componentType = this.getNodeType();
-
-        if (!ids[componentType])
-        {
-            ids[componentType] = 1;
-        }
-
-        const id = this.id = `${componentType}:${ids[componentType]++}`;
-
-        this.children = [];
+        nodesById.set(this.id, this);
 
         this.cloneInfo = cloneInfo;
 
@@ -70,7 +62,7 @@ export abstract class ClonableNode<
 
         this.initModel();
 
-        this.doc.sync.construct(id, componentType, modelValues, cloneInfo.cloneMode);
+        this.doc.sync.construct(this.id, this.getNodeType(), modelValues, cloneInfo.cloneMode);
 
         this.initCloning();
 
