@@ -1,10 +1,11 @@
 import { Sprite } from 'pixi.js';
 
-import { CloneMode } from '../../../src/core/lib/clone';
-import { Component } from '../../../src/core/lib/component';
+import type { ModelBase } from '../../../src/core/lib/model/model';
 import { ModelSchema } from '../../../src/core/lib/model/schema';
+import { ClonableNode } from '../../../src/core/lib/node/clonableNode';
+import { CloneMode } from '../../../src/core/lib/node/cloneInfo';
 
-export interface TestModel
+export interface TestModel extends ModelBase
 {
     x: number;
 }
@@ -17,7 +18,7 @@ const log: any[] = [];
 // eslint-disable-next-line no-return-assign
 const clearLog = () => log.length = 0;
 
-class TestComponent extends Component<TestModel, Sprite>
+class TestComponent extends ClonableNode<TestModel, Sprite>
 {
     public modelSchema(): ModelSchema<TestModel>
     {
@@ -91,7 +92,7 @@ describe('Component', () =>
 
             const component = new TestComponent();
 
-            component.on('modified', (key, value, oldValue) =>
+            component.on('modelChanged', (key, value, oldValue) =>
             {
                 expect(key).toBe('x');
                 expect(value).toBe(10);
@@ -114,7 +115,7 @@ describe('Component', () =>
 
             const spy = jest.fn();
 
-            component.on('modified', spy);
+            component.on('modelChanged', spy);
 
             component.dispose();
             component.model.x = 10;

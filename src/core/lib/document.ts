@@ -1,6 +1,5 @@
 import EventEmitter from 'eventemitter3';
 
-import type { CloneMode } from './clone';
 import { AddChildCommand } from './commands/addChild';
 import { AssignCustomPropCommand } from './commands/assignCustomProp';
 import { CloneCommand } from './commands/clone';
@@ -12,7 +11,8 @@ import { RemoveCustomPropCommand } from './commands/removeCustomProp';
 import { SetCustomPropCommand } from './commands/setCustomProp';
 import { UnAssignCustomPropCommand } from './commands/unassignCustomProp';
 import { UnlinkCommand } from './commands/unlink';
-import type { CustomPropertyType } from './customProperties';
+import type { CloneMode } from './node/cloneInfo';
+import type { CustomPropertyType } from './node/customProperties';
 
 export class Document extends EventEmitter<'modified'>
 {

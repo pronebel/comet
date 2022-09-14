@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
-export type NestableEvents = 'modified' | 'childAdded' | 'childRemoved' | 'disposed';
+export type BaseNodeEvents = 'childAdded' | 'childRemoved' | 'disposed';
 
 export interface WalkOptions
 {
@@ -17,10 +17,10 @@ export const defaultWalkOptions: WalkOptions = {
     direction: 'down',
 };
 
-export abstract class Nestable<E extends string> extends EventEmitter<NestableEvents | E>
+export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEvents | E>
 {
-    public parent?: Nestable<any>;
-    public children: Nestable<any>[];
+    public parent?: BaseNode<any>;
+    public children: BaseNode<any>[];
 
     constructor()
     {
@@ -29,7 +29,7 @@ export abstract class Nestable<E extends string> extends EventEmitter<NestableEv
         this.children = [];
     }
 
-    public getComponentType(): string
+    public getNodeType(): string
     {
         return (Object.getPrototypeOf(this).constructor as {
             new (): object;
@@ -50,19 +50,19 @@ export abstract class Nestable<E extends string> extends EventEmitter<NestableEv
         }
     }
 
-    public getParent<T extends Nestable<any>>()
+    public getParent<T extends BaseNode<any>>()
     {
         return this.parent as unknown as T;
     }
 
-    public getRoot<T extends Nestable<any>>(): T
+    public getRoot<T extends BaseNode<any>>(): T
     {
         if (!this.parent)
         {
             return this as unknown as T;
         }
 
-        let ref: Nestable<any> | undefined = this.parent;
+        let ref: BaseNode<any> | undefined = this.parent;
 
         while (ref)
         {
@@ -72,7 +72,7 @@ export abstract class Nestable<E extends string> extends EventEmitter<NestableEv
         return ref as unknown as T;
     }
 
-    public setParent<T extends Nestable<any>>(parent: T)
+    public setParent<T extends BaseNode<any>>(parent: T)
     {
         if (this.parent)
         {
@@ -87,17 +87,17 @@ export abstract class Nestable<E extends string> extends EventEmitter<NestableEv
         this.onAddedToParent();
     }
 
-    public addChild(component: Nestable<any>)
+    public addChild(component: BaseNode<any>)
     {
         if (component === this)
         {
-            throw new Error(`"Cannot add ${this.getComponentType()} to self"`);
+            throw new Error(`"Cannot add ${this.getNodeType()} to self"`);
         }
 
         component.setParent(this);
     }
 
-    public removeChild(component: Nestable<any>)
+    public removeChild(component: BaseNode<any>)
     {
         const { children } = this;
 
@@ -119,17 +119,17 @@ export abstract class Nestable<E extends string> extends EventEmitter<NestableEv
         }
     }
 
-    public getChildAt<T extends Nestable<any>>(index: number): T
+    public getChildAt<T extends BaseNode<any>>(index: number): T
     {
         return this.children[index] as T;
     }
 
-    public forEach<T extends Nestable<any>>(fn: (child: T, index: number, array: T[]) => void)
+    public forEach<T extends BaseNode<any>>(fn: (child: T, index: number, array: T[]) => void)
     {
         this.children.forEach((child, i, array) => fn(child as T, i, array as T[]));
     }
 
-    public walk<T extends Nestable<any>>(
+    public walk<T extends BaseNode<any>>(
         fn: (component: T, options: WalkOptions) => void,
         options: Partial<WalkOptions> = {},
     )
@@ -171,7 +171,7 @@ export abstract class Nestable<E extends string> extends EventEmitter<NestableEv
         }
     }
 
-    public containsChild<T extends Nestable<any>>(component: T)
+    public containsChild<T extends BaseNode<any>>(component: T)
     {
         return this.children.indexOf(component) > -1;
     }
@@ -183,7 +183,7 @@ export abstract class Nestable<E extends string> extends EventEmitter<NestableEv
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onRemovedFromParent(oldParent: Nestable<any>)
+    protected onRemovedFromParent(oldParent: BaseNode<any>)
     {
         // subclasses
     }

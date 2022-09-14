@@ -1,7 +1,7 @@
-import type { ContainerComponent } from '../../../core/lib/components/container';
+import type { ContainerNode } from '../../../core/lib/node/types/container';
 import { app } from './testCoreDataModelApp';
 
-type AnyContainer = ContainerComponent<any, any>;
+type AnyContainer = ContainerNode<any, any>;
 
 interface State
 {

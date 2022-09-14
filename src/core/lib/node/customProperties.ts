@@ -1,12 +1,12 @@
-import type { Clonable } from './clone';
-import { CloneInfo, CloneMode } from './clone';
-import type { Component } from './component';
+import type { ClonableNode } from './clonableNode';
+import type { Clonable } from './cloneInfo';
+import { CloneInfo, CloneMode } from './cloneInfo';
 
 export type CustomPropertyType = 'string' | 'number' | 'boolean';
 
 export class CustomProperty
 {
-    public creator: Component;
+    public creator: ClonableNode;
     public name: string;
     public type: CustomPropertyType;
     public value: any;
@@ -23,7 +23,7 @@ export class CustomProperty
         return copy;
     }
 
-    constructor(creator: Component, name: string, type: CustomPropertyType, value: any)
+    constructor(creator: ClonableNode, name: string, type: CustomPropertyType, value: any)
     {
         this.creator = creator;
         this.name = name;
@@ -40,7 +40,7 @@ export class CustomProperty
     }
 }
 
-export class CustomProperties<C extends Component> implements Clonable
+export class CustomProperties<C extends ClonableNode> implements Clonable
 {
     public cloneInfo: CloneInfo;
     public properties: Map<string, CustomProperty[]>;

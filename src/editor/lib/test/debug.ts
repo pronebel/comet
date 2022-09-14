@@ -1,9 +1,9 @@
 import { Sprite, Text, Texture } from 'pixi.js';
 
-import type { ContainerComponent } from '../../../core/lib/components/container';
-import type { SpriteModel } from '../../../core/lib/components/sprite';
-import { SpriteComponent, spriteSchema } from '../../../core/lib/components/sprite';
 import { ModelSchema } from '../../../core/lib/model/schema';
+import type { SpriteModel } from '../../../core/lib/node/sprite';
+import { SpriteNode, spriteSchema } from '../../../core/lib/node/sprite';
+import type { ContainerNode } from '../../../core/lib/node/types/container';
 import { app } from '../test/testCoreDataModelApp';
 
 export interface DebugModel extends SpriteModel
@@ -18,7 +18,7 @@ export const schema = new ModelSchema<DebugModel>({
     ...spriteSchema.constraints,
 });
 
-export class DebugComponent extends SpriteComponent<DebugModel, Sprite>
+export class DebugNode extends SpriteNode<DebugModel, Sprite>
 {
     public modelSchema(): ModelSchema<DebugModel>
     {
@@ -28,7 +28,7 @@ export class DebugComponent extends SpriteComponent<DebugModel, Sprite>
     public createView(): Sprite
     {
         const sprite = new Sprite(Texture.WHITE);
-        const label = new Text(this.id.replace('Component', ''), {
+        const label = new Text(this.id.replace('Node', ''), {
             fontSize: 10,
             fill: 0xffffff,
         });
@@ -49,13 +49,13 @@ export class DebugComponent extends SpriteComponent<DebugModel, Sprite>
 
         const { label } = this.values;
 
-        textLabel.text = `${this.id.replace('Component', '')}${label ? `=${label}` : ''}`;
+        textLabel.text = `${this.id.replace('Node', '')}${label ? `=${label}` : ''}`;
     }
 
     protected onAddedToParent(): void
     {
         super.onAddedToParent();
 
-        app.makeInteractive(this as unknown as ContainerComponent);
+        app.makeInteractive(this as unknown as ContainerNode);
     }
 }

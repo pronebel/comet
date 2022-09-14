@@ -1,25 +1,25 @@
 import type { Container, InteractionEvent } from 'pixi.js';
 import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
 
-import type { CloneMode } from '../../../core/lib/clone';
 import type { Command } from '../../../core/lib/commands';
-import type { Component } from '../../../core/lib/component';
-import type { ContainerComponent } from '../../../core/lib/components/container';
-import { EmptyComponent } from '../../../core/lib/components/empty';
 import { Document } from '../../../core/lib/document';
-import { Project } from '../../../core/lib/project';
+import type { ClonableNode } from '../../../core/lib/node/clonableNode';
+import type { CloneMode } from '../../../core/lib/node/cloneInfo';
+import { EmptyNode } from '../../../core/lib/node/empty';
+import type { ContainerNode } from '../../../core/lib/node/types/container';
+import { ProjectNode } from '../../../core/lib/node/types/project';
 import { Scene } from '../../../core/lib/scene';
 import { Datastore } from '../sync/datastore';
-import { type DebugModel, DebugComponent } from './debug';
+import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
 
 export let app: TestApp;
 
 export class TestApp extends Application
 {
-    public selected?: ContainerComponent;
+    public selected?: ContainerNode;
     public selection: Sprite;
-    public project: Project;
+    public project: ProjectNode;
     public scene: Scene;
     public database: Datastore;
 
@@ -39,7 +39,7 @@ export class TestApp extends Application
         // document.enableCommands = false;
         document.on('modified', this.onDocModified);
 
-        this.project = new Project();
+        this.project = new ProjectNode();
         this.scene = new Scene();
 
         this.project.addChild(this.scene);
@@ -65,17 +65,17 @@ export class TestApp extends Application
 
     public newContainer()
     {
-        const empty = new EmptyComponent({
+        const empty = new EmptyNode({
             x: 20,
             y: 20,
         });
 
-        this.addComponent(empty);
+        this.addNode(empty);
     }
 
     public newChild()
     {
-        const component = new DebugComponent({
+        const component = new DebugNode({
             x: 20,
             y: 20,
             width: 20,
@@ -83,10 +83,10 @@ export class TestApp extends Application
             tint: Math.round(Math.random() * 100000),
         });
 
-        this.addComponent(component as unknown as ContainerComponent);
+        this.addNode(component as unknown as ContainerNode);
     }
 
-    public addComponent(component: ContainerComponent)
+    public addNode(component: ContainerNode)
     {
         if (this.selected)
         {
@@ -102,15 +102,15 @@ export class TestApp extends Application
         this.inspect();
     }
 
-    public clone(cloneMode: CloneMode): ContainerComponent | undefined
+    public clone(cloneMode: CloneMode): ContainerNode | undefined
     {
         if (this.selected)
         {
-            const component = this.selected.clone<ContainerComponent>(cloneMode);
+            const component = this.selected.clone<ContainerNode>(cloneMode);
 
             delete this.selected;
 
-            this.addComponent(component);
+            this.addNode(component);
 
             return component;
         }
@@ -118,15 +118,15 @@ export class TestApp extends Application
         return undefined;
     }
 
-    public makeInteractiveDeep(rootComponent: ContainerComponent)
+    public makeInteractiveDeep(rootNode: ContainerNode)
     {
-        rootComponent.walk((component) =>
+        rootNode.walk((component) =>
         {
-            this.makeInteractive(component as ContainerComponent);
+            this.makeInteractive(component as ContainerNode);
         });
     }
 
-    public makeInteractive(component: ContainerComponent)
+    public makeInteractive(component: ContainerNode)
     {
         const sprite = component.getView<Container>();
 
@@ -144,7 +144,7 @@ export class TestApp extends Application
         }
     }
 
-    public select(component: ContainerComponent)
+    public select(component: ContainerNode)
     {
         this.deselect();
         this.selected = component;
@@ -158,7 +158,7 @@ export class TestApp extends Application
         this.selection.visible = false;
     }
 
-    public fitSelection(component?: Component)
+    public fitSelection(component?: ClonableNode)
     {
         if (!component)
         {
@@ -197,7 +197,7 @@ export class TestApp extends Application
 
     public randColor()
     {
-        if (this.selected && this.selected instanceof DebugComponent)
+        if (this.selected && this.selected instanceof DebugNode)
         {
             this.selected.model.tint = Math.round(Math.random() * 100000);
         }
@@ -267,7 +267,7 @@ export class TestApp extends Application
 
     public assignCustomProp(modelKey: string, customKey: string)
     {
-        if (this.selected && this.selected instanceof DebugComponent)
+        if (this.selected && this.selected instanceof DebugNode)
         {
             this.selected.assignCustomProperty(modelKey as keyof DebugModel, customKey);
         }
@@ -275,7 +275,7 @@ export class TestApp extends Application
 
     public unAssignCustomProp(modelKey: string)
     {
-        if (this.selected && this.selected instanceof DebugComponent)
+        if (this.selected && this.selected instanceof DebugNode)
         {
             this.selected.unAssignCustomProperty(modelKey as keyof DebugModel);
         }
@@ -285,16 +285,16 @@ export class TestApp extends Application
     {
         let html = '';
 
-        const componentId = (component: Component) => component.id.replace('Component', '');
+        const componentId = (component: ClonableNode) => component.id.replace('Node', '');
 
-        this.project.walk<Component>((component, options) =>
+        this.project.walk<ClonableNode>((component, options) =>
         {
             const {
                 model: { id: modelId },
                 cloneInfo, cloneInfo: { cloned, cloneMode },
             } = component;
 
-            const cloner = cloneInfo.getCloner<Component>();
+            const cloner = cloneInfo.getCloner<ClonableNode>();
 
             const pad = ''.padStart(options.depth, '+');
             const id = `&lt;${componentId(component)}&gt;`;
@@ -304,7 +304,7 @@ export class TestApp extends Application
                 : '';
             const clonedInfo = cloned.length > 0
                 ? `<span style="color:green">-> [${cloned.length}] ${cloned
-                    .map((component) => `${componentId(component as Component)}`).join(',')}</span>`
+                    .map((component) => `${componentId(component as ClonableNode)}`).join(',')}</span>`
                 : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
             const customProps = component.getCustomProps();

@@ -1,9 +1,9 @@
 import { Container } from 'pixi.js';
 
-import { ModelSchema } from '../model/schema';
-import type { Nestable } from '../nestable';
-import type { DisplayObjectModel } from './displayObject';
-import { DisplayObjectComponent, displayObjectSchema } from './displayObject';
+import { ModelSchema } from '../../model/schema';
+import { type DisplayObjectEvents, type DisplayObjectModel, DisplayObjectNode, displayObjectSchema } from './displayObject';
+
+export type ContainerEvents = DisplayObjectEvents;
 
 export interface ContainerModel extends DisplayObjectModel
 {
@@ -17,10 +17,11 @@ export const containerSchema = new ModelSchema<ContainerModel>({
     height: 16,
 }, displayObjectSchema.constraints);
 
-export class ContainerComponent<
+export class ContainerNode<
     M extends ContainerModel = ContainerModel,
     V extends Container = Container,
-> extends DisplayObjectComponent<M, V>
+    E extends string = ContainerEvents,
+> extends DisplayObjectNode<M, V, E>
 {
     public modelSchema(): ModelSchema<M>
     {
@@ -51,7 +52,7 @@ export class ContainerComponent<
         if (this.parent)
         {
             const thisView = this.view;
-            const parentView = this.getParent<ContainerComponent>().getView<Container>();
+            const parentView = this.getParent<ContainerNode>().getView<Container>();
 
             parentView.addChild(thisView);
         }
@@ -59,11 +60,11 @@ export class ContainerComponent<
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onRemovedFromParent(oldParent: Nestable): void
+    protected onRemovedFromParent(oldParent: BaseNode): void
     {
         super.onRemovedFromParent(oldParent);
 
-        const parent = oldParent as unknown as ContainerComponent;
+        const parent = oldParent as unknown as ContainerNode;
 
         const thisView = this.view;
         const parentView = parent.getView<Container>();

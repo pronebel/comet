@@ -1,10 +1,14 @@
 import type { DisplayObject } from 'pixi.js';
 
-import { Component } from '../component';
-import { NumericRangeLimitConstraint, ReferenceConstraint } from '../model/constraints';
-import { ModelSchema } from '../model/schema';
+import { NumericRangeLimitConstraint, ReferenceConstraint } from '../../model/constraints';
+import type { ModelBase } from '../../model/model';
+import { ModelSchema } from '../../model/schema';
+import type { ClonableNodeEvents } from '../clonableNode';
+import { ClonableNode } from '../clonableNode';
 
-export interface DisplayObjectModel
+export type DisplayObjectEvents = ClonableNodeEvents;
+
+export interface DisplayObjectModel extends ModelBase
 {
     x: number;
     y: number;
@@ -36,10 +40,11 @@ export const displayObjectSchema = new ModelSchema<DisplayObjectModel>({
     alpha: [new NumericRangeLimitConstraint(0, 1)],
 });
 
-export abstract class DisplayObjectComponent<
-    M extends DisplayObjectModel,
-    V extends DisplayObject,
-> extends Component<M, V>
+export abstract class DisplayObjectNode<
+    M extends DisplayObjectModel = DisplayObjectModel,
+    V extends DisplayObject = DisplayObject,
+    E extends string = DisplayObjectEvents,
+> extends ClonableNode<M, V, E>
 {
     public modelSchema(): ModelSchema<M>
     {

@@ -1,7 +1,7 @@
 import { Sprite, Texture } from 'pixi.js';
 
-import { ModelSchema } from '../model/schema';
-import { type ContainerModel, ContainerComponent, containerSchema } from './container';
+import { ModelSchema } from '../../model/schema';
+import { type ContainerModel, ContainerNode, containerSchema } from './container';
 
 export interface SpriteModel extends ContainerModel
 {
@@ -19,7 +19,7 @@ export const spriteSchema = new ModelSchema<SpriteModel>({
     ...containerSchema.constraints,
 });
 
-export class SpriteComponent<M extends SpriteModel, V extends Sprite> extends ContainerComponent<M, V>
+export class SpriteNode<M extends SpriteModel, V extends Sprite> extends ContainerNode<M, V>
 {
     public modelSchema(): ModelSchema<M>
     {

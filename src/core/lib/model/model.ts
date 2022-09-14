@@ -1,10 +1,13 @@
-import type { NestableEvents } from '../nestable';
-import { Nestable } from '../nestable';
+import type { BaseNodeEvents } from '../node/baseNode';
+import { BaseNode } from '../node/baseNode';
 import type { ModelSchema } from './schema';
 
 let id = 1;
 
-export class Model<M> extends Nestable<NestableEvents>
+export type ModelValue = string | number | boolean | object | null;
+export type ModelBase = Record<string, ModelValue>;
+
+export class Model<M> extends BaseNode<BaseNodeEvents | 'modified'>
 {
     public id: string;
     public schema: ModelSchema<M>;
@@ -201,7 +204,7 @@ export class Model<M> extends Nestable<NestableEvents>
         this.emit('modified');
     }
 
-    public onModified(key: keyof M, value: M[keyof M], oldValue: M[keyof M])
+    public onModified(key: keyof M, value: M[keyof M], oldValue: M[keyof M]): void
     {
         this.emit('modified', key, value, oldValue);
 

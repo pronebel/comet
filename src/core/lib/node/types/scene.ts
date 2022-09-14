@@ -1,8 +1,8 @@
 import type { Container } from 'pixi.js';
 
-import { type ContainerModel, ContainerComponent } from './components/container';
+import { type ContainerModel, ContainerNode } from './container';
 
-export class Scene extends ContainerComponent<ContainerModel, Container>
+export class SceneNode extends ContainerNode<ContainerModel, Container>
 {
     protected init(): void
     {

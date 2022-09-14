@@ -1,4 +1,4 @@
-import type { CloneMode } from '../clone';
+import type { CloneMode } from '../node/cloneInfo';
 import { Command } from '.';
 
 export class CloneCommand extends Command

@@ -1,24 +1,25 @@
-import type { Clonable } from './clone';
-import { CloneInfo, CloneMode } from './clone';
+import { doc } from '../document';
+import type { Model, ModelBase } from '../model/model';
+import { createModel } from '../model/model';
+import type { ModelSchema } from '../model/schema';
+import type { BaseNodeEvents } from './baseNode';
+import { BaseNode } from './baseNode';
+import type { Clonable } from './cloneInfo';
+import { CloneInfo, CloneMode } from './cloneInfo';
 import type { CustomProperty, CustomPropertyType } from './customProperties';
 import { CustomProperties } from './customProperties';
-import { doc } from './document';
-import type { Model } from './model/model';
-import { createModel } from './model/model';
-import type { ModelSchema } from './model/schema';
-import type { NestableEvents } from './nestable';
-import { Nestable } from './nestable';
 
 const ids = {} as Record<string, number>;
 
-// todo: this might need to be extended by subclasses, may need to be generic parameter
-export type ComponentEvents = NestableEvents | 'unlinked';
+export type ClonableNodeEvents = BaseNodeEvents | 'modelChanged' | 'unlinked';
 
-export abstract class Component<
-    M = any,
-    V = any,
-    E extends string = ComponentEvents,
-> extends Nestable<ComponentEvents | E> implements Clonable
+const modelBase = {} as ModelBase;
+
+export abstract class ClonableNode<
+    M extends ModelBase = typeof modelBase,
+    V extends object = object,
+    E extends string = ClonableNodeEvents,
+> extends BaseNode<ClonableNodeEvents | E> implements Clonable
 {
     public id: string;
 
@@ -26,7 +27,7 @@ export abstract class Component<
     public view: V;
 
     public cloneInfo: CloneInfo;
-    public customProperties: CustomProperties<Component>;
+    public customProperties: CustomProperties<ClonableNode>;
 
     constructor(
         modelValues: Partial<M> = {},
@@ -35,7 +36,7 @@ export abstract class Component<
     {
         super();
 
-        const componentType = this.getComponentType();
+        const componentType = this.getNodeType();
 
         if (!ids[componentType])
         {
@@ -48,11 +49,11 @@ export abstract class Component<
 
         this.cloneInfo = cloneInfo;
 
-        const cloner = this.cloneInfo.getCloner<Component>();
+        const cloner = this.cloneInfo.getCloner<ClonableNode>();
 
         if (cloner && cloneInfo.isReference)
         {
-            this.model = cloner.model;
+            this.model = cloner.model as unknown as Model<M> & M;
         }
         else
         {
@@ -91,15 +92,15 @@ export abstract class Component<
     {
         const { cloneInfo, cloneInfo: { cloneMode, isVariant, isReferenceRoot } } = this;
 
-        const cloner = cloneInfo.getCloner<Component>();
+        const cloner = cloneInfo.getCloner<ClonableNode>();
 
         if (cloner)
         {
             cloner.cloneInfo.cloned.push(this);
 
-            const { model: sourceModel } = cloner;
+            const sourceModel = cloner.model as unknown as Model<M>;
 
-            // note: Reference case is handled immediately in Component constructor as model is shared
+            // note: Reference case is handled immediately in Node constructor as model is shared
 
             if (isVariant || isReferenceRoot)
             {
@@ -123,7 +124,7 @@ export abstract class Component<
         }
     }
 
-    public clone<T extends Component>(cloneMode: CloneMode = CloneMode.Variant, depth = 0): T
+    public clone<T extends ClonableNode>(cloneMode: CloneMode = CloneMode.Variant, depth = 0): T
     {
         const Ctor = Object.getPrototypeOf(this).constructor as {
             new (modelValues: Partial<M>, cloneInfo?: CloneInfo): T;
@@ -141,11 +142,11 @@ export abstract class Component<
 
         doc().onModifyModel(this.id, component.id, cloneMode, depth);
 
-        this.forEach<Component>((child) =>
+        this.forEach<ClonableNode>((child) =>
         {
-            const childComponent = (child).clone(cloneMode, depth + 1);
+            const childNode = (child).clone(cloneMode, depth + 1);
 
-            childComponent.setParent(component);
+            childNode.setParent(component);
         });
 
         component.onCloned();
@@ -156,7 +157,7 @@ export abstract class Component<
     public onCloned()
     {
         const { cloneInfo, cloneInfo: { isDuplicate } } = this;
-        const cloner = cloneInfo.getCloner<Component>();
+        const cloner = cloneInfo.getCloner<ClonableNode>();
 
         if (cloner)
         {
@@ -175,9 +176,9 @@ export abstract class Component<
 
     public unlinkCustomProperties()
     {
-        this.walk<Component>((component) =>
+        this.walk<ClonableNode>((component) =>
         {
-            const componentCloner = component.cloneInfo.getCloner<Component>();
+            const componentCloner = component.cloneInfo.getCloner<ClonableNode>();
 
             if (componentCloner)
             {
@@ -193,7 +194,7 @@ export abstract class Component<
     public unlink(unlinkChildren = true)
     {
         const { model, cloneInfo, cloneInfo: { isVariant, isReference, isReferenceRoot, isDuplicate } } = this;
-        const cloner = cloneInfo.getCloner<Component>();
+        const cloner = cloneInfo.getCloner<ClonableNode>();
 
         if (cloner)
         {
@@ -203,7 +204,7 @@ export abstract class Component<
             }
             else if (isReference)
             {
-                this.model = cloner.model.clone();
+                this.model = cloner.model.clone() as unknown as Model<M> & M;
 
                 this.initModel();
             }
@@ -228,7 +229,7 @@ export abstract class Component<
 
         if (unlinkChildren)
         {
-            this.forEach<Component>((child) => child.unlink());
+            this.forEach<ClonableNode>((child) => child.unlink());
         }
     }
 
@@ -245,7 +246,7 @@ export abstract class Component<
 
         this.emit('disposed');
 
-        this.cloneInfo.forEachCloned<Component>((component) => component.unlink());
+        this.cloneInfo.forEachCloned<ClonableNode>((component) => component.unlink());
 
         this.children.forEach((child) =>
         {
@@ -271,7 +272,7 @@ export abstract class Component<
 
         if (recursive)
         {
-            this.forEach<Component>((child) => child.update(true));
+            this.forEach<ClonableNode>((child) => child.update(true));
         }
     }
 
@@ -282,11 +283,11 @@ export abstract class Component<
 
     public updateRecursiveWithClones()
     {
-        this.walk<Component>((component) =>
+        this.walk<ClonableNode>((component) =>
         {
             component.update();
 
-            component.cloneInfo.forEachCloned<Component>((cloned) => cloned.updateRecursiveWithClones());
+            component.cloneInfo.forEachCloned<ClonableNode>((cloned) => cloned.updateRecursiveWithClones());
         });
     }
 
@@ -294,11 +295,12 @@ export abstract class Component<
     {
         this.update();
 
-        this.emit('modified', key, value, oldValue);
+        this.emit('modelChanged', key, value, oldValue);
+
         doc().onModifyModel(this.id, key, value, oldValue);
     };
 
-    protected onClonerChildAdded = (component: Component) =>
+    protected onClonerChildAdded = (component: ClonableNode) =>
     {
         const { cloneMode } = this.cloneInfo;
 
@@ -310,7 +312,7 @@ export abstract class Component<
         this.addChild(copy);
     };
 
-    protected onClonedChildAdded = (component: Component) =>
+    protected onClonedChildAdded = (component: ClonableNode) =>
     {
         const copy = component.clone(
             CloneMode.Reference,
@@ -325,9 +327,9 @@ export abstract class Component<
         doc().onAddChild(this.id, copy.id);
     };
 
-    protected onClonerChildRemoved = (component: Component) =>
+    protected onClonerChildRemoved = (component: ClonableNode) =>
     {
-        this.forEach<Component>((child) =>
+        this.forEach<ClonableNode>((child) =>
         {
             if ((child).cloneInfo.isClonedFrom(component))
             {
@@ -343,42 +345,42 @@ export abstract class Component<
         return this.view as unknown as T;
     }
 
-    public setParent<T extends Nestable<any>>(parent: T): void
+    public setParent<T extends BaseNode<any>>(parent: T): void
     {
         super.setParent(parent);
 
-        doc().onAddChild((parent as unknown as Component).id, this.id);
+        doc().onAddChild((parent as unknown as ClonableNode).id, this.id);
     }
 
-    public removeChild(component: Nestable<any>): void
+    public removeChild(component: BaseNode<any>): void
     {
         super.removeChild(component);
 
-        doc().onRemoveChild(this.id, (component as unknown as Component).id);
+        doc().onRemoveChild(this.id, (component as unknown as ClonableNode).id);
     }
 
     protected onAddedToParent(): void
     {
-        const parent = this.getParent<Component>();
+        const parent = this.getParent<ClonableNode>();
 
         const { cloneInfo, cloneInfo: { isReferenceOrRoot } }  = parent;
-        const cloner = cloneInfo.getCloner<Component>();
+        const cloner = cloneInfo.getCloner<ClonableNode>();
 
         if (cloner && isReferenceOrRoot)
         {
             if (parent.children.length !== cloner.children.length)
             {
-                cloner.onClonedChildAdded(this as Component);
+                cloner.onClonedChildAdded(this as unknown as ClonableNode);
             }
         }
     }
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onRemovedFromParent(oldParent: Nestable)
+    protected onRemovedFromParent(oldParent: BaseNode)
     {
         const { cloneInfo, cloneInfo: { isReferenceOrRoot } } = this;
-        const cloner = cloneInfo.getCloner<Component>();
+        const cloner = cloneInfo.getCloner<ClonableNode>();
 
         if (cloner && isReferenceOrRoot)
         {
@@ -386,15 +388,15 @@ export abstract class Component<
         }
         else
         {
-            cloneInfo.forEachCloned<Component>((clonedComponent) =>
+            cloneInfo.forEachCloned<ClonableNode>((clonedNode) =>
             {
-                const { cloneInfo: { cloner, isReferenceOrRoot } } = clonedComponent;
+                const { cloneInfo: { cloner, isReferenceOrRoot } } = clonedNode;
 
-                const isSameComponent = cloner === this;
+                const isSameNode = cloner === this;
 
-                if (isSameComponent && isReferenceOrRoot)
+                if (isSameNode && isReferenceOrRoot)
                 {
-                    clonedComponent.deleteSelf();
+                    clonedNode.deleteSelf();
                 }
             });
         }
@@ -424,7 +426,7 @@ export abstract class Component<
         return values;
     }
 
-    public get(modelKey: keyof M)
+    public get(modelKey: keyof M): M[keyof M]
     {
         return this.model.getValue(modelKey);
     }
@@ -436,7 +438,7 @@ export abstract class Component<
 
     public setCustomProperty(customKey: string, type: CustomPropertyType, value: any): CustomProperty
     {
-        const property = this.customProperties.set(this as Component, customKey, type, value);
+        const property = this.customProperties.set(this as unknown as ClonableNode, customKey, type, value);
 
         this.updateRecursiveWithClones();
 
@@ -447,7 +449,7 @@ export abstract class Component<
 
     public removeCustomProperty(customKey: string)
     {
-        this.customProperties.remove(this as Component, customKey);
+        this.customProperties.remove(this as unknown as ClonableNode, customKey);
 
         const modelKey = this.customProperties.getAssignedModelKeyForCustomKey(customKey);
 
@@ -479,7 +481,7 @@ export abstract class Component<
 
         doc().onAssignCustomProp(this.id, String(modelKey), customPropertyKey);
 
-        this.cloneInfo.forEachCloned<Component>((component) =>
+        this.cloneInfo.forEachCloned<ClonableNode>((component) =>
         {
             if (component.cloneInfo.isDuplicate)
             {
@@ -488,7 +490,7 @@ export abstract class Component<
 
             if (!component.customProperties.hasAssignedToModelKey(String(modelKey)))
             {
-                component.assignCustomProperty(modelKey, customPropertyKey);
+                component.assignCustomProperty(String(modelKey), customPropertyKey);
             }
             component.update();
         });
@@ -502,7 +504,7 @@ export abstract class Component<
 
         doc().onUnAssignCustomProp(this.id, String(modelKey));
 
-        this.cloneInfo.forEachCloned<Component>((component) =>
+        this.cloneInfo.forEachCloned<ClonableNode>((component) =>
         {
             if (component.cloneInfo.isDuplicate)
             {
@@ -511,7 +513,7 @@ export abstract class Component<
 
             if (component.customProperties.hasAssignedToModelKey(String(modelKey)))
             {
-                component.unAssignCustomProperty(modelKey);
+                component.unAssignCustomProperty(String(modelKey));
             }
             component.update();
         });
@@ -519,7 +521,7 @@ export abstract class Component<
 
     public getAvailableCustomPropsAsArray(props: CustomProperty[] = [])
     {
-        this.walk<Component>((component) =>
+        this.walk<ClonableNode>((component) =>
         {
             component.customProperties.values().forEach((array) => props.push(...array));
         }, {

@@ -1,10 +1,10 @@
 import { type DisplayObject, Container, Graphics, Text } from 'pixi.js';
 
-import type { ModelSchema } from '../model/schema';
+import type { ModelSchema } from '../../model/schema';
 import type { ContainerModel } from './container';
-import { ContainerComponent, containerSchema } from './container';
+import { ContainerNode, containerSchema } from './container';
 
-export class EmptyComponent extends ContainerComponent<ContainerModel, Container>
+export class EmptyNode extends ContainerNode<ContainerModel, Container>
 {
     public modelSchema(): ModelSchema<ContainerModel>
     {
@@ -35,7 +35,7 @@ export class EmptyComponent extends ContainerComponent<ContainerModel, Container
         graphics.drawCircle(0, 0, 10);
         graphics.endFill();
 
-        const label = new Text(this.id.replace('Component', ''), {
+        const label = new Text(this.id.replace('Node', ''), {
             fontSize: 10,
             fill: 0xffffff,
         });

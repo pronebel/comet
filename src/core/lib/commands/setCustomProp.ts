@@ -1,4 +1,4 @@
-import type { CustomPropertyType } from '../customProperties';
+import type { CustomPropertyType } from '../node/customProperties';
 import { Command } from '.';
 
 export class SetCustomPropCommand extends Command
