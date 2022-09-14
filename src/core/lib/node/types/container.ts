@@ -1,7 +1,6 @@
 import { Container } from 'pixi.js';
 
 import { ModelSchema } from '../../model/schema';
-import type { ClonableNode } from '../clonableNode';
 import { type DisplayObjectEvents, type DisplayObjectModel, DisplayObjectNode, displayObjectSchema } from './displayObject';
 
 export type ContainerEvents = DisplayObjectEvents;
@@ -73,12 +72,3 @@ export class ContainerNode<
         parentView.removeChild(thisView);
     }
 }
-
-const foo = new ContainerNode();
-
-function test(component: ClonableNode)
-{
-    return component;
-}
-
-test(foo);

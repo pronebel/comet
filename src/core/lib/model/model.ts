@@ -41,7 +41,7 @@ export class Model<M> extends BaseNode<BaseNodeEvents | 'modified'>
 
         for (let i = 0; i < l; i++)
         {
-            const key = keys[i];
+            const key = keys[i] as keyof M;
 
             const value = this.getValue(key);
 
@@ -58,7 +58,7 @@ export class Model<M> extends BaseNode<BaseNodeEvents | 'modified'>
 
         for (let i = 0; i < l; i++)
         {
-            const key = keys[i];
+            const key = keys[i] as keyof M;
 
             const value = (data as unknown as M)[key];
 
@@ -115,7 +115,7 @@ export class Model<M> extends BaseNode<BaseNodeEvents | 'modified'>
 
         const rtn = Reflect.set(data, key, value);
 
-        if (keys.indexOf(key) > -1)
+        if (keys.indexOf(String(key)) > -1)
         {
             this.onModified(key, value as M[keyof M], oldValue as unknown as M[keyof M]);
         }
@@ -138,7 +138,7 @@ export class Model<M> extends BaseNode<BaseNodeEvents | 'modified'>
 
         const rtn = Reflect.set(data, key, value);
 
-        if (keys.indexOf(key) > -1)
+        if (keys.indexOf(String(key)) > -1)
         {
             this.emit('modified', key, value, oldValue);
 
@@ -171,7 +171,7 @@ export class Model<M> extends BaseNode<BaseNodeEvents | 'modified'>
 
             for (let i = 0; i < l; i++)
             {
-                const key = keys[i];
+                const key = keys[i] as keyof M;
 
                 const value = this.getValue(key);
 
@@ -196,7 +196,7 @@ export class Model<M> extends BaseNode<BaseNodeEvents | 'modified'>
 
         for (let i = 0; i < l; i++)
         {
-            const key = keys[i];
+            const key = keys[i] as keyof M;
 
             delete this.data[key];
         }
@@ -236,8 +236,10 @@ export function createModel<M>(
 
     const model = new Model(schema, values) as Model<M> & M;
 
-    keys.forEach((key) =>
+    keys.forEach((k) =>
     {
+        const key = k as keyof M;
+
         Object.defineProperty(model, key, {
             get()
             {

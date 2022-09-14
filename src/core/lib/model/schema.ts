@@ -2,13 +2,13 @@ import type { ModelConstraint, ModelConstraints } from './constraints';
 
 export class ModelSchema<M>
 {
-    public keys: (keyof M)[];
+    public keys: string[];
     public defaults: M;
     public constraints: ModelConstraints<M>;
 
     constructor(defaults: M, constraints: ModelConstraints<M> = {})
     {
-        this.keys = Object.getOwnPropertyNames(defaults) as (keyof M)[];
+        this.keys = Object.getOwnPropertyNames(defaults);
         this.defaults = defaults;
         this.constraints = constraints;
     }

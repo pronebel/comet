@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CloneMode } from "../../../core/lib/clone";
+  import { CloneMode } from "../../../core/lib/node/cloneInfo";
 
   import { app } from "./testCoreDataModelApp";
 
