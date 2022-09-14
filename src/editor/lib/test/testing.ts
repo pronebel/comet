@@ -1,4 +1,4 @@
-import { Datastore } from './datastore';
+import { Datastore } from '../sync/datastore';
 
 document.body.innerHTML = `<button id="connect">Connect</button><button id="disconnect">Disconnect</button>`;
 

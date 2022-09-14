@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3';
 
 import type { CloneMode } from '../../../core/lib/node/cloneInfo';
 import type { CustomPropertyType } from '../../../core/lib/node/customProperties';
-import type { SyncAdapter } from '../../../core/lib/syncAdapter';
+import type { SyncAdapter } from '../../../core/lib/sync';
 import { AddChildCommand } from '../commands/addChild';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { CloneCommand } from '../commands/clone';

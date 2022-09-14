@@ -1,5 +1,5 @@
 import { ProjectNode } from './node/types/project';
-import type { SyncAdapter } from './syncAdapter';
+import type { SyncAdapter } from './sync';
 
 export class Document
 {

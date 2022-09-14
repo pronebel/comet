@@ -3,7 +3,7 @@
   import TestCoreDataModel from "../test/TestCoreDataModel.svelte";
 
   import { onMount } from "svelte";
-  import HotReload from "./HotReload.svelte";
+  import HotReload from "./util/HotReload.svelte";
   import { Application } from "../application";
 
   const isTestingDataModel = true;
