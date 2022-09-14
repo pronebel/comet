@@ -3,15 +3,7 @@ import type { Container } from 'pixi.js';
 import { ModelSchema } from '../../model/schema';
 import { type ContainerEvents, type ContainerModel, ContainerNode, containerSchema } from './container';
 
-export type ProjectEvents = ContainerEvents
-| 'construct'
-| 'clone'
-| 'unlink'
-| 'delete'
-| 'setCustomProp'
-| 'removeCustomProp'
-| 'assignCustomProp'
-| 'unassignCustomProp';
+export type ProjectEvents = ContainerEvents;
 
 export interface ProjectModel extends ContainerModel
 {

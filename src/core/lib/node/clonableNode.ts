@@ -1,4 +1,4 @@
-import { doc } from '../document';
+import { Document } from '../document';
 import type { Model, ModelBase } from '../model/model';
 import { createModel } from '../model/model';
 import type { ModelSchema } from '../model/schema';
@@ -70,7 +70,7 @@ export abstract class ClonableNode<
 
         this.initModel();
 
-        doc().onConstruct(id, componentType, modelValues, cloneInfo.cloneMode);
+        this.doc.sync.construct(id, componentType, modelValues, cloneInfo.cloneMode);
 
         this.initCloning();
 
@@ -140,7 +140,7 @@ export abstract class ClonableNode<
             ),
         );
 
-        doc().onModifyModel(this.id, component.id, cloneMode, depth);
+        this.doc.sync.modelChanged(this.id, component.id, cloneMode, depth);
 
         this.forEach<ClonableNode>((child) =>
         {
@@ -222,7 +222,7 @@ export abstract class ClonableNode<
 
             this.emit('unlinked');
 
-            doc().onUnlink(this.id, unlinkChildren);
+            this.doc.sync.unlink(this.id, unlinkChildren);
 
             this.update();
         }
@@ -260,7 +260,7 @@ export abstract class ClonableNode<
     {
         super.deleteSelf();
 
-        doc().onDelete(this.id);
+        this.doc.sync.deleted(this.id);
     }
 
     public update(recursive = false)
@@ -297,7 +297,7 @@ export abstract class ClonableNode<
 
         this.emit('modelChanged', key, value, oldValue);
 
-        doc().onModifyModel(this.id, key, value, oldValue);
+        this.doc.sync.modelChanged(this.id, key, value, oldValue);
     };
 
     protected onClonerChildAdded = (component: ClonableNode) =>
@@ -324,7 +324,7 @@ export abstract class ClonableNode<
 
         copy.onAddedToParent();
 
-        doc().onAddChild(this.id, copy.id);
+        this.doc.sync.childAdded(this.id, copy.id);
     };
 
     protected onClonerChildRemoved = (component: ClonableNode) =>
@@ -333,7 +333,7 @@ export abstract class ClonableNode<
         {
             if ((child).cloneInfo.isClonedFrom(component))
             {
-                doc().onRemoveChild(this.id, child.id);
+                this.doc.sync.childRemoved(this.id, child.id);
 
                 child.deleteSelf();
             }
@@ -349,14 +349,14 @@ export abstract class ClonableNode<
     {
         super.setParent(parent);
 
-        doc().onAddChild((parent as unknown as ClonableNode).id, this.id);
+        this.doc.sync.childAdded((parent as unknown as ClonableNode).id, this.id);
     }
 
     public removeChild(component: BaseNode<any>): void
     {
         super.removeChild(component);
 
-        doc().onRemoveChild(this.id, (component as unknown as ClonableNode).id);
+        this.doc.sync.childRemoved(this.id, (component as unknown as ClonableNode).id);
     }
 
     protected onAddedToParent(): void
@@ -402,6 +402,11 @@ export abstract class ClonableNode<
         }
     }
 
+    public get doc()
+    {
+        return Document.instance;
+    }
+
     public get values()
     {
         const values = this.model.values;
@@ -442,7 +447,7 @@ export abstract class ClonableNode<
 
         this.updateRecursiveWithClones();
 
-        doc().onSetCustomProp(this.id, property.creator.id, property.name, property.type, property.value);
+        this.doc.sync.setCustomProp(this.id, property.creator.id, property.name, property.type, property.value);
 
         return property;
     }
@@ -479,7 +484,7 @@ export abstract class ClonableNode<
 
         this.update();
 
-        doc().onAssignCustomProp(this.id, String(modelKey), customPropertyKey);
+        this.doc.sync.assignCustomProp(this.id, String(modelKey), customPropertyKey);
 
         this.cloneInfo.forEachCloned<ClonableNode>((component) =>
         {
@@ -502,7 +507,7 @@ export abstract class ClonableNode<
 
         this.update();
 
-        doc().onUnAssignCustomProp(this.id, String(modelKey));
+        this.doc.sync.unAssignCustomProp(this.id, String(modelKey));
 
         this.cloneInfo.forEachCloned<ClonableNode>((component) =>
         {
