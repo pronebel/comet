@@ -3,7 +3,7 @@ import { Sprite, Text, Texture } from 'pixi.js';
 import { ModelSchema } from '../../../core/lib/model/schema';
 import type { ContainerNode } from '../../../core/lib/node/types/container';
 import { type SpriteModel, SpriteNode, spriteSchema } from '../../../core/lib/node/types/sprite';
-import { app } from './testApp';
+import { TestApp } from './testApp';
 
 export interface DebugModel extends SpriteModel
 {
@@ -55,6 +55,6 @@ export class DebugNode extends SpriteNode<DebugModel, Sprite>
     {
         super.onAddedToParent();
 
-        app.makeInteractive(this as unknown as ContainerNode);
+        TestApp.getInstance().makeInteractive(this as unknown as ContainerNode);
     }
 }
