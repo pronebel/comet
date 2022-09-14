@@ -1,14 +1,13 @@
-import type { CustomPropertyType } from '../node/customProperties';
+import type { CloneMode } from '../../../core/lib/node/cloneInfo';
 import { Command } from '.';
 
-export class SetCustomPropCommand extends Command
+export class ConstructCommand extends Command
 {
     constructor(
         public readonly targetId: string,
-        public readonly creatorId: string,
-        public readonly name: string,
-        public readonly type: CustomPropertyType,
-        public readonly value: any,
+        public readonly componentType: string,
+        public readonly modelValues: object,
+        public readonly cloneMode: CloneMode,
     )
     {
         super();

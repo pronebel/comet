@@ -1,15 +1,15 @@
-import type { Container, InteractionEvent } from 'pixi.js';
-import { type IApplicationOptions, Application, filters, Sprite, Texture } from 'pixi.js';
+import type {  Container,  IApplicationOptions,  InteractionEvent } from 'pixi.js';
+import { Application, filters, Sprite, Texture } from 'pixi.js';
 
-import type { Command } from '../../../core/lib/commands';
 import { Document } from '../../../core/lib/document';
-import type { ClonableNode } from '../../../core/lib/node/clonableNode';
 import type { CloneMode } from '../../../core/lib/node/cloneInfo';
-import { EmptyNode } from '../../../core/lib/node/empty';
 import type { ContainerNode } from '../../../core/lib/node/types/container';
+import { EmptyNode } from '../../../core/lib/node/types/empty';
 import { ProjectNode } from '../../../core/lib/node/types/project';
-import { Scene } from '../../../core/lib/scene';
+import { SceneNode } from '../../../core/lib/node/types/scene';
+import type { Command } from '../commands';
 import { Datastore } from '../sync/datastore';
+import { Sync } from '../sync/sync';
 import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
 
@@ -20,7 +20,7 @@ export class TestApp extends Application
     public selected?: ContainerNode;
     public selection: Sprite;
     public project: ProjectNode;
-    public scene: Scene;
+    public scene: SceneNode;
     public database: Datastore;
 
     constructor(options?: IApplicationOptions | undefined)
@@ -34,13 +34,13 @@ export class TestApp extends Application
         // database.createProject('testProject');
         // database.dump();
 
-        const document = new Document();
+        const document = new Document(new Sync());
 
         // document.enableCommands = false;
-        document.on('modified', this.onDocModified);
+        document.sync.on('sync', this.onDocSync);
 
         this.project = new ProjectNode();
-        this.scene = new Scene();
+        this.scene = new SceneNode();
 
         this.project.addChild(this.scene);
 
@@ -56,7 +56,7 @@ export class TestApp extends Application
         this.stage.addChild(selection);
     }
 
-    public onDocModified = (command: Command) =>
+    public onDocSync = (command: Command) =>
     {
         const output = `%c${command.getCommandType().replace('Command', '')}:\n%c${command.toString()}`;
 
@@ -106,7 +106,7 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            const component = this.selected.clone<ContainerNode>(cloneMode);
+            const component = this.selected.clone(cloneMode) as unknown as ContainerNode;
 
             delete this.selected;
 
@@ -158,7 +158,7 @@ export class TestApp extends Application
         this.selection.visible = false;
     }
 
-    public fitSelection(component?: ClonableNode)
+    public fitSelection(component?: ContainerNode)
     {
         if (!component)
         {
@@ -238,8 +238,6 @@ export class TestApp extends Application
             console.dir(this.selected);
             (window as any).$ = this.selected;
         }
-
-        this.database.dump();
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -285,16 +283,16 @@ export class TestApp extends Application
     {
         let html = '';
 
-        const componentId = (component: ClonableNode) => component.id.replace('Node', '');
+        const componentId = (component: ContainerNode) => component.id.replace('Node', '');
 
-        this.project.walk<ClonableNode>((component, options) =>
+        this.project.walk<ContainerNode>((component, options) =>
         {
             const {
                 model: { id: modelId },
                 cloneInfo, cloneInfo: { cloned, cloneMode },
             } = component;
 
-            const cloner = cloneInfo.getCloner<ClonableNode>();
+            const cloner = cloneInfo.getCloner<ContainerNode>();
 
             const pad = ''.padStart(options.depth, '+');
             const id = `&lt;${componentId(component)}&gt;`;
@@ -304,7 +302,7 @@ export class TestApp extends Application
                 : '';
             const clonedInfo = cloned.length > 0
                 ? `<span style="color:green">-> [${cloned.length}] ${cloned
-                    .map((component) => `${componentId(component as ClonableNode)}`).join(',')}</span>`
+                    .map((component) => `${componentId(component as unknown as ContainerNode)}`).join(',')}</span>`
                 : '';
             const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
             const customProps = component.getCustomProps();
@@ -319,8 +317,9 @@ export class TestApp extends Application
                     customPropArray.push(array.map((prop, i) =>
                     {
                         const isActive = i === 0;
-                        const creatorId = componentId(prop.creator);
-                        const isCreator = component === prop.creator;
+                        const creator = prop.creator as unknown as ContainerNode;
+                        const creatorId = componentId(creator);
+                        const isCreator = component === creator;
 
                         let line = `&lt;${creatorId}&gt;~"${prop.name}":${JSON.stringify(prop.value)}`;
 

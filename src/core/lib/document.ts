@@ -1,19 +1,22 @@
-import { Sync } from './sync';
+import { ProjectNode } from './node/types/project';
+import type { SyncAdapter } from './syncAdapter';
 
 export class Document
 {
-    public sync: Sync;
+    public sync: SyncAdapter;
+    public project: ProjectNode;
 
     private static _instance: Document;
 
-    constructor(enableCommands = true)
+    constructor(sync: SyncAdapter)
     {
         if (!Document._instance)
         {
             Document._instance = this;
         }
 
-        this.sync = new Sync(enableCommands);
+        this.sync = sync;
+        this.project = new ProjectNode();
     }
 
     public static get instance()
