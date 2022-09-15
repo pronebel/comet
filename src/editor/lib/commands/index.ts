@@ -1,4 +1,4 @@
-import { Document } from '../../../core/lib/document';
+import { Document } from '../sync/document';
 
 export abstract class Command
 {

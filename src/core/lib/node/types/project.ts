@@ -20,9 +20,9 @@ export class ProjectNode extends ContainerNode<ProjectModel, Container, ProjectE
 {
     private static readonly _instance: ProjectNode;
 
-    constructor()
+    public static nodeType()
     {
-        super();
+        return 'Project';
     }
 
     public static get instance()
@@ -33,6 +33,11 @@ export class ProjectNode extends ContainerNode<ProjectModel, Container, ProjectE
         }
 
         return ProjectNode._instance;
+    }
+
+    constructor()
+    {
+        super();
     }
 
     protected init(): void

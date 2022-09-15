@@ -21,6 +21,11 @@ export const spriteSchema = new ModelSchema<SpriteModel>({
 
 export class SpriteNode<M extends SpriteModel, V extends Sprite> extends ContainerNode<M, V>
 {
+    public static nodeType()
+    {
+        return 'Sprite';
+    }
+
     public modelSchema(): ModelSchema<M>
     {
         return spriteSchema as unknown as ModelSchema<M>;

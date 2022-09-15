@@ -46,6 +46,11 @@ export abstract class DisplayObjectNode<
     E extends string = DisplayObjectEvents,
 > extends ClonableNode<M, V, E>
 {
+    public static nodeType()
+    {
+        return 'DisplayObject';
+    }
+
     public modelSchema(): ModelSchema<M>
     {
         return displayObjectSchema as unknown as ModelSchema<M>;

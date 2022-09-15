@@ -17,7 +17,10 @@ export const defaultWalkOptions: WalkOptions = {
     direction: 'down',
 };
 
-export const nodeIdCount = {} as Record<string, number>;
+export type BaseNodeConstructor = {
+    new (id?: string): BaseNode<any>;
+    nodeType: () => string;
+};
 
 export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEvents | E>
 {
@@ -25,27 +28,22 @@ export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEv
     public parent?: BaseNode<any>;
     public children: BaseNode<any>[];
 
-    constructor()
+    constructor(id: string)
     {
         super();
 
-        const componentType = this.getNodeType();
-
-        if (!nodeIdCount[componentType])
-        {
-            nodeIdCount[componentType] = 1;
-        }
-
-        this.id = `${componentType}:${nodeIdCount[componentType]++}`;
-
+        this.id = id;
         this.children = [];
+    }
+
+    public static nodeType()
+    {
+        throw new Error('Node type not implemented!');
     }
 
     public getNodeType(): string
     {
-        return (Object.getPrototypeOf(this).constructor as {
-            new (): object;
-        }).name;
+        return (Object.getPrototypeOf(this).constructor as BaseNodeConstructor).nodeType();
     }
 
     public dispose()

@@ -19,6 +19,11 @@ export const schema = new ModelSchema<DebugModel>({
 
 export class DebugNode extends SpriteNode<DebugModel, Sprite>
 {
+    public static nodeType()
+    {
+        return 'Debug';
+    }
+
     public modelSchema(): ModelSchema<DebugModel>
     {
         return schema;

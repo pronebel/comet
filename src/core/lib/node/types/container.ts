@@ -23,6 +23,11 @@ export class ContainerNode<
     E extends string = ContainerEvents,
 > extends DisplayObjectNode<M, V, E>
 {
+    public static nodeType()
+    {
+        return 'Container';
+    }
+
     public modelSchema(): ModelSchema<M>
     {
         return containerSchema as unknown as ModelSchema<M>;

@@ -1,16 +1,18 @@
 import { version } from '../../../../package.json';
 import type { ModelValue } from '../../../core/lib/model/model';
-import type { CloneMode } from '../../../core/lib/node/cloneInfo';
+import { CloneMode } from '../../../core/lib/node/cloneInfo';
 import type { CustomPropertyType } from '../../../core/lib/node/customProperties';
 
 export type id = string;
 
 export interface NodeSchema
 {
+    id: string;
+    type: string;
     model: Record<string, ModelValue>;
     cloneInfo: {
         cloneMode: CloneMode;
-        cloner: id;
+        cloner?: id;
         cloned: id[];
     };
     customProperties: {
@@ -31,9 +33,29 @@ export interface ProjectSchema
     hierarchy: Record<id, id>;
 }
 
-export const defaultProject = () => ({
-    name: 'untitled',
-    version,
-    nodes: {},
-    hierarchy: {},
-} as ProjectSchema);
+export function createProject(name = 'untitled'): ProjectSchema
+{
+    return {
+        name,
+        version,
+        nodes: {},
+        hierarchy: {},
+    };
+}
+
+export function createNode(type: string, id: string): NodeSchema
+{
+    return {
+        id,
+        type,
+        model: {},
+        cloneInfo: {
+            cloneMode: CloneMode.Original,
+            cloned: [],
+        },
+        customProperties: {
+            defined: {},
+            assigned: {},
+        },
+    };
+}

@@ -1,44 +1,23 @@
 import type { ConvergenceDomain, RealTimeModel } from '@convergence/convergence';
 import Convergence from '@convergence/convergence';
 
-import { defaultProject } from './schema';
+import { createProject } from './schema';
+import { getUserName } from './user';
 
 export class DataStore
 {
     protected _domain?: ConvergenceDomain;
-    protected _model?: RealTimeModel;
+    protected model?: RealTimeModel;
 
     public async connect()
     {
-        return new Promise<ConvergenceDomain>((resolve, reject) =>
-        {
-            const url = 'https://localhost/realtime/convergence/default';
+        const url = 'https://localhost/realtime/convergence/default';
 
-            const user = this.getUser();
+        const domain = await Convergence.connect(url, getUserName(), 'password');
 
-            Convergence.connect(url, user, 'password').then((domain) =>
-            {
-                this._domain = domain;
-                resolve(domain);
-            }).catch((e) =>
-            {
-                reject(e);
-            });
-        });
-    }
+        console.log(`%cConnected as ${getUserName()}!`, 'color:lime');
 
-    public getUser()
-    {
-        const url = new URL(window.location.href);
-        const params = new URLSearchParams(url.search);
-        const user = params.get('user');
-
-        if (!user)
-        {
-            throw new Error('Missing "?user=" query parameter');
-        }
-
-        return user;
+        this._domain = domain;
     }
 
     public get domain()
@@ -51,16 +30,6 @@ export class DataStore
         return this._domain;
     }
 
-    public get model()
-    {
-        if (!this._model)
-        {
-            throw new Error('Model not found');
-        }
-
-        return this._model;
-    }
-
     public disconnect(): void
     {
         if (!this.domain.isDisposed())
@@ -70,41 +39,76 @@ export class DataStore
         }
     }
 
-    public openProject(id: string)
+    protected get defaultProjectSettings()
     {
-        return new Promise<RealTimeModel>((resolve, reject) =>
-        {
-            const { domain } = this;
-            const data = defaultProject();
+        return {
+            collection: 'projects',
+            overrideCollectionWorldPermissions: false,
+            ephemeral: false,
+            worldPermissions: { read: true, write: true, remove: true, manage: true },
+        };
+    }
 
-            domain.models().openAutoCreate({
-                collection: 'projects',
-                id,
-                data,
-                overrideCollectionWorldPermissions: false,
-                worldPermissions: { read: true, write: true, remove: true, manage: true },
-                // userPermissions: {
-                //     ted: { read: true, write: false, remove: false, manage: false },
-                // },
-                ephemeral: false,
-            }).then((model) =>
-            {
-                this._model = model;
+    public async createProject(id?: string)
+    {
+        const data = createProject();
 
-                domain.activities().join('project', id, {
-                    autoCreate: {
-                        ephemeral: true,
-                        worldPermissions: ['join', 'view_state', 'set_state'],
-                    },
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                }).then((activity) =>
-                {
-                    resolve(model);
-                });
-            }).catch((e) =>
-            {
-                reject(e);
-            });
+        const model = await this.domain.models().openAutoCreate({
+            ...this.defaultProjectSettings,
+            id,
+            data,
         });
+
+        console.log(`Created project "${model.modelId()}"`);
+
+        await this.joinActivity('editProject', model.modelId());
+
+        return model;
+    }
+
+    public async openProject(id: string)
+    {
+        const model = await this.domain.models().openAutoCreate({
+            ...this.defaultProjectSettings,
+            id,
+        });
+
+        console.log(`Opened project "${model.modelId()}"`);
+
+        await this.joinActivity('editProject', id);
+
+        return model;
+    }
+
+    protected async joinActivity(type: string, id: string)
+    {
+        await this.domain.activities().join(type, id, {
+            autoCreate: {
+                ephemeral: true,
+                worldPermissions: ['join', 'view_state', 'set_state'],
+            },
+        });
+
+        console.log(`Joined activity "${type}:${id}"`);
+    }
+
+    public async hasProject(id: string)
+    {
+        const results = await this.domain.models()
+            .query(`SELECT * FROM projects WHERE modelId = '${id}'`);
+
+        if (results.totalResults > 0)
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    public async deleteProject(id: string)
+    {
+        await this.domain.models().remove(id);
+
+        console.log(`Project "${id}" deleted`);
     }
 }

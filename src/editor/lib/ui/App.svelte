@@ -5,23 +5,40 @@
   import HotReload from "./util/HotReload.svelte";
   import { TestApp } from "../test/testApp";
   import { Editor } from "../editor";
+  import type { Application } from "../application";
 
   const isTestingDataModel = true;
+  let isConnected = false;
+  let connectionError: Error | undefined;
 
   let canvas: HTMLCanvasElement;
 
   onMount(() => {
+    let app: Application;
+
     if (isTestingDataModel) {
-      new TestApp({ canvas });
+      app = new TestApp({ canvas });
     } else {
-      new Editor({ canvas });
+      app = new Editor({ canvas });
     }
+
+    app
+      .connect()
+      .then(() => {
+        isConnected = true;
+        app.init();
+      })
+      .catch((e) => {
+        connectionError = e;
+      });
   });
 </script>
 
 <main>
-  <canvas bind:this={canvas} />
-  {#if canvas}
+  {#if connectionError}
+    <div class="error">{connectionError}</div>
+  {:else if canvas && isConnected}
+    <canvas bind:this={canvas} />
     {#if isTestingDataModel}
       <TestCoreDataModel />
     {:else}
@@ -37,5 +54,11 @@
     position: absolute;
     width: 100%;
     height: 100%;
+  }
+  .error {
+    font-weight: bold;
+    text-align: center;
+    background-color: red;
+    color: white;
   }
 </style>
