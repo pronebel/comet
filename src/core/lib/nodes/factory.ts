@@ -1,5 +1,5 @@
 import type { id } from '../../../editor/lib/sync/schema';
-import type { ClonableNode, ClonableNodeConstructor, NodeOptions } from './clonableNode';
+import type { ClonableNode, ClonableNodeConstructor, NodeOptions } from './abstract/clonableNode';
 
 export const nodeClasses: Map<id, ClonableNodeConstructor> = new Map();
 export const nodeInstances: Map<id, ClonableNode> = new Map();
@@ -17,7 +17,7 @@ export function registerNodeType(nodeClass: ClonableNodeConstructor)
     nodeClasses.set(nodeType, nodeClass);
 }
 
-export function create(nodeType: string, options?: NodeOptions<any>)
+export function createNode(nodeType: string, options: NodeOptions<any>)
 {
     const NodeClass = nodeClasses.get(nodeType);
 
@@ -44,7 +44,7 @@ export function dispose(node: ClonableNode)
     nodeInstances.delete(node.id);
 }
 
-export function newNodeId(nodeType: string)
+export function nextNodeId(nodeType: string)
 {
     const NodeClass = nodeClasses.get(nodeType);
 
@@ -55,8 +55,17 @@ export function newNodeId(nodeType: string)
 
     if (!nodeIdCount[nodeType])
     {
-        nodeIdCount[nodeType] = 1;
+        return 1;
     }
 
-    return nodeIdCount[nodeType]++;
+    return nodeIdCount[nodeType] + 1;
+}
+
+export function newNodeId(nodeType: string)
+{
+    const nextId = nextNodeId(nodeType);
+
+    nodeIdCount[nodeType] = nextId;
+
+    return `${nodeType}:${nextId}`;
 }

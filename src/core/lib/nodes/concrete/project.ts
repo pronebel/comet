@@ -35,11 +35,6 @@ export class ProjectNode extends ContainerNode<ProjectModel, Container, ProjectE
         return ProjectNode._instance;
     }
 
-    constructor()
-    {
-        super();
-    }
-
     protected init(): void
     {
         super.init();

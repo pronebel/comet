@@ -1,5 +1,5 @@
-import type { CloneMode } from '../../../core/lib/node/cloneInfo';
-import type { CustomPropertyType } from '../../../core/lib/node/customProperties';
+import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
+import type { CustomPropertyType } from '../../../core/lib/nodes/customProperties';
 import { AddChildCommand } from '../commands/addChild';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { CloneCommand } from '../commands/clone';

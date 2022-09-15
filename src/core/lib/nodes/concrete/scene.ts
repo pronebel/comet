@@ -16,3 +16,4 @@ export class SceneNode extends ContainerNode<ContainerModel, Container>
         this.setCustomProperty('scnProp', 'string', 'foo');
     }
 }
+

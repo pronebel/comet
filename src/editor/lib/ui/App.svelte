@@ -8,6 +8,7 @@
   import type { Application } from "../application";
 
   const isTestingDataModel = true;
+
   let isConnected = false;
   let connectionError: Error | undefined;
 
@@ -35,10 +36,10 @@
 </script>
 
 <main>
+  <canvas bind:this={canvas} />
   {#if connectionError}
     <div class="error">{connectionError}</div>
-  {:else if canvas && isConnected}
-    <canvas bind:this={canvas} />
+  {:else if isConnected && canvas}
     {#if isTestingDataModel}
       <TestCoreDataModel />
     {:else}

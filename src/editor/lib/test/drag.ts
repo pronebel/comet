@@ -1,4 +1,4 @@
-import type { ContainerNode } from '../../../core/lib/node/types/container';
+import type { ContainerNode } from '../../../core/lib/nodes/concrete/container';
 import { TestApp } from './testApp';
 
 type AnyContainer = ContainerNode<any, any>;

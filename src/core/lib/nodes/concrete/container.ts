@@ -1,7 +1,8 @@
 import { Container } from 'pixi.js';
 
 import { ModelSchema } from '../../model/schema';
-import { type DisplayObjectEvents, type DisplayObjectModel, DisplayObjectNode, displayObjectSchema } from './displayObject';
+import type { DisplayObjectEvents, DisplayObjectModel } from '../abstract/displayObject';
+import { DisplayObjectNode, displayObjectSchema } from '../abstract/displayObject';
 
 export type ContainerEvents = DisplayObjectEvents;
 

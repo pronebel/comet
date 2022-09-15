@@ -1,14 +1,19 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
-import type { CloneMode } from '../../../core/lib/node/cloneInfo';
-import type { ContainerNode } from '../../../core/lib/node/types/container';
+import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
+import type { ContainerNode } from '../../../core/lib/nodes/concrete/container';
+import type { ProjectNode } from '../../../core/lib/nodes/concrete/project';
+import { registerNodeType } from '../../../core/lib/nodes/factory';
 // import { EmptyNode } from '../../../core/lib/node/types/empty';
 import { type AppOptions, Application } from '../application';
+import { openModel } from '../sync/parser';
 import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
 
 export let app: TestApp;
+
+registerNodeType(DebugNode);
 
 export class TestApp extends Application
 {
@@ -38,11 +43,14 @@ export class TestApp extends Application
     {
         const { dataStore } = this;
 
-        if (await dataStore.hasProject('test'))
+        if (await dataStore.hasProject('Test'))
         {
             await dataStore.deleteProject('test');
         }
-        await dataStore.createProject('test');
+        const model = await dataStore.createProject('Test', 'test');
+        const root = openModel<ProjectNode>(model);
+
+        this.stage.addChild(root.view);
     }
 
     public newContainer()

@@ -3,8 +3,7 @@ import type { DisplayObject } from 'pixi.js';
 import { NumericRangeLimitConstraint, ReferenceConstraint } from '../../model/constraints';
 import type { ModelBase } from '../../model/model';
 import { ModelSchema } from '../../model/schema';
-import type { ClonableNodeEvents } from '../clonableNode';
-import { ClonableNode } from '../clonableNode';
+import { type ClonableNodeEvents, ClonableNode } from './clonableNode';
 
 export type DisplayObjectEvents = ClonableNodeEvents;
 

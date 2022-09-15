@@ -1,5 +1,4 @@
-import type { BaseNodeEvents } from '../node/baseNode';
-import { BaseNode } from '../node/baseNode';
+import { type BaseNodeEvents, BaseNode } from '../nodes/abstract/baseNode';
 import type { ModelSchema } from './schema';
 
 let id = 1;
@@ -9,7 +8,6 @@ export type ModelBase = Record<string, ModelValue>;
 
 export class Model<M> extends BaseNode<BaseNodeEvents | 'modified'>
 {
-    public id: string;
     public schema: ModelSchema<M>;
     public data: Partial<M>;
 
@@ -17,9 +15,8 @@ export class Model<M> extends BaseNode<BaseNodeEvents | 'modified'>
 
     constructor(schema: ModelSchema<M>, data: Partial<M>)
     {
-        super();
+        super(`Model:${id++}`);
 
-        this.id = `Model:${id++}`;
         this.schema = schema;
         this.data = data;
         this.children = [];

@@ -2,8 +2,8 @@ import { Sprite } from 'pixi.js';
 
 import type { ModelBase } from '../../../src/core/lib/model/model';
 import { ModelSchema } from '../../../src/core/lib/model/schema';
-import { ClonableNode } from '../../../src/core/lib/node/clonableNode';
-import { CloneMode } from '../../../src/core/lib/node/cloneInfo';
+import { ClonableNode } from '../../../src/core/lib/nodes/clonableNode';
+import { CloneMode } from '../../../src/core/lib/nodes/cloneInfo';
 
 export interface TestModel extends ModelBase
 {

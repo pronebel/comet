@@ -1,19 +1,15 @@
-import type { Model, ModelBase } from '../model/model';
-import { createModel } from '../model/model';
-import type { ModelSchema } from '../model/schema';
-import type { BaseNodeEvents } from './baseNode';
-import { BaseNode } from './baseNode';
-import type { Clonable } from './cloneInfo';
-import { CloneInfo, CloneMode } from './cloneInfo';
-import type { CustomProperty, CustomPropertyType } from './customProperties';
-import { CustomProperties } from './customProperties';
+import { type Model, type ModelBase, createModel } from '../../model/model';
+import type { ModelSchema } from '../../model/schema';
+import { type Clonable, CloneInfo, CloneMode } from '../cloneInfo';
+import { type CustomProperty, type CustomPropertyType, CustomProperties } from '../customProperties';
+import { type BaseNodeEvents, BaseNode } from './baseNode';
 
 export type ClonableNodeEvents = BaseNodeEvents | 'modelChanged' | 'unlinked';
 
 export type AnyNode = ClonableNode<any, any, any>;
 
 export type ClonableNodeConstructor = {
-    new (options?: NodeOptions<any>): ClonableNode;
+    new (options: NodeOptions<any>): AnyNode;
     nodeType: () => string;
 };
 
@@ -52,7 +48,7 @@ export abstract class ClonableNode<
 
         if (cloner && cloneInfo.isReference)
         {
-            this.model = cloner.model as Model<M> & M;
+            this.model = cloner.model as unknown as Model<M> & M;
         }
         else
         {

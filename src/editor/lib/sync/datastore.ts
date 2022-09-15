@@ -49,9 +49,9 @@ export class DataStore
         };
     }
 
-    public async createProject(id?: string)
+    public async createProject(name: string, id?: string)
     {
-        const data = createProject();
+        const data = createProject(name);
 
         const model = await this.domain.models().openAutoCreate({
             ...this.defaultProjectSettings,
@@ -92,10 +92,10 @@ export class DataStore
         console.log(`Joined activity "${type}:${id}"`);
     }
 
-    public async hasProject(id: string)
+    public async hasProject(name: string)
     {
         const results = await this.domain.models()
-            .query(`SELECT * FROM projects WHERE modelId = '${id}'`);
+            .query(`SELECT * FROM projects WHERE name = '${name}'`);
 
         if (results.totalResults > 0)
         {

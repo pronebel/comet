@@ -1,4 +1,4 @@
-import type { ClonableNode } from './clonableNode';
+import type { ClonableNode } from './abstract/clonableNode';
 import type { Clonable } from './cloneInfo';
 import { CloneInfo, CloneMode } from './cloneInfo';
 

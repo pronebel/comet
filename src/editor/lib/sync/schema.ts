@@ -1,7 +1,9 @@
 import { version } from '../../../../package.json';
 import type { ModelValue } from '../../../core/lib/model/model';
-import { CloneMode } from '../../../core/lib/node/cloneInfo';
-import type { CustomPropertyType } from '../../../core/lib/node/customProperties';
+import { CloneMode } from '../../../core/lib/nodes/cloneInfo';
+import type { CustomPropertyType } from '../../../core/lib/nodes/customProperties';
+import { newNodeId } from '../../../core/lib/nodes/factory';
+import { getUserName } from './user';
 
 export type id = string;
 
@@ -29,24 +31,36 @@ export interface ProjectSchema
 {
     name: string;
     version: string;
+    createdBy: string;
     nodes: Record<string, NodeSchema>;
-    hierarchy: Record<id, id>;
+    hierarchy: Record<id /** parentId */, id /** childId */>;
+    root: string;
 }
 
-export function createProject(name = 'untitled'): ProjectSchema
+export function createProject(name: string): ProjectSchema
 {
+    const project = createNode('Project');
+    const scene = createNode('Scene');
+
     return {
         name,
         version,
-        nodes: {},
-        hierarchy: {},
+        createdBy: getUserName(),
+        nodes: {
+            [project.id]: project,
+            [scene.id]: scene,
+        },
+        hierarchy: {
+            [project.id]: scene.id,
+        },
+        root: project.id,
     };
 }
 
-export function createNode(type: string, id: string): NodeSchema
+export function createNode(type: string, id?: string): NodeSchema
 {
     return {
-        id,
+        id: id ?? newNodeId(type),
         type,
         model: {},
         cloneInfo: {

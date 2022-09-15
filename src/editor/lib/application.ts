@@ -1,3 +1,5 @@
+import '../../core/lib/nodes/register';
+
 import { EventEmitter } from 'eventemitter3';
 import { Application as PixiApplication } from 'pixi.js';
 
