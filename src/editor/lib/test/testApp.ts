@@ -42,6 +42,8 @@ export class TestApp extends Application
         {
             super.onConnect();
 
+            console.log('Model collaborators', model.collaborators());
+
             const scene = new SceneNode();
 
             this.project.addChild(scene);
