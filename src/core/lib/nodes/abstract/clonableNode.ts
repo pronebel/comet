@@ -10,7 +10,6 @@ export type AnyNode = ClonableNode<any, any, any>;
 
 export type ClonableNodeConstructor = {
     new (options: NodeOptions<any>): AnyNode;
-    nodeType: () => string;
 };
 
 export interface NodeOptions<M>

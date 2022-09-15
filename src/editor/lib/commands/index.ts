@@ -1,3 +1,5 @@
+import { Application } from '../application';
+
 export abstract class Command
 {
     public abstract apply(): void;
@@ -8,11 +10,14 @@ export abstract class Command
         this.apply();
     }
 
-    public getCommandType(): string
+    public get app()
     {
-        return (Object.getPrototypeOf(this).constructor as {
-            new (): object;
-        }).name;
+        return Application.instance;
+    }
+
+    public get datastore()
+    {
+        return this.app.datastore;
     }
 
     public toString()

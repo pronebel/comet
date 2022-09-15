@@ -1,13 +1,15 @@
-import type { ConvergenceDomain, IConvergenceEvent, ObjectSetEvent, RealTimeModel } from '@convergence/convergence';
-import Convergence from '@convergence/convergence';
+import type {  ConvergenceDomain,  IConvergenceEvent,  ObjectSetEvent,  RealTimeModel } from '@convergence/convergence';
+import Convergence, { RealTimeObject  } from '@convergence/convergence';
+import { EventEmitter } from 'eventemitter3';
 
 import { createProject } from './schema';
 import { getUserName } from './user';
 
-export class DataStore
+export type DatastoreEvents = 'nodeCreated';
+export class Datastore extends EventEmitter<DatastoreEvents>
 {
     protected _domain?: ConvergenceDomain;
-    protected model?: RealTimeModel;
+    public model?: RealTimeModel;
 
     public async connect()
     {
@@ -49,6 +51,16 @@ export class DataStore
         };
     }
 
+    get nodes()
+    {
+        if (!this.model)
+        {
+            throw new Error('Datastore model not initialised');
+        }
+
+        return this.model.elementAt('nodes') as RealTimeObject;
+    }
+
     public async createProject(name: string, id?: string)
     {
         const data = createProject(name);
@@ -61,40 +73,34 @@ export class DataStore
 
         console.log(`Created project "${model.modelId()}"`);
 
-        await this.joinActivity('editProject', model.modelId());
-
-        this.initModel(model);
-
-        return model;
+        return this.openProject(model.modelId());
     }
 
     public async openProject(id: string)
     {
-        const model = await this.domain.models().openAutoCreate({
-            ...this.defaultProjectSettings,
-            id,
-        });
+        const model = await this.domain.models().open(id);
 
         console.log(`Opened project "${model.modelId()}"`);
 
-        await this.joinActivity('editProject', id);
-
-        this.initModel(model);
+        await this.initModel(model);
 
         return model;
     }
 
-    protected initModel(model: RealTimeModel)
+    protected async initModel(model: RealTimeModel)
     {
         this.model = model;
 
-        model.elementAt('nodes').on('set', this.onNodesUpdate);
-    }
+        await this.joinActivity('editProject', model.modelId());
 
-    public onNodesUpdate = (event: IConvergenceEvent) =>
-    {
-        debugger;
-    };
+        // note: these events only fire for remote users, which is why we use a custom event dispatcher
+        // remote users will be triggered from these handlers,
+        // local users will be triggered from command actions
+        this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+        {
+            this.emit('nodeCreated', (event as ObjectSetEvent).value.value());
+        });
+    }
 
     protected async joinActivity(type: string, id: string)
     {
@@ -134,6 +140,6 @@ export class DataStore
     {
         await this.domain.models().remove(id);
 
-        console.log(`Project "${id}" deleted`);
+        console.log(`Delete project "${id}"`);
     }
 }

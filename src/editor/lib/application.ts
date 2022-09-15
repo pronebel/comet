@@ -1,20 +1,24 @@
 import '../../core/lib/nodes/register';
 
 import { EventEmitter } from 'eventemitter3';
+import { deepEqual } from 'fast-equals';
 import { Application as PixiApplication } from 'pixi.js';
 
 import type { Command } from './commands';
-import { DataStore } from './sync/datastore';
+import { type DatastoreEvents, Datastore } from './sync/datastore';
+import type { NodeSchema } from './sync/schema';
 
 export interface AppOptions
 {
     canvas: HTMLCanvasElement;
 }
+
 export class Application extends EventEmitter
 {
     public pixiApp: PixiApplication;
-    public dataStore: DataStore;
+    public datastore: Datastore;
     public undoStack: Command[];
+    protected eventFilter: Map<string, any[]>;
 
     private static _instance: Application;
 
@@ -24,6 +28,8 @@ export class Application extends EventEmitter
 
         Application._instance = this;
 
+        this.eventFilter = new Map();
+
         this.pixiApp = new PixiApplication({
             view: options.canvas,
             resizeTo: options.canvas,
@@ -32,17 +38,42 @@ export class Application extends EventEmitter
 
         this.undoStack = [];
 
-        this.dataStore = new DataStore();
+        this.datastore = new Datastore();
+
+        this.bindDataStoreEvent('nodeCreated', this.onNodeCreated);
+    }
+
+    protected bindDataStoreEvent(eventName: DatastoreEvents, fn: (...args: any[]) => void)
+    {
+        this.datastore.on(eventName, (...eventArgs: any[]) =>
+        {
+            const existingEventArgs = this.eventFilter.get(eventName);
+
+            if (existingEventArgs && (deepEqual(eventArgs, existingEventArgs)))
+            {
+                return;
+            }
+
+            this.eventFilter.set(eventName, eventArgs);
+
+            fn(...eventArgs);
+        });
     }
 
     public async connect()
     {
-        return this.dataStore.connect();
+        return this.datastore.connect();
     }
 
     public async init()
     {
         // subclasses
+    }
+
+    public pushCommand(command: Command)
+    {
+        this.undoStack.push(command);
+        command.apply();
     }
 
     public static get instance()
@@ -60,14 +91,8 @@ export class Application extends EventEmitter
         return this.pixiApp.stage;
     }
 
-    public openProject(id: string)
+    protected onNodeCreated = (node: NodeSchema) =>
     {
-        this.dataStore.openProject(id).then((model) =>
-        {
-            console.log('model created!', model);
-        }).catch((err) =>
-        {
-            console.error('no dice, buddy:', err);
-        });
-    }
+        console.log('NodeCreated!', node);
+    };
 }

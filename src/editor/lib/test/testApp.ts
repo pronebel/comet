@@ -7,7 +7,7 @@ import { EmptyNode } from '../../../core/lib/nodes/concrete/empty';
 import type { ProjectNode } from '../../../core/lib/nodes/concrete/project';
 import { newNodeId, registerNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
-import { openModel } from '../sync/parser';
+import { CreateNodeCommand } from '../commands/create';
 import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
 
@@ -42,18 +42,17 @@ export class TestApp extends Application
 
     public async init()
     {
-        const { dataStore } = this;
+        const { datastore: dataStore } = this;
 
-        if (await dataStore.hasProject('Test'))
-        {
-            await dataStore.deleteProject('test');
-        }
+        // if (await dataStore.hasProject('Test'))
+        // {
+        //     await dataStore.deleteProject('test');
+        // }
 
-        const model = await dataStore.createProject('Test', 'test');
+        // await dataStore.createProject('Test', 'test');
+        await dataStore.openProject('test');
 
-        const project = this.project = openModel<ProjectNode>(model);
-
-        this.stage.addChild(project.view);
+        this.pushCommand(new CreateNodeCommand('Project', { id: newNodeId('Project') }));
     }
 
     public newContainer()

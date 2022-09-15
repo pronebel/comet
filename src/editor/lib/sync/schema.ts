@@ -34,26 +34,17 @@ export interface ProjectSchema
     createdBy: string;
     nodes: Record<string, NodeSchema>;
     hierarchy: Record<id /** parentId */, id /** childId */>;
-    root: string;
+    root?: string;
 }
 
 export function createProject(name: string): ProjectSchema
 {
-    const project = createNode('Project');
-    const scene = createNode('Scene');
-
     return {
         name,
         version,
         createdBy: getUserName(),
-        nodes: {
-            [project.id]: project,
-            [scene.id]: scene,
-        },
-        hierarchy: {
-            [project.id]: scene.id,
-        },
-        root: project.id,
+        nodes: { },
+        hierarchy: { },
     };
 }
 

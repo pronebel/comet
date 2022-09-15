@@ -1,11 +1,11 @@
-import { DataStore } from '../sync/datastore';
+import { Datastore } from '../sync/datastore';
 
 document.body.innerHTML = `<button id="connect">Connect</button><button id="disconnect">Disconnect</button>`;
 
 // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 document.getElementById('connect')!.onclick = () =>
 {
-    const datastore = new DataStore();
+    const datastore = new Datastore();
 
     // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
     document.getElementById('disconnect')!.onclick = () => datastore.disconnect();

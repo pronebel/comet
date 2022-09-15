@@ -7,11 +7,12 @@ export const nodeIdCount = {} as Record<string, number>;
 
 export function registerNodeType(nodeClass: ClonableNodeConstructor)
 {
-    const nodeType = nodeClass.nodeType();
+    const nodeType = nodeClass.prototype.nodeType();
 
     if (nodeClasses.has(nodeType))
     {
-        throw new Error(`Node type "${nodeType}" already registered.`);
+        // throw new Error(`Node type "${nodeType}" already registered.`);
+        return;
     }
 
     nodeClasses.set(nodeType, nodeClass);
