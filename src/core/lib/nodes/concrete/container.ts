@@ -24,7 +24,7 @@ export class ContainerNode<
     E extends string = ContainerEvents,
 > extends DisplayObjectNode<M, V, E>
 {
-    public static nodeType()
+    public nodeType()
     {
         return 'Container';
     }

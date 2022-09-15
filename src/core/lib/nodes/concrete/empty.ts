@@ -6,7 +6,7 @@ import { ContainerNode, containerSchema } from './container';
 
 export class EmptyNode extends ContainerNode<ContainerModel, Container>
 {
-    public static nodeType()
+    public nodeType()
     {
         return 'Empty';
     }

@@ -36,10 +36,7 @@ export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEv
         this.children = [];
     }
 
-    public static nodeType()
-    {
-        throw new Error('Node type not implemented!');
-    }
+    public abstract nodeType(): string;
 
     public getNodeType(): string
     {

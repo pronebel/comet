@@ -1,14 +1,7 @@
-import { Document } from '../sync/document';
-
 export abstract class Command
 {
     public abstract apply(): void;
     public abstract undo(): void;
-
-    protected get doc()
-    {
-        return Document.instance;
-    }
 
     public redo()
     {

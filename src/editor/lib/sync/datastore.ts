@@ -1,4 +1,4 @@
-import type { ConvergenceDomain, RealTimeModel } from '@convergence/convergence';
+import type { ConvergenceDomain, IConvergenceEvent, ObjectSetEvent, RealTimeModel } from '@convergence/convergence';
 import Convergence from '@convergence/convergence';
 
 import { createProject } from './schema';
@@ -63,6 +63,8 @@ export class DataStore
 
         await this.joinActivity('editProject', model.modelId());
 
+        this.initModel(model);
+
         return model;
     }
 
@@ -77,8 +79,22 @@ export class DataStore
 
         await this.joinActivity('editProject', id);
 
+        this.initModel(model);
+
         return model;
     }
+
+    protected initModel(model: RealTimeModel)
+    {
+        this.model = model;
+
+        model.elementAt('nodes').on('set', this.onNodesUpdate);
+    }
+
+    public onNodesUpdate = (event: IConvergenceEvent) =>
+    {
+        debugger;
+    };
 
     protected async joinActivity(type: string, id: string)
     {
@@ -103,6 +119,15 @@ export class DataStore
         }
 
         return false;
+    }
+
+    public async closeProject()
+    {
+        if (this.model)
+        {
+            await this.model.close();
+            delete this.model;
+        }
     }
 
     public async deleteProject(id: string)

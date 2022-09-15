@@ -3,9 +3,9 @@ import { filters, Sprite, Texture } from 'pixi.js';
 
 import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { ContainerNode } from '../../../core/lib/nodes/concrete/container';
+import { EmptyNode } from '../../../core/lib/nodes/concrete/empty';
 import type { ProjectNode } from '../../../core/lib/nodes/concrete/project';
-import { registerNodeType } from '../../../core/lib/nodes/factory';
-// import { EmptyNode } from '../../../core/lib/node/types/empty';
+import { newNodeId, registerNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
 import { openModel } from '../sync/parser';
 import { type DebugModel, DebugNode } from './debug';
@@ -19,6 +19,7 @@ export class TestApp extends Application
 {
     public selected?: ContainerNode;
     public selection: Sprite;
+    public project?: ProjectNode;
 
     public static getInstance()
     {
@@ -47,22 +48,25 @@ export class TestApp extends Application
         {
             await dataStore.deleteProject('test');
         }
-        const model = await dataStore.createProject('Test', 'test');
-        const root = openModel<ProjectNode>(model);
 
-        this.stage.addChild(root.view);
+        const model = await dataStore.createProject('Test', 'test');
+
+        const project = this.project = openModel<ProjectNode>(model);
+
+        this.stage.addChild(project.view);
     }
 
     public newContainer()
     {
-        // const empty = new EmptyNode({
-        //     model: {
-        //         x: 20,
-        //         y: 20,
-        //     },
-        // });
+        const empty = new EmptyNode({
+            id: newNodeId('Empty'),
+            model: {
+                x: 20,
+                y: 20,
+            },
+        });
 
-        // this.addNode(empty);
+        this.addNode(empty);
     }
 
     public newChild()
@@ -82,18 +86,23 @@ export class TestApp extends Application
 
     public addNode(component: ContainerNode)
     {
-        if (this.selected)
+        if (this.project)
         {
-            this.selected.addChild(component);
-        }
-        else
-        {
-            // this.project.getChildAt(0).addChild(component);
-        }
+            if (this.selected)
+            {
+                this.selected.addChild(component);
+            }
+            else
+            {
+                const scene = this.project.getChildAt(0);
 
-        this.makeInteractiveDeep(component);
-        this.select(component);
-        this.inspect();
+                scene.addChild(component);
+            }
+
+            this.makeInteractiveDeep(component);
+            this.select(component);
+            this.inspect();
+        }
     }
 
     public clone(cloneMode: CloneMode): ContainerNode | undefined
@@ -276,82 +285,85 @@ export class TestApp extends Application
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public debug(element: HTMLPreElement)
     {
-        // let html = '';
+        if (this.project)
+        {
+            let html = '';
 
-        // const componentId = (component: ContainerNode) => component.id.replace('Node', '');
+            const componentId = (component: ContainerNode) => component.id.replace('Node', '');
 
-        // this.project.walk<ContainerNode>((component, options) =>
-        // {
-        //     const {
-        //         model: { id: modelId },
-        //         cloneInfo, cloneInfo: { cloned, cloneMode },
-        //     } = component;
+            this.project.walk<ContainerNode>((component, options) =>
+            {
+                const {
+                    model: { id: modelId },
+                    cloneInfo, cloneInfo: { cloned, cloneMode },
+                } = component;
 
-        //     const cloner = cloneInfo.getCloner<ContainerNode>();
+                const cloner = cloneInfo.getCloner<ContainerNode>();
 
-        //     const pad = ''.padStart(options.depth, '+');
-        //     const id = `&lt;${componentId(component)}&gt;`;
-        //     const modelInfo = `${modelId}`;
-        //     const clonerInfo = cloner
-        //         ? `<span style="color:lime"><- ${componentId(cloner)}</span>`
-        //         : '';
-        //     const clonedInfo = cloned.length > 0
-        //         ? `<span style="color:green">-> [${cloned.length}] ${cloned
-        //             .map((component) => `${componentId(component as unknown as ContainerNode)}`).join(',')}</span>`
-        //         : '';
-        //     const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
-        //     const customProps = component.getCustomProps();
-        //     const customPropArray: string[] = [];
+                const pad = ''.padStart(options.depth, '+');
+                const id = `&lt;${componentId(component)}&gt;`;
+                const modelInfo = `${modelId}`;
+                const clonerInfo = cloner
+                    ? `<span style="color:lime"><- ${componentId(cloner)}</span>`
+                    : '';
+                const clonedInfo = cloned.length > 0
+                    ? `<span style="color:green">-> [${cloned.length}] ${cloned
+                        .map((component) => `${componentId(component as unknown as ContainerNode)}`).join(',')}</span>`
+                    : '';
+                const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
+                const customProps = component.getCustomProps();
+                const customPropArray: string[] = [];
 
-        //     Array.from(customProps.keys()).forEach((key) =>
-        //     {
-        //         const array = customProps.properties.get(key);
+                Array.from(customProps.keys()).forEach((key) =>
+                {
+                    const array = customProps.properties.get(key);
 
-        //         if (array)
-        //         {
-        //             customPropArray.push(array.map((prop, i) =>
-        //             {
-        //                 const isActive = i === 0;
-        //                 const creator = prop.creator as unknown as ContainerNode;
-        //                 const creatorId = componentId(creator);
-        //                 const isCreator = component === creator;
+                    if (array)
+                    {
+                        customPropArray.push(array.map((prop, i) =>
+                        {
+                            const isActive = i === 0;
+                            const creator = prop.creator as unknown as ContainerNode;
+                            const creatorId = componentId(creator);
+                            const isCreator = component === creator;
 
-        //                 let line = `&lt;${creatorId}&gt;~"${prop.name}":${JSON.stringify(prop.value)}`;
+                            let line = `&lt;${creatorId}&gt;~"${prop.name}":${JSON.stringify(prop.value)}`;
 
-        //                 line = isActive ? `<b>${line}</b>` : `<span style="font-style:italic">${line}</span>`;
-        //                 line = isCreator ? `<span style="color:salmon">${line}</span>` : line;
+                            line = isActive ? `<b>${line}</b>` : `<span style="font-style:italic">${line}</span>`;
+                            line = isCreator ? `<span style="color:salmon">${line}</span>` : line;
 
-        //                 // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-        //                 return line;
-        //             }).join(', '));
-        //         }
-        //     });
-        //     const customPropDefineInfo = customPropArray.join(' / ');
-        //     const customPropAssignmentsArray: string[] = [];
+                            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                            return line;
+                        }).join(', '));
+                    }
+                });
+                const customPropDefineInfo = customPropArray.join(' / ');
+                const customPropAssignmentsArray: string[] = [];
 
-        //     Array.from(component.customProperties.assignments.keys()).forEach((key) =>
-        //     {
-        //         const customKey = component.customProperties.assignments.get(key);
+                Array.from(component.customProperties.assignments.keys()).forEach((key) =>
+                {
+                    const customKey = component.customProperties.assignments.get(key);
 
-        //         customPropAssignmentsArray.push(`${key} -> ${customKey}`);
-        //     });
+                    customPropAssignmentsArray.push(`${key} -> ${customKey}`);
+                });
 
-        //     const modelLine = `${modelInfo} <span style="color:cyan;font-size:14px">${modelValues}</span>`;
-        //     const isLinked = this.selected
-        //         ? this.selected === cloner || cloned.includes(this.selected)
-        //         : false;
-        //     const cloneModeInfo = `${cloneMode.toUpperCase()}`;
-        //     let output = `${pad} ${id} ${cloneModeInfo} ${clonerInfo} ${clonedInfo}\n`;
+                const modelLine = `${modelInfo} <span style="color:cyan;font-size:14px">${modelValues}</span>`;
+                const isLinked = this.selected
+                    ? this.selected === cloner || cloned.includes(this.selected)
+                    : false;
+                const cloneModeInfo = `${cloneMode.toUpperCase()}`;
+                let output = `${pad} ${id} ${cloneModeInfo} ${clonerInfo} ${clonedInfo}\n`;
 
-        //     output += `${pad}  ... ${modelLine}\n`;
-        //     output += `${pad}  ... ${customPropDefineInfo} : ${customPropAssignmentsArray.join(', ')}\n`;
-        //     const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
+                output += `${pad}  ... ${modelLine}\n`;
+                output += `${pad}  ... ${customPropDefineInfo} : ${customPropAssignmentsArray.join(', ')}\n`;
+                const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
 
-        //     html += isLinked ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
-        // }, {
-        //     includeSelf: true,
-        // });
+                html += isLinked ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
+            }, {
+                includeSelf: true,
+            });
 
-        // element.innerHTML = html;
+            element.innerHTML = html;
+        }
     }
 }

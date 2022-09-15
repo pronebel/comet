@@ -20,7 +20,7 @@ export class ProjectNode extends ContainerNode<ProjectModel, Container, ProjectE
 {
     private static readonly _instance: ProjectNode;
 
-    public static nodeType()
+    public nodeType()
     {
         return 'Project';
     }

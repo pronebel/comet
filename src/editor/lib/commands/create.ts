@@ -1,13 +1,11 @@
-import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
+import type { NodeOptions } from '../../../core/lib/nodes/abstract/clonableNode';
 import { Command } from '.';
 
-export class ConstructCommand extends Command
+export class CreateNodeCommand extends Command
 {
     constructor(
-        public readonly targetId: string,
-        public readonly componentType: string,
-        public readonly modelValues: object,
-        public readonly cloneMode: CloneMode,
+        public readonly nodeType: string,
+        public readonly nodeOptions: NodeOptions<any>,
     )
     {
         super();
