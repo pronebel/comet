@@ -1,47 +1,29 @@
-import type { ObjectSetEvent } from '@convergence/convergence';
-import { type IConvergenceEvent, RealTimeObject } from '@convergence/convergence';
+import  type  { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
 import { CloneInfo } from '../../../core/lib/nodes/cloneInfo';
+import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
 import { createGraphNode, getGraphNode } from '../../../core/lib/nodes/factory';
 import type { Datastore } from './datastore';
 import { hydrate } from './hydrate';
 import type { NodeSchema } from './schema';
-import { getUserName } from './user';
-
-const userName = getUserName();
 
 export type ObjectGraphEvent = 'objectGraphNodeCreated';
 
 export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
 {
-    public nodeRealtimeObjects: Map<string, RealTimeObject>;
+    public datastore: Datastore;
 
-    constructor()
+    constructor(datastore: Datastore)
     {
         super();
-        this.nodeRealtimeObjects = new Map();
+
+        this.datastore = datastore;
     }
 
-    public registerNodeRealtimeObject(id: string, nodeElement: RealTimeObject)
+    public hydrate(datastore: Datastore)
     {
-        if (this.nodeRealtimeObjects.has(id))
-        {
-            throw new Error(`Node "${id}" RealTimeObject already registered.`);
-        }
-
-        this.nodeRealtimeObjects.set(id, nodeElement);
-
-        nodeElement.elementAt('customProperties').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-        {
-            const element = (event as ObjectSetEvent).value as RealTimeObject;
-
-            console.log(`%c${userName}:customProperties.set: ${nodeElement.toJSON()}`, 'color:blue');
-
-            // this.emit('dataStoreNodeCreated', nodeElement);
-        });
-
-        console.log(`${userName}:Register RealTimeObject "${id}"`);
+        hydrate(datastore).forEach((node) => this.emit('objectGraphNodeCreated', node));
     }
 
     public onDatastoreNodeCreated = (nodeElement: RealTimeObject) =>
@@ -76,7 +58,7 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         }
 
         // register RealTimeObject
-        this.registerNodeRealtimeObject(id, nodeElement);
+        this.datastore.registerNodeRealtimeObject(id, nodeElement);
 
         // notify application
         this.emit('objectGraphNodeCreated', node);
@@ -93,8 +75,15 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         }
     };
 
-    public hydrate(datastore: Datastore)
+    public onDataStoreCustomPropDefined = (
+        id: string,
+        name: string,
+        type: CustomPropertyType,
+        value: CustomPropertyValueType,
+    ) =>
     {
-        hydrate(this, datastore).forEach((node) => this.emit('objectGraphNodeCreated', node));
-    }
+        const node = getGraphNode(id);
+
+        node?.setCustomProperty(name, type, value);
+    };
 }

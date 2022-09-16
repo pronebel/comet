@@ -4,20 +4,19 @@ import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode
 import type { GraphNode } from '../../../core/lib/nodes/abstract/graphNode';
 import { createGraphNode, trackNodeId } from '../../../core/lib/nodes/factory';
 import type { Datastore } from './datastore';
-import type { ObjectGraph } from './objectGraph';
 
-export function hydrate(objectGraph: ObjectGraph, datastore: Datastore)
+export function hydrate(datastore: Datastore)
 {
     const { nodes, hierarchy } = datastore;
 
-    const graphNodes = createGraphNodes(objectGraph, nodes);
+    const graphNodes = createGraphNodes(datastore, nodes);
 
     nestGraphNodes(hierarchy, graphNodes);
 
     return graphNodes;
 }
 
-function createGraphNodes(objectGraph: ObjectGraph, nodes: RealTimeObject)
+function createGraphNodes(datastore: Datastore, nodes: RealTimeObject)
 {
     const graphNodes: Map<string, ClonableNode> = new Map();
 
@@ -38,7 +37,7 @@ function createGraphNodes(objectGraph: ObjectGraph, nodes: RealTimeObject)
         graphNodes.set(id, node);
 
         // register RealTimeObject
-        objectGraph.registerNodeRealtimeObject(id, nodeElement);
+        datastore.registerNodeRealtimeObject(id, nodeElement);
     });
 
     return graphNodes;

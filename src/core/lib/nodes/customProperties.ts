@@ -4,13 +4,14 @@ import { CloneInfo, CloneMode } from './cloneInfo';
 import { newGraphNodeId } from './factory';
 
 export type CustomPropertyType = 'string' | 'number' | 'boolean';
+export type CustomPropertyValueType = string | number | boolean;
 
 export class CustomProperty
 {
     public creator: ClonableNode;
     public name: string;
     public type: CustomPropertyType;
-    public value: any;
+    public value: CustomPropertyValueType;
 
     public static copy(property: CustomProperty)
     {
@@ -24,7 +25,7 @@ export class CustomProperty
         return copy;
     }
 
-    constructor(creator: ClonableNode, name: string, type: CustomPropertyType, value: any)
+    constructor(creator: ClonableNode, name: string, type: CustomPropertyType, value: CustomPropertyValueType)
     {
         this.creator = creator;
         this.name = name;
@@ -98,7 +99,7 @@ export class CustomProperties<C extends ClonableNode> implements Clonable
         }
     }
 
-    public set(creator: C, customKey: string, type: CustomPropertyType, value: any)
+    public set(creator: C, customKey: string, type: CustomPropertyType, value: CustomPropertyValueType)
     {
         if (!this.properties.has(customKey))
         {

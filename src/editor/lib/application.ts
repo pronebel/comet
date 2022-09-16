@@ -46,18 +46,19 @@ export class Application extends EventEmitter
 
         this.undoStack = [];
 
+        // create datastore
+        const datastore = this.datastore = new Datastore();
+
         // create object graph
-        const objectGraph = this.objectGraph = new ObjectGraph();
+        const objectGraph = this.objectGraph = new ObjectGraph(datastore);
 
         // get notified when object graph has changed
         objectGraph.on('objectGraphNodeCreated', this.onObjectGraphNodeCreated.bind(this));
 
-        // create datastore
-        this.datastore = new Datastore();
-
         // update object graph when datastore changes
         this.bindDataStoreEvent('dataStoreNodeCreated', objectGraph.onDatastoreNodeCreated);
         this.bindDataStoreEvent('dataStoreNodeChildAdded', objectGraph.onDatastoreNodeChildAdded);
+        this.bindDataStoreEvent('dataStoreCustomPropDefined', objectGraph.onDataStoreCustomPropDefined);
     }
 
     protected bindDataStoreEvent(eventName: DatastoreEvents, fn: (...args: any[]) => void)

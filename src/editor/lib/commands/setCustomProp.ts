@@ -1,12 +1,13 @@
+import type { RealTimeObject } from '@convergence/convergence';
+
 import type { CustomPropertyType } from '../../../core/lib/nodes/customProperties';
 import { Command } from '.';
 
 export class SetCustomPropCommand extends Command
 {
     constructor(
-        public readonly targetId: string,
-        public readonly creatorId: string,
-        public readonly name: string,
+        public readonly nodeId: string,
+        public readonly propName: string,
         public readonly type: CustomPropertyType,
         public readonly value: any,
     )
@@ -14,9 +15,24 @@ export class SetCustomPropCommand extends Command
         super();
     }
 
+    public name()
+    {
+        return 'SetCustomProp';
+    }
+
     public apply(): void
     {
-        throw new Error('Method not implemented.');
+        const { nodeId, propName, type, value, datastore } = this;
+        const nodeElement = this.datastore.getRealTimeObject(nodeId);
+        const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
+
+        definedCustomProps.set(propName, {
+            type,
+            value,
+        });
+
+        // notify application, which will update object graph
+        datastore.emit('dataStoreCustomPropDefined', nodeId, propName, type, value);
     }
 
     public undo(): void

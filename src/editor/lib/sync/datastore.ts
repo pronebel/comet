@@ -7,7 +7,7 @@ import { getUserName } from './user';
 
 const userName = getUserName();
 
-export type DatastoreEvents = 'dataStoreNodeCreated' | 'dataStoreNodeChildAdded';
+export type DatastoreEvents = 'dataStoreNodeCreated' | 'dataStoreNodeChildAdded' | 'dataStoreCustomPropDefined';
 
 const logStyle = 'color:cyan';
 
@@ -15,6 +15,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 {
     protected _domain?: ConvergenceDomain;
     protected _model?: RealTimeModel;
+    public nodeRealtimeObjects: Map<string, RealTimeObject>;
+
+    constructor()
+    {
+        super();
+        this.nodeRealtimeObjects = new Map();
+    }
 
     public async connect()
     {
@@ -175,5 +182,41 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         await this.domain.models().remove(id);
 
         console.log(`%c${userName}:Delete project "${id}"`, logStyle);
+    }
+
+    public registerNodeRealtimeObject(id: string, nodeElement: RealTimeObject)
+    {
+        if (this.nodeRealtimeObjects.has(id))
+        {
+            throw new Error(`Node "${id}" RealTimeObject already registered.`);
+        }
+
+        this.nodeRealtimeObjects.set(id, nodeElement);
+
+        nodeElement.elementAt('customProperties', 'defined').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+        {
+            const name = (event as ObjectSetEvent).key;
+            const element = (event as ObjectSetEvent).value as RealTimeObject;
+            const { type, value } = element.toJSON();
+            const info = JSON.stringify(element.toJSON());
+
+            console.log(`%c${userName}:customProperties.set: ${info}`, logStyle);
+
+            this.emit('dataStoreCustomPropDefined', id, name, type, value);
+        });
+
+        console.log(`${userName}:Register RealTimeObject "${id}"`);
+    }
+
+    public getRealTimeObject(id: string)
+    {
+        const nodeElement = this.nodeRealtimeObjects.get(id);
+
+        if (!nodeElement)
+        {
+            throw new Error(`Node "${id}" RealTimeObject not registered.`);
+        }
+
+        return nodeElement;
     }
 }

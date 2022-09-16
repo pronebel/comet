@@ -9,6 +9,7 @@ import { registerGraphNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
 import { AddChildCommand } from '../commands/addChild';
 import { CreateNodeCommand } from '../commands/createNode';
+import { SetCustomPropCommand } from '../commands/setCustomProp';
 import type { NodeSchema } from '../sync/schema';
 import { getUserName } from '../sync/user';
 import { type DebugModel, DebugNode } from './debug';
@@ -273,8 +274,9 @@ export class TestApp extends Application
         if (selected)
         {
             const propType = isNaN(value) ? 'string' : 'number';
+            const propValue = propType === 'string' ? value : parseFloat(value);
 
-            selected.setCustomProperty(name, propType, propType === 'string' ? value : parseFloat(value));
+            this.pushCommand(new SetCustomPropCommand(selected.id, name, propType, propValue));
         }
     }
 
