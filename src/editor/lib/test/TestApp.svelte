@@ -11,6 +11,10 @@
 
   const app = TestApp.getInstance();
 
+  const onInit = () => {
+    app.init();
+  };
+
   const onNewContainer = () => {
     app.newContainer();
   };
@@ -99,6 +103,8 @@
     on:mouseover={() => (shouldUpdateDebug = false)}
     on:mouseout={() => (shouldUpdateDebug = true)}>
   <span /></pre>
+  <button on:click={onInit}>Init</button>
+  <br />
   <button on:click={onNewContainer}>New Container</button>
   <button on:click={onNewChild}>New Child</button>
   <button on:click={onCloneVariant}>Clone Variant</button>

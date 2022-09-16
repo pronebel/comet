@@ -27,7 +27,6 @@
       .connect()
       .then(() => {
         isConnected = true;
-        app.init();
       })
       .catch((e) => {
         connectionError = e;

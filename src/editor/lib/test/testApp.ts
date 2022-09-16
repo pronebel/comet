@@ -10,12 +10,19 @@ import { type AppOptions, Application } from '../application';
 import { AddChildCommand } from '../commands/addChild';
 import { CreateNodeCommand } from '../commands/create';
 import type { NodeSchema } from '../sync/schema';
+import { getUserName } from '../sync/user';
 import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
 
 export let app: TestApp;
 
 registerGraphNodeType(DebugNode);
+
+const delay = (ms: number) =>
+    new Promise((resolve) =>
+    {
+        setTimeout(() => resolve(undefined), ms);
+    });
 
 export class TestApp extends Application
 {
@@ -43,8 +50,14 @@ export class TestApp extends Application
 
     public async init()
     {
-        await this.createProject('Test', 'test');
-        // await this.openProject('test');
+        if (getUserName() === 'ali')
+        {
+            await this.createProject('Test', 'test');
+        }
+        else
+        {
+            await this.openProject('test');
+        }
 
         this.deselect();
     }

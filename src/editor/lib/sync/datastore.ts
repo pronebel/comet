@@ -114,7 +114,19 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         // local users will be triggered from command actions
         this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
         {
-            this.emit('nodeCreated', (event as ObjectSetEvent).value.value());
+            const nodeSchema = (event as ObjectSetEvent).value.value();
+
+            this.emit('nodeCreated', nodeSchema);
+        });
+
+        this.hierarchy.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+        {
+            const parentId = (event as ObjectSetEvent).key;
+            const childId = (event as ObjectSetEvent).value.value();
+
+            console.log('hierarchy!', parentId, childId);
+
+            this.emit('nodeChildAdded', parentId, childId);
         });
     }
 

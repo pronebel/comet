@@ -47,6 +47,7 @@ export class Application extends EventEmitter
         const objectGraph = this.objectGraph = new ObjectGraph();
 
         objectGraph.on('nodeCreated', this.onObjectGraphNodeCreated.bind(this));
+
         // create datastore
         this.datastore = new Datastore();
 
@@ -115,13 +116,15 @@ export class Application extends EventEmitter
         await datastore.createProject(name, id);
 
         objectGraph.hydrate(datastore);
-
-        // this.pushCommand(new CreateNodeCommand('Project'));
     }
 
     public async openProject(id: string)
     {
+        const { datastore, objectGraph } = this;
+
         await this.datastore.openProject(id);
+
+        objectGraph.hydrate(datastore);
     }
 
     protected onObjectGraphNodeCreated(node: ClonableNode)
