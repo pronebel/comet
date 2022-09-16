@@ -7,12 +7,15 @@
   let customPropValue: string = "foo1";
   let assignModelKey: string = "label";
 
+  let isInit = false;
   let shouldUpdateDebug = true;
 
   const app = TestApp.getInstance();
 
   const onInit = () => {
-    app.init();
+    app.init().then(() => {
+      isInit = true;
+    });
   };
 
   const onNewContainer = () => {
@@ -103,33 +106,35 @@
     on:mouseover={() => (shouldUpdateDebug = false)}
     on:mouseout={() => (shouldUpdateDebug = true)}>
   <span /></pre>
-  <button on:click={onInit}>Init</button>
-  <br />
-  <button on:click={onNewContainer}>New Container</button>
-  <button on:click={onNewChild}>New Child</button>
-  <button on:click={onCloneVariant}>Clone Variant</button>
-  <button on:click={onCloneReference}>Clone Reference</button>
-  <button on:click={onDuplicate}>Duplicate</button>
-  <button on:click={onUnlink}>Unlink</button>
-  <button on:click={onDelete}>Delete</button>
-  <button on:click={onInspect}>Inspect</button>
-  <br />
-  <button on:click={onDeselect}>Deselect</button>
-  <button on:click={onRandColor}>Rand Color</button>
-  <button on:click={onRandSize}>Rand Size</button>
-  <button on:click={onRotate}>Rotate</button>
-  <button on:click={onResetModel}>Reset Model</button>
-  <br />
-  <button on:click={onSetCustomProp}>Set Custom Prop</button>
-  <keyvalue>
-    <input bind:value={customPropName} />
-    <input bind:value={customPropValue} />
-  </keyvalue>
-  <button on:click={onRemoveCustomProp}>Remove Custom Prop</button>
-  <br />
-  <button on:click={onAssignCustomProp}>Assign Custom Prop</button>
-  <button on:click={onUnAssignCustomProp}>UnAssign Custom Prop</button>
-  <input bind:value={assignModelKey} />
+  {#if isInit}
+    <button on:click={onNewContainer}>New Container</button>
+    <button on:click={onNewChild}>New Child</button>
+    <button on:click={onCloneVariant}>Clone Variant</button>
+    <button on:click={onCloneReference}>Clone Reference</button>
+    <button on:click={onDuplicate}>Duplicate</button>
+    <button on:click={onUnlink}>Unlink</button>
+    <button on:click={onDelete}>Delete</button>
+    <button on:click={onInspect}>Inspect</button>
+    <br />
+    <button on:click={onDeselect}>Deselect</button>
+    <button on:click={onRandColor}>Rand Color</button>
+    <button on:click={onRandSize}>Rand Size</button>
+    <button on:click={onRotate}>Rotate</button>
+    <button on:click={onResetModel}>Reset Model</button>
+    <br />
+    <button on:click={onSetCustomProp}>Set Custom Prop</button>
+    <keyvalue>
+      <input bind:value={customPropName} />
+      <input bind:value={customPropValue} />
+    </keyvalue>
+    <button on:click={onRemoveCustomProp}>Remove Custom Prop</button>
+    <br />
+    <button on:click={onAssignCustomProp}>Assign Custom Prop</button>
+    <button on:click={onUnAssignCustomProp}>UnAssign Custom Prop</button>
+    <input bind:value={assignModelKey} />
+  {:else}
+    <button on:click={onInit}>Init</button>
+  {/if}
   <marker />
 </buttons>
 

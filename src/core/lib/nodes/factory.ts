@@ -28,7 +28,7 @@ export function getGraphNode(id?: string)
     return undefined;
 }
 
-export function createGraphNode(nodeType: string, options: NodeOptions<any>)
+export function createGraphNode(nodeType: string, options: NodeOptions<{}>)
 {
     const NodeClass = nodeClasses.get(nodeType);
 
@@ -82,4 +82,12 @@ export function newGraphNodeId(nodeType: string, isUnregisteredType = false)
     nodeIdCount[nodeType] = nextId;
 
     return `${nodeType}:${nextId}`;
+}
+
+export function trackNodeId(id: string)
+{
+    const [nodeType, _idCount] = id.split(':');
+    const idCount = parseInt(_idCount, 10);
+
+    nodeIdCount[nodeType] = Math.max(isNaN(nodeIdCount[nodeType]) ? 1 : nodeIdCount[nodeType], idCount);
 }

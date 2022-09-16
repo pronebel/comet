@@ -13,6 +13,11 @@ export class CloneCommand extends Command
         super();
     }
 
+    public name()
+    {
+        return 'Clone';
+    }
+
     public apply(): void
     {
         throw new Error('Method not implemented.');

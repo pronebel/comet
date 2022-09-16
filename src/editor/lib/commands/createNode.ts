@@ -12,6 +12,11 @@ export class CreateNodeCommand<M extends ModelBase> extends Command<NodeSchema<M
         super();
     }
 
+    public name()
+    {
+        return 'CreateNode';
+    }
+
     public apply(): NodeSchema<M>
     {
         const { nodeType, datastore, nodeOptions } = this;

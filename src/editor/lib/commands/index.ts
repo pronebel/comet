@@ -2,6 +2,7 @@ import { Application } from '../application';
 
 export abstract class Command<T = void>
 {
+    public abstract name(): string;
     public abstract apply(): T;
     public abstract undo(): void;
 

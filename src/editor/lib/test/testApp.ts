@@ -8,7 +8,7 @@ import type { ContainerModel, ContainerNode } from '../../../core/lib/nodes/conc
 import { registerGraphNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
 import { AddChildCommand } from '../commands/addChild';
-import { CreateNodeCommand } from '../commands/create';
+import { CreateNodeCommand } from '../commands/createNode';
 import type { NodeSchema } from '../sync/schema';
 import { getUserName } from '../sync/user';
 import { type DebugModel, DebugNode } from './debug';
@@ -16,13 +16,8 @@ import { startDrag } from './drag';
 
 export let app: TestApp;
 
+// must register any nodes outside of core
 registerGraphNodeType(DebugNode);
-
-const delay = (ms: number) =>
-    new Promise((resolve) =>
-    {
-        setTimeout(() => resolve(undefined), ms);
-    });
 
 export class TestApp extends Application
 {
@@ -50,7 +45,7 @@ export class TestApp extends Application
 
     public async init()
     {
-        if (getUserName() === 'ali')
+        if (getUserName() === '1ali')
         {
             await this.createProject('Test', 'test');
         }

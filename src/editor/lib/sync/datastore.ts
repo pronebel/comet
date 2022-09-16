@@ -7,6 +7,8 @@ import { getUserName } from './user';
 
 export type DatastoreEvents = 'nodeCreated' | 'nodeChildAdded';
 
+const logStyle = 'color:cyan';
+
 export class Datastore extends EventEmitter<DatastoreEvents>
 {
     protected _domain?: ConvergenceDomain;
@@ -45,7 +47,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         if (!this.domain.isDisposed())
         {
             this.domain.dispose();
-            console.log('Domain disposed');
+            console.log('%cDomain disposed', logStyle);
         }
     }
 
@@ -89,7 +91,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             data,
         });
 
-        console.log(`Created project "${model.modelId()}"`);
+        console.log(`%cCreated project "${model.modelId()}"`, logStyle);
 
         await this.openProject(model.modelId());
     }
@@ -98,7 +100,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         const model = await this.domain.models().open(id);
 
-        console.log(`Opened project "${model.modelId()}"`);
+        console.log(`%cOpened project "${model.modelId()}"`, logStyle);
 
         await this.initModel(model);
     }
@@ -116,6 +118,8 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         {
             const nodeSchema = (event as ObjectSetEvent).value.value();
 
+            console.log(`%cnodes.set: ${nodeSchema}`, logStyle);
+
             this.emit('nodeCreated', nodeSchema);
         });
 
@@ -124,7 +128,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const parentId = (event as ObjectSetEvent).key;
             const childId = (event as ObjectSetEvent).value.value();
 
-            console.log('hierarchy!', parentId, childId);
+            console.log(`%chierarchy.set: ${parentId} ${childId}`, logStyle);
 
             this.emit('nodeChildAdded', parentId, childId);
         });
@@ -139,7 +143,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             },
         });
 
-        console.log(`Joined activity "${type}:${id}"`);
+        console.log(`%cJoined activity "${type}:${id}"`, logStyle);
     }
 
     public async hasProject(name: string)
@@ -168,6 +172,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         await this.domain.models().remove(id);
 
-        console.log(`Delete project "${id}"`);
+        console.log(`%cDelete project "${id}"`, logStyle);
     }
 }

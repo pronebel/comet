@@ -46,13 +46,15 @@ export class Application extends EventEmitter
         // create object graph
         const objectGraph = this.objectGraph = new ObjectGraph();
 
+        // get notified when object graph has changed
         objectGraph.on('nodeCreated', this.onObjectGraphNodeCreated.bind(this));
 
         // create datastore
         this.datastore = new Datastore();
 
-        this.bindDataStoreEvent('nodeCreated', objectGraph.createNode);
-        this.bindDataStoreEvent('nodeChildAdded', objectGraph.childAdded);
+        // update object graph when datastore changes
+        this.bindDataStoreEvent('nodeCreated', objectGraph.onDatastoreNodeCreated);
+        this.bindDataStoreEvent('nodeChildAdded', objectGraph.onDatastoreNodeChildAdded);
     }
 
     protected bindDataStoreEvent(eventName: DatastoreEvents, fn: (...args: any[]) => void)
@@ -85,6 +87,8 @@ export class Application extends EventEmitter
     public pushCommand<T = void>(command: Command): T
     {
         this.undoStack.push(command);
+
+        console.log(`%cCommand<${command.name()}>: ${command.toString()}`, 'color:yellow');
 
         return command.apply() as T;
     }
@@ -134,8 +138,6 @@ export class Application extends EventEmitter
             const project = this.project = node as unknown as ProjectNode;
 
             this.stage.addChild(project.view);
-
-            console.log('add Project view to stage');
         }
     }
 }

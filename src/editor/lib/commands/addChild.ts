@@ -10,6 +10,11 @@ export class AddChildCommand extends Command
         super();
     }
 
+    public name()
+    {
+        return 'AddChild';
+    }
+
     public apply(): void
     {
         const { datastore, parentId, childId } = this;
