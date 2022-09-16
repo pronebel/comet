@@ -9,6 +9,9 @@ import type { ProjectNode } from '../../core/lib/nodes/concrete/project';
 import type { Command } from './commands';
 import { type DatastoreEvents, Datastore } from './sync/datastore';
 import { ObjectGraph } from './sync/objectGraph';
+import { getUserName } from './sync/user';
+
+const userName = getUserName();
 
 export interface AppOptions
 {
@@ -88,7 +91,7 @@ export class Application extends EventEmitter
     {
         this.undoStack.push(command);
 
-        console.log(`%cCommand<${command.name()}>: ${command.toString()}`, 'color:yellow');
+        console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');
 
         return command.apply() as T;
     }

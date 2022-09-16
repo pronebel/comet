@@ -143,7 +143,7 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 250px;
+    width: 160px;
     display: flex;
     flex-direction: column;
   }
@@ -197,6 +197,7 @@
     left: 0;
     height: 50%;
     background-color: #000;
+    background: linear-gradient(90deg, #111 0, #000 100%);
     overflow-y: auto;
     font-size: 14px;
     font-family: "Courier New", Courier, monospace;
