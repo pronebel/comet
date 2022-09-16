@@ -8,12 +8,5 @@ export class SceneNode extends ContainerNode<ContainerModel, Container>
     {
         return 'Scene';
     }
-
-    protected init(): void
-    {
-        super.init();
-
-        this.setCustomProperty('scnProp', 'string', 'foo');
-    }
 }
 

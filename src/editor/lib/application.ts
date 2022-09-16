@@ -50,14 +50,14 @@ export class Application extends EventEmitter
         const objectGraph = this.objectGraph = new ObjectGraph();
 
         // get notified when object graph has changed
-        objectGraph.on('nodeCreated', this.onObjectGraphNodeCreated.bind(this));
+        objectGraph.on('objectGraphNodeCreated', this.onObjectGraphNodeCreated.bind(this));
 
         // create datastore
         this.datastore = new Datastore();
 
         // update object graph when datastore changes
-        this.bindDataStoreEvent('nodeCreated', objectGraph.onDatastoreNodeCreated);
-        this.bindDataStoreEvent('nodeChildAdded', objectGraph.onDatastoreNodeChildAdded);
+        this.bindDataStoreEvent('dataStoreNodeCreated', objectGraph.onDatastoreNodeCreated);
+        this.bindDataStoreEvent('dataStoreNodeChildAdded', objectGraph.onDatastoreNodeChildAdded);
     }
 
     protected bindDataStoreEvent(eventName: DatastoreEvents, fn: (...args: any[]) => void)

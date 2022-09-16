@@ -7,7 +7,7 @@ import { getUserName } from './user';
 
 const userName = getUserName();
 
-export type DatastoreEvents = 'nodeCreated' | 'nodeChildAdded';
+export type DatastoreEvents = 'dataStoreNodeCreated' | 'dataStoreNodeChildAdded';
 
 const logStyle = 'color:cyan';
 
@@ -118,11 +118,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         // local users will be triggered from command actions
         this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
         {
-            const nodeSchema = (event as ObjectSetEvent).value.value();
+            const nodeElement = (event as ObjectSetEvent).value as RealTimeObject;
 
-            console.log(`%c${userName}:nodes.set: ${nodeSchema}`, logStyle);
+            console.log(`%c${userName}:nodes.set: ${nodeElement.toJSON()}`, logStyle);
 
-            this.emit('nodeCreated', nodeSchema);
+            this.emit('dataStoreNodeCreated', nodeElement);
         });
 
         this.hierarchy.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
@@ -132,7 +132,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             console.log(`%c${userName}:hierarchy.set: ${parentId} ${childId}`, logStyle);
 
-            this.emit('nodeChildAdded', parentId, childId);
+            this.emit('dataStoreNodeChildAdded', parentId, childId);
         });
     }
 

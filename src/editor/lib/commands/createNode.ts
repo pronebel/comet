@@ -21,15 +21,15 @@ export class CreateNodeCommand<M extends ModelBase> extends Command<NodeSchema<M
     {
         const { nodeType, datastore, nodeOptions } = this;
 
-        const node = createNodeSchema<M>(nodeType, nodeOptions);
+        const nodeSchema = createNodeSchema<M>(nodeType, nodeOptions);
 
         // add data to datastore
-        datastore.nodes.set(node.id, node);
+        const nodeElement = datastore.nodes.set(nodeSchema.id, nodeSchema);
 
-        // trigger object graph update
-        datastore.emit('nodeCreated', node);
+        // notify application, which will update object graph
+        datastore.emit('dataStoreNodeCreated', nodeElement);
 
-        return node;
+        return nodeSchema;
     }
 
     public undo(): void

@@ -34,11 +34,4 @@ export class ProjectNode extends ContainerNode<ProjectModel, Container, ProjectE
 
         return ProjectNode._instance;
     }
-
-    protected init(): void
-    {
-        super.init();
-
-        this.setCustomProperty('projProp', 'string', 'bar');
-    }
 }

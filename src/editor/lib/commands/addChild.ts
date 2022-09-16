@@ -23,7 +23,7 @@ export class AddChildCommand extends Command
         datastore.hierarchy.set(parentId, childId);
 
         // trigger object graph update
-        datastore.emit('nodeChildAdded', parentId, childId);
+        datastore.emit('dataStoreNodeChildAdded', parentId, childId);
     }
 
     public undo(): void
