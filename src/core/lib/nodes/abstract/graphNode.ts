@@ -1,8 +1,8 @@
 import EventEmitter from 'eventemitter3';
 
-import { newNodeId } from '../factory';
+import { newGraphNodeId } from '../factory';
 
-export type BaseNodeEvents = 'childAdded' | 'childRemoved' | 'disposed';
+export type GraphNodeEvents = 'childAdded' | 'childRemoved' | 'disposed';
 
 export interface WalkOptions
 {
@@ -10,6 +10,7 @@ export interface WalkOptions
     depth: number;
     cancel: boolean;
     direction: 'up' | 'down';
+    data?: any;
 }
 
 export const defaultWalkOptions: WalkOptions = {
@@ -19,22 +20,22 @@ export const defaultWalkOptions: WalkOptions = {
     direction: 'down',
 };
 
-export type BaseNodeConstructor = {
-    new (id?: string): BaseNode<any>;
+export type GraphNodeConstructor = {
+    new (id?: string): GraphNode;
     nodeType: () => string;
 };
 
-export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEvents | E>
+export abstract class GraphNode<E extends string = string> extends EventEmitter<GraphNodeEvents | E>
 {
     public id: string;
-    public parent?: BaseNode<any>;
-    public children: BaseNode<any>[];
+    public parent?: GraphNode;
+    public children: GraphNode[];
 
     constructor(id?: string)
     {
         super();
 
-        this.id = id ?? newNodeId(this.nodeType());
+        this.id = id ?? newGraphNodeId(this.nodeType());
         this.children = [];
     }
 
@@ -54,19 +55,19 @@ export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEv
         }
     }
 
-    public getParent<T extends BaseNode<any>>()
+    public getParent<T extends GraphNode>()
     {
         return this.parent as unknown as T;
     }
 
-    public getRoot<T extends BaseNode<any>>(): T
+    public getRoot<T extends GraphNode>(): T
     {
         if (!this.parent)
         {
             return this as unknown as T;
         }
 
-        let ref: BaseNode<any> | undefined = this.parent;
+        let ref: GraphNode | undefined = this.parent;
 
         while (ref)
         {
@@ -76,7 +77,7 @@ export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEv
         return ref as unknown as T;
     }
 
-    public setParent<T extends BaseNode<any>>(parent: T)
+    public setParent(parent: GraphNode)
     {
         if (this.parent)
         {
@@ -91,7 +92,7 @@ export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEv
         this.onAddedToParent();
     }
 
-    public addChild(component: BaseNode<any>)
+    public addChild(component: GraphNode<string>)
     {
         if (component === this)
         {
@@ -101,7 +102,7 @@ export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEv
         component.setParent(this);
     }
 
-    public removeChild(component: BaseNode<any>)
+    public removeChild(component: GraphNode)
     {
         const { children } = this;
 
@@ -123,17 +124,40 @@ export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEv
         }
     }
 
-    public getChildAt<T extends BaseNode<any>>(index: number): T
+    public getChildAt<T extends GraphNode>(index: number): T
     {
         return this.children[index] as T;
     }
 
-    public forEach<T extends BaseNode<any>>(fn: (child: T, index: number, array: T[]) => void)
+    public forEach<T extends GraphNode>(fn: (child: T, index: number, array: T[]) => void)
     {
         this.children.forEach((child, i, array) => fn(child as T, i, array as T[]));
     }
 
-    public walk<T extends BaseNode<any>>(
+    public contains(node: GraphNode): boolean
+    {
+        return node.hasParent(this);
+    }
+
+    public hasParent(node: GraphNode)
+    {
+        const opts: Partial<WalkOptions> = {
+            data: false,
+        };
+
+        this.walk((parentNode, options) =>
+        {
+            if (parentNode === node)
+            {
+                options.cancel = true;
+                options.data = true;
+            }
+        }, opts);
+
+        return opts.data as boolean;
+    }
+
+    public walk<T extends GraphNode>(
         fn: (component: T, options: WalkOptions) => void,
         options: Partial<WalkOptions> = {},
     )
@@ -175,7 +199,7 @@ export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEv
         }
     }
 
-    public containsChild<T extends BaseNode<any>>(component: T)
+    public containsChild<T extends GraphNode>(component: T)
     {
         return this.children.indexOf(component) > -1;
     }
@@ -187,7 +211,7 @@ export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEv
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onRemovedFromParent(oldParent: BaseNode<any>)
+    protected onRemovedFromParent(oldParent: GraphNode)
     {
         // subclasses
     }

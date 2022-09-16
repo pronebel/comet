@@ -1,3 +1,5 @@
+import type { CloneInfoSchema } from '../../../editor/lib/sync/schema';
+
 export enum CloneMode
     {
     Original = 'original',
@@ -9,6 +11,7 @@ export enum CloneMode
 
 export interface Clonable
 {
+    id: string;
     cloneInfo: CloneInfo;
 }
 
@@ -111,5 +114,18 @@ export class CloneInfo
     public forEachCloned<T>(fn: (clone: T) => void)
     {
         this.cloned.forEach((cloned) => fn(cloned as unknown as T));
+    }
+
+    public toSchema(): CloneInfoSchema
+    {
+        const { cloner, cloneMode, cloned } = this;
+        const clonerId = cloner ? cloner.id : undefined;
+        const clonedSchema = cloned.map((node) => node.id);
+
+        return {
+            cloner: clonerId,
+            cloneMode,
+            cloned: clonedSchema,
+        };
     }
 }

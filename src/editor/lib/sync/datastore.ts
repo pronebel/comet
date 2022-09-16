@@ -2,20 +2,28 @@ import type {  ConvergenceDomain,  IConvergenceEvent,  ObjectSetEvent,  RealTime
 import Convergence, { RealTimeObject  } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
-import { createProject } from './schema';
+import { createProjectSchema } from './schema';
 import { getUserName } from './user';
 
-export type DatastoreEvents = 'nodeCreated';
+export type DatastoreEvents = 'nodeCreated' | 'nodeChildAdded';
+
 export class Datastore extends EventEmitter<DatastoreEvents>
 {
     protected _domain?: ConvergenceDomain;
-    public model?: RealTimeModel;
+    protected _model?: RealTimeModel;
 
     public async connect()
     {
         const url = 'https://localhost/realtime/convergence/default';
 
-        const domain = await Convergence.connect(url, getUserName(), 'password');
+        const domain = await Convergence.connect(url, getUserName(), 'password', {
+            models: {
+                data: {
+                    undefinedObjectValues: 'omit',
+                    undefinedArrayValues: 'null',
+                },
+            },
+        });
 
         console.log(`%cConnected as ${getUserName()}!`, 'color:lime');
 
@@ -51,19 +59,29 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         };
     }
 
-    get nodes()
+    get model()
     {
-        if (!this.model)
+        if (!this._model)
         {
             throw new Error('Datastore model not initialised');
         }
 
+        return this._model;
+    }
+
+    get nodes()
+    {
         return this.model.elementAt('nodes') as RealTimeObject;
+    }
+
+    get hierarchy()
+    {
+        return this.model.elementAt('hierarchy') as RealTimeObject;
     }
 
     public async createProject(name: string, id?: string)
     {
-        const data = createProject(name);
+        const data = createProjectSchema(name);
 
         const model = await this.domain.models().openAutoCreate({
             ...this.defaultProjectSettings,
@@ -87,7 +105,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     protected async initModel(model: RealTimeModel)
     {
-        this.model = model;
+        this._model = model;
 
         await this.joinActivity('editProject', model.modelId());
 
@@ -127,10 +145,10 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public async closeProject()
     {
-        if (this.model)
+        if (this._model)
         {
-            await this.model.close();
-            delete this.model;
+            await this._model.close();
+            delete this._model;
         }
     }
 

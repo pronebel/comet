@@ -5,7 +5,7 @@ export const nodeClasses: Map<id, ClonableNodeConstructor> = new Map();
 export const nodeInstances: Map<id, ClonableNode> = new Map();
 export const nodeIdCount = {} as Record<string, number>;
 
-export function registerNodeType(nodeClass: ClonableNodeConstructor)
+export function registerGraphNodeType(nodeClass: ClonableNodeConstructor)
 {
     const nodeType = nodeClass.prototype.nodeType();
 
@@ -18,7 +18,7 @@ export function registerNodeType(nodeClass: ClonableNodeConstructor)
     nodeClasses.set(nodeType, nodeClass);
 }
 
-export function getNode(id?: string)
+export function getGraphNode(id?: string)
 {
     if (id)
     {
@@ -28,7 +28,7 @@ export function getNode(id?: string)
     return undefined;
 }
 
-export function createNode(nodeType: string, options: NodeOptions<any>)
+export function createGraphNode(nodeType: string, options: NodeOptions<any>)
 {
     const NodeClass = nodeClasses.get(nodeType);
 
@@ -50,18 +50,21 @@ export function createNode(nodeType: string, options: NodeOptions<any>)
     return node;
 }
 
-export function dispose(node: ClonableNode)
+export function disposeGraphNode(node: ClonableNode)
 {
     nodeInstances.delete(node.id);
 }
 
-export function nextNodeId(nodeType: string)
+export function nextGraphNodeId(nodeType: string, isUnregisteredType = false)
 {
-    const NodeClass = nodeClasses.get(nodeType);
-
-    if (!NodeClass)
+    if (!isUnregisteredType)
     {
-        throw new Error(`Node type "${nodeType}" is unregistered.`);
+        const NodeClass = nodeClasses.get(nodeType);
+
+        if (!NodeClass)
+        {
+            throw new Error(`Node type "${nodeType}" is unregistered.`);
+        }
     }
 
     if (!nodeIdCount[nodeType])
@@ -72,9 +75,9 @@ export function nextNodeId(nodeType: string)
     return nodeIdCount[nodeType] + 1;
 }
 
-export function newNodeId(nodeType: string)
+export function newGraphNodeId(nodeType: string, isUnregisteredType = false)
 {
-    const nextId = nextNodeId(nodeType);
+    const nextId = nextGraphNodeId(nodeType, isUnregisteredType);
 
     nodeIdCount[nodeType] = nextId;
 

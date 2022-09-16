@@ -1,17 +1,17 @@
 import { version } from '../../../../package.json';
-import type { ModelValue } from '../../../core/lib/model/model';
+import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
 import { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { CustomPropertyType } from '../../../core/lib/nodes/customProperties';
-import { newNodeId } from '../../../core/lib/nodes/factory';
+import { newGraphNodeId } from '../../../core/lib/nodes/factory';
 import { getUserName } from './user';
 
 export type id = string;
 
-export interface NodeSchema
+export interface NodeSchema<M extends ModelBase>
 {
     id: string;
     type: string;
-    model: Record<string, ModelValue>;
+    model: Partial<M>;
     cloneInfo: {
         cloneMode: CloneMode;
         cloner?: id;
@@ -31,31 +31,55 @@ export interface ProjectSchema
     name: string;
     version: string;
     createdBy: string;
-    nodes: Record<string, NodeSchema>;
+    nodes: Record<string, NodeSchema<any>>;
     hierarchy: Record<id /** parentId */, id /** childId */>;
-    root?: string;
 }
 
-export function createProject(name: string): ProjectSchema
+export interface CloneInfoSchema
 {
+    cloner?: id;
+    cloneMode: CloneMode;
+    cloned: id[];
+}
+
+export interface NodeOptionsSchema<M extends ModelBase>
+{
+    id?: string;
+    model?: Partial<M>;
+    cloneInfo?: CloneInfoSchema;
+}
+
+export function createProjectSchema(name: string): ProjectSchema
+{
+    const project = createNodeSchema('Project');
+    const scene = createNodeSchema('Scene');
+
     return {
         name,
         version,
         createdBy: getUserName(),
-        nodes: { },
-        hierarchy: { },
+        nodes: {
+            [project.id]: project,
+            [scene.id]: scene,
+        },
+        hierarchy: {
+            [project.id]: scene.id,
+        },
     };
 }
 
-export function createNode(type: string, id?: string): NodeSchema
+export function createNodeSchema<M extends ModelBase>(type: string, nodeOptions: NodeOptionsSchema<M> = {}): NodeSchema<M>
 {
+    const { id, model, cloneInfo: { cloner, cloneMode, cloned } = {} } = nodeOptions;
+
     return {
-        id: id ?? newNodeId(type),
+        id: id ?? newGraphNodeId(type),
         type,
-        model: {},
+        model: model ?? {},
         cloneInfo: {
-            cloneMode: CloneMode.Original,
-            cloned: [],
+            cloner,
+            cloneMode: cloneMode ?? CloneMode.Original,
+            cloned: cloned ?? [],
         },
         customProperties: {
             defined: {},

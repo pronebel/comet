@@ -12,7 +12,13 @@ export class AddChildCommand extends Command
 
     public apply(): void
     {
-        throw new Error('Method not implemented.');
+        const { datastore, parentId, childId } = this;
+
+        // add data to datastore
+        datastore.hierarchy.set(parentId, childId);
+
+        // trigger object graph update
+        datastore.emit('nodeChildAdded', parentId, childId);
     }
 
     public undo(): void

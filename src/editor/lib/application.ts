@@ -43,13 +43,15 @@ export class Application extends EventEmitter
 
         this.undoStack = [];
 
+        // create object graph
         const objectGraph = this.objectGraph = new ObjectGraph();
 
-        objectGraph.on('nodeCreated', this.onObjectGraphNodeCreated);
-
+        objectGraph.on('nodeCreated', this.onObjectGraphNodeCreated.bind(this));
+        // create datastore
         this.datastore = new Datastore();
 
         this.bindDataStoreEvent('nodeCreated', objectGraph.createNode);
+        this.bindDataStoreEvent('nodeChildAdded', objectGraph.childAdded);
     }
 
     protected bindDataStoreEvent(eventName: DatastoreEvents, fn: (...args: any[]) => void)
@@ -79,10 +81,11 @@ export class Application extends EventEmitter
         // subclasses
     }
 
-    public pushCommand(command: Command)
+    public pushCommand<T = void>(command: Command): T
     {
         this.undoStack.push(command);
-        command.apply();
+
+        return command.apply() as T;
     }
 
     public static get instance()
@@ -100,13 +103,36 @@ export class Application extends EventEmitter
         return this.pixiApp.stage;
     }
 
-    protected onObjectGraphNodeCreated = (node: ClonableNode) =>
+    public async createProject(name: string, id: string)
+    {
+        const { datastore, objectGraph } = this;
+
+        if (await datastore.hasProject(name))
+        {
+            await datastore.deleteProject(id);
+        }
+
+        await datastore.createProject(name, id);
+
+        objectGraph.hydrate(datastore);
+
+        // this.pushCommand(new CreateNodeCommand('Project'));
+    }
+
+    public async openProject(id: string)
+    {
+        await this.datastore.openProject(id);
+    }
+
+    protected onObjectGraphNodeCreated(node: ClonableNode)
     {
         if (node.nodeType() === 'Project')
         {
-            const project = this.project = node as ProjectNode;
+            const project = this.project = node as unknown as ProjectNode;
 
             this.stage.addChild(project.view);
+
+            console.log('add Project view to stage');
         }
-    };
+    }
 }

@@ -1,6 +1,7 @@
 import type { ClonableNode } from './abstract/clonableNode';
 import type { Clonable } from './cloneInfo';
 import { CloneInfo, CloneMode } from './cloneInfo';
+import { newGraphNodeId } from './factory';
 
 export type CustomPropertyType = 'string' | 'number' | 'boolean';
 
@@ -42,12 +43,14 @@ export class CustomProperty
 
 export class CustomProperties<C extends ClonableNode> implements Clonable
 {
+    public id: string;
     public cloneInfo: CloneInfo;
     public properties: Map<string, CustomProperty[]>;
     public assignments: Map<string, string>;
 
     constructor(cloneInfo: CloneInfo = new CloneInfo())
     {
+        this.id = newGraphNodeId('CustomProperties', true);
         this.properties = new Map();
         this.cloneInfo = cloneInfo;
         this.assignments = new Map();

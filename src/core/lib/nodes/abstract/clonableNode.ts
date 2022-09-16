@@ -2,9 +2,9 @@ import { type Model, type ModelBase, createModel } from '../../model/model';
 import type { ModelSchema } from '../../model/schema';
 import { type Clonable, CloneInfo, CloneMode } from '../cloneInfo';
 import { type CustomProperty, type CustomPropertyType, CustomProperties } from '../customProperties';
-import { type BaseNodeEvents, BaseNode } from './baseNode';
+import { type GraphNodeEvents, GraphNode } from './graphNode';
 
-export type ClonableNodeEvents = BaseNodeEvents | 'modelChanged' | 'unlinked';
+export type ClonableNodeEvents = GraphNodeEvents | 'modelChanged' | 'unlinked';
 
 export type AnyNode = ClonableNode<any, any, any>;
 
@@ -24,8 +24,8 @@ const modelBase = {} as ModelBase;
 export abstract class ClonableNode<
     M extends ModelBase = typeof modelBase,
     V extends object = object,
-    E extends string = ClonableNodeEvents,
-> extends BaseNode<ClonableNodeEvents | E> implements Clonable
+    E extends string = string,
+> extends GraphNode<ClonableNodeEvents | E> implements Clonable
 {
     public model: Model<M> & M;
     public view: V;
@@ -336,7 +336,7 @@ export abstract class ClonableNode<
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onRemovedFromParent(oldParent: BaseNode)
+    protected onRemovedFromParent(oldParent: GraphNode)
     {
         const { cloneInfo, cloneInfo: { isReferenceOrRoot } } = this;
         const cloner = cloneInfo.getCloner<ClonableNode>();

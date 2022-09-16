@@ -3,6 +3,7 @@ import { Container } from 'pixi.js';
 import { ModelSchema } from '../../model/schema';
 import type { DisplayObjectEvents, DisplayObjectModel } from '../abstract/displayObject';
 import { DisplayObjectNode, displayObjectSchema } from '../abstract/displayObject';
+import type { GraphNode } from '../abstract/graphNode';
 
 export type ContainerEvents = DisplayObjectEvents;
 
@@ -66,7 +67,7 @@ export class ContainerNode<
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onRemovedFromParent(oldParent: BaseNode): void
+    protected onRemovedFromParent(oldParent: GraphNode): void
     {
         super.onRemovedFromParent(oldParent);
 

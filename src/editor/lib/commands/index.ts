@@ -1,13 +1,13 @@
 import { Application } from '../application';
 
-export abstract class Command
+export abstract class Command<T = void>
 {
-    public abstract apply(): void;
+    public abstract apply(): T;
     public abstract undo(): void;
 
-    public redo()
+    public redo(): T
     {
-        this.apply();
+        return this.apply();
     }
 
     public get app()

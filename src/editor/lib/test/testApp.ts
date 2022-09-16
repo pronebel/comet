@@ -1,18 +1,21 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
+import type { ModelBase } from '../../../core/lib/model/model';
+import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
-import type { ContainerNode } from '../../../core/lib/nodes/concrete/container';
-import { EmptyNode } from '../../../core/lib/nodes/concrete/empty';
-import { newNodeId, registerNodeType } from '../../../core/lib/nodes/factory';
+import type { ContainerModel, ContainerNode } from '../../../core/lib/nodes/concrete/container';
+import { registerGraphNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
+import { AddChildCommand } from '../commands/addChild';
 import { CreateNodeCommand } from '../commands/create';
+import type { NodeSchema } from '../sync/schema';
 import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
 
 export let app: TestApp;
 
-registerNodeType(DebugNode);
+registerGraphNodeType(DebugNode);
 
 export class TestApp extends Application
 {
@@ -40,46 +43,54 @@ export class TestApp extends Application
 
     public async init()
     {
-        const { datastore: dataStore } = this;
+        await this.createProject('Test', 'test');
+        // await this.openProject('test');
 
-        if (await dataStore.hasProject('Test'))
-        {
-            await dataStore.deleteProject('test');
-        }
+        this.deselect();
+    }
 
-        await dataStore.createProject('Test', 'test');
+    protected onObjectGraphNodeCreated(node: ClonableNode<ModelBase, object, string>): void
+    {
+        super.onObjectGraphNodeCreated(node);
 
-        // await dataStore.openProject('test');
-
-        this.pushCommand(new CreateNodeCommand('Project'));
+        this.selected = node as unknown as ContainerNode;
     }
 
     public newContainer()
     {
-        const empty = new EmptyNode({
-            id: newNodeId('Empty'),
-            model: {
-                x: 20,
-                y: 20,
-            },
-        });
+        if (this.project && this.selected)
+        {
+            const parentId = this.selected.id;
 
-        this.addNode(empty);
+            const nodeSchema = this.pushCommand<NodeSchema<ContainerModel>>(new CreateNodeCommand<ContainerModel>('Empty', {
+                model: {
+                    x: 20,
+                    y: 20,
+                },
+            }));
+
+            this.pushCommand(new AddChildCommand(parentId, nodeSchema.id));
+        }
     }
 
     public newChild()
     {
-        // const component = new DebugNode({
-        //     model: {
-        //         x: 20,
-        //         y: 20,
-        //         width: 20,
-        //         height: 20,
-        //         tint: Math.round(Math.random() * 100000),
-        //     },
-        // });
+        if (this.project && this.selected)
+        {
+            const parentId = this.selected.id;
 
-        // this.addNode(component as unknown as ContainerNode);
+            const nodeSchema = this.pushCommand<NodeSchema<DebugModel>>(new CreateNodeCommand<DebugModel>('Debug', {
+                model: {
+                    x: 20,
+                    y: 20,
+                    width: 20,
+                    height: 20,
+                    tint: Math.round(Math.random() * 100000),
+                },
+            }));
+
+            this.pushCommand(new AddChildCommand(parentId, nodeSchema.id));
+        }
     }
 
     public addNode(component: ContainerNode)
@@ -155,8 +166,13 @@ export class TestApp extends Application
 
     public deselect()
     {
-        delete this.selected;
-        this.selection.visible = false;
+        if (this.project)
+        {
+            const scene = this.project.getChildAt<ContainerNode>(0);
+
+            this.selected = scene;
+            this.selection.visible = false;
+        }
     }
 
     public fitSelection(component?: ContainerNode)

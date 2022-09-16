@@ -1,4 +1,4 @@
-import { type BaseNodeEvents, BaseNode } from '../nodes/abstract/baseNode';
+import { type GraphNodeEvents, GraphNode } from '../nodes/abstract/graphNode';
 import type { ModelSchema } from './schema';
 
 let id = 1;
@@ -6,7 +6,7 @@ let id = 1;
 export type ModelValue = string | number | boolean | object | null;
 export type ModelBase = Record<string, ModelValue>;
 
-export class Model<M> extends BaseNode<BaseNodeEvents | 'modified'>
+export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
 {
     public schema: ModelSchema<M>;
     public data: Partial<M>;
@@ -221,6 +221,11 @@ export class Model<M> extends BaseNode<BaseNodeEvents | 'modified'>
         }
 
         return undefined;
+    }
+
+    public nodeType(): string
+    {
+        return 'Model';
     }
 }
 
