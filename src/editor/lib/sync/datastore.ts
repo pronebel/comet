@@ -73,7 +73,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         console.log(`Created project "${model.modelId()}"`);
 
-        return this.openProject(model.modelId());
+        await this.openProject(model.modelId());
     }
 
     public async openProject(id: string)
@@ -83,8 +83,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         console.log(`Opened project "${model.modelId()}"`);
 
         await this.initModel(model);
-
-        return model;
     }
 
     protected async initModel(model: RealTimeModel)

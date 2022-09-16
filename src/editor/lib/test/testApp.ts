@@ -4,7 +4,6 @@ import { filters, Sprite, Texture } from 'pixi.js';
 import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { ContainerNode } from '../../../core/lib/nodes/concrete/container';
 import { EmptyNode } from '../../../core/lib/nodes/concrete/empty';
-import type { ProjectNode } from '../../../core/lib/nodes/concrete/project';
 import { newNodeId, registerNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
 import { CreateNodeCommand } from '../commands/create';
@@ -19,7 +18,6 @@ export class TestApp extends Application
 {
     public selected?: ContainerNode;
     public selection: Sprite;
-    public project?: ProjectNode;
 
     public static getInstance()
     {
@@ -44,15 +42,16 @@ export class TestApp extends Application
     {
         const { datastore: dataStore } = this;
 
-        // if (await dataStore.hasProject('Test'))
-        // {
-        //     await dataStore.deleteProject('test');
-        // }
+        if (await dataStore.hasProject('Test'))
+        {
+            await dataStore.deleteProject('test');
+        }
 
-        // await dataStore.createProject('Test', 'test');
-        await dataStore.openProject('test');
+        await dataStore.createProject('Test', 'test');
 
-        this.pushCommand(new CreateNodeCommand('Project', { id: newNodeId('Project') }));
+        // await dataStore.openProject('test');
+
+        this.pushCommand(new CreateNodeCommand('Project'));
     }
 
     public newContainer()

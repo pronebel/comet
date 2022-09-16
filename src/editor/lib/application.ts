@@ -4,9 +4,11 @@ import { EventEmitter } from 'eventemitter3';
 import { deepEqual } from 'fast-equals';
 import { Application as PixiApplication } from 'pixi.js';
 
+import type { ClonableNode } from '../../core/lib/nodes/abstract/clonableNode';
+import type { ProjectNode } from '../../core/lib/nodes/concrete/project';
 import type { Command } from './commands';
 import { type DatastoreEvents, Datastore } from './sync/datastore';
-import type { NodeSchema } from './sync/schema';
+import { ObjectGraph } from './sync/objectGraph';
 
 export interface AppOptions
 {
@@ -18,6 +20,9 @@ export class Application extends EventEmitter
     public pixiApp: PixiApplication;
     public datastore: Datastore;
     public undoStack: Command[];
+    public objectGraph: ObjectGraph;
+    public project?: ProjectNode;
+
     protected eventFilter: Map<string, any[]>;
 
     private static _instance: Application;
@@ -38,9 +43,13 @@ export class Application extends EventEmitter
 
         this.undoStack = [];
 
+        const objectGraph = this.objectGraph = new ObjectGraph();
+
+        objectGraph.on('nodeCreated', this.onObjectGraphNodeCreated);
+
         this.datastore = new Datastore();
 
-        this.bindDataStoreEvent('nodeCreated', this.onNodeCreated);
+        this.bindDataStoreEvent('nodeCreated', objectGraph.createNode);
     }
 
     protected bindDataStoreEvent(eventName: DatastoreEvents, fn: (...args: any[]) => void)
@@ -91,8 +100,13 @@ export class Application extends EventEmitter
         return this.pixiApp.stage;
     }
 
-    protected onNodeCreated = (node: NodeSchema) =>
+    protected onObjectGraphNodeCreated = (node: ClonableNode) =>
     {
-        console.log('NodeCreated!', node);
+        if (node.nodeType() === 'Project')
+        {
+            const project = this.project = node as ProjectNode;
+
+            this.stage.addChild(project.view);
+        }
     };
 }

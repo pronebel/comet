@@ -19,7 +19,6 @@ export interface NodeSchema
     };
     customProperties: {
         defined: Record<string, {
-            name: string;
             type: CustomPropertyType;
             value: ModelValue;
         }>;

@@ -18,6 +18,16 @@ export function registerNodeType(nodeClass: ClonableNodeConstructor)
     nodeClasses.set(nodeType, nodeClass);
 }
 
+export function getNode(id?: string)
+{
+    if (id)
+    {
+        return nodeInstances.get(id);
+    }
+
+    return undefined;
+}
+
 export function createNode(nodeType: string, options: NodeOptions<any>)
 {
     const NodeClass = nodeClasses.get(nodeType);

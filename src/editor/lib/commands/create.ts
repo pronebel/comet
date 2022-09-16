@@ -6,7 +6,7 @@ export class CreateNodeCommand extends Command
 {
     constructor(
         public readonly nodeType: string,
-        public readonly nodeOptions: NodeOptions<any>,
+        public readonly nodeOptions: NodeOptions<any> = {},
     )
     {
         super();
@@ -14,12 +14,14 @@ export class CreateNodeCommand extends Command
 
     public apply(): void
     {
-        const { nodeType, nodeOptions, datastore } = this;
+        const { nodeType, datastore, nodeOptions } = this;
 
         const node = createNode(nodeType, nodeOptions.id);
 
+        // add data to datastore
         datastore.nodes.set(node.id, node);
 
+        // trigger object graph update
         datastore.emit('nodeCreated', node);
     }
 

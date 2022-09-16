@@ -14,7 +14,7 @@ export type ClonableNodeConstructor = {
 
 export interface NodeOptions<M>
 {
-    id: string;
+    id?: string;
     model?: Partial<M>;
     cloneInfo?: CloneInfo;
 }
@@ -34,7 +34,7 @@ export abstract class ClonableNode<
     public customProperties: CustomProperties<ClonableNode>;
 
     constructor(
-        options: NodeOptions<M>,
+        options: NodeOptions<M> = {},
     )
     {
         super(options.id);

@@ -1,5 +1,7 @@
 import EventEmitter from 'eventemitter3';
 
+import { newNodeId } from '../factory';
+
 export type BaseNodeEvents = 'childAdded' | 'childRemoved' | 'disposed';
 
 export interface WalkOptions
@@ -28,20 +30,15 @@ export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEv
     public parent?: BaseNode<any>;
     public children: BaseNode<any>[];
 
-    constructor(id: string)
+    constructor(id?: string)
     {
         super();
 
-        this.id = id;
+        this.id = id ?? newNodeId(this.nodeType());
         this.children = [];
     }
 
     public abstract nodeType(): string;
-
-    public getNodeType(): string
-    {
-        return (Object.getPrototypeOf(this).constructor as BaseNodeConstructor).nodeType();
-    }
 
     public dispose()
     {
@@ -98,7 +95,7 @@ export abstract class BaseNode<E extends string> extends EventEmitter<BaseNodeEv
     {
         if (component === this)
         {
-            throw new Error(`"Cannot add ${this.getNodeType()} to self"`);
+            throw new Error(`"Cannot add ${this.nodeType} to self"`);
         }
 
         component.setParent(this);
