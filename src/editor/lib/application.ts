@@ -22,7 +22,7 @@ export class Application extends EventEmitter
 {
     public pixiApp: PixiApplication;
     public datastore: Datastore;
-    public undoStack: Command[];
+    public undoStack: (Command[] | Command)[];
     public objectGraph: ObjectGraph;
     public project?: ProjectNode;
 
@@ -95,6 +95,16 @@ export class Application extends EventEmitter
         console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');
 
         return command.apply() as T;
+    }
+
+    public pushCommands(commands: Command[])
+    {
+        this.undoStack.push(commands);
+        commands.forEach((command) =>
+        {
+            console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');
+            command.apply();
+        });
     }
 
     public static get instance()

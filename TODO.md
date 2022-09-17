@@ -1,8 +1,21 @@
-# Custom Props
+⚪ - todo
+🟠 - in progress
+🟢 - done
 
-* Testing, testing, testing...
+[ Weekend ]
 
-# Document
+* 🟠 Create, delete, custom props, cloning, unlink - finish core actions
+* 🟢 Undo stack needs: [cmd, cmd, [cmd, cmd, cmd], cmd] - to facilitate multi-select operations
+* ⚪ Basic hotkeys for undo/redo
+* ⚪ Undo / Redo
 
-* Bind component and model updates to document, create global change awareness
-    - update debug view in Testing.svelte to only render on those updates, allow text selection (and dom inspection)
+[ Monday + Next Week ]
+
+* ⚪ Begin selection references (multi-select aware tools?)
+* ⚪ Begin transform operations
+* ⚪ Begin parenting
+* ⚪ Begin UI
+
+[ General ]
+* ⚪ Proper app startup flow
+* ⚪ Detect connection/disconnection to backend

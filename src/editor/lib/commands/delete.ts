@@ -3,15 +3,25 @@ import { Command } from '.';
 export class DeleteCommand extends Command
 {
     constructor(
-        public readonly targetId: string,
+        public readonly nodeId: string,
     )
     {
         super();
     }
 
+    public name(): string
+    {
+        return 'Delete';
+    }
+
     public apply(): void
     {
-        throw new Error('Method not implemented.');
+        const { datastore, nodeId } = this;
+
+        datastore.nodes.remove(nodeId);
+        datastore.unRegisterNodeRealtimeObject(nodeId);
+
+        datastore.emit('dataStoreNodeDeleted', nodeId);
     }
 
     public undo(): void

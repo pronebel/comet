@@ -23,7 +23,7 @@ export class SetCustomPropCommand extends Command
     public apply(): void
     {
         const { nodeId, propName, type, value, datastore } = this;
-        const nodeElement = this.datastore.getRealTimeObject(nodeId);
+        const nodeElement = datastore.getRealTimeObject(nodeId);
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
         definedCustomProps.set(propName, {

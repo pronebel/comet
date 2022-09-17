@@ -3,7 +3,7 @@ import { Application } from '../application';
 export abstract class Command<T = void>
 {
     public abstract name(): string;
-    public abstract apply(): T;
+    public abstract apply(): T; // modify datastore, notify application via datastore
     public abstract undo(): void;
 
     public redo(): T

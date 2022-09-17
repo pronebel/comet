@@ -9,6 +9,7 @@ import { registerGraphNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
 import { AddChildCommand } from '../commands/addChild';
 import { CreateNodeCommand } from '../commands/createNode';
+import { DeleteCommand } from '../commands/delete';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import type { NodeSchema } from '../sync/schema';
 import { getUserName } from '../sync/user';
@@ -102,41 +103,12 @@ export class TestApp extends Application
         }
     }
 
-    public addNode(component: ContainerNode)
-    {
-        if (this.project)
-        {
-            if (this.selected)
-            {
-                this.selected.addChild(component);
-            }
-            else
-            {
-                const scene = this.project.getChildAt(0);
-
-                scene.addChild(component);
-            }
-
-            this.makeInteractiveDeep(component);
-            this.select(component);
-            this.inspect();
-        }
-    }
-
-    public clone(cloneMode: CloneMode): ContainerNode | undefined
+    public clone(cloneMode: CloneMode)
     {
         if (this.selected)
         {
-            const component = this.selected.clone(cloneMode) as unknown as ContainerNode;
 
-            delete this.selected;
-
-            this.addNode(component);
-
-            return component;
         }
-
-        return undefined;
     }
 
     public makeInteractiveDeep(rootNode: ContainerNode)
@@ -207,17 +179,15 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            this.selected.unlink();
+
         }
     }
 
     public deleteSelected()
     {
-        if (this.selected)
+        if (this.selected && this.selected.nodeType() !== 'Scene')
         {
-            this.selected.deleteSelf();
-            delete this.selected;
-            this.selection.visible = false;
+            this.pushCommand(new DeleteCommand(this.selected.id));
         }
     }
 

@@ -10,9 +10,20 @@ export class RemoveChildCommand extends Command
         super();
     }
 
+    public name()
+    {
+        return 'RemoveChild';
+    }
+
     public apply(): void
     {
-        throw new Error('Method not implemented.');
+        const { datastore, parentId, childId } = this;
+
+        // add data to datastore
+        datastore.hierarchy.set(parentId, childId);
+
+        // trigger object graph update
+        datastore.emit('dataStoreNodeChildAdded', parentId, childId);
     }
 
     public undo(): void

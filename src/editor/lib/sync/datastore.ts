@@ -7,7 +7,11 @@ import { getUserName } from './user';
 
 const userName = getUserName();
 
-export type DatastoreEvents = 'dataStoreNodeCreated' | 'dataStoreNodeChildAdded' | 'dataStoreCustomPropDefined';
+export type DatastoreEvents =
+| 'dataStoreNodeCreated'
+| 'dataStoreNodeChildAdded'
+| 'dataStoreCustomPropDefined'
+| 'dataStoreNodeDeleted';
 
 const logStyle = 'color:cyan';
 
@@ -206,6 +210,16 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         });
 
         console.log(`${userName}:Register RealTimeObject "${id}"`);
+    }
+
+    public unRegisterNodeRealtimeObject(id: string)
+    {
+        if (!this.nodeRealtimeObjects.has(id))
+        {
+            throw new Error(`Cannot remove Node "${id}" as RealTimeObject is not registered.`);
+        }
+
+        this.nodeRealtimeObjects.delete(id);
     }
 
     public getRealTimeObject(id: string)
