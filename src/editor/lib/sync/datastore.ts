@@ -1,8 +1,10 @@
-import {  type ConvergenceDomain,  type IConvergenceEvent,  type ObjectSetEvent,  type RealTimeModel, RealTimeString  } from '@convergence/convergence';
+import type { ConvergenceDomain, IConvergenceEvent, ObjectSetEvent, RealTimeModel } from '@convergence/convergence';
 import Convergence, { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
-import { createProjectSchema } from './schema';
+import type { ModelBase } from '../../../core/lib/model/model';
+import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
+import { type NodeOptionsSchema, type NodeSchema, createProjectSchema } from './schema';
 import { getUserName } from './user';
 
 const userName = getUserName();
@@ -255,5 +257,61 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         }
 
         return nodeElement;
+    }
+
+    public createNode<M extends ModelBase>(nodeSchema: NodeSchema<M>, nodeOptions: NodeOptionsSchema<M>)
+    {
+        // add data to datastore
+        const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema);
+
+        // notify application, which will update object graph
+        this.emit('datastoreNodeCreated', nodeElement);
+
+        if (nodeOptions.parent)
+        {
+            const parentId = nodeOptions.parent;
+            const childId = nodeSchema.id;
+
+            this.emit('datastoreNodeSetParent', parentId, childId);
+        }
+    }
+
+    public setNodeParent(parentId: string, childId: string)
+    {
+        // update datastore
+        const nodeElement = this.getNode(childId);
+
+        nodeElement.set('parent', parentId);
+
+        // trigger object graph update
+        this.emit('datastoreNodeSetParent', parentId, childId);
+    }
+
+    public removeNode(nodeId: string)
+    {
+        // update datastore
+        const nodeElement = this.getNode(nodeId);
+
+        const parentId = nodeElement.get('parent').value() as string;
+
+        this.nodes.remove(nodeId);
+        this.unRegisterNode(nodeId);
+
+        // trigger object graph update
+        this.emit('datastoreNodeRemoved', nodeId, parentId);
+    }
+
+    public setNodeCustomProperty(nodeId: string, propName: string, type: CustomPropertyType, value: CustomPropertyValueType)
+    {
+        const nodeElement = this.getNode(nodeId);
+        const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
+
+        definedCustomProps.set(propName, {
+            type,
+            value,
+        });
+
+        // notify application, which will update object graph
+        this.emit('datastoreCustomPropDefined', nodeId, propName, type, value);
     }
 }

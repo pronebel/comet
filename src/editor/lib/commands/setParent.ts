@@ -19,13 +19,7 @@ export class SetParentCommand extends Command
     {
         const { datastore, parentId, childId } = this;
 
-        // update datastore
-        const nodeElement = datastore.getNode(childId);
-
-        nodeElement.set('parent', parentId);
-
-        // trigger object graph update
-        datastore.emit('datastoreNodeSetParent', parentId, childId);
+        datastore.setNodeParent(parentId, childId);
     }
 
     public undo(): void

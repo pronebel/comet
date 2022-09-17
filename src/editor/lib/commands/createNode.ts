@@ -23,19 +23,7 @@ export class CreateNodeCommand<M extends ModelBase> extends Command<NodeSchema<M
 
         const nodeSchema = createNodeSchema<M>(nodeType, nodeOptions);
 
-        // add data to datastore
-        const nodeElement = datastore.nodes.set(nodeSchema.id, nodeSchema);
-
-        // notify application, which will update object graph
-        datastore.emit('datastoreNodeCreated', nodeElement);
-
-        if (nodeOptions.parent)
-        {
-            const parentId = nodeOptions.parent;
-            const childId = nodeSchema.id;
-
-            datastore.emit('datastoreNodeSetParent', parentId, childId);
-        }
+        datastore.createNode(nodeSchema, nodeOptions);
 
         return nodeSchema;
     }

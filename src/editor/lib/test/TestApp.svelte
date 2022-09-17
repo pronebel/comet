@@ -173,10 +173,10 @@
 
   user {
     position: fixed;
-    top: 0;
+    top: calc(50% - 30px);
     left: 5px;
     color: yellow;
-    font-size: 12px;
+    font-size: 14px;
   }
 
   keyvalue {
@@ -215,5 +215,6 @@
     font-family: "Courier New", Courier, monospace;
     padding: 5px;
     line-height: 16px;
+    margin: 0;
   }
 </style>

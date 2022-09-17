@@ -99,12 +99,13 @@ export class TestApp extends Application
         }
     }
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public clone(cloneMode: CloneMode)
     {
-        if (this.selected)
-        {
+        // if (this.selected)
+        // {
 
-        }
+        // }
     }
 
     public makeInteractiveDeep(rootNode: ContainerNode)
@@ -173,10 +174,10 @@ export class TestApp extends Application
 
     public unlink()
     {
-        if (this.selected)
-        {
+        // if (this.selected)
+        // {
 
-        }
+        // }
     }
 
     public deleteSelected()

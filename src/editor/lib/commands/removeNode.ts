@@ -18,16 +18,7 @@ export class RemoveNodeCommand extends Command
     {
         const { datastore, nodeId } = this;
 
-        // update datastore
-        const nodeElement = datastore.getNode(nodeId);
-
-        const parentId = nodeElement.get('parent').value() as string;
-
-        datastore.nodes.remove(nodeId);
-        datastore.unRegisterNode(nodeId);
-
-        // trigger object graph update
-        datastore.emit('datastoreNodeRemoved', nodeId, parentId);
+        datastore.removeNode(nodeId);
     }
 
     public undo(): void
