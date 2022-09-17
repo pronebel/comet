@@ -7,11 +7,9 @@ import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { ContainerModel, ContainerNode } from '../../../core/lib/nodes/concrete/container';
 import { registerGraphNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
-import { AddChildCommand } from '../commands/addChild';
 import { CreateNodeCommand } from '../commands/createNode';
-import { DeleteCommand } from '../commands/delete';
+import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
-import type { NodeSchema } from '../sync/schema';
 import { getUserName } from '../sync/user';
 import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
@@ -70,16 +68,12 @@ export class TestApp extends Application
     {
         if (this.project && this.selected)
         {
-            const parentId = this.selected.id;
-
-            const nodeSchema = this.pushCommand<NodeSchema<ContainerModel>>(new CreateNodeCommand<ContainerModel>('Empty', {
+            this.pushCommand(new CreateNodeCommand<ContainerModel>('Empty', {
                 model: {
                     x: 20,
                     y: 20,
                 },
             }));
-
-            this.pushCommand(new AddChildCommand(parentId, nodeSchema.id));
         }
     }
 
@@ -89,7 +83,8 @@ export class TestApp extends Application
         {
             const parentId = this.selected.id;
 
-            const nodeSchema = this.pushCommand<NodeSchema<DebugModel>>(new CreateNodeCommand<DebugModel>('Debug', {
+            this.pushCommand(new CreateNodeCommand<DebugModel>('Debug', {
+                parent: parentId,
                 model: {
                     x: 20,
                     y: 20,
@@ -98,8 +93,6 @@ export class TestApp extends Application
                     tint: Math.round(Math.random() * 100000),
                 },
             }));
-
-            this.pushCommand(new AddChildCommand(parentId, nodeSchema.id));
         }
     }
 
@@ -187,7 +180,14 @@ export class TestApp extends Application
     {
         if (this.selected && this.selected.nodeType() !== 'Scene')
         {
-            this.pushCommand(new DeleteCommand(this.selected.id));
+            const parentNode = this.selected.parent;
+
+            this.pushCommand(new RemoveNodeCommand(this.selected.id));
+
+            if (parentNode)
+            {
+                this.select(parentNode as ContainerNode);
+            }
         }
     }
 

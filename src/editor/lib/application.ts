@@ -56,9 +56,10 @@ export class Application extends EventEmitter
         objectGraph.on('objectGraphNodeCreated', this.onObjectGraphNodeCreated.bind(this));
 
         // update object graph when datastore changes
-        this.bindDataStoreEvent('dataStoreNodeCreated', objectGraph.onDatastoreNodeCreated);
-        this.bindDataStoreEvent('dataStoreNodeChildAdded', objectGraph.onDatastoreNodeChildAdded);
-        this.bindDataStoreEvent('dataStoreCustomPropDefined', objectGraph.onDataStoreCustomPropDefined);
+        this.bindDataStoreEvent('datastoreNodeCreated', objectGraph.onDatastoreNodeCreated);
+        this.bindDataStoreEvent('datastoreNodeSetParent', objectGraph.onDatastoreNodeSetParent);
+        this.bindDataStoreEvent('datastoreCustomPropDefined', objectGraph.onDataStoreCustomPropDefined);
+        this.bindDataStoreEvent('datastoreNodeRemoved', objectGraph.onDatastoreNodeRemoved);
     }
 
     protected bindDataStoreEvent(eventName: DatastoreEvents, fn: (...args: any[]) => void)
@@ -100,6 +101,7 @@ export class Application extends EventEmitter
     public pushCommands(commands: Command[])
     {
         this.undoStack.push(commands);
+
         commands.forEach((command) =>
         {
             console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');

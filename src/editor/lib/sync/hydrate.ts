@@ -7,11 +7,11 @@ import type { Datastore } from './datastore';
 
 export function hydrate(datastore: Datastore)
 {
-    const { nodes, hierarchy } = datastore;
+    const { nodes } = datastore;
 
     const graphNodes = createGraphNodes(datastore, nodes);
 
-    nestGraphNodes(hierarchy, graphNodes);
+    nestGraphNodes(nodes, graphNodes);
 
     return graphNodes;
 }
@@ -37,17 +37,20 @@ function createGraphNodes(datastore: Datastore, nodes: RealTimeObject)
         graphNodes.set(id, node);
 
         // register RealTimeObject
-        datastore.registerNodeRealtimeObject(id, nodeElement);
+        datastore.registerNode(id, nodeElement);
     });
 
     return graphNodes;
 }
 
-function nestGraphNodes(hierarchy: RealTimeObject, graphNodes: Map<string, ClonableNode>)
+function nestGraphNodes(nodes: RealTimeObject, graphNodes: Map<string, ClonableNode>)
 {
-    hierarchy.keys().forEach((parentId) =>
+    nodes.keys().forEach((id) =>
     {
-        const childId = hierarchy.get(parentId).value();
+        const nodeElement = nodes.get(id) as RealTimeObject;
+
+        const parentId = nodeElement.get('parent').value();
+        const childId = nodeElement.get('id').value();
         const parentNode = graphNodes.get(parentId);
         const childNode = graphNodes.get(childId);
 

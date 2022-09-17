@@ -58,13 +58,13 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         }
 
         // register RealTimeObject
-        this.datastore.registerNodeRealtimeObject(id, nodeElement);
+        this.datastore.registerNode(id, nodeElement);
 
         // notify application
         this.emit('objectGraphNodeCreated', node);
     };
 
-    public onDatastoreNodeChildAdded = (parentId: string, childId: string) =>
+    public onDatastoreNodeSetParent = (parentId: string, childId: string) =>
     {
         const parentNode = getGraphNode(parentId);
         const childNode = getGraphNode(childId);
@@ -85,5 +85,20 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         const node = getGraphNode(id);
 
         node?.setCustomProperty(name, type, value);
+    };
+
+    public onDatastoreNodeRemoved = (nodeId: string, parentId: string) =>
+    {
+        const parentNode = getGraphNode(parentId);
+        const childNode = getGraphNode(nodeId);
+
+        if (parentNode && childNode)
+        {
+            parentNode.removeChild(childNode);
+        }
+        else
+        {
+            throw new Error(`Could not find parent "${parentId}" or child "${nodeId}" to remove child`);
+        }
     };
 }

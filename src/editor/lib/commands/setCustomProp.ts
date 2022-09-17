@@ -23,7 +23,7 @@ export class SetCustomPropCommand extends Command
     public apply(): void
     {
         const { nodeId, propName, type, value, datastore } = this;
-        const nodeElement = datastore.getRealTimeObject(nodeId);
+        const nodeElement = datastore.getNode(nodeId);
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
         definedCustomProps.set(propName, {
@@ -32,7 +32,7 @@ export class SetCustomPropCommand extends Command
         });
 
         // notify application, which will update object graph
-        datastore.emit('dataStoreCustomPropDefined', nodeId, propName, type, value);
+        datastore.emit('datastoreCustomPropDefined', nodeId, propName, type, value);
     }
 
     public undo(): void

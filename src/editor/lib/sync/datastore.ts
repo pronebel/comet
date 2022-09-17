@@ -1,5 +1,5 @@
-import type {  ConvergenceDomain,  IConvergenceEvent,  ObjectSetEvent,  RealTimeModel } from '@convergence/convergence';
-import Convergence, { RealTimeObject  } from '@convergence/convergence';
+import type{  ConvergenceDomain,  IConvergenceEvent,  ObjectSetEvent,  RealTimeModel  } from '@convergence/convergence';
+import Convergence, { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
 import { createProjectSchema } from './schema';
@@ -8,10 +8,10 @@ import { getUserName } from './user';
 const userName = getUserName();
 
 export type DatastoreEvents =
-| 'dataStoreNodeCreated'
-| 'dataStoreNodeChildAdded'
-| 'dataStoreCustomPropDefined'
-| 'dataStoreNodeDeleted';
+| 'datastoreNodeCreated'
+| 'datastoreNodeSetParent'
+| 'datastoreNodeRemoved'
+| 'datastoreCustomPropDefined';
 
 const logStyle = 'color:cyan';
 
@@ -89,11 +89,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return this.model.elementAt('nodes') as RealTimeObject;
     }
 
-    get hierarchy()
-    {
-        return this.model.elementAt('hierarchy') as RealTimeObject;
-    }
-
     public async createProject(name: string, id?: string)
     {
         const data = createProjectSchema(name);
@@ -130,20 +125,31 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
         {
             const nodeElement = (event as ObjectSetEvent).value as RealTimeObject;
+            const parentId = nodeElement.get('parent').value() as string | undefined;
 
-            console.log(`%c${userName}:nodes.set: ${nodeElement.toJSON()}`, logStyle);
+            console.log(`%c${userName}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
 
-            this.emit('dataStoreNodeCreated', nodeElement);
-        });
+            this.emit('datastoreNodeCreated', nodeElement);
 
-        this.hierarchy.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+            if (parentId)
+            {
+                const childId = nodeElement.get('id').value() as string;
+
+                this.emit('datastoreNodeSetParent', parentId, childId);
+            }
+        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
         {
-            const parentId = (event as ObjectSetEvent).key;
-            const childId = (event as ObjectSetEvent).value.value();
+            const nodeId = (event as ObjectSetEvent).key;
 
-            console.log(`%c${userName}:hierarchy.set: ${parentId} ${childId}`, logStyle);
+            const nodeElement = (event as ObjectSetEvent).oldValue as RealTimeObject;
+            const parentId = nodeElement.get('parent').value() as string | undefined;
 
-            this.emit('dataStoreNodeChildAdded', parentId, childId);
+            console.log(`%c${userName}:nodes.remove: ${nodeId}`, logStyle);
+
+            if (parentId)
+            {
+                this.emit('datastoreNodeRemoved', nodeId, parentId);
+            }
         });
     }
 
@@ -188,7 +194,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         console.log(`%c${userName}:Delete project "${id}"`, logStyle);
     }
 
-    public registerNodeRealtimeObject(id: string, nodeElement: RealTimeObject)
+    public registerNode(id: string, nodeElement: RealTimeObject)
     {
         if (this.nodeRealtimeObjects.has(id))
         {
@@ -206,13 +212,26 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             console.log(`%c${userName}:customProperties.set: ${info}`, logStyle);
 
-            this.emit('dataStoreCustomPropDefined', id, name, type, value);
+            this.emit('datastoreCustomPropDefined', id, name, type, value);
+        });
+
+        nodeElement.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+        {
+            const key = (event as ObjectSetEvent).key;
+
+            debugger;
+            // const parentId = (event as ObjectSetEvent).value.value();
+            // const childId = nodeElement.get('id').value();
+
+            // console.log(`%c${userName}:hierarchy.set: ${parentId} ${childId}`, logStyle);
+
+            // this.emit('dataStoreNodeChildAdded', parentId, childId);
         });
 
         console.log(`${userName}:Register RealTimeObject "${id}"`);
     }
 
-    public unRegisterNodeRealtimeObject(id: string)
+    public unRegisterNode(id: string)
     {
         if (!this.nodeRealtimeObjects.has(id))
         {
@@ -220,9 +239,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         }
 
         this.nodeRealtimeObjects.delete(id);
+
+        console.log(`${userName}:Unregister RealTimeObject "${id}"`);
     }
 
-    public getRealTimeObject(id: string)
+    public getNode(id: string)
     {
         const nodeElement = this.nodeRealtimeObjects.get(id);
 

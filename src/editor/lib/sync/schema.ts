@@ -11,6 +11,7 @@ export interface NodeSchema<M extends ModelBase>
 {
     id: string;
     type: string;
+    parent?: string;
     model: Partial<M>;
     cloneInfo: {
         cloneMode: CloneMode;
@@ -32,7 +33,6 @@ export interface ProjectSchema
     version: string;
     createdBy: string;
     nodes: Record<string, NodeSchema<any>>;
-    hierarchy: Record<id /** parentId */, id /** childId */>;
 }
 
 export interface CloneInfoSchema
@@ -47,12 +47,13 @@ export interface NodeOptionsSchema<M extends ModelBase>
     id?: string;
     model?: Partial<M>;
     cloneInfo?: CloneInfoSchema;
+    parent?: string;
 }
 
 export function createProjectSchema(name: string): ProjectSchema
 {
     const project = createNodeSchema('Project');
-    const scene = createNodeSchema('Scene');
+    const scene = createNodeSchema('Scene', { parent: project.id });
 
     return {
         name,
@@ -62,19 +63,17 @@ export function createProjectSchema(name: string): ProjectSchema
             [project.id]: project,
             [scene.id]: scene,
         },
-        hierarchy: {
-            [project.id]: scene.id,
-        },
     };
 }
 
 export function createNodeSchema<M extends ModelBase>(type: string, nodeOptions: NodeOptionsSchema<M> = {}): NodeSchema<M>
 {
-    const { id, model, cloneInfo: { cloner, cloneMode, cloned } = {} } = nodeOptions;
+    const { id, model, cloneInfo: { cloner, cloneMode, cloned } = {}, parent } = nodeOptions;
 
     return {
         id: id ?? newGraphNodeId(type),
         type,
+        parent,
         model: model ?? {},
         cloneInfo: {
             cloner,

@@ -1,7 +1,10 @@
 <script lang="ts">
   import { CloneMode } from "../../../core/lib/nodes/cloneInfo";
+  import { getUserName } from "../sync/user";
 
   import { TestApp } from "./testApp";
+
+  const userName = getUserName();
 
   let customPropName: string = "prop1";
   let customPropValue: string = "foo1";
@@ -136,6 +139,7 @@
     <button on:click={onInit}>Init</button>
   {/if}
   <marker />
+  <user>{userName}</user>
 </buttons>
 
 <style>
@@ -165,6 +169,14 @@
     border: 1px dashed yellow;
     pointer-events: none;
     box-sizing: border-box;
+  }
+
+  user {
+    position: fixed;
+    top: 0;
+    left: 5px;
+    color: yellow;
+    font-size: 12px;
   }
 
   keyvalue {

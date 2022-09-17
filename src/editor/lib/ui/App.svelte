@@ -1,5 +1,5 @@
 <script lang="ts">
-  import TestCoreDataModel from "../test/TestApp.svelte";
+  import TestAppView from "../test/TestApp.svelte";
 
   import { onMount } from "svelte";
   import HotReload from "./util/HotReload.svelte";
@@ -7,7 +7,7 @@
   import { Editor } from "../editor";
   import type { Application } from "../application";
 
-  const isTestingDataModel = true;
+  const isTestApp = true;
 
   let isConnected = false;
   let connectionError: Error | undefined;
@@ -17,7 +17,7 @@
   onMount(() => {
     let app: Application;
 
-    if (isTestingDataModel) {
+    if (isTestApp) {
       app = new TestApp({ canvas });
     } else {
       app = new Editor({ canvas });
@@ -39,8 +39,8 @@
   {#if connectionError}
     <div class="error">{connectionError}</div>
   {:else if isConnected && canvas}
-    {#if isTestingDataModel}
-      <TestCoreDataModel />
+    {#if isTestApp}
+      <TestAppView />
     {:else}
       <!-- todo: EditorApp-->
     {/if}

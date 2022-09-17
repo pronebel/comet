@@ -1,6 +1,6 @@
 import { Command } from '.';
 
-export class AddChildCommand extends Command
+export class SetParentCommand extends Command
 {
     constructor(
         public readonly parentId: string,
@@ -12,18 +12,20 @@ export class AddChildCommand extends Command
 
     public name()
     {
-        return 'AddChild';
+        return 'SetParent';
     }
 
     public apply(): void
     {
         const { datastore, parentId, childId } = this;
 
-        // add data to datastore
-        datastore.hierarchy.set(parentId, childId);
+        // update datastore
+        const nodeElement = datastore.getNode(childId);
+
+        nodeElement.set('parent', parentId);
 
         // trigger object graph update
-        datastore.emit('dataStoreNodeChildAdded', parentId, childId);
+        datastore.emit('datastoreNodeSetParent', parentId, childId);
     }
 
     public undo(): void
