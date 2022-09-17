@@ -1,4 +1,4 @@
-import type{  ConvergenceDomain,  IConvergenceEvent,  ObjectSetEvent,  RealTimeModel  } from '@convergence/convergence';
+import {  type ConvergenceDomain,  type IConvergenceEvent,  type ObjectSetEvent,  type RealTimeModel, RealTimeString  } from '@convergence/convergence';
 import Convergence, { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
@@ -219,13 +219,15 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         {
             const key = (event as ObjectSetEvent).key;
 
-            debugger;
-            // const parentId = (event as ObjectSetEvent).value.value();
-            // const childId = nodeElement.get('id').value();
+            if (key === 'parent')
+            {
+                const parentId = (event as ObjectSetEvent).value.value();
+                const childId = nodeElement.get('id').value();
 
-            // console.log(`%c${userName}:hierarchy.set: ${parentId} ${childId}`, logStyle);
+                console.log(`%c${userName}:parent.set: ${parentId} ${childId}`, logStyle);
 
-            // this.emit('dataStoreNodeChildAdded', parentId, childId);
+                this.emit('datastoreNodeSetParent', parentId, childId);
+            }
         });
 
         console.log(`${userName}:Register RealTimeObject "${id}"`);

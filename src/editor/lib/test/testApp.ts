@@ -68,7 +68,10 @@ export class TestApp extends Application
     {
         if (this.project && this.selected)
         {
+            const parentId = this.selected.id;
+
             this.pushCommand(new CreateNodeCommand<ContainerModel>('Empty', {
+                parent: parentId,
                 model: {
                     x: 20,
                     y: 20,
