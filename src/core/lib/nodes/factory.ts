@@ -50,6 +50,20 @@ export function createGraphNode(nodeType: string, options: NodeOptions<{}>)
     return node;
 }
 
+export function registerGraphNode(node: ClonableNode)
+{
+    const { id } = node;
+
+    if (nodeInstances.has(id))
+    {
+        throw new Error(`Node with id "${id}" already registered.`);
+    }
+
+    nodeInstances.set(id, node);
+
+    return node;
+}
+
 export function disposeGraphNode(node: ClonableNode)
 {
     nodeInstances.delete(node.id);

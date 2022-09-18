@@ -1,11 +1,18 @@
 import { version } from '../../../../package.json';
 import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
+import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { CustomPropertyType } from '../../../core/lib/nodes/customProperties';
 import { newGraphNodeId } from '../../../core/lib/nodes/factory';
 import { getUserName } from './user';
 
 export type id = string;
+
+export interface CustomPropSchema
+{
+    type: CustomPropertyType;
+    value: ModelValue;
+}
 
 export interface NodeSchema<M extends ModelBase>
 {
@@ -19,10 +26,7 @@ export interface NodeSchema<M extends ModelBase>
         cloned: id[];
     };
     customProperties: {
-        defined: Record<string, {
-            type: CustomPropertyType;
-            value: ModelValue;
-        }>;
+        defined: Record<string, CustomPropSchema[]>;
         assigned: Record<string, string>;
     };
 }
@@ -85,4 +89,37 @@ export function createNodeSchema<M extends ModelBase>(type: string, nodeOptions:
             assigned: {},
         },
     };
+}
+
+export function getNodeSchema(node: ClonableNode)
+{
+    const { cloner, cloneMode, cloned } = node.cloneInfo;
+
+    const nodeSchema = createNodeSchema(node.nodeType(), {
+        id: node.id,
+        parent: node.parent?.id,
+        model: node.model.ownValues,
+        cloneInfo: {
+            cloner: cloner?.id,
+            cloneMode,
+            cloned: cloned.map((node) => node.id),
+        },
+    });
+
+    node.customProperties.properties.forEach((value, key) =>
+    {
+        const props = value.map((customProp) => ({
+            type: customProp.type,
+            value: customProp.value,
+        }));
+
+        nodeSchema.customProperties.defined[key] = props;
+    });
+
+    node.customProperties.assignments.forEach((customKey, modelKey) =>
+    {
+        nodeSchema.customProperties.assigned[modelKey] = customKey;
+    });
+
+    return nodeSchema;
 }

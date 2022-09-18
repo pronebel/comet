@@ -4,10 +4,8 @@ import { Command } from '.';
 export class CloneCommand extends Command
 {
     constructor(
-        public readonly clonerId: string,
-        public readonly clonedId: string,
+        public readonly nodeId: string,
         public readonly cloneMode: CloneMode,
-        public readonly depth: number,
     )
     {
         super();
@@ -20,7 +18,11 @@ export class CloneCommand extends Command
 
     public apply(): void
     {
-        throw new Error('Method not implemented.');
+        const { nodeId, cloneMode, datastore } = this;
+
+        datastore.cloneNode(nodeId, cloneMode);
+
+        // todo: store nodeId for undo
     }
 
     public undo(): void

@@ -9,6 +9,7 @@ import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/
 import { getGraphNode, registerGraphNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
+import { CloneCommand } from '../commands/clone';
 import { CreateNodeCommand } from '../commands/createNode';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { RemoveNodeCommand } from '../commands/removeNode';
@@ -161,10 +162,10 @@ export class TestApp extends Application
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public clone(cloneMode: CloneMode)
     {
-        // if (this.selected)
-        // {
-
-        // }
+        if (this.project && this.selected)
+        {
+            this.pushCommand(new CloneCommand(this.selected.id, cloneMode));
+        }
     }
 
     public unlink()

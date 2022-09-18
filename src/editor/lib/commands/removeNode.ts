@@ -32,6 +32,8 @@ export class RemoveNodeCommand extends Command
 
             childIds.forEach((nodeId) => datastore.removeNode(nodeId));
         }
+
+        // todo: store deleted nodes for undo
     }
 
     public undo(): void

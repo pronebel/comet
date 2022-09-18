@@ -5,10 +5,11 @@ import { EventEmitter } from 'eventemitter3';
 import type { ModelBase } from '../../../core/lib/model/model';
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import type { GraphNode } from '../../../core/lib/nodes/abstract/graphNode';
+import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
-import { trackNodeId } from '../../../core/lib/nodes/factory';
+import { getGraphNode, trackNodeId } from '../../../core/lib/nodes/factory';
 import type { ObjectGraph } from './objectGraph';
-import { type NodeOptionsSchema, type NodeSchema, createProjectSchema } from './schema';
+import { type NodeOptionsSchema, type NodeSchema, createProjectSchema, getNodeSchema } from './schema';
 import { getUserName } from './user';
 
 const userName = getUserName();
@@ -27,7 +28,8 @@ export type DatastoreEvents =
 | 'datastoreCustomPropDefined'
 | 'datastoreCustomPropUndefined'
 | 'datastoreCustomPropAssigned'
-| 'datastoreCustomPropUnAssigned';
+| 'datastoreCustomPropUnAssigned'
+| 'datastoreNodeCloned';
 
 const logStyle = 'color:cyan';
 
@@ -100,7 +102,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const nodeElement = nodes.get(id) as RealTimeObject;
             const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
 
-            const node = objectGraph.createNode(nodeSchema);
+            const node = objectGraph.createGraphNode(nodeSchema);
 
             this.registerNode(id, nodeElement);
 
@@ -334,7 +336,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return nodeElement;
     }
 
-    // API used by Commands
+    // Command API
 
     public createNode<M extends ModelBase>(nodeSchema: NodeSchema<M>, nodeOptions: NodeOptionsSchema<M>)
     {
@@ -418,5 +420,37 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         assignedCustomProps.remove(modelKey);
 
         this.emit('datastoreCustomPropUnAssigned', nodeId, modelKey);
+    }
+
+    public cloneNode(nodeId: string, cloneMode: CloneMode)
+    {
+        const node = getGraphNode(nodeId);
+
+        if (node)
+        {
+            const clone = node.clone(cloneMode);
+
+            // todo: go deep
+
+            const nodeSchema = getNodeSchema(clone);
+
+            nodeSchema.parent = nodeId;
+
+            console.log(nodeSchema);
+
+            const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
+
+            this.registerNode(nodeSchema.id, nodeElement);
+
+            this.emit('datastoreNodeCloned', node, clone, nodeSchema);
+
+            // const childId = nodeSchema.id;
+
+            // this.emit('datastoreNodeSetParent', nodeId, childId);
+
+            return clone;
+        }
+
+        return undefined;
     }
 }
