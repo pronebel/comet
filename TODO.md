@@ -7,6 +7,7 @@
 * 🟠 Create, delete, custom props, cloning, unlink - finish core actions
 * 🟢 Undo stack needs: [cmd, cmd, [cmd, cmd, cmd], cmd] - to facilitate multi-select operations
 * ⚪ Basic hotkeys for undo/redo
+* Test hydration from complete example, clones, custom props, etc
 * ⚪ Undo / Redo
 * ⚪ Consolidation, Refactors, Code Clean up
 
