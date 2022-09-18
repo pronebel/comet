@@ -25,7 +25,9 @@ export type DatastoreEvents =
 | 'datastoreNodeSetParent'
 | 'datastoreNodeRemoved'
 | 'datastoreCustomPropDefined'
-| 'datastoreCustomPropUndefined';
+| 'datastoreCustomPropUndefined'
+| 'datastoreCustomPropAssigned'
+| 'datastoreCustomPropUnAssigned';
 
 const logStyle = 'color:cyan';
 
@@ -41,7 +43,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.nodeRealtimeObjects = new Map();
     }
 
-    protected async initModel(projectModel: RealTimeModel)
+    protected async initProjectModel(projectModel: RealTimeModel)
     {
         this._model = projectModel;
 
@@ -123,6 +125,70 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return graphNodes;
     }
 
+    public registerNode(id: string, nodeElement: RealTimeObject)
+    {
+        if (this.nodeRealtimeObjects.has(id))
+        {
+            throw new Error(`Node "${id}" RealTimeObject already registered.`);
+        }
+
+        // track element
+        this.nodeRealtimeObjects.set(id, nodeElement);
+
+        // catch events on nodeElement prop changes (as a remote user)
+        nodeElement.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+        {
+            const key = (event as ObjectSetEvent).key;
+
+            if (key === 'parent')
+            {
+                const parentId = (event as ObjectSetEvent).value.value();
+                const childId = nodeElement.get('id').value();
+
+                console.log(`%c${userName}:parent.set: ${parentId} ${childId}`, logStyle);
+
+                this.emit('datastoreNodeSetParent', parentId, childId);
+            }
+        });
+
+        // catch events on nodeElement custom prop defined changes (as a remote user)
+        nodeElement.elementAt('customProperties', 'defined').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+        {
+            const name = (event as ObjectSetEvent).key;
+            const element = (event as ObjectSetEvent).value as RealTimeObject;
+
+            const { type, value } = element.toJSON();
+            const info = JSON.stringify(element.toJSON());
+
+            console.log(`%c${userName}:customProperties.set: ${info}`, logStyle);
+
+            this.emit('datastoreCustomPropDefined', id, name, type, value);
+        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
+        {
+            const propName = (event as ObjectSetEvent).key;
+
+            this.emit('datastoreCustomPropUndefined', id, propName);
+        });
+
+        // catch events on nodeElement custom prop assigned changes (as a remote user)
+        nodeElement.elementAt('customProperties', 'assigned').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+        {
+            const modelKey = (event as ObjectSetEvent).key;
+            const customKey = (event as ObjectSetEvent).value.value() as string;
+
+            console.log(`%c${userName}:customProperties.assign: ${modelKey}->${customKey}`, logStyle);
+
+            this.emit('datastoreCustomPropAssigned', id, modelKey, customKey);
+        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
+        {
+            const modelKey = (event as ObjectSetEvent).key;
+
+            this.emit('datastoreCustomPropUnAssigned', id, modelKey);
+        });
+
+        console.log(`${userName}:Registered RealTimeObject "${id}"`);
+    }
+
     public get domain()
     {
         if (!this._domain)
@@ -196,7 +262,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         console.log(`%c${userName}:Opened project "${model.modelId()}"`, logStyle);
 
-        await this.initModel(model);
+        await this.initProjectModel(model);
     }
 
     protected async joinActivity(type: string, id: string)
@@ -240,53 +306,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         console.log(`%c${userName}:Delete project "${id}"`, logStyle);
     }
 
-    public registerNode(id: string, nodeElement: RealTimeObject)
-    {
-        if (this.nodeRealtimeObjects.has(id))
-        {
-            throw new Error(`Node "${id}" RealTimeObject already registered.`);
-        }
-
-        // track element
-        this.nodeRealtimeObjects.set(id, nodeElement);
-
-        // catch events on nodeElement prop changes (as a remote user)
-        nodeElement.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-        {
-            const key = (event as ObjectSetEvent).key;
-
-            if (key === 'parent')
-            {
-                const parentId = (event as ObjectSetEvent).value.value();
-                const childId = nodeElement.get('id').value();
-
-                console.log(`%c${userName}:parent.set: ${parentId} ${childId}`, logStyle);
-
-                this.emit('datastoreNodeSetParent', parentId, childId);
-            }
-        });
-
-        // catch custom prop events on nodeElement prop changes (as a remote user)
-        nodeElement.elementAt('customProperties', 'defined').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-        {
-            const name = (event as ObjectSetEvent).key;
-            const element = (event as ObjectSetEvent).value as RealTimeObject;
-            const { type, value } = element.toJSON();
-            const info = JSON.stringify(element.toJSON());
-
-            console.log(`%c${userName}:customProperties.set: ${info}`, logStyle);
-
-            this.emit('datastoreCustomPropDefined', id, name, type, value);
-        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
-        {
-            const propName = (event as ObjectSetEvent).key;
-
-            this.emit('datastoreCustomPropUndefined', id, propName);
-        });
-
-        console.log(`${userName}:Registered RealTimeObject "${id}"`);
-    }
-
     public unRegisterNode(id: string)
     {
         if (!this.nodeRealtimeObjects.has(id))
@@ -299,7 +318,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         console.log(`${userName}:Unregistered RealTimeObject "${id}"`);
     }
 
-    public getNode(id: string)
+    public getNodeElement(id: string)
     {
         const nodeElement = this.nodeRealtimeObjects.get(id);
 
@@ -332,7 +351,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public setNodeParent(parentId: string, childId: string)
     {
-        const nodeElement = this.getNode(childId);
+        const nodeElement = this.getNodeElement(childId);
 
         nodeElement.set('parent', parentId);
 
@@ -341,7 +360,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public removeNode(nodeId: string)
     {
-        const nodeElement = this.getNode(nodeId);
+        const nodeElement = this.getNodeElement(nodeId);
 
         const parentId = nodeElement.get('parent').value() as string;
 
@@ -353,7 +372,8 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public setNodeCustomProperty(nodeId: string, propName: string, type: CustomPropertyType, value: CustomPropertyValueType)
     {
-        const nodeElement = this.getNode(nodeId);
+        const nodeElement = this.getNodeElement(nodeId);
+
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
         definedCustomProps.set(propName, {
@@ -366,11 +386,33 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public removeNodeCustomProperty(nodeId: string, propName: string)
     {
-        const nodeElement = this.getNode(nodeId);
+        const nodeElement = this.getNodeElement(nodeId);
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
         definedCustomProps.remove(propName);
 
         this.emit('datastoreCustomPropUndefined', nodeId, propName);
+    }
+
+    public assignNodeCustomProperty(nodeId: string, modelKey: string, customKey: string)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+
+        const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
+
+        assignedCustomProps.set(modelKey, customKey);
+
+        this.emit('datastoreCustomPropAssigned', nodeId, modelKey, customKey);
+    }
+
+    public unAssignNodeCustomProperty(nodeId: string, modelKey: string)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+
+        const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
+
+        assignedCustomProps.remove(modelKey);
+
+        this.emit('datastoreCustomPropUnAssigned', nodeId, modelKey);
     }
 }

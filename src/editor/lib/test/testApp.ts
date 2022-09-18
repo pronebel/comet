@@ -7,10 +7,12 @@ import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { ContainerModel, ContainerNode } from '../../../core/lib/nodes/concrete/container';
 import { getGraphNode, registerGraphNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
+import { AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { CreateNodeCommand } from '../commands/createNode';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
+import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { getUserName } from '../sync/user';
 import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
@@ -128,6 +130,118 @@ export class TestApp extends Application
         // }
     }
 
+    public unlink()
+    {
+        // if (this.selected)
+        // {
+
+        // }
+    }
+
+    public deleteSelected()
+    {
+        if (this.selected && this.selected.nodeType() !== 'Scene')
+        {
+            const parentNode = this.selected.parent;
+
+            this.pushCommand(new RemoveNodeCommand(this.selected.id));
+
+            if (parentNode)
+            {
+                this.select(parentNode as ContainerNode);
+            }
+        }
+    }
+
+    public inspect()
+    {
+        if (this.selected)
+        {
+            console.dir(this.selected);
+            (window as any).$ = this.selected;
+        }
+    }
+
+    public randColor()
+    {
+        if (this.selected && this.selected instanceof DebugNode)
+        {
+            this.selected.model.tint = Math.round(Math.random() * 100000);
+        }
+    }
+
+    public randSize()
+    {
+        if (this.selected)
+        {
+            this.selected.model.width = Math.round(Math.random() * 50);
+            this.selected.model.height = Math.round(Math.random() * 50);
+            this.select(this.selected);
+        }
+    }
+
+    public rotate()
+    {
+        if (this.selected)
+        {
+            this.selected.model.angle += 15;
+            this.select(this.selected);
+        }
+    }
+
+    public resetModel()
+    {
+        if (this.selected)
+        {
+            this.selected.model.reset();
+            this.fitSelection(this.selected);
+        }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public setCustomProp(name: string, value: any)
+    {
+        const { selected } = this;
+
+        if (selected)
+        {
+            const propType = isNaN(value) ? 'string' : 'number';
+            const propValue = propType === 'string' ? value : parseFloat(value);
+
+            this.pushCommand(new SetCustomPropCommand(selected.id, name, propType, propValue));
+        }
+    }
+
+    public removeCustomProp(name: string)
+    {
+        const { selected } = this;
+
+        if (selected)
+        {
+            this.pushCommand(new RemoveCustomPropCommand(selected.id, name));
+        }
+    }
+
+    public assignCustomProp(modelKey: string, customKey: string)
+    {
+        const { selected } = this;
+
+        if (selected && selected instanceof DebugNode)
+        {
+            this.pushCommand(new AssignCustomPropCommand(selected.id, modelKey, customKey));
+        }
+    }
+
+    public unAssignCustomProp(modelKey: string)
+    {
+        const { selected } = this;
+
+        if (selected && selected instanceof DebugNode)
+        {
+            this.pushCommand(new UnAssignCustomPropCommand(selected.id, modelKey));
+        }
+    }
+
     public makeInteractiveDeep(rootNode: ContainerNode)
     {
         rootNode.walk((component) =>
@@ -189,114 +303,6 @@ export class TestApp extends Application
             this.selection.y = bounds.top;
             this.selection.width = bounds.width;
             this.selection.height = bounds.height;
-        }
-    }
-
-    public unlink()
-    {
-        // if (this.selected)
-        // {
-
-        // }
-    }
-
-    public deleteSelected()
-    {
-        if (this.selected && this.selected.nodeType() !== 'Scene')
-        {
-            const parentNode = this.selected.parent;
-
-            this.pushCommand(new RemoveNodeCommand(this.selected.id));
-
-            if (parentNode)
-            {
-                this.select(parentNode as ContainerNode);
-            }
-        }
-    }
-
-    public randColor()
-    {
-        if (this.selected && this.selected instanceof DebugNode)
-        {
-            this.selected.model.tint = Math.round(Math.random() * 100000);
-        }
-    }
-
-    public randSize()
-    {
-        if (this.selected)
-        {
-            this.selected.model.width = Math.round(Math.random() * 50);
-            this.selected.model.height = Math.round(Math.random() * 50);
-            this.select(this.selected);
-        }
-    }
-
-    public rotate()
-    {
-        if (this.selected)
-        {
-            this.selected.model.angle += 15;
-            this.select(this.selected);
-        }
-    }
-
-    public resetModel()
-    {
-        if (this.selected)
-        {
-            this.selected.model.reset();
-            this.fitSelection(this.selected);
-        }
-    }
-
-    public inspect()
-    {
-        if (this.selected)
-        {
-            console.dir(this.selected);
-            (window as any).$ = this.selected;
-        }
-    }
-
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public setCustomProp(name: string, value: any)
-    {
-        const { selected } = this;
-
-        if (selected)
-        {
-            const propType = isNaN(value) ? 'string' : 'number';
-            const propValue = propType === 'string' ? value : parseFloat(value);
-
-            this.pushCommand(new SetCustomPropCommand(selected.id, name, propType, propValue));
-        }
-    }
-
-    public removeCustomProp(name: string)
-    {
-        const { selected } = this;
-
-        if (selected)
-        {
-            this.pushCommand(new RemoveCustomPropCommand(selected.id, name));
-        }
-    }
-
-    public assignCustomProp(modelKey: string, customKey: string)
-    {
-        if (this.selected && this.selected instanceof DebugNode)
-        {
-            this.selected.assignCustomProperty(modelKey as keyof DebugModel, customKey);
-        }
-    }
-
-    public unAssignCustomProp(modelKey: string)
-    {
-        if (this.selected && this.selected instanceof DebugNode)
-        {
-            this.selected.unAssignCustomProperty(modelKey as keyof DebugModel);
         }
     }
 

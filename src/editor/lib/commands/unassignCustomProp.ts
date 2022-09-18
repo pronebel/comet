@@ -3,16 +3,23 @@ import { Command } from '.';
 export class UnAssignCustomPropCommand extends Command
 {
     constructor(
-        public readonly targetId: string,
+        public readonly nodeId: string,
         public readonly modelKey: string,
     )
     {
         super();
     }
 
+    public name()
+    {
+        return 'UnAssignCustomProp';
+    }
+
     public apply(): void
     {
-        throw new Error('Method not implemented.');
+        const { nodeId, modelKey, datastore } = this;
+
+        datastore.unAssignNodeCustomProperty(nodeId, modelKey);
     }
 
     public undo(): void

@@ -79,7 +79,10 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
     {
         const node = getGraphNode(id);
 
-        node?.setCustomProperty(name, type, value);
+        if (node)
+        {
+            node.setCustomProperty(name, type, value);
+        }
     };
 
     public onDatastoreNodeRemoved = (nodeId: string, parentId: string) =>
@@ -110,6 +113,26 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         if (node)
         {
             node.removeCustomProperty(propName);
+        }
+    };
+
+    public onDatastoreCustomPropAssigned = (nodeId: string, modelKey: string, customKey: string) =>
+    {
+        const node = getGraphNode(nodeId);
+
+        if (node)
+        {
+            node.assignCustomProperty(modelKey, customKey);
+        }
+    };
+
+    public onDatastoreCustomPropUnAssigned = (nodeId: string, modelKey: string) =>
+    {
+        const node = getGraphNode(nodeId);
+
+        if (node)
+        {
+            node.unAssignCustomProperty(modelKey);
         }
     };
 }

@@ -3,7 +3,7 @@ import { Command } from '.';
 export class AssignCustomPropCommand extends Command
 {
     constructor(
-        public readonly targetId: string,
+        public readonly nodeId: string,
         public readonly modelKey: string,
         public readonly customKey: string,
     )
@@ -11,9 +11,16 @@ export class AssignCustomPropCommand extends Command
         super();
     }
 
+    public name()
+    {
+        return 'AssignCustomProp';
+    }
+
     public apply(): void
     {
-        throw new Error('Method not implemented.');
+        const { nodeId, modelKey, customKey, datastore } = this;
+
+        datastore.assignNodeCustomProperty(nodeId, modelKey, customKey);
     }
 
     public undo(): void
