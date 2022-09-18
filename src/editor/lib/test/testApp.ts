@@ -62,7 +62,9 @@ export class TestApp extends Application
     {
         super.onObjectGraphNodeCreated(node);
 
-        this.selected = node as unknown as ContainerNode;
+        this.makeInteractive(node as unknown as ContainerNode);
+
+        this.select(node as unknown as ContainerNode);
     }
 
     protected onObjectGraphNodeRemoved(nodeId: string, parentId: string): void
@@ -75,6 +77,11 @@ export class TestApp extends Application
         {
             this.select(parentNode as unknown as ContainerNode);
         }
+    }
+
+    protected onObjectGraphParentSet(childNode: ClonableNode<ModelBase, object, string>): void
+    {
+        this.select(childNode as unknown as ContainerNode);
     }
 
     public newContainer()

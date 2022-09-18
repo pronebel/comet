@@ -1,10 +1,7 @@
 import { Sprite, Text, Texture } from 'pixi.js';
 
 import { ModelSchema } from '../../../core/lib/model/schema';
-import type { ContainerNode } from '../../../core/lib/nodes/concrete/container';
 import { type SpriteModel, SpriteNode, spriteSchema } from '../../../core/lib/nodes/concrete/sprite';
-import { TestApp } from './testApp';
-
 export interface DebugModel extends SpriteModel
 {
     label: string;
@@ -54,12 +51,5 @@ export class DebugNode extends SpriteNode<DebugModel, Sprite>
         const { label } = this.values;
 
         textLabel.text = `${this.id.replace('Node', '')}${label ? `=${label}` : ''}`;
-    }
-
-    protected onAddedToParent(): void
-    {
-        super.onAddedToParent();
-
-        TestApp.getInstance().makeInteractive(this as unknown as ContainerNode);
     }
 }

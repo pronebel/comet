@@ -397,7 +397,7 @@ export abstract class ClonableNode<
 
     public setCustomProperty(customKey: string, type: CustomPropertyType, value: any): CustomProperty
     {
-        const property = this.customProperties.set(this as ClonableNode, customKey, type, value);
+        const property = this.customProperties.set(this as unknown as ClonableNode, customKey, type, value);
 
         this.updateRecursiveWithClones();
 
@@ -406,7 +406,7 @@ export abstract class ClonableNode<
 
     public removeCustomProperty(customKey: string)
     {
-        this.customProperties.remove(this as ClonableNode, customKey);
+        this.customProperties.remove(this as unknown as ClonableNode, customKey);
 
         const modelKey = this.customProperties.getAssignedModelKeyForCustomKey(customKey);
 

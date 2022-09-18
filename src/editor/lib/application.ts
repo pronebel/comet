@@ -55,6 +55,7 @@ export class Application extends EventEmitter
         // get notified when object graph has changed
         objectGraph.on('objectGraphNodeCreated', this.onObjectGraphNodeCreated.bind(this));
         objectGraph.on('objectGraphNodeRemoved', this.onObjectGraphNodeRemoved.bind(this));
+        objectGraph.on('objectGraphParentSet', this.onObjectGraphParentSet.bind(this));
 
         // update object graph when datastore changes
         this.bindDataStoreEvent('datastoreNodeCreated', objectGraph.onDatastoreNodeCreated);
@@ -166,6 +167,12 @@ export class Application extends EventEmitter
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onObjectGraphNodeRemoved(nodeId: string, parentId: string)
+    {
+        // subclasses
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onObjectGraphParentSet(childNode: ClonableNode, parentNode: ClonableNode)
     {
         // subclasses
     }

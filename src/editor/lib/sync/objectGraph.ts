@@ -7,7 +7,7 @@ import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/
 import { createGraphNode, disposeGraphNode, getGraphNode } from '../../../core/lib/nodes/factory';
 import type { NodeSchema } from './schema';
 
-export type ObjectGraphEvent = 'objectGraphNodeCreated' | 'objectGraphNodeRemoved';
+export type ObjectGraphEvent = 'objectGraphNodeCreated' | 'objectGraphNodeRemoved' | 'objectGraphParentSet';
 
 export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
 {
@@ -64,6 +64,9 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         if (parentNode && childNode)
         {
             parentNode.addChild(childNode);
+
+            // notify application
+            this.emit('objectGraphParentSet', childNode, parentNode);
         }
     };
 
