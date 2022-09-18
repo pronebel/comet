@@ -3,7 +3,11 @@ import Convergence, { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
 import type { ModelBase } from '../../../core/lib/model/model';
+import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
+import type { GraphNode } from '../../../core/lib/nodes/abstract/graphNode';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
+import { trackNodeId } from '../../../core/lib/nodes/factory';
+import type { ObjectGraph } from './objectGraph';
 import { type NodeOptionsSchema, type NodeSchema, createProjectSchema } from './schema';
 import { getUserName } from './user';
 
@@ -113,20 +117,24 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         await this.initModel(model);
     }
 
-    protected async initModel(model: RealTimeModel)
+    protected async initModel(projectModel: RealTimeModel)
     {
-        this._model = model;
+        this._model = projectModel;
 
-        await this.joinActivity('editProject', model.modelId());
+        await this.joinActivity('editProject', projectModel.modelId());
 
         // catch events when a remote user...
-
         this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
         {
             const nodeElement = (event as ObjectSetEvent).value as RealTimeObject;
+            const nodeId = nodeElement.get('id').value() as string;
             const parentId = nodeElement.get('parent').value() as string | undefined;
 
+            trackNodeId(nodeId);
+
             console.log(`%c${userName}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
+
+            this.registerNode(nodeId, nodeElement);
 
             this.emit('datastoreNodeCreated', nodeElement);
 
@@ -150,6 +158,45 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 this.emit('datastoreNodeRemoved', nodeId, parentId);
             }
         });
+    }
+
+    public hydrate(objectGraph: ObjectGraph)
+    {
+        const { nodes } = this;
+
+        const graphNodes: Map<string, ClonableNode> = new Map();
+
+        nodes.keys().forEach((id) =>
+        {
+            // ensure local ids don't clash with hydrating ids
+            trackNodeId(id);
+
+            const nodeElement = nodes.get(id) as RealTimeObject;
+            const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
+
+            const node = objectGraph.createNode(nodeSchema);
+
+            this.registerNode(id, nodeElement);
+
+            graphNodes.set(id, node);
+        });
+
+        nodes.keys().forEach((id) =>
+        {
+            const nodeElement = nodes.get(id) as RealTimeObject;
+
+            const parentId = nodeElement.get('parent').value();
+            const childId = nodeElement.get('id').value();
+            const parentNode = graphNodes.get(parentId);
+            const childNode = graphNodes.get(childId);
+
+            if (parentNode && childNode)
+            {
+                parentNode.addChild(childNode as GraphNode);
+            }
+        });
+
+        return graphNodes;
     }
 
     protected async joinActivity(type: string, id: string)
@@ -267,7 +314,10 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public createNode<M extends ModelBase>(nodeSchema: NodeSchema<M>, nodeOptions: NodeOptionsSchema<M>)
     {
         // add data to datastore
-        const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema);
+        const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
+
+        // register RealTimeObject
+        this.registerNode(nodeSchema.id, nodeElement);
 
         // notify application, which will update object graph
         this.emit('datastoreNodeCreated', nodeElement);

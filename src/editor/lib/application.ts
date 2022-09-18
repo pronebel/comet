@@ -47,13 +47,14 @@ export class Application extends EventEmitter
         this.undoStack = [];
 
         // create datastore
-        const datastore = this.datastore = new Datastore();
+        this.datastore = new Datastore();
 
         // create object graph
-        const objectGraph = this.objectGraph = new ObjectGraph(datastore);
+        const objectGraph = this.objectGraph = new ObjectGraph();
 
         // get notified when object graph has changed
         objectGraph.on('objectGraphNodeCreated', this.onObjectGraphNodeCreated.bind(this));
+        objectGraph.on('objectGraphNodeRemoved', this.onObjectGraphNodeRemoved.bind(this));
 
         // update object graph when datastore changes
         this.bindDataStoreEvent('datastoreNodeCreated', objectGraph.onDatastoreNodeCreated);
@@ -61,6 +62,21 @@ export class Application extends EventEmitter
         this.bindDataStoreEvent('datastoreCustomPropDefined', objectGraph.onDataStoreCustomPropDefined);
         this.bindDataStoreEvent('datastoreNodeRemoved', objectGraph.onDatastoreNodeRemoved);
         this.bindDataStoreEvent('datastoreCustomPropUndefined', objectGraph.onDatastoreCustomPropUndefined);
+    }
+
+    public static get instance()
+    {
+        if (!Application._instance)
+        {
+            throw new Error('Application not defined');
+        }
+
+        return Application._instance;
+    }
+
+    public get stage()
+    {
+        return this.pixiApp.stage;
     }
 
     protected bindDataStoreEvent(eventName: DatastoreEvents, fn: (...args: any[]) => void)
@@ -71,9 +87,12 @@ export class Application extends EventEmitter
 
             if (existingEventArgs && (deepEqual(eventArgs, existingEventArgs)))
             {
-                console.log(`Event filtered: "${eventName}" data: ${JSON.stringify(eventArgs)}`, 'color:orange');
+                console.log(
+                    `%c${userName}:Event filtered: "${eventName}" data: ${JSON.stringify(eventArgs)}`,
+                    'color:orange',
+                );
 
-                return;
+                // return;
             }
 
             this.eventFilter.set(eventName, eventArgs);
@@ -112,21 +131,6 @@ export class Application extends EventEmitter
         });
     }
 
-    public static get instance()
-    {
-        if (!Application._instance)
-        {
-            throw new Error('Application not defined');
-        }
-
-        return Application._instance;
-    }
-
-    public get stage()
-    {
-        return this.pixiApp.stage;
-    }
-
     public async createProject(name: string, id: string)
     {
         const { datastore, objectGraph } = this;
@@ -138,16 +142,16 @@ export class Application extends EventEmitter
 
         await datastore.createProject(name, id);
 
-        objectGraph.hydrate(datastore);
+        datastore.hydrate(objectGraph);
     }
 
     public async openProject(id: string)
     {
         const { datastore, objectGraph } = this;
 
-        await this.datastore.openProject(id);
+        await datastore.openProject(id);
 
-        objectGraph.hydrate(datastore);
+        datastore.hydrate(objectGraph);
     }
 
     protected onObjectGraphNodeCreated(node: ClonableNode)
@@ -158,5 +162,11 @@ export class Application extends EventEmitter
 
             this.stage.addChild(project.view);
         }
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onObjectGraphNodeRemoved(nodeId: string, parentId: string)
+    {
+        // subclasses
     }
 }

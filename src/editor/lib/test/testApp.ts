@@ -5,7 +5,7 @@ import type { ModelBase } from '../../../core/lib/model/model';
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { ContainerModel, ContainerNode } from '../../../core/lib/nodes/concrete/container';
-import { registerGraphNodeType } from '../../../core/lib/nodes/factory';
+import { getGraphNode, registerGraphNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
 import { CreateNodeCommand } from '../commands/createNode';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
@@ -63,6 +63,18 @@ export class TestApp extends Application
         super.onObjectGraphNodeCreated(node);
 
         this.selected = node as unknown as ContainerNode;
+    }
+
+    protected onObjectGraphNodeRemoved(nodeId: string, parentId: string): void
+    {
+        super.onObjectGraphNodeRemoved(nodeId, parentId);
+
+        const parentNode = getGraphNode(parentId);
+
+        if (parentNode)
+        {
+            this.select(parentNode as unknown as ContainerNode);
+        }
     }
 
     public newContainer()
@@ -354,7 +366,10 @@ export class TestApp extends Application
                 let output = `${pad} ${id} ${cloneModeInfo} ${clonerInfo} ${clonedInfo}\n`;
 
                 output += `${pad}  ... ${modelLine}\n`;
-                output += `${pad}  ... ${customPropDefineInfo} : ${customPropAssignmentsArray.join(', ')}\n`;
+                if (customPropDefineInfo.length)
+                {
+                    output += `${pad}  ... ${customPropDefineInfo} : ${customPropAssignmentsArray.join(', ')}\n`;
+                }
                 const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
 
                 html += isLinked ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
