@@ -10,7 +10,7 @@ export interface WalkOptions
     depth: number;
     cancel: boolean;
     direction: 'up' | 'down';
-    data?: any;
+    data: any;
 }
 
 export const defaultWalkOptions: WalkOptions = {
@@ -18,6 +18,7 @@ export const defaultWalkOptions: WalkOptions = {
     depth: 0,
     cancel: false,
     direction: 'down',
+    data: {},
 };
 
 export type GraphNodeConstructor = {
@@ -160,7 +161,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
     public walk<T extends GraphNode>(
         fn: (component: T, options: WalkOptions) => void,
         options: Partial<WalkOptions> = {},
-    )
+    ): any
     {
         const currentOptions = {
             ...defaultWalkOptions,
@@ -170,7 +171,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
         if (cancel)
         {
-            return;
+            return options.data;
         }
 
         if (includeSelf)
@@ -181,11 +182,13 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         if (direction === 'down')
         {
             this.children.forEach((child) =>
+            {
                 child.walk(fn, {
                     ...currentOptions,
                     depth: depth + 1,
                     includeSelf: true,
-                }),
+                });
+            },
             );
         }
         else
@@ -197,6 +200,8 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
                 includeSelf: true,
             });
         }
+
+        return options.data;
     }
 
     public containsChild<T extends GraphNode>(component: T)

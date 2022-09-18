@@ -1,3 +1,4 @@
+import { getGraphNode } from '../../../core/lib/nodes/factory';
 import { Command } from '.';
 
 export class RemoveNodeCommand extends Command
@@ -18,7 +19,19 @@ export class RemoveNodeCommand extends Command
     {
         const { datastore, nodeId } = this;
 
-        datastore.removeNode(nodeId);
+        const node = getGraphNode(nodeId);
+
+        if (node)
+        {
+            const childIds = node.walk((childNode, { data }) =>
+            {
+                data.push(childNode.id);
+            }, { data: [] }) as string[];
+
+            childIds.reverse();
+
+            childIds.forEach((nodeId) => datastore.removeNode(nodeId));
+        }
     }
 
     public undo(): void

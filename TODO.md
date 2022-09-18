@@ -5,6 +5,7 @@
 [ Weekend + Monday ]
 
 * 🟠 Create, delete, custom props, cloning, unlink - finish core actions
+* 🟢 Deep delete - children need to be removed from datastore
 * 🟢 Undo stack needs: [cmd, cmd, [cmd, cmd, cmd], cmd] - to facilitate multi-select operations
 * ⚪ Test hydration from complete example, clones, custom props, etc
 * ⚪ Basic hotkeys for undo/redo

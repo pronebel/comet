@@ -41,82 +41,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.nodeRealtimeObjects = new Map();
     }
 
-    public get domain()
-    {
-        if (!this._domain)
-        {
-            throw new Error('Domain not found');
-        }
-
-        return this._domain;
-    }
-
-    get model()
-    {
-        if (!this._model)
-        {
-            throw new Error('Datastore model not initialised');
-        }
-
-        return this._model;
-    }
-
-    get nodes()
-    {
-        return this.model.elementAt('nodes') as RealTimeObject;
-    }
-
-    public async connect()
-    {
-        const url = 'https://localhost/realtime/convergence/default';
-
-        const domain = await Convergence.connect(url, userName, 'password', {
-            models: {
-                data: {
-                    undefinedObjectValues: 'omit',
-                    undefinedArrayValues: 'null',
-                },
-            },
-        });
-
-        console.log(`%cConnected as ${userName}!`, 'color:lime');
-
-        this._domain = domain;
-    }
-
-    public disconnect(): void
-    {
-        if (!this.domain.isDisposed())
-        {
-            this.domain.dispose();
-            console.log('%c${userName}:Domain disposed', logStyle);
-        }
-    }
-
-    public async createProject(name: string, id?: string)
-    {
-        const data = createProjectSchema(name);
-
-        const model = await this.domain.models().openAutoCreate({
-            ...defaultProjectSettings,
-            id,
-            data,
-        });
-
-        console.log(`%c${userName}:Created project "${model.modelId()}"`, logStyle);
-
-        await this.openProject(model.modelId());
-    }
-
-    public async openProject(id: string)
-    {
-        const model = await this.domain.models().open(id);
-
-        console.log(`%c${userName}:Opened project "${model.modelId()}"`, logStyle);
-
-        await this.initModel(model);
-    }
-
     protected async initModel(projectModel: RealTimeModel)
     {
         this._model = projectModel;
@@ -197,6 +121,82 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         });
 
         return graphNodes;
+    }
+
+    public get domain()
+    {
+        if (!this._domain)
+        {
+            throw new Error('Domain not found');
+        }
+
+        return this._domain;
+    }
+
+    get model()
+    {
+        if (!this._model)
+        {
+            throw new Error('Datastore model not initialised');
+        }
+
+        return this._model;
+    }
+
+    get nodes()
+    {
+        return this.model.elementAt('nodes') as RealTimeObject;
+    }
+
+    public async connect()
+    {
+        const url = 'https://localhost/realtime/convergence/default';
+
+        const domain = await Convergence.connect(url, userName, 'password', {
+            models: {
+                data: {
+                    undefinedObjectValues: 'omit',
+                    undefinedArrayValues: 'null',
+                },
+            },
+        });
+
+        console.log(`%cConnected as ${userName}!`, 'color:lime');
+
+        this._domain = domain;
+    }
+
+    public disconnect(): void
+    {
+        if (!this.domain.isDisposed())
+        {
+            this.domain.dispose();
+            console.log('%c${userName}:Domain disposed', logStyle);
+        }
+    }
+
+    public async createProject(name: string, id?: string)
+    {
+        const data = createProjectSchema(name);
+
+        const model = await this.domain.models().openAutoCreate({
+            ...defaultProjectSettings,
+            id,
+            data,
+        });
+
+        console.log(`%c${userName}:Created project "${model.modelId()}"`, logStyle);
+
+        await this.openProject(model.modelId());
+    }
+
+    public async openProject(id: string)
+    {
+        const model = await this.domain.models().open(id);
+
+        console.log(`%c${userName}:Opened project "${model.modelId()}"`, logStyle);
+
+        await this.initModel(model);
     }
 
     protected async joinActivity(type: string, id: string)
@@ -311,15 +311,14 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return nodeElement;
     }
 
+    // API used by Commands
+
     public createNode<M extends ModelBase>(nodeSchema: NodeSchema<M>, nodeOptions: NodeOptionsSchema<M>)
     {
-        // add data to datastore
         const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
-        // register RealTimeObject
         this.registerNode(nodeSchema.id, nodeElement);
 
-        // notify application, which will update object graph
         this.emit('datastoreNodeCreated', nodeElement);
 
         if (nodeOptions.parent)
@@ -333,18 +332,15 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public setNodeParent(parentId: string, childId: string)
     {
-        // update datastore
         const nodeElement = this.getNode(childId);
 
         nodeElement.set('parent', parentId);
 
-        // trigger object graph update
         this.emit('datastoreNodeSetParent', parentId, childId);
     }
 
     public removeNode(nodeId: string)
     {
-        // update datastore
         const nodeElement = this.getNode(nodeId);
 
         const parentId = nodeElement.get('parent').value() as string;
@@ -352,7 +348,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.nodes.remove(nodeId);
         this.unRegisterNode(nodeId);
 
-        // trigger object graph update
         this.emit('datastoreNodeRemoved', nodeId, parentId);
     }
 
@@ -366,7 +361,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             value,
         });
 
-        // notify application, which will update object graph
         this.emit('datastoreCustomPropDefined', nodeId, propName, type, value);
     }
 
@@ -377,7 +371,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         definedCustomProps.remove(propName);
 
-        // notify application, which will update object graph
         this.emit('datastoreCustomPropUndefined', nodeId, propName);
     }
 }
