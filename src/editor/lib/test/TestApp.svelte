@@ -21,6 +21,10 @@
     });
   };
 
+  const onReload = () => {
+    window.location.reload();
+  };
+
   const onNewContainer = () => {
     app.newContainer();
   };
@@ -110,6 +114,7 @@
     on:mouseout={() => (shouldUpdateDebug = true)}>
   <span /></pre>
   {#if isInit}
+    <button on:click={onReload}>Reload</button>
     <button on:click={onNewContainer}>New Container</button>
     <button on:click={onNewChild}>New Child</button>
     <button on:click={onCloneVariant}>Clone Variant</button>

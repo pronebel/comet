@@ -3,16 +3,23 @@ import { Command } from '.';
 export class RemoveCustomPropCommand extends Command
 {
     constructor(
-        public readonly targetId: string,
-        public readonly customKey: string,
+        public readonly nodeId: string,
+        public readonly propName: string,
     )
     {
         super();
     }
 
+    public name()
+    {
+        return 'RemoveCustomProp';
+    }
+
     public apply(): void
     {
-        throw new Error('Method not implemented.');
+        const { datastore, nodeId, propName } = this;
+
+        datastore.removeNodeCustomProperty(nodeId, propName);
     }
 
     public undo(): void

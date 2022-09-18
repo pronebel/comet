@@ -8,6 +8,7 @@ import type { ContainerModel, ContainerNode } from '../../../core/lib/nodes/conc
 import { registerGraphNodeType } from '../../../core/lib/nodes/factory';
 import { type AppOptions, Application } from '../application';
 import { CreateNodeCommand } from '../commands/createNode';
+import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { getUserName } from '../sync/user';
@@ -260,7 +261,7 @@ export class TestApp extends Application
 
         if (selected)
         {
-            selected.removeCustomProperty(name);
+            this.pushCommand(new RemoveCustomPropCommand(selected.id, name));
         }
     }
 

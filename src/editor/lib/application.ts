@@ -60,6 +60,7 @@ export class Application extends EventEmitter
         this.bindDataStoreEvent('datastoreNodeSetParent', objectGraph.onDatastoreNodeSetParent);
         this.bindDataStoreEvent('datastoreCustomPropDefined', objectGraph.onDataStoreCustomPropDefined);
         this.bindDataStoreEvent('datastoreNodeRemoved', objectGraph.onDatastoreNodeRemoved);
+        this.bindDataStoreEvent('datastoreCustomPropUndefined', objectGraph.onDatastoreCustomPropUndefined);
     }
 
     protected bindDataStoreEvent(eventName: DatastoreEvents, fn: (...args: any[]) => void)
@@ -70,6 +71,8 @@ export class Application extends EventEmitter
 
             if (existingEventArgs && (deepEqual(eventArgs, existingEventArgs)))
             {
+                console.log(`Event filtered: "${eventName}" data: ${JSON.stringify(eventArgs)}`, 'color:orange');
+
                 return;
             }
 

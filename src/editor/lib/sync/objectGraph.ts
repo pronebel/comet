@@ -101,4 +101,14 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
             throw new Error(`Could not find parent "${parentId}" or child "${nodeId}" to remove child`);
         }
     };
+
+    public onDatastoreCustomPropUndefined = (nodeId: string, propName: string) =>
+    {
+        const node = getGraphNode(nodeId);
+
+        if (node)
+        {
+            node.removeCustomProperty(propName);
+        }
+    };
 }

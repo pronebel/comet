@@ -9,11 +9,19 @@ import { getUserName } from './user';
 
 const userName = getUserName();
 
+export const defaultProjectSettings = {
+    collection: 'projects',
+    overrideCollectionWorldPermissions: false,
+    ephemeral: false,
+    worldPermissions: { read: true, write: true, remove: true, manage: true },
+};
+
 export type DatastoreEvents =
 | 'datastoreNodeCreated'
 | 'datastoreNodeSetParent'
 | 'datastoreNodeRemoved'
-| 'datastoreCustomPropDefined';
+| 'datastoreCustomPropDefined'
+| 'datastoreCustomPropUndefined';
 
 const logStyle = 'color:cyan';
 
@@ -27,6 +35,31 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         super();
         this.nodeRealtimeObjects = new Map();
+    }
+
+    public get domain()
+    {
+        if (!this._domain)
+        {
+            throw new Error('Domain not found');
+        }
+
+        return this._domain;
+    }
+
+    get model()
+    {
+        if (!this._model)
+        {
+            throw new Error('Datastore model not initialised');
+        }
+
+        return this._model;
+    }
+
+    get nodes()
+    {
+        return this.model.elementAt('nodes') as RealTimeObject;
     }
 
     public async connect()
@@ -47,16 +80,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this._domain = domain;
     }
 
-    public get domain()
-    {
-        if (!this._domain)
-        {
-            throw new Error('Domain not found');
-        }
-
-        return this._domain;
-    }
-
     public disconnect(): void
     {
         if (!this.domain.isDisposed())
@@ -66,37 +89,12 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         }
     }
 
-    protected get defaultProjectSettings()
-    {
-        return {
-            collection: 'projects',
-            overrideCollectionWorldPermissions: false,
-            ephemeral: false,
-            worldPermissions: { read: true, write: true, remove: true, manage: true },
-        };
-    }
-
-    get model()
-    {
-        if (!this._model)
-        {
-            throw new Error('Datastore model not initialised');
-        }
-
-        return this._model;
-    }
-
-    get nodes()
-    {
-        return this.model.elementAt('nodes') as RealTimeObject;
-    }
-
     public async createProject(name: string, id?: string)
     {
         const data = createProjectSchema(name);
 
         const model = await this.domain.models().openAutoCreate({
-            ...this.defaultProjectSettings,
+            ...defaultProjectSettings,
             id,
             data,
         });
@@ -121,9 +119,8 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         await this.joinActivity('editProject', model.modelId());
 
-        // note: these events only fire for remote users, which is why we use a custom event dispatcher
-        // remote users will be triggered from these handlers,
-        // local users will be triggered from command actions
+        // catch events when a remote user...
+
         this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
         {
             const nodeElement = (event as ObjectSetEvent).value as RealTimeObject;
@@ -203,20 +200,10 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             throw new Error(`Node "${id}" RealTimeObject already registered.`);
         }
 
+        // track element
         this.nodeRealtimeObjects.set(id, nodeElement);
 
-        nodeElement.elementAt('customProperties', 'defined').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-        {
-            const name = (event as ObjectSetEvent).key;
-            const element = (event as ObjectSetEvent).value as RealTimeObject;
-            const { type, value } = element.toJSON();
-            const info = JSON.stringify(element.toJSON());
-
-            console.log(`%c${userName}:customProperties.set: ${info}`, logStyle);
-
-            this.emit('datastoreCustomPropDefined', id, name, type, value);
-        });
-
+        // catch events on nodeElement prop changes (as a remote user)
         nodeElement.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
         {
             const key = (event as ObjectSetEvent).key;
@@ -232,7 +219,25 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             }
         });
 
-        console.log(`${userName}:Register RealTimeObject "${id}"`);
+        // catch custom prop events on nodeElement prop changes (as a remote user)
+        nodeElement.elementAt('customProperties', 'defined').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+        {
+            const name = (event as ObjectSetEvent).key;
+            const element = (event as ObjectSetEvent).value as RealTimeObject;
+            const { type, value } = element.toJSON();
+            const info = JSON.stringify(element.toJSON());
+
+            console.log(`%c${userName}:customProperties.set: ${info}`, logStyle);
+
+            this.emit('datastoreCustomPropDefined', id, name, type, value);
+        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
+        {
+            const propName = (event as ObjectSetEvent).key;
+
+            this.emit('datastoreCustomPropUndefined', id, propName);
+        });
+
+        console.log(`${userName}:Registered RealTimeObject "${id}"`);
     }
 
     public unRegisterNode(id: string)
@@ -244,7 +249,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         this.nodeRealtimeObjects.delete(id);
 
-        console.log(`${userName}:Unregister RealTimeObject "${id}"`);
+        console.log(`${userName}:Unregistered RealTimeObject "${id}"`);
     }
 
     public getNode(id: string)
@@ -313,5 +318,16 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         // notify application, which will update object graph
         this.emit('datastoreCustomPropDefined', nodeId, propName, type, value);
+    }
+
+    public removeNodeCustomProperty(nodeId: string, propName: string)
+    {
+        const nodeElement = this.getNode(nodeId);
+        const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
+
+        definedCustomProps.remove(propName);
+
+        // notify application, which will update object graph
+        this.emit('datastoreCustomPropUndefined', nodeId, propName);
     }
 }
