@@ -6,6 +6,7 @@ import { Application as PixiApplication } from 'pixi.js';
 
 import type { ClonableNode } from '../../core/lib/nodes/abstract/clonableNode';
 import type { ProjectNode } from '../../core/lib/nodes/concrete/project';
+import type { CustomPropertyType, CustomPropertyValueType } from '../../core/lib/nodes/customProperties';
 import type { Command } from './commands';
 import { type DatastoreEvents, Datastore } from './sync/datastore';
 import { ObjectGraph } from './sync/objectGraph';
@@ -65,6 +66,12 @@ export class Application extends EventEmitter
         this.bindDataStoreEvent('datastoreCustomPropUndefined', objectGraph.onDatastoreCustomPropUndefined);
         this.bindDataStoreEvent('datastoreCustomPropAssigned', objectGraph.onDatastoreCustomPropAssigned);
         this.bindDataStoreEvent('datastoreCustomPropUnAssigned', objectGraph.onDatastoreCustomPropUnAssigned);
+
+        // get notified when datastore changes
+        this.bindDataStoreEvent('datastoreCustomPropDefined', this.onDatastoreCustomPropDefined.bind(this));
+        this.bindDataStoreEvent('datastoreCustomPropUndefined', this.onDatastoreCustomPropUndefined.bind(this));
+        this.bindDataStoreEvent('datastoreCustomPropAssigned', this.onDatastoreCustomPropAssigned.bind(this));
+        this.bindDataStoreEvent('datastoreCustomPropUnAssigned', this.onDatastoreCustomPropUnAssigned.bind(this));
     }
 
     public static get instance()
@@ -90,10 +97,10 @@ export class Application extends EventEmitter
 
             if (existingEventArgs && (deepEqual(eventArgs, existingEventArgs)))
             {
-                console.log(
-                    `%c${userName}:Event filtered: "${eventName}" data: ${JSON.stringify(eventArgs)}`,
-                    'color:orange',
-                );
+                // console.warn(
+                //     `%c${userName}:Event filtered: "${eventName}" data: ${JSON.stringify(eventArgs)}`,
+                //     'color:orange',
+                // );
 
                 // return;
             }
@@ -175,6 +182,38 @@ export class Application extends EventEmitter
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onObjectGraphParentSet(childNode: ClonableNode, parentNode: ClonableNode)
+    {
+        // subclasses
+    }
+
+    protected onDatastoreCustomPropDefined(
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        id: string,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        name: string,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        type: CustomPropertyType,
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        value: CustomPropertyValueType,
+    )
+    {
+        // subclasses
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onDatastoreCustomPropUndefined(nodeId: string, propName: string)
+    {
+        // subclasses
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onDatastoreCustomPropAssigned(nodeId: string, modelKey: string, customKey: string)
+    {
+        // subclasses
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onDatastoreCustomPropUnAssigned(nodeId: string, modelKey: string)
     {
         // subclasses
     }

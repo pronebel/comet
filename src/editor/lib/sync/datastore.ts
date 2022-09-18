@@ -160,12 +160,14 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const { type, value } = element.toJSON();
             const info = JSON.stringify(element.toJSON());
 
-            console.log(`%c${userName}:customProperties.set: ${info}`, logStyle);
+            console.log(`%c${userName}:customProperties.defined: ${info}`, logStyle);
 
             this.emit('datastoreCustomPropDefined', id, name, type, value);
         }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
         {
             const propName = (event as ObjectSetEvent).key;
+
+            console.log(`%c${userName}:customProperties.undefined: "${propName}"`, logStyle);
 
             this.emit('datastoreCustomPropUndefined', id, propName);
         });
@@ -176,12 +178,14 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const modelKey = (event as ObjectSetEvent).key;
             const customKey = (event as ObjectSetEvent).value.value() as string;
 
-            console.log(`%c${userName}:customProperties.assign: ${modelKey}->${customKey}`, logStyle);
+            console.log(`%c${userName}:customProperties.assign: "${modelKey}->${customKey}"`, logStyle);
 
             this.emit('datastoreCustomPropAssigned', id, modelKey, customKey);
         }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
         {
             const modelKey = (event as ObjectSetEvent).key;
+
+            console.log(`%c${userName}:customProperties.unassigned: "${modelKey}"`, logStyle);
 
             this.emit('datastoreCustomPropUnAssigned', id, modelKey);
         });
