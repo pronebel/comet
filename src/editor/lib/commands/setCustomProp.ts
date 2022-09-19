@@ -1,3 +1,5 @@
+import type { RealTimeObject } from '@convergence/convergence';
+
 import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
 import { Command } from '.';
 
@@ -22,7 +24,16 @@ export class SetCustomPropCommand extends Command
     {
         const { nodeId, propName, type, value, datastore } = this;
 
-        datastore.setNodeCustomProperty(nodeId, propName, type, value);
+        const nodeElement = datastore.getNodeElement(nodeId);
+
+        const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
+
+        definedCustomProps.set(propName, {
+            type,
+            value,
+        });
+
+        datastore.emit('datastoreCustomPropDefined', nodeId, propName, type, value);
     }
 
     public undo(): void

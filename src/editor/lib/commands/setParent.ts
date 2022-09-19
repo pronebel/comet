@@ -19,7 +19,11 @@ export class SetParentCommand extends Command
     {
         const { datastore, parentId, childId } = this;
 
-        datastore.setNodeParent(parentId, childId);
+        const nodeElement = datastore.getNodeElement(childId);
+
+        nodeElement.set('parent', parentId);
+
+        datastore.emit('datastoreNodeSetParent', parentId, childId);
     }
 
     public undo(): void

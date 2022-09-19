@@ -1,3 +1,5 @@
+import type { RealTimeObject } from '@convergence/convergence';
+
 import { Command } from '.';
 
 export class AssignCustomPropCommand extends Command
@@ -20,7 +22,13 @@ export class AssignCustomPropCommand extends Command
     {
         const { nodeId, modelKey, customKey, datastore } = this;
 
-        datastore.assignNodeCustomProperty(nodeId, modelKey, customKey);
+        const nodeElement = datastore.getNodeElement(nodeId);
+
+        const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
+
+        assignedCustomProps.set(modelKey, customKey);
+
+        datastore.emit('datastoreCustomPropAssigned', nodeId, modelKey, customKey);
     }
 
     public undo(): void

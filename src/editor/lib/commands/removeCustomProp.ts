@@ -1,3 +1,5 @@
+import type { RealTimeObject } from '@convergence/convergence';
+
 import { Command } from '.';
 
 export class RemoveCustomPropCommand extends Command
@@ -17,9 +19,14 @@ export class RemoveCustomPropCommand extends Command
 
     public apply(): void
     {
-        const { datastore, nodeId, propName } = this;
+        const { nodeId, propName, datastore } = this;
 
-        datastore.removeNodeCustomProperty(nodeId, propName);
+        const nodeElement = datastore.getNodeElement(nodeId);
+        const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
+
+        definedCustomProps.remove(propName);
+
+        datastore.emit('datastoreCustomPropUndefined', nodeId, propName);
     }
 
     public undo(): void

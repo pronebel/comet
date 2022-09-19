@@ -116,7 +116,7 @@ export abstract class Application extends EventEmitter
         });
     }
 
-    public async connect()
+    public connect()
     {
         return this.datastore.connect();
     }

@@ -5,11 +5,9 @@ import { EventEmitter } from 'eventemitter3';
 import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import type { GraphNode } from '../../../core/lib/nodes/abstract/graphNode';
-import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
-import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
 import { getGraphNode, trackNodeId } from '../../../core/lib/nodes/factory';
 import type { ObjectGraph } from './objectGraph';
-import { type NodeOptionsSchema, type NodeSchema, createProjectSchema, getCloneInfoSchema, getNodeSchema } from './schema';
+import { type NodeOptionsSchema, type NodeSchema, createProjectSchema } from './schema';
 import { getUserName } from './user';
 
 const userName = getUserName();
@@ -20,6 +18,8 @@ export const defaultProjectSettings = {
     ephemeral: false,
     worldPermissions: { read: true, write: true, remove: true, manage: true },
 };
+
+export const connectionTimeout = 2500;
 
 export type DatastoreEvents =
 | 'datastoreNodeCreated'
@@ -332,29 +332,37 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return this.model.elementAt('nodes') as RealTimeObject;
     }
 
-    public async connect()
+    public connect()
     {
-        try
+        return new Promise((resolve, reject) =>
         {
             const url = 'https://localhost/realtime/convergence/default';
 
-            const domain = await Convergence.connect(url, userName, 'password', {
+            const timeout = setTimeout(() =>
+            {
+                reject(new Error(`Connection timeout`));
+            }, connectionTimeout);
+
+            Convergence.connect(url, userName, 'password', {
+                connection: {
+                    connectionRequestTimeout: connectionTimeout,
+                    timeout: connectionTimeout,
+                },
                 models: {
                     data: {
                         undefinedObjectValues: 'omit',
                         undefinedArrayValues: 'null',
                     },
                 },
-            });
+            }).then((domain) =>
+            {
+                clearTimeout(timeout);
+                console.log(`%cConnected as ${userName}!`, 'color:lime');
 
-            console.log(`%cConnected as ${userName}!`, 'color:lime');
-
-            this._domain = domain;
-        }
-        catch (e)
-        {
-            console.error('Connection failed', e);
-        }
+                this._domain = domain;
+                resolve(domain);
+            }).catch(reject);
+        });
     }
 
     public disconnect(): void
@@ -455,8 +463,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return nodeElement;
     }
 
-    // Command API
-
     public createNode<M extends ModelBase>(
         nodeSchema: NodeSchema<M>,
         nodeOptions: NodeOptionsSchema<M> = {},
@@ -484,15 +490,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         }
     }
 
-    public setNodeParent(parentId: string, childId: string)
-    {
-        const nodeElement = this.getNodeElement(childId);
-
-        nodeElement.set('parent', parentId);
-
-        this.emit('datastoreNodeSetParent', parentId, childId);
-    }
-
     public removeNode(nodeId: string)
     {
         const nodeElement = this.getNodeElement(nodeId);
@@ -503,134 +500,5 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.unRegisterNode(nodeId);
 
         this.emit('datastoreNodeRemoved', nodeId, parentId);
-    }
-
-    public setNodeCustomProperty(nodeId: string, propName: string, type: CustomPropertyType, value: CustomPropertyValueType)
-    {
-        const nodeElement = this.getNodeElement(nodeId);
-
-        const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
-
-        definedCustomProps.set(propName, {
-            type,
-            value,
-        });
-
-        this.emit('datastoreCustomPropDefined', nodeId, propName, type, value);
-    }
-
-    public removeNodeCustomProperty(nodeId: string, propName: string)
-    {
-        const nodeElement = this.getNodeElement(nodeId);
-        const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
-
-        definedCustomProps.remove(propName);
-
-        this.emit('datastoreCustomPropUndefined', nodeId, propName);
-    }
-
-    public assignNodeCustomProperty(nodeId: string, modelKey: string, customKey: string)
-    {
-        const nodeElement = this.getNodeElement(nodeId);
-
-        const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
-
-        assignedCustomProps.set(modelKey, customKey);
-
-        this.emit('datastoreCustomPropAssigned', nodeId, modelKey, customKey);
-    }
-
-    public unAssignNodeCustomProperty(nodeId: string, modelKey: string)
-    {
-        const nodeElement = this.getNodeElement(nodeId);
-
-        const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
-
-        assignedCustomProps.remove(modelKey);
-
-        this.emit('datastoreCustomPropUnAssigned', nodeId, modelKey);
-    }
-
-    public cloneNode(nodeId: string, cloneMode: CloneMode)
-    {
-        const node = getGraphNode(nodeId);
-
-        if (node)
-        {
-            const clone = node.clone(cloneMode);
-
-            // update datastore with new cloned nodes
-
-            clone.walk<ClonableNode>((clonedNode) =>
-            {
-                const nodeSchema = getNodeSchema(clonedNode);
-
-                const isClonedNode = clonedNode === clone;
-
-                const cloner = clonedNode.cloneInfo.cloner;
-
-                delete clonedNode.cloneInfo.cloner;
-
-                this.createNode(nodeSchema, {
-                    parent: isClonedNode ? node.parent?.id : undefined,
-                }, clonedNode);
-
-                clonedNode.cloneInfo.cloner = cloner;
-            });
-
-            // update datastore for all cloners (NOTE: do this after cloned nodes have been created)
-
-            node.walk<ClonableNode>((node) =>
-            {
-                const cloneInfoSchema = getCloneInfoSchema(node);
-                const nodeElement = this.getNodeElement(node.id);
-
-                const cloneInfoElement = nodeElement.get('cloneInfo') as RealTimeObject;
-
-                cloneInfoElement.value(cloneInfoSchema);
-            });
-
-            this.emit('datastoreNodeCloned', clone);
-
-            return clone;
-        }
-
-        throw new Error(`Could not clone node "${nodeId}"`);
-    }
-
-    public modifyModel(nodeId: string, key: string, value: ModelValue)
-    {
-        const nodeElement = this.getNodeElement(nodeId);
-
-        const model = nodeElement.get('model') as RealTimeObject;
-
-        model.set(key, value);
-
-        this.emit('datastoreModelModified', nodeId, key, value);
-    }
-
-    public unlink(nodeId: string)
-    {
-        const node = getGraphNode(nodeId);
-
-        if (node)
-        {
-            node.unlink();
-
-            node.walk<ClonableNode>((node) =>
-            {
-                const nodeId = node.id;
-
-                const nodeElement = this.getNodeElement(nodeId);
-
-                const cloneInfoSchema = getCloneInfoSchema(node);
-
-                nodeElement.get('cloneInfo').value(cloneInfoSchema);
-
-                nodeElement.get('model').value(node.model.ownValues);
-
-                this.emit('datastoreNodeUnlinked', nodeId);
-            });
-        }
     }
 }
