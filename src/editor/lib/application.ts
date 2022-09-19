@@ -10,9 +10,7 @@ import type { CustomPropertyType, CustomPropertyValueType } from '../../core/lib
 import type { Command } from './commands';
 import { type DatastoreEvents, Datastore } from './sync/datastore';
 import { ObjectGraph } from './sync/objectGraph';
-import { getUserName } from './sync/user';
-
-const userName = getUserName();
+import UndoStack from './undoStack';
 
 export interface AppOptions
 {
@@ -23,7 +21,7 @@ export class Application extends EventEmitter
 {
     public pixiApp: PixiApplication;
     public datastore: Datastore;
-    public undoStack: (Command[] | Command)[];
+    public undoStack: UndoStack;
     public objectGraph: ObjectGraph;
     public project?: ProjectNode;
 
@@ -45,7 +43,7 @@ export class Application extends EventEmitter
             backgroundColor: 0x333333,
         });
 
-        this.undoStack = [];
+        this.undoStack = new UndoStack();
 
         // create datastore
         this.datastore = new Datastore();
@@ -124,22 +122,12 @@ export class Application extends EventEmitter
 
     public pushCommand<T = void>(command: Command): T
     {
-        this.undoStack.push(command);
-
-        console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');
-
-        return command.apply() as T;
+        return this.undoStack.pushCommand<T>(command);
     }
 
     public pushCommands(commands: Command[])
     {
-        this.undoStack.push(commands);
-
-        commands.forEach((command) =>
-        {
-            console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');
-            command.apply();
-        });
+        this.undoStack.pushCommands(commands);
     }
 
     public async createProject(name: string, id: string)
