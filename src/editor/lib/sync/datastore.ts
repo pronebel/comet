@@ -48,6 +48,31 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.nodeRealtimeObjects = new Map();
     }
 
+    public get domain()
+    {
+        if (!this._domain)
+        {
+            throw new Error('Domain not found');
+        }
+
+        return this._domain;
+    }
+
+    get model()
+    {
+        if (!this._model)
+        {
+            throw new Error('Datastore model not initialised');
+        }
+
+        return this._model;
+    }
+
+    get nodes()
+    {
+        return this.model.elementAt('nodes') as RealTimeObject;
+    }
+
     protected async initProjectModel(projectModel: RealTimeModel)
     {
         this._model = projectModel;
@@ -147,32 +172,30 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         // prepare cloned nodes before parenting
 
-        const cloned = Array.from(graphNodes.values()).filter((node) =>
-        {
-            if (node.cloneInfo.wasCloned)
-            {
-                return true;
-            }
+        // const cloned = Array.from(graphNodes.values()).filter((node) =>
+        // {
+        //     if (node.cloneInfo.wasCloned)
+        //     {
+        //         return true;
+        //     }
 
-            return false;
-        });
+        //     return false;
+        // });
 
         // disable cloning events
 
-        const clonerMap: Map<string, ClonableNode> = new Map();
+        // const clonerMap: Map<string, ClonableNode> = new Map();
 
-        cloned.forEach((node) =>
-        {
-            node.disableCloneEvents();
+        // cloned.forEach((node) =>
+        // {
+        //     const cloner = node.cloneInfo.cloner as ClonableNode;
 
-            const cloner = node.cloneInfo.cloner as ClonableNode;
-
-            if (cloner)
-            {
-                clonerMap.set(node.id, cloner);
-                delete node.cloneInfo.cloner;
-            }
-        });
+        //     if (cloner)
+        //     {
+        //         clonerMap.set(node.id, cloner);
+        //         delete node.cloneInfo.cloner;
+        //     }
+        // });
 
         // now parent
 
@@ -190,16 +213,15 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         });
 
         // re-enable cloned events
-        cloned.forEach((node) =>
-        {
-            const cloner = clonerMap.get(node.id);
+        // cloned.forEach((node) =>
+        // {
+        //     const cloner = clonerMap.get(node.id);
 
-            if (cloner)
-            {
-                node.cloneInfo.cloner = cloner;
-                node.enableCloneEvents();
-            }
-        });
+        //     if (cloner)
+        //     {
+        //         node.cloneInfo.cloner = cloner;
+        //     }
+        // });
 
         const graphNodesArray = nodeElements.map((nodeElement) => getGraphNode(nodeElement.get('id').value() as string));
 
@@ -306,29 +328,43 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         console.log(`${userName}:Registered RealTimeObject "${id}"`);
     }
 
-    public get domain()
+    public createNode<M extends ModelBase>(
+        nodeSchema: NodeSchema<M>,
+        nodeOptions: NodeOptionsSchema<M> = {},
+        node?: ClonableNode,
+    )
     {
-        if (!this._domain)
+        if (nodeOptions.parent)
         {
-            throw new Error('Domain not found');
+            nodeSchema.parent = nodeOptions.parent;
         }
 
-        return this._domain;
-    }
+        const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
-    get model()
-    {
-        if (!this._model)
+        this.registerNode(nodeSchema.id, nodeElement);
+
+        this.emit('datastoreNodeCreated', nodeElement, node);
+
+        const parentId = nodeSchema.parent;
+
+        if (parentId)
         {
-            throw new Error('Datastore model not initialised');
-        }
+            const childId = nodeSchema.id;
 
-        return this._model;
+            this.emit('datastoreNodeSetParent', parentId, childId);
+        }
     }
 
-    get nodes()
+    public removeNode(nodeId: string)
     {
-        return this.model.elementAt('nodes') as RealTimeObject;
+        const nodeElement = this.getNodeElement(nodeId);
+
+        const parentId = nodeElement.get('parent').value() as string;
+
+        this.nodes.remove(nodeId);
+        this.unRegisterNode(nodeId);
+
+        this.emit('datastoreNodeRemoved', nodeId, parentId);
     }
 
     public connect()
@@ -460,44 +496,5 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         }
 
         return nodeElement;
-    }
-
-    public createNode<M extends ModelBase>(
-        nodeSchema: NodeSchema<M>,
-        nodeOptions: NodeOptionsSchema<M> = {},
-        node?: ClonableNode,
-    )
-    {
-        if (nodeOptions.parent)
-        {
-            nodeSchema.parent = nodeOptions.parent;
-        }
-
-        const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
-
-        this.registerNode(nodeSchema.id, nodeElement);
-
-        this.emit('datastoreNodeCreated', nodeElement, node);
-
-        const parentId = nodeSchema.parent;
-
-        if (parentId)
-        {
-            const childId = nodeSchema.id;
-
-            this.emit('datastoreNodeSetParent', parentId, childId);
-        }
-    }
-
-    public removeNode(nodeId: string)
-    {
-        const nodeElement = this.getNodeElement(nodeId);
-
-        const parentId = nodeElement.get('parent').value() as string;
-
-        this.nodes.remove(nodeId);
-        this.unRegisterNode(nodeId);
-
-        this.emit('datastoreNodeRemoved', nodeId, parentId);
     }
 }
