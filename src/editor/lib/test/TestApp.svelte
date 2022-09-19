@@ -169,6 +169,7 @@
     margin-bottom: 10px;
     font-size: 10pt;
     z-index: 100;
+    opacity: 0.7;
   }
 
   marker {
@@ -208,6 +209,7 @@
     border-color: #666;
     padding: 5px;
     z-index: 100;
+    opacity: 0.7;
   }
 
   br {

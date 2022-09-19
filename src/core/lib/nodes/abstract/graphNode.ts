@@ -31,6 +31,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
     public id: string;
     public parent?: GraphNode;
     public children: GraphNode[];
+    public created: number;
 
     constructor(id?: string)
     {
@@ -38,6 +39,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
         this.id = id ?? newGraphNodeId(this.nodeType());
         this.children = [];
+        this.created = Date.now();
     }
 
     public abstract nodeType(): string;
@@ -78,6 +80,27 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return ref as unknown as T;
     }
 
+    public sortChildren()
+    {
+        // sort by created
+        this.children.sort((a: GraphNode, b: GraphNode) =>
+        {
+            const aCreated = a.created;
+            const bCreated = b.created;
+
+            if (aCreated < bCreated)
+            {
+                return -1;
+            }
+            else if (aCreated > bCreated)
+            {
+                return 1;
+            }
+
+            return 0;
+        });
+    }
+
     public setParent(parent: GraphNode)
     {
         if (this.parent)
@@ -88,6 +111,8 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         this.parent = parent;
 
         parent.children.push(this);
+        parent.sortChildren();
+
         parent.emit('childAdded', this);
 
         this.onAddedToParent();

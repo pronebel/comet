@@ -113,32 +113,6 @@ export abstract class ClonableNode<
         // for subclasses...
     }
 
-    public enableCloneEvents()
-    {
-        const { cloneInfo } = this;
-
-        const cloner = cloneInfo.getCloner<ClonableNode>();
-
-        if (cloner)
-        {
-            cloner.on('childAdded', this.onClonerChildAdded);
-            cloner.on('childRemoved', this.onClonerChildRemoved);
-        }
-    }
-
-    public disableCloneEvents()
-    {
-        const { cloneInfo } = this;
-
-        const cloner = cloneInfo.getCloner<ClonableNode>();
-
-        if (cloner)
-        {
-            cloner.off('childAdded', this.onClonerChildAdded);
-            cloner.off('childRemoved', this.onClonerChildRemoved);
-        }
-    }
-
     public clone<T extends ClonableNode>(cloneMode: CloneMode = CloneMode.Variant, depth = 0): T
     {
         const Ctor = Object.getPrototypeOf(this).constructor as ClonableNodeConstructor;
@@ -291,6 +265,32 @@ export abstract class ClonableNode<
 
             component.cloneInfo.forEachCloned<ClonableNode>((cloned) => cloned.updateRecursiveWithClones());
         });
+    }
+
+    public enableCloneEvents()
+    {
+        const { cloneInfo } = this;
+
+        const cloner = cloneInfo.getCloner<ClonableNode>();
+
+        if (cloner)
+        {
+            cloner.on('childAdded', this.onClonerChildAdded);
+            cloner.on('childRemoved', this.onClonerChildRemoved);
+        }
+    }
+
+    public disableCloneEvents()
+    {
+        const { cloneInfo } = this;
+
+        const cloner = cloneInfo.getCloner<ClonableNode>();
+
+        if (cloner)
+        {
+            cloner.off('childAdded', this.onClonerChildAdded);
+            cloner.off('childRemoved', this.onClonerChildRemoved);
+        }
     }
 
     protected onModelModified = <T>(key: string, value: T, oldValue: T) =>

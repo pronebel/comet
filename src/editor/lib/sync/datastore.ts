@@ -94,14 +94,41 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         const graphNodes: Map<string, ClonableNode> = new Map();
 
-        // create nodes first
+        const nodeElements: RealTimeObject[] = [];
 
         nodes.keys().forEach((id) =>
         {
+            const nodeElement = nodes.get(id) as RealTimeObject;
+
+            nodeElements.push(nodeElement);
+        });
+
+        nodeElements.sort((a: RealTimeObject, b: RealTimeObject) =>
+        {
+            const aCreated = a.get('created').value() as number;
+            const bCreated = b.get('created').value() as number;
+
+            if (aCreated < bCreated)
+            {
+                return -1;
+            }
+            else if (aCreated > bCreated)
+            {
+                return 1;
+            }
+
+            return 0;
+        });
+
+        // create nodes first
+
+        nodeElements.forEach((nodeElement) =>
+        {
+            const id = nodeElement.get('id').value() as string;
+
             // ensure local ids don't clash with hydrating ids
             trackNodeId(id);
 
-            const nodeElement = nodes.get(id) as RealTimeObject;
             const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
 
             const node = objectGraph.createGraphNode(nodeSchema);
@@ -111,12 +138,43 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             graphNodes.set(id, node);
         });
 
-        // then parent them
+        // reverse node list to recreate same order objects
 
-        nodes.keys().forEach((id) =>
+        nodeElements.reverse();
+
+        // prepare cloned nodes before parenting
+
+        const cloned = Array.from(graphNodes.values()).filter((node) =>
         {
-            const nodeElement = nodes.get(id) as RealTimeObject;
+            if (node.cloneInfo.wasCloned)
+            {
+                return true;
+            }
 
+            return false;
+        });
+
+        // disable cloning events
+
+        const clonerMap: Map<string, ClonableNode> = new Map();
+
+        cloned.forEach((node) =>
+        {
+            node.disableCloneEvents();
+
+            const cloner = node.cloneInfo.cloner as ClonableNode;
+
+            if (cloner)
+            {
+                clonerMap.set(node.id, cloner);
+                delete node.cloneInfo.cloner;
+            }
+        });
+
+        // now parent
+
+        nodeElements.forEach((nodeElement) =>
+        {
             const parentId = nodeElement.get('parent').value();
             const childId = nodeElement.get('id').value();
             const parentNode = graphNodes.get(parentId);
@@ -127,6 +185,21 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 parentNode.addChild(childNode as GraphNode);
             }
         });
+
+        // re-enable cloned events
+        cloned.forEach((node) =>
+        {
+            node.enableCloneEvents();
+
+            const cloner = clonerMap.get(node.id);
+
+            if (cloner)
+            {
+                node.cloneInfo.cloner = cloner;
+            }
+        });
+
+        // todo: restore cloner values
 
         return graphNodes;
     }
@@ -226,20 +299,27 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public async connect()
     {
-        const url = 'https://localhost/realtime/convergence/default';
+        try
+        {
+            const url = 'https://localhost/realtime/convergence/default';
 
-        const domain = await Convergence.connect(url, userName, 'password', {
-            models: {
-                data: {
-                    undefinedObjectValues: 'omit',
-                    undefinedArrayValues: 'null',
+            const domain = await Convergence.connect(url, userName, 'password', {
+                models: {
+                    data: {
+                        undefinedObjectValues: 'omit',
+                        undefinedArrayValues: 'null',
+                    },
                 },
-            },
-        });
+            });
 
-        console.log(`%cConnected as ${userName}!`, 'color:lime');
+            console.log(`%cConnected as ${userName}!`, 'color:lime');
 
-        this._domain = domain;
+            this._domain = domain;
+        }
+        catch (e)
+        {
+            console.error('Connection failed', e);
+        }
     }
 
     public disconnect(): void
@@ -345,7 +425,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public createNode<M extends ModelBase>(
         nodeSchema: NodeSchema<M>,
         nodeOptions: NodeOptionsSchema<M> = {},
-        node: ClonableNode,
+        node?: ClonableNode,
     )
     {
         if (nodeOptions.parent)
@@ -450,9 +530,17 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             {
                 const nodeSchema = getNodeSchema(clonedNode);
 
+                const isClonedNode = clonedNode === clone;
+
+                const cloner = clonedNode.cloneInfo.cloner;
+
+                delete clonedNode.cloneInfo.cloner;
+
                 this.createNode(nodeSchema, {
-                    parent: clonedNode === clone ? node.parent?.id : undefined,
+                    parent: isClonedNode ? node.parent?.id : undefined,
                 }, clonedNode);
+
+                clonedNode.cloneInfo.cloner = cloner;
             });
 
             // update datastore for all cloners (NOTE: do this after cloned nodes have been created)

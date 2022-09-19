@@ -30,6 +30,8 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         const node = createGraphNode(type,
             { id, model, cloneInfo });
 
+        node.created = nodeSchema.created;
+
         // build custom properties
         for (const [name, props] of Object.entries(customProperties.defined))
         {
@@ -140,22 +142,9 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         }
     };
 
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public onDatastoreNodeCloned = (clone: ClonableNode) =>
     {
-        console.log('onDatastoreNodeCloned', clone, clone.model.x);
-        // const parentNode = getGraphNode(nodeSchema.parent);
-
-        // if (parentNode)
-        // {
-        //     clone.disableCloneEvents();
-        //     cloner.disableCloneEvents();
-
-        //     clone.setParent(parentNode);
-
-        //     clone.enableCloneEvents();
-        //     cloner.enableCloneEvents();
-        // }
-
-        // this.emit('objectGraphParentSet', clone, parentNode);
+        // console.log('onDatastoreNodeCloned', clone, clone.model.x);
     };
 }

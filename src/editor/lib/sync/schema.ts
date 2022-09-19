@@ -24,6 +24,7 @@ export interface CloneInfoSchema
 export interface NodeSchema<M extends ModelBase>
 {
     id: string;
+    created: number;
     type: string;
     parent?: string;
     model: Partial<M>;
@@ -72,6 +73,7 @@ export function createNodeSchema<M extends ModelBase>(type: string, nodeOptions:
 
     return {
         id: id ?? newGraphNodeId(type),
+        created: Date.now(),
         type,
         parent,
         model: model ?? {},
