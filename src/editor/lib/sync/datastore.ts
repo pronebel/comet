@@ -94,6 +94,8 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         const graphNodes: Map<string, ClonableNode> = new Map();
 
+        // create nodes first
+
         nodes.keys().forEach((id) =>
         {
             // ensure local ids don't clash with hydrating ids
@@ -108,6 +110,8 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             graphNodes.set(id, node);
         });
+
+        // then parent them
 
         nodes.keys().forEach((id) =>
         {
@@ -344,13 +348,18 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         node: ClonableNode,
     )
     {
+        if (nodeOptions.parent)
+        {
+            nodeSchema.parent = nodeOptions.parent;
+        }
+
         const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
         this.registerNode(nodeSchema.id, nodeElement);
 
         this.emit('datastoreNodeCreated', nodeElement, node);
 
-        const parentId = nodeSchema.parent ?? nodeOptions.parent;
+        const parentId = nodeSchema.parent;
 
         if (parentId)
         {
