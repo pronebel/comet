@@ -1,4 +1,5 @@
 import type { ContainerNode } from '../../../core/lib/nodes/concrete/container';
+import { ModifyModelCommand } from '../commands/modifyModel';
 import { TestApp } from './testApp';
 
 type AnyContainer = ContainerNode<any, any>;
@@ -36,8 +37,14 @@ window.addEventListener('mousemove', (e: MouseEvent) =>
         const newX = state.startX + deltaX;
         const newY = state.startY + deltaY;
 
-        state.component.model.x = newX;
-        state.component.model.y = newY;
+        const app: TestApp = TestApp.getInstance();
+
+        const nodeId = state.component.id;
+
+        app.pushCommand(new ModifyModelCommand(nodeId, 'x', newX));
+        app.pushCommand(new ModifyModelCommand(nodeId, 'y', newY));
+        // state.component.model.x = newX;
+        // state.component.model.y = newY;
 
         TestApp.getInstance().fitSelection(state.component);
     }

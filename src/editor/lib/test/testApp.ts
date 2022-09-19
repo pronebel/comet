@@ -1,7 +1,7 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
-import type { ModelBase } from '../../../core/lib/model/model';
+import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { ContainerModel, ContainerNode } from '../../../core/lib/nodes/concrete/container';
@@ -118,6 +118,12 @@ export class TestApp extends Application
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onDatastoreCustomPropUnAssigned(nodeId: string, modelKey: string): void
+    {
+        this.fitSelection();
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onDatastoreModelModified(nodeId: string, key: string, value: ModelValue): void
     {
         this.fitSelection();
     }

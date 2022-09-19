@@ -2,7 +2,7 @@ import type { ConvergenceDomain, IConvergenceEvent, ObjectSetEvent, RealTimeMode
 import Convergence, { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
-import type { ModelBase } from '../../../core/lib/model/model';
+import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import type { GraphNode } from '../../../core/lib/nodes/abstract/graphNode';
 import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
@@ -29,7 +29,7 @@ export type DatastoreEvents =
 | 'datastoreCustomPropUndefined'
 | 'datastoreCustomPropAssigned'
 | 'datastoreCustomPropUnAssigned'
-| 'datastoreNodeCloned';
+| 'datastoreModelModified';
 
 const logStyle = 'color:cyan';
 
@@ -224,7 +224,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 const parentId = (event as ObjectSetEvent).value.value();
                 const childId = nodeElement.get('id').value();
 
-                console.log(`%c${userName}:parent.set: ${parentId} ${childId}`, logStyle);
+                console.log(`%c${userName}:${id}:parent.set: ${parentId} ${childId}`, logStyle);
 
                 this.emit('datastoreNodeSetParent', parentId, childId);
             }
@@ -239,14 +239,14 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const { type, value } = element.toJSON();
             const info = JSON.stringify(element.toJSON());
 
-            console.log(`%c${userName}:customProperties.defined: ${info}`, logStyle);
+            console.log(`%c${userName}:${id}:customProperties.defined: ${info}`, logStyle);
 
             this.emit('datastoreCustomPropDefined', id, name, type, value);
         }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
         {
             const propName = (event as ObjectSetEvent).key;
 
-            console.log(`%c${userName}:customProperties.undefined: "${propName}"`, logStyle);
+            console.log(`%c${userName}:${id}:customProperties.undefined: "${propName}"`, logStyle);
 
             this.emit('datastoreCustomPropUndefined', id, propName);
         });
@@ -257,16 +257,27 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const modelKey = (event as ObjectSetEvent).key;
             const customKey = (event as ObjectSetEvent).value.value() as string;
 
-            console.log(`%c${userName}:customProperties.assign: "${modelKey}->${customKey}"`, logStyle);
+            console.log(`%c${userName}:${id}:customProperties.assign: "${modelKey}->${customKey}"`, logStyle);
 
             this.emit('datastoreCustomPropAssigned', id, modelKey, customKey);
         }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
         {
             const modelKey = (event as ObjectSetEvent).key;
 
-            console.log(`%c${userName}:customProperties.unassigned: "${modelKey}"`, logStyle);
+            console.log(`%c${userName}:${id}:customProperties.unassigned: "${modelKey}"`, logStyle);
 
             this.emit('datastoreCustomPropUnAssigned', id, modelKey);
+        });
+
+        // catch events from model
+        nodeElement.elementAt('model').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+        {
+            const key = (event as ObjectSetEvent).key;
+            const value = (event as ObjectSetEvent).value.value() as ModelValue;
+
+            console.log(`%c${userName}:${id}:model.set: ${key}->${value}`, logStyle);
+
+            this.emit('datastoreModelModified', id, key, value);
         });
 
         console.log(`${userName}:Registered RealTimeObject "${id}"`);
@@ -553,11 +564,20 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 const cloneInfoElement = nodeElement.get('cloneInfo') as RealTimeObject;
 
                 cloneInfoElement.value(cloneInfoSchema);
-
-                this.emit('datastoreNodeCloned', clone);
             });
         }
 
         return undefined;
+    }
+
+    public modifyModel(nodeId: string, key: string, value: ModelValue)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+
+        const model = nodeElement.get('model') as RealTimeObject;
+
+        model.set(key, value);
+
+        this.emit('datastoreModelModified', nodeId, key, value);
     }
 }

@@ -1,7 +1,7 @@
 import  type  { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
-import type { ModelBase } from '../../../core/lib/model/model';
+import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import { CloneInfo } from '../../../core/lib/nodes/cloneInfo';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
@@ -143,8 +143,13 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onDatastoreNodeCloned = (clone: ClonableNode) =>
+    public onDatastoreModelModified = (nodeId: string, key: string, value: ModelValue) =>
     {
-        // console.log('onDatastoreNodeCloned', clone, clone.model.x);
+        const node = getGraphNode(nodeId);
+
+        if (node)
+        {
+            node.model.setValue(key, value);
+        }
     };
 }

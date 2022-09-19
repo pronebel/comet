@@ -10,6 +10,11 @@ export class UnlinkCommand extends Command
         super();
     }
 
+    public name()
+    {
+        return 'Unlink';
+    }
+
     public apply(): void
     {
         throw new Error('Method not implemented.');

@@ -3,18 +3,24 @@ import { Command } from '.';
 export class ModifyModelCommand extends Command
 {
     constructor(
-        public readonly targetId: string,
+        public readonly nodeId: string,
         public readonly key: string,
         public readonly value: any,
-        public readonly oldValue: any,
     )
     {
         super();
     }
 
+    public name()
+    {
+        return 'ModifyModel';
+    }
+
     public apply(): void
     {
-        throw new Error('Method not implemented.');
+        const { nodeId, key, value, datastore } = this;
+
+        datastore.modifyModel(nodeId, key, value);
     }
 
     public undo(): void

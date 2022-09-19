@@ -82,7 +82,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
     public sortChildren()
     {
-        // sort by created
+        // sort by created timestamp
         this.children.sort((a: GraphNode, b: GraphNode) =>
         {
             const aCreated = a.created;
@@ -111,6 +111,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         this.parent = parent;
 
         parent.children.push(this);
+
         parent.sortChildren();
 
         parent.emit('childAdded', this);

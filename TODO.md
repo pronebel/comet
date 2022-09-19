@@ -1,6 +1,6 @@
-⚪ - todo
-🟠 - in progress
-🟢 - done
+* ⚪ Todo
+* 🟠 In Progress
+* 🟢 Done
 
 [ Weekend + Monday ]
 
@@ -25,10 +25,4 @@
 
 [ Notes ]
 * Clone command
-    - need to use object graph to clone due to flattening logic in there
-    - need to then walk clone tree (may be root of many children)
-        - create schemas for each node, write to datastore
-        - create new graph nodes (possibly modify hydrate to take set instead of all nodes)
-    - when hydrating nodes with cloneInfo, don't write cloneInfo until tree is assembled,
-        then patch each node to have cloneInfo (will need to cloneInit too)
-            - This avoids clone children event firingg
+    - adding/removing children (clone detection) needs to be saved to datastore
