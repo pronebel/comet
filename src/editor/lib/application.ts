@@ -1,7 +1,6 @@
 import '../../core/lib/nodes/register';
 
 import { EventEmitter } from 'eventemitter3';
-import { deepEqual } from 'fast-equals';
 import { Application as PixiApplication } from 'pixi.js';
 
 import type { ModelValue } from '../../core/lib/model/model';
@@ -9,7 +8,7 @@ import type { ClonableNode } from '../../core/lib/nodes/abstract/clonableNode';
 import type { ProjectNode } from '../../core/lib/nodes/concrete/project';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/lib/nodes/customProperties';
 import type { Command } from './commands';
-import { type DatastoreEvents, Datastore } from './sync/datastore';
+import { Datastore } from './sync/datastore';
 import { ObjectGraph } from './sync/objectGraph';
 import UndoStack from './undoStack';
 
@@ -47,7 +46,7 @@ export abstract class Application extends EventEmitter
         this.undoStack = new UndoStack();
 
         // create datastore
-        this.datastore = new Datastore();
+        const datastore = this.datastore = new Datastore();
 
         // create object graph
         const objectGraph = this.objectGraph = new ObjectGraph();
@@ -58,25 +57,25 @@ export abstract class Application extends EventEmitter
         objectGraph.on('objectGraphParentSet', this.onObjectGraphParentSet.bind(this));
 
         // update object graph when datastore changes
-        this.bindDataStoreEvent('datastoreNodeCreated', objectGraph.onDatastoreNodeCreated);
-        this.bindDataStoreEvent('datastoreNodeSetParent', objectGraph.onDatastoreNodeSetParent);
-        this.bindDataStoreEvent('datastoreCustomPropDefined', objectGraph.onDataStoreCustomPropDefined);
-        this.bindDataStoreEvent('datastoreNodeRemoved', objectGraph.onDatastoreNodeRemoved);
-        this.bindDataStoreEvent('datastoreCustomPropUndefined', objectGraph.onDatastoreCustomPropUndefined);
-        this.bindDataStoreEvent('datastoreCustomPropAssigned', objectGraph.onDatastoreCustomPropAssigned);
-        this.bindDataStoreEvent('datastoreCustomPropUnAssigned', objectGraph.onDatastoreCustomPropUnAssigned);
-        this.bindDataStoreEvent('datastoreNodeCloned', objectGraph.onDatastoreNodeCloned);
-        this.bindDataStoreEvent('datastoreModelModified', objectGraph.onDatastoreModelModified);
-        this.bindDataStoreEvent('datastoreCloneInfoModified', objectGraph.onDatastoreCloneInfoModified);
-        this.bindDataStoreEvent('datastoreNodeUnlinked', objectGraph.onDatastoreNodeUnlinked);
+        datastore.on('datastoreNodeCreated', objectGraph.onDatastoreNodeCreated);
+        datastore.on('datastoreNodeSetParent', objectGraph.onDatastoreNodeSetParent);
+        datastore.on('datastoreCustomPropDefined', objectGraph.onDataStoreCustomPropDefined);
+        datastore.on('datastoreNodeRemoved', objectGraph.onDatastoreNodeRemoved);
+        datastore.on('datastoreCustomPropUndefined', objectGraph.onDatastoreCustomPropUndefined);
+        datastore.on('datastoreCustomPropAssigned', objectGraph.onDatastoreCustomPropAssigned);
+        datastore.on('datastoreCustomPropUnAssigned', objectGraph.onDatastoreCustomPropUnAssigned);
+        datastore.on('datastoreNodeCloned', objectGraph.onDatastoreNodeCloned);
+        datastore.on('datastoreModelModified', objectGraph.onDatastoreModelModified);
+        datastore.on('datastoreCloneInfoModified', objectGraph.onDatastoreCloneInfoModified);
+        datastore.on('datastoreNodeUnlinked', objectGraph.onDatastoreNodeUnlinked);
 
         // get notified when datastore changes
-        this.bindDataStoreEvent('datastoreCustomPropDefined', this.onDatastoreCustomPropDefined.bind(this));
-        this.bindDataStoreEvent('datastoreCustomPropUndefined', this.onDatastoreCustomPropUndefined.bind(this));
-        this.bindDataStoreEvent('datastoreCustomPropAssigned', this.onDatastoreCustomPropAssigned.bind(this));
-        this.bindDataStoreEvent('datastoreCustomPropUnAssigned', this.onDatastoreCustomPropUnAssigned.bind(this));
-        this.bindDataStoreEvent('datastoreNodeCloned', this.onDatastoreNodeCloned.bind(this));
-        this.bindDataStoreEvent('datastoreModelModified', this.onDatastoreModelModified.bind(this));
+        datastore.on('datastoreCustomPropDefined', this.onDatastoreCustomPropDefined.bind(this));
+        datastore.on('datastoreCustomPropUndefined', this.onDatastoreCustomPropUndefined.bind(this));
+        datastore.on('datastoreCustomPropAssigned', this.onDatastoreCustomPropAssigned.bind(this));
+        datastore.on('datastoreCustomPropUnAssigned', this.onDatastoreCustomPropUnAssigned.bind(this));
+        datastore.on('datastoreNodeCloned', this.onDatastoreNodeCloned.bind(this));
+        datastore.on('datastoreModelModified', this.onDatastoreModelModified.bind(this));
     }
 
     public static get instance()
@@ -92,28 +91,6 @@ export abstract class Application extends EventEmitter
     public get stage()
     {
         return this.pixiApp.stage;
-    }
-
-    protected bindDataStoreEvent(eventName: DatastoreEvents, fn: (...args: any[]) => void)
-    {
-        this.datastore.on(eventName, (...eventArgs: any[]) =>
-        {
-            const existingEventArgs = this.eventFilter.get(eventName);
-
-            if (existingEventArgs && (deepEqual(eventArgs, existingEventArgs)))
-            {
-                // console.warn(
-                //     `%c${userName}:Event filtered: "${eventName}" data: ${JSON.stringify(eventArgs)}`,
-                //     'color:orange',
-                // );
-
-                // return;
-            }
-
-            this.eventFilter.set(eventName, eventArgs);
-
-            fn(...eventArgs);
-        });
     }
 
     public connect()

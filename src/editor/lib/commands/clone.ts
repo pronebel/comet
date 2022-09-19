@@ -65,8 +65,6 @@ export class CloneCommand extends Command
             datastore.emit('datastoreNodeCloned', clone);
         }
 
-        throw new Error(`Could not clone node "${nodeId}"`);
-
         // todo: store nodeId for undo
     }
 

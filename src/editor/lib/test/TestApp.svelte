@@ -85,6 +85,11 @@
     console.log(app.datastore.nodes.toJSON());
   };
 
+  const onClearDatastore = () => {
+    app.clear();
+    console.log("Datastore cleared");
+  };
+
   const onSetCustomProp = () => {
     app.setCustomProp(customPropName, customPropValue);
     app.fitSelection();
@@ -146,6 +151,7 @@
     <button on:click={onDelete}>Delete</button>
     <button on:click={onInspect}>Inspect Node</button>
     <br />
+    <button on:click={onClearDatastore}>Clear Datastore</button>
     <button on:click={onInspectDatastore}>Inspect Datastore</button>
     <br />
     <button on:click={onDeselect}>Deselect</button>

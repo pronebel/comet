@@ -192,13 +192,12 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         // re-enable cloned events
         cloned.forEach((node) =>
         {
-            node.enableCloneEvents();
-
             const cloner = clonerMap.get(node.id);
 
             if (cloner)
             {
                 node.cloneInfo.cloner = cloner;
+                node.enableCloneEvents();
             }
         });
 

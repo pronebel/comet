@@ -53,7 +53,7 @@ export class TestApp extends Application
 
     public async init()
     {
-        if (userName === '!ali')
+        if (userName === 'ali')
         {
             await this.createProject('Test', 'test');
         }
@@ -132,6 +132,18 @@ export class TestApp extends Application
     protected onDatastoreModelModified(nodeId: string, key: string, value: ModelValue): void
     {
         this.fitSelection();
+    }
+
+    public clear()
+    {
+        this.datastore.nodes.keys().forEach((id) =>
+        {
+            if (id !== 'Project:1' && id !== 'Scene:1')
+            {
+                this.datastore.nodes.remove(id);
+            }
+        });
+        window.location.reload();
     }
 
     // Button commands...

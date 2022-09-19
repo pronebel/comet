@@ -6,7 +6,7 @@ import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode
 import { CloneInfo } from '../../../core/lib/nodes/cloneInfo';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
 import { createGraphNode, disposeGraphNode, getGraphNode, registerGraphNode } from '../../../core/lib/nodes/factory';
-import type { CloneInfoSchema, NodeSchema } from './schema';
+import type {  CloneInfoSchema,  NodeSchema } from './schema';
 
 export type ObjectGraphEvent = 'objectGraphNodeCreated' | 'objectGraphNodeRemoved' | 'objectGraphParentSet';
 
@@ -73,6 +73,18 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
 
             // notify application
             this.emit('objectGraphParentSet', childNode, parentNode);
+
+            // const parentCloner = parentNode.cloneInfo.cloner;
+
+            // if (parentCloner)
+            // {
+            //     debugger;
+            //     Application.instance.pushCommand(new CreateNodeCommand(childNode.nodeType(), {
+            //         parent: parentCloner.id,
+            //     }));
+            // }
+
+            // todo: need to notify cloned children
         }
     };
 
