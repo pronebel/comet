@@ -15,6 +15,7 @@ import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
+import { UnlinkCommand } from '../commands/unlink';
 import { getUserName } from '../sync/user';
 import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
@@ -181,10 +182,10 @@ export class TestApp extends Application
 
     public unlink()
     {
-        // if (this.selected)
-        // {
-
-        // }
+        if (this.project && this.selected)
+        {
+            this.pushCommand(new UnlinkCommand(this.selected.id));
+        }
     }
 
     public deleteSelected()

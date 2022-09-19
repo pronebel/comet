@@ -3,8 +3,7 @@ import { Command } from '.';
 export class UnlinkCommand extends Command
 {
     constructor(
-        public readonly targetId: string,
-        public readonly unlinkChildren: boolean,
+        public readonly nodeId: string,
     )
     {
         super();
@@ -17,7 +16,9 @@ export class UnlinkCommand extends Command
 
     public apply(): void
     {
-        throw new Error('Method not implemented.');
+        const { nodeId, datastore } = this;
+
+        datastore.unlink(nodeId);
     }
 
     public undo(): void

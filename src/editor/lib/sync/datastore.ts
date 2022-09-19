@@ -30,7 +30,9 @@ export type DatastoreEvents =
 | 'datastoreCustomPropAssigned'
 | 'datastoreCustomPropUnAssigned'
 | 'datastoreNodeCloned'
-| 'datastoreModelModified';
+| 'datastoreModelModified'
+| 'datastoreCloneInfoModified'
+| 'datastoreNodeUnlinked';
 
 const logStyle = 'color:cyan';
 
@@ -200,8 +202,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             }
         });
 
-        // todo: restore cloner values
-
         const graphNodesArray = nodeElements.map((nodeElement) => getGraphNode(nodeElement.get('id').value() as string));
 
         console.log(`%c${userName}:hydrated [${graphNodesArray.map((node) => node?.id).join(',')}]`, 'color:lime');
@@ -285,6 +285,23 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             console.log(`%c${userName}:${id}:model.set: ${key}->${value}`, logStyle);
 
             this.emit('datastoreModelModified', id, key, value);
+        }).on(RealTimeObject.Events.VALUE, (event: IConvergenceEvent) =>
+        {
+            const model = (event as ObjectSetEvent).element.value();
+
+            console.log(`%c${userName}:${id}:model.value: ${JSON.stringify(model)}`, logStyle);
+
+            this.emit('datastoreModelModified', id, undefined, model);
+        }); // todo: REMOVE?
+
+        // catch events from cloneInfo
+        nodeElement.elementAt('cloneInfo').on(RealTimeObject.Events.VALUE, (event: IConvergenceEvent) =>
+        {
+            const cloneInfo = (event as ObjectSetEvent).element.value();
+
+            console.log(`%c${userName}:${id}:cloneInfo.set: ${JSON.stringify(cloneInfo)}`, logStyle);
+
+            this.emit('datastoreCloneInfoModified', id, cloneInfo);
         });
 
         console.log(`${userName}:Registered RealTimeObject "${id}"`);
@@ -590,5 +607,30 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         model.set(key, value);
 
         this.emit('datastoreModelModified', nodeId, key, value);
+    }
+
+    public unlink(nodeId: string)
+    {
+        const node = getGraphNode(nodeId);
+
+        if (node)
+        {
+            node.unlink();
+
+            node.walk<ClonableNode>((node) =>
+            {
+                const nodeId = node.id;
+
+                const nodeElement = this.getNodeElement(nodeId);
+
+                const cloneInfoSchema = getCloneInfoSchema(node);
+
+                nodeElement.get('cloneInfo').value(cloneInfoSchema);
+
+                nodeElement.get('model').value(node.model.ownValues);
+
+                this.emit('datastoreNodeUnlinked', nodeId);
+            });
+        }
     }
 }

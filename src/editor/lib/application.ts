@@ -67,6 +67,8 @@ export abstract class Application extends EventEmitter
         this.bindDataStoreEvent('datastoreCustomPropUnAssigned', objectGraph.onDatastoreCustomPropUnAssigned);
         this.bindDataStoreEvent('datastoreNodeCloned', objectGraph.onDatastoreNodeCloned);
         this.bindDataStoreEvent('datastoreModelModified', objectGraph.onDatastoreModelModified);
+        this.bindDataStoreEvent('datastoreCloneInfoModified', objectGraph.onDatastoreCloneInfoModified);
+        this.bindDataStoreEvent('datastoreNodeUnlinked', objectGraph.onDatastoreNodeUnlinked);
 
         // get notified when datastore changes
         this.bindDataStoreEvent('datastoreCustomPropDefined', this.onDatastoreCustomPropDefined.bind(this));

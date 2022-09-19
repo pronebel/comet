@@ -6,7 +6,7 @@ import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode
 import { CloneInfo } from '../../../core/lib/nodes/cloneInfo';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
 import { createGraphNode, disposeGraphNode, getGraphNode, registerGraphNode } from '../../../core/lib/nodes/factory';
-import type { NodeSchema } from './schema';
+import type { CloneInfoSchema, NodeSchema } from './schema';
 
 export type ObjectGraphEvent = 'objectGraphNodeCreated' | 'objectGraphNodeRemoved' | 'objectGraphParentSet';
 
@@ -148,14 +148,59 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         //
     };
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onDatastoreModelModified = (nodeId: string, key: string, value: ModelValue) =>
+    public onDatastoreModelModified = (nodeId: string, key: string | undefined, value: ModelValue | object) =>
     {
         const node = getGraphNode(nodeId);
 
         if (node)
         {
-            node.model.setValue(key, value);
+            if (key === undefined && typeof value === 'object')
+            {
+                node.model.setValues(value as object);
+            }
+            else if (typeof key === 'string')
+            {
+                node.model.setValue(key, value);
+            }
         }
+    };
+
+    public onDatastoreCloneInfoModified = (nodeId: string, cloneInfo: CloneInfoSchema) =>
+    {
+        const node = getGraphNode(nodeId);
+
+        if (node)
+        {
+            const cloner = getGraphNode(cloneInfo.cloner);
+
+            // update cloner
+            delete node.cloneInfo.cloner;
+
+            if (cloner)
+            {
+                node.cloneInfo.cloner = cloner;
+            }
+
+            // update cloned
+            node.cloneInfo.cloned = [];
+            cloneInfo.cloned.forEach((id) =>
+            {
+                const clonedNode = getGraphNode(id);
+
+                if (clonedNode)
+                {
+                    node.cloneInfo.cloned.push(clonedNode);
+                }
+            });
+
+            // update cloneMode
+            node.cloneInfo.cloneMode = cloneInfo.cloneMode;
+        }
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public onDatastoreNodeUnlinked = (nodeId: string) =>
+    {
+        //
     };
 }

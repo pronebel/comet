@@ -147,6 +147,9 @@ export abstract class ClonableNode<
 
             if (isDuplicate)
             {
+                const sourceModel = cloner.model;
+
+                this.model.setValues(sourceModel.values as M);
                 this.unlinkCustomProperties();
             }
 

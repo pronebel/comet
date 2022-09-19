@@ -24,7 +24,7 @@ export default class UndoStack
         this.undoStack.push(command);
         this.head++;
 
-        console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');
+        // console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');
 
         return command.apply() as T;
     }
