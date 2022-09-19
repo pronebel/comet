@@ -40,17 +40,17 @@ export class ContainerNode<
         return new Container() as V;
     }
 
-    public updateView(): void
-    {
-        const { view, values: {
-            width, height,
-        } } = this;
+    // public updateView(): void
+    // {
+    //     const { view, values: {
+    //         width, height,
+    //     } } = this;
 
-        super.updateView();
+    //     super.updateView();
 
-        view.width = width;
-        view.height = height;
-    }
+    //     view.width = width;
+    //     view.height = height;
+    // }
 
     protected onAddedToParent(): void
     {

@@ -97,7 +97,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
                 return 1;
             }
 
-            return 0;
+            return -1;
         });
     }
 

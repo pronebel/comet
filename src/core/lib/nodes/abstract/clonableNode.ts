@@ -75,7 +75,7 @@ export abstract class ClonableNode<
 
     protected initCloning()
     {
-        const { cloneInfo, cloneInfo: { cloneMode, isVariant, isReferenceRoot } } = this;
+        const { cloneInfo, cloneInfo: { isVariant, isReferenceRoot } } = this;
 
         const cloner = cloneInfo.getCloner<ClonableNode>();
 
@@ -96,12 +96,6 @@ export abstract class ClonableNode<
                     cloner.model.isReference = true;
                     this.model.isReference = true;
                 }
-            }
-            else if (cloneMode === CloneMode.Duplicate)
-            {
-                const sourceValues = sourceModel.values;
-
-                this.model.setValues(sourceValues);
             }
 
             this.enableCloneEvents();

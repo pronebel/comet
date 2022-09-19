@@ -1,5 +1,7 @@
 <script lang="ts">
   import { CloneMode } from "../../../core/lib/nodes/cloneInfo";
+  import type { ContainerNode } from "../../../core/lib/nodes/concrete/container";
+  import { getGraphNode } from "../../../core/lib/nodes/factory";
   import { getUserName } from "../sync/user";
 
   import { TestApp } from "./testApp";
@@ -103,6 +105,20 @@
     app.fitSelection();
   };
 
+  const onPreMouseUp = () => {
+    const selection = window.getSelection();
+    const anchorNode = selection?.anchorNode;
+    if (anchorNode) {
+      const match = String(anchorNode.nodeValue).match(/<(.*)>/);
+      if (match) {
+        const node = getGraphNode(match[1]);
+        node && app.select(node as unknown as ContainerNode);
+        const debug = document.getElementById("debug") as HTMLPreElement;
+        app.debug(debug);
+      }
+    }
+  };
+
   setInterval(() => {
     const debug = document.getElementById("debug") as HTMLPreElement;
     if (debug && shouldUpdateDebug) {
@@ -115,6 +131,7 @@
   <!-- svelte-ignore a11y-mouse-events-have-key-events -->
   <pre
     id="debug"
+    on:mouseup={onPreMouseUp}
     on:mouseover={() => (shouldUpdateDebug = false)}
     on:mouseout={() => (shouldUpdateDebug = true)}>
   <span /></pre>
@@ -225,7 +242,7 @@
     background-color: #000;
     background: linear-gradient(90deg, #111 0, #000 100%);
     overflow-y: auto;
-    font-size: 14px;
+    font-size: 12px;
     font-family: "Courier New", Courier, monospace;
     padding: 5px;
     line-height: 16px;

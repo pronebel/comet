@@ -143,6 +143,12 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
     };
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public onDatastoreNodeCloned = (clonedNode: ClonableNode) =>
+    {
+        //
+    };
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public onDatastoreModelModified = (nodeId: string, key: string, value: ModelValue) =>
     {
         const node = getGraphNode(nodeId);

@@ -105,3 +105,5 @@ export function trackNodeId(id: string)
 
     nodeIdCount[nodeType] = Math.max(isNaN(nodeIdCount[nodeType]) ? 1 : nodeIdCount[nodeType], idCount);
 }
+
+(window as any).node = (id: string) => getGraphNode(id);

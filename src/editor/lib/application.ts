@@ -18,7 +18,7 @@ export interface AppOptions
     canvas: HTMLCanvasElement;
 }
 
-export class Application extends EventEmitter
+export abstract class Application extends EventEmitter
 {
     public pixiApp: PixiApplication;
     public datastore: Datastore;
@@ -65,6 +65,7 @@ export class Application extends EventEmitter
         this.bindDataStoreEvent('datastoreCustomPropUndefined', objectGraph.onDatastoreCustomPropUndefined);
         this.bindDataStoreEvent('datastoreCustomPropAssigned', objectGraph.onDatastoreCustomPropAssigned);
         this.bindDataStoreEvent('datastoreCustomPropUnAssigned', objectGraph.onDatastoreCustomPropUnAssigned);
+        this.bindDataStoreEvent('datastoreNodeCloned', objectGraph.onDatastoreNodeCloned);
         this.bindDataStoreEvent('datastoreModelModified', objectGraph.onDatastoreModelModified);
 
         // get notified when datastore changes
@@ -72,6 +73,7 @@ export class Application extends EventEmitter
         this.bindDataStoreEvent('datastoreCustomPropUndefined', this.onDatastoreCustomPropUndefined.bind(this));
         this.bindDataStoreEvent('datastoreCustomPropAssigned', this.onDatastoreCustomPropAssigned.bind(this));
         this.bindDataStoreEvent('datastoreCustomPropUnAssigned', this.onDatastoreCustomPropUnAssigned.bind(this));
+        this.bindDataStoreEvent('datastoreNodeCloned', this.onDatastoreNodeCloned.bind(this));
         this.bindDataStoreEvent('datastoreModelModified', this.onDatastoreModelModified.bind(this));
     }
 
@@ -205,6 +207,12 @@ export class Application extends EventEmitter
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onDatastoreCustomPropUnAssigned(nodeId: string, modelKey: string)
+    {
+        // subclasses
+    }
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onDatastoreNodeCloned(clonedNode: ClonableNode)
     {
         // subclasses
     }

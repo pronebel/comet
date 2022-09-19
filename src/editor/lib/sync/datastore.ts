@@ -29,6 +29,7 @@ export type DatastoreEvents =
 | 'datastoreCustomPropUndefined'
 | 'datastoreCustomPropAssigned'
 | 'datastoreCustomPropUnAssigned'
+| 'datastoreNodeCloned'
 | 'datastoreModelModified';
 
 const logStyle = 'color:cyan';
@@ -117,7 +118,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 return 1;
             }
 
-            return 0;
+            return -1;
         });
 
         // create nodes first
@@ -200,6 +201,12 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         });
 
         // todo: restore cloner values
+
+        const graphNodesArray = nodeElements.map((nodeElement) => getGraphNode(nodeElement.get('id').value() as string));
+
+        console.log(`%c${userName}:hydrated [${graphNodesArray.map((node) => node?.id).join(',')}]`, 'color:lime');
+
+        graphNodesArray.forEach((node) => node?.update());
 
         return graphNodes;
     }
@@ -565,9 +572,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
                 cloneInfoElement.value(cloneInfoSchema);
             });
+
+            this.emit('datastoreNodeCloned', clone);
+
+            return clone;
         }
 
-        return undefined;
+        throw new Error(`Could not clone node "${nodeId}"`);
     }
 
     public modifyModel(nodeId: string, key: string, value: ModelValue)

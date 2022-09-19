@@ -52,7 +52,7 @@ export class TestApp extends Application
 
     public async init()
     {
-        if (userName === 'ali')
+        if (userName === '!ali')
         {
             await this.createProject('Test', 'test');
         }
@@ -120,6 +120,11 @@ export class TestApp extends Application
     protected onDatastoreCustomPropUnAssigned(nodeId: string, modelKey: string): void
     {
         this.fitSelection();
+    }
+
+    protected onDatastoreNodeCloned(clonedNode: ClonableNode): void
+    {
+        this.select(clonedNode as unknown as ContainerNode);
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -318,6 +323,7 @@ export class TestApp extends Application
         this.selected = component;
         this.selection.visible = true;
         this.fitSelection(component);
+        (window as any).$ = component;
     }
 
     public deselect()
