@@ -9,7 +9,7 @@ import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
 import { getGraphNode, trackNodeId } from '../../../core/lib/nodes/factory';
 import type { ObjectGraph } from './objectGraph';
-import { type NodeOptionsSchema, type NodeSchema, createProjectSchema, getNodeSchema } from './schema';
+import { type NodeOptionsSchema, type NodeSchema, createProjectSchema, getCloneInfoSchema, getNodeSchema } from './schema';
 import { getUserName } from './user';
 
 const userName = getUserName();
@@ -338,17 +338,22 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     // Command API
 
-    public createNode<M extends ModelBase>(nodeSchema: NodeSchema<M>, nodeOptions: NodeOptionsSchema<M>)
+    public createNode<M extends ModelBase>(
+        nodeSchema: NodeSchema<M>,
+        nodeOptions: NodeOptionsSchema<M> = {},
+        node: ClonableNode,
+    )
     {
         const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
         this.registerNode(nodeSchema.id, nodeElement);
 
-        this.emit('datastoreNodeCreated', nodeElement);
+        this.emit('datastoreNodeCreated', nodeElement, node);
 
-        if (nodeOptions.parent)
+        const parentId = nodeSchema.parent ?? nodeOptions.parent;
+
+        if (parentId)
         {
-            const parentId = nodeOptions.parent;
             const childId = nodeSchema.id;
 
             this.emit('datastoreNodeSetParent', parentId, childId);
@@ -430,25 +435,30 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         {
             const clone = node.clone(cloneMode);
 
-            // todo: go deep
+            // update datastore with new cloned nodes
 
-            const nodeSchema = getNodeSchema(clone);
+            clone.walk<ClonableNode>((clonedNode) =>
+            {
+                const nodeSchema = getNodeSchema(clonedNode);
 
-            nodeSchema.parent = nodeId;
+                this.createNode(nodeSchema, {
+                    parent: clonedNode === clone ? node.parent?.id : undefined,
+                }, clonedNode);
+            });
 
-            console.log(nodeSchema);
+            // update datastore for all cloners (NOTE: do this after cloned nodes have been created)
 
-            const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
+            node.walk<ClonableNode>((node) =>
+            {
+                const cloneInfoSchema = getCloneInfoSchema(node);
+                const nodeElement = this.getNodeElement(node.id);
 
-            this.registerNode(nodeSchema.id, nodeElement);
+                const cloneInfoElement = nodeElement.get('cloneInfo') as RealTimeObject;
 
-            this.emit('datastoreNodeCloned', node, clone, nodeSchema);
+                cloneInfoElement.value(cloneInfoSchema);
 
-            // const childId = nodeSchema.id;
-
-            // this.emit('datastoreNodeSetParent', nodeId, childId);
-
-            return clone;
+                this.emit('datastoreNodeCloned', clone);
+            });
         }
 
         return undefined;

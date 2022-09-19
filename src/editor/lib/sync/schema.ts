@@ -14,17 +14,20 @@ export interface CustomPropSchema
     value: ModelValue;
 }
 
+export interface CloneInfoSchema
+{
+    cloner?: id;
+    cloneMode: CloneMode;
+    cloned: id[];
+}
+
 export interface NodeSchema<M extends ModelBase>
 {
     id: string;
     type: string;
     parent?: string;
     model: Partial<M>;
-    cloneInfo: {
-        cloneMode: CloneMode;
-        cloner?: id;
-        cloned: id[];
-    };
+    cloneInfo: CloneInfoSchema;
     customProperties: {
         defined: Record<string, CustomPropSchema[]>;
         assigned: Record<string, string>;
@@ -37,13 +40,6 @@ export interface ProjectSchema
     version: string;
     createdBy: string;
     nodes: Record<string, NodeSchema<any>>;
-}
-
-export interface CloneInfoSchema
-{
-    cloner?: id;
-    cloneMode: CloneMode;
-    cloned: id[];
 }
 
 export interface NodeOptionsSchema<M extends ModelBase>
@@ -93,18 +89,16 @@ export function createNodeSchema<M extends ModelBase>(type: string, nodeOptions:
 
 export function getNodeSchema(node: ClonableNode)
 {
-    const { cloner, cloneMode, cloned } = node.cloneInfo;
-
     const nodeSchema = createNodeSchema(node.nodeType(), {
         id: node.id,
-        parent: node.parent?.id,
         model: node.model.ownValues,
-        cloneInfo: {
-            cloner: cloner?.id,
-            cloneMode,
-            cloned: cloned.map((node) => node.id),
-        },
+        cloneInfo: getCloneInfoSchema(node),
     });
+
+    if (node.parent)
+    {
+        nodeSchema.parent = node.parent.id;
+    }
 
     node.customProperties.properties.forEach((value, key) =>
     {
@@ -122,4 +116,21 @@ export function getNodeSchema(node: ClonableNode)
     });
 
     return nodeSchema;
+}
+
+export function getCloneInfoSchema(node: ClonableNode)
+{
+    const { cloner, cloneMode, cloned } = node.cloneInfo;
+
+    const schema: CloneInfoSchema = {
+        cloneMode,
+        cloned: cloned.map((node) => node.id),
+    };
+
+    if (cloner)
+    {
+        schema.cloner = cloner.id;
+    }
+
+    return schema;
 }

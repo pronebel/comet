@@ -78,6 +78,11 @@
     app.inspect();
   };
 
+  const onInspectDatastore = () => {
+    console.clear();
+    console.log(app.datastore.nodes.toJSON());
+  };
+
   const onSetCustomProp = () => {
     app.setCustomProp(customPropName, customPropValue);
     app.fitSelection();
@@ -122,7 +127,9 @@
     <button on:click={onDuplicate}>Duplicate</button>
     <button on:click={onUnlink}>Unlink</button>
     <button on:click={onDelete}>Delete</button>
-    <button on:click={onInspect}>Inspect</button>
+    <button on:click={onInspect}>Inspect Node</button>
+    <br />
+    <button on:click={onInspectDatastore}>Inspect Datastore</button>
     <br />
     <button on:click={onDeselect}>Deselect</button>
     <button on:click={onRandColor}>Rand Color</button>
