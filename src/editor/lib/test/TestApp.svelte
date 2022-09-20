@@ -76,12 +76,10 @@
   };
 
   const onInspect = () => {
-    console.clear();
     app.inspect();
   };
 
   const onInspectDatastore = () => {
-    console.clear();
     console.log(app.datastore.nodes.toJSON());
   };
 
@@ -157,6 +155,11 @@
   <span /></pre>
   {#if isInit}
     <button on:click={onReload}>Reload</button>
+    <button on:click={onRestoreDatastore}>Restore DStore</button>
+    <button on:click={onSaveDatastore}>Save DStore</button>
+    <button on:click={onInspectDatastore}>Inspect DStore</button>
+    <button on:click={onClearDatastore}>Clear DStore</button>
+    <br />
     <button on:click={onNewContainer}>New Empty</button>
     <button on:click={onNewChild}>New Child</button>
     <button on:click={onCloneVariant}>+ Variant</button>
@@ -166,16 +169,11 @@
     <button on:click={onDelete}>Delete</button>
     <button on:click={onInspect}>Inspect</button>
     <br />
-    <button on:click={onClearDatastore}>Clear DStore</button>
-    <button on:click={onInspectDatastore}>Inspect DStore</button>
-    <button on:click={onSaveDatastore}>Save DStore</button>
-    <button on:click={onRestoreDatastore}>Restore DStore</button>
-    <br />
     <button on:click={onDeselect}>Deselect</button>
     <button on:click={onRandColor}>Rand Color</button>
     <button on:click={onRandSize}>Rand Size</button>
     <button on:click={onRotate}>Rotate</button>
-    <button on:click={onResetModel}>Reset Model</button>
+    <button on:click={onResetModel}>Clear Model</button>
     <br />
     <button on:click={onSetCustomProp}>Set Prop</button>
     <keyvalue>
