@@ -13,11 +13,13 @@
   let assignModelKey: string = "label";
 
   let isInit = false;
+  let isInitialising = false;
   let shouldUpdateDebug = true;
 
   const app = TestApp.getInstance();
 
   const onInit = () => {
+    isInitialising = true;
     app.init().then(() => {
       isInit = true;
     });
@@ -178,7 +180,9 @@
     <button on:click={onUnAssignCustomProp}>UnAssign Prop</button>
     <input bind:value={assignModelKey} />
   {:else}
-    <button on:click={onInit}>Connect</button>
+    <button on:click={onInit}
+      >{isInitialising ? "Connecting..." : "Connect"}</button
+    >
   {/if}
   <marker />
   <user>{userName}</user>

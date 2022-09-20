@@ -474,7 +474,7 @@ export function getAllCloneUpdateRefs(node: ClonableNode, includeSelf = false)
         return node.cloneInfo.isReferenceOrRoot && (isReferenceOrRoot || (isOriginal && hasCloned));
     });
 
-    parentCloners.sort(sortNode());
+    parentCloners.sort(sortNode<number>('created'));
 
     if (parentCloners.length > 0)
     {
@@ -497,7 +497,7 @@ export function getAllCloneUpdateRefs(node: ClonableNode, includeSelf = false)
         cloneRefs.push(node);
     }
 
-    cloneRefs.sort(sortNode());
+    cloneRefs.sort(sortNode<number>('created'));
 
     return cloneRefs;
 }

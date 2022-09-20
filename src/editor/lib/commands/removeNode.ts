@@ -1,7 +1,6 @@
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import { getAllCloneUpdateRefs } from '../../../core/lib/nodes/abstract/clonableNode';
 import { sortNode } from '../../../core/lib/nodes/abstract/graphNode';
-import { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import { getGraphNode } from '../../../core/lib/nodes/factory';
 import { Command } from '.';
 
@@ -27,15 +26,23 @@ export class RemoveNodeCommand extends Command
 
         if (node)
         {
-            const deleteNodes: ClonableNode[] = [];
-            const linkedNodes = getAllCloneUpdateRefs(node, true)
-                .filter((node) => node.cloneInfo.cloneMode !== CloneMode.Original);
+            const { isLinked, hasCloned, isReferenceRoot } = node.cloneInfo;
+            const deleteNodes: ClonableNode[] = [node];
 
-            deleteNodes.push(...linkedNodes);
-            linkedNodes.forEach((node) =>
+            if ((isLinked || hasCloned) && !isReferenceRoot)
             {
-                deleteNodes.push(...node.allChildren<ClonableNode>());
+                const linkedNodes = getAllCloneUpdateRefs(node);
+
+                deleteNodes.push(...linkedNodes);
+            }
+            const nodes: ClonableNode[] = [];
+
+            deleteNodes.forEach((node) =>
+            {
+                nodes.push(...node.allChildren<ClonableNode>());
             });
+
+            deleteNodes.push(...nodes);
 
             deleteNodes.sort(sortNode<number>('created')).reverse();
 
@@ -43,7 +50,10 @@ export class RemoveNodeCommand extends Command
 
             console.log('Delete ids:', deleteNodeIds);
 
-            deleteNodeIds.forEach((nodeId) => datastore.removeNode(nodeId));
+            datastore.batch(() =>
+            {
+                deleteNodeIds.forEach((nodeId) => datastore.removeNode(nodeId));
+            });
         }
     }
 

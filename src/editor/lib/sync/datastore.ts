@@ -324,12 +324,16 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         if (node)
         {
-            if (node.cloneInfo.cloner)
-            {
-                node.cloneInfo.removeCloned(node);
-                const cloneInfoSchema = getCloneInfoSchema(node);
+            const cloner = node.cloneInfo.cloner as ClonableNode;
 
-                nodeElement.get('cloneInfo').value(cloneInfoSchema);
+            if (cloner)
+            {
+                cloner.cloneInfo.removeCloned(node);
+                const cloneInfoSchema = getCloneInfoSchema(cloner);
+
+                const clonerNodeElement = this.getNodeElement(cloner.id);
+
+                clonerNodeElement.get('cloneInfo').value(cloneInfoSchema);
             }
 
             // remove from nodes RealTimeObject
@@ -382,6 +386,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             this.domain.dispose();
             console.log('%c${userName}:Domain disposed', logStyle);
         }
+    }
+
+    public batch(fn: () => void)
+    {
+        this.model.startBatch();
+        fn();
+        this.model.completeBatch();
     }
 
     public async createProject(name: string, id?: string)

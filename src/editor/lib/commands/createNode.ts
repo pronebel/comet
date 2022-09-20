@@ -43,31 +43,34 @@ export class CreateNodeCommand<M extends ModelBase> extends Command
 
             let lastNodeId: string | undefined;
 
-            cloneRefs.forEach((node) =>
+            datastore.batch(() =>
             {
-                let { cloneMode } = node.cloneInfo;
-
-                if (cloneMode === CloneMode.ReferenceRoot)
+                cloneRefs.forEach((node) =>
                 {
-                    cloneMode = CloneMode.Reference;
-                }
+                    let { cloneMode } = node.cloneInfo;
 
-                const nodeSchema = createNodeSchema<M>(nodeType, {
-                    ...nodeOptions,
-                    parent: node.id,
-                    cloneInfo: {
-                        cloneMode,
-                        cloner: lastNodeId,
-                        cloned: [],
-                    },
+                    if (cloneMode === CloneMode.ReferenceRoot)
+                    {
+                        cloneMode = CloneMode.Reference;
+                    }
+
+                    const nodeSchema = createNodeSchema<M>(nodeType, {
+                        ...nodeOptions,
+                        parent: node.id,
+                        cloneInfo: {
+                            cloneMode,
+                            cloner: lastNodeId,
+                            cloned: [],
+                        },
+                    });
+
+                    datastore.createNode(nodeSchema, {
+                        ...nodeOptions,
+                        parent: node.id,
+                    });
+
+                    lastNodeId = nodeSchema.id;
                 });
-
-                datastore.createNode(nodeSchema, {
-                    ...nodeOptions,
-                    parent: node.id,
-                });
-
-                lastNodeId = nodeSchema.id;
             });
         }
     }
