@@ -85,6 +85,21 @@
     console.log(app.datastore.nodes.toJSON());
   };
 
+  const onSaveDatastore = () => {
+    const nodes = app.datastore.nodes.toJSON();
+    localStorage["comet"] = JSON.stringify(nodes);
+    console.log("Datastore saved", nodes);
+  };
+
+  const onRestoreDatastore = () => {
+    const json = localStorage.getItem("comet");
+    if (json) {
+      const nodes = JSON.parse(json);
+      app.datastore.nodes.value(nodes);
+      window.location.reload();
+    }
+  };
+
   const onClearDatastore = () => {
     app.clear();
     console.log("Datastore cleared");
@@ -142,17 +157,19 @@
   <span /></pre>
   {#if isInit}
     <button on:click={onReload}>Reload</button>
-    <button on:click={onNewContainer}>New Container</button>
+    <button on:click={onNewContainer}>New Empty</button>
     <button on:click={onNewChild}>New Child</button>
-    <button on:click={onCloneVariant}>Clone Variant</button>
-    <button on:click={onCloneReference}>Clone Reference</button>
-    <button on:click={onDuplicate}>Duplicate</button>
+    <button on:click={onCloneVariant}>+ Variant</button>
+    <button on:click={onCloneReference}>+ Reference</button>
+    <button on:click={onDuplicate}>+ Duplicate</button>
     <button on:click={onUnlink}>Unlink</button>
     <button on:click={onDelete}>Delete</button>
-    <button on:click={onInspect}>Inspect Node</button>
+    <button on:click={onInspect}>Inspect</button>
     <br />
-    <button on:click={onClearDatastore}>Clear Datastore</button>
-    <button on:click={onInspectDatastore}>Inspect Datastore</button>
+    <button on:click={onClearDatastore}>Clear DStore</button>
+    <button on:click={onInspectDatastore}>Inspect DStore</button>
+    <button on:click={onSaveDatastore}>Save DStore</button>
+    <button on:click={onRestoreDatastore}>Restore DStore</button>
     <br />
     <button on:click={onDeselect}>Deselect</button>
     <button on:click={onRandColor}>Rand Color</button>
@@ -160,15 +177,14 @@
     <button on:click={onRotate}>Rotate</button>
     <button on:click={onResetModel}>Reset Model</button>
     <br />
-    <button on:click={onSetCustomProp}>Set Custom Prop</button>
+    <button on:click={onSetCustomProp}>Set Prop</button>
     <keyvalue>
       <input bind:value={customPropName} />
       <input bind:value={customPropValue} />
     </keyvalue>
-    <button on:click={onRemoveCustomProp}>Remove Custom Prop</button>
-    <br />
-    <button on:click={onAssignCustomProp}>Assign Custom Prop</button>
-    <button on:click={onUnAssignCustomProp}>UnAssign Custom Prop</button>
+    <button on:click={onRemoveCustomProp}>Remove Prop</button>
+    <button on:click={onAssignCustomProp}>Assign Prop</button>
+    <button on:click={onUnAssignCustomProp}>UnAssign Prop</button>
     <input bind:value={assignModelKey} />
   {:else}
     <button on:click={onInit}>Init</button>
@@ -182,17 +198,18 @@
     position: absolute;
     top: 10px;
     right: 10px;
-    width: 160px;
+    width: 95px;
     display: flex;
     flex-direction: column;
+    font-size: 8pt;
   }
 
   button {
     width: 100%;
     margin-bottom: 10px;
-    font-size: 10pt;
     z-index: 100;
     opacity: 0.7;
+    font-size: inherit;
   }
 
   marker {
@@ -227,12 +244,12 @@
   input {
     flex-grow: 0;
     margin-bottom: 10px;
-    font-size: 12px;
     text-align: center;
     border-color: #666;
     padding: 5px;
     z-index: 100;
     opacity: 0.7;
+    font-size: inherit;
   }
 
   br {
@@ -248,7 +265,7 @@
     background-color: #000;
     background: linear-gradient(90deg, #111 0, #000 100%);
     overflow-y: auto;
-    font-size: 12px;
+    font-size: 10px;
     font-family: "Courier New", Courier, monospace;
     padding: 5px;
     line-height: 16px;

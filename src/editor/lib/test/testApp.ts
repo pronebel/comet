@@ -53,7 +53,7 @@ export class TestApp extends Application
 
     public async init()
     {
-        if (userName === 'ali')
+        if (userName === '!ali')
         {
             await this.createProject('Test', 'test');
         }
@@ -436,7 +436,7 @@ export class TestApp extends Application
                     customPropAssignmentsArray.push(`${key} -> ${customKey}`);
                 });
 
-                const modelLine = `${modelInfo} <span style="color:cyan;font-size:14px">${modelValues}</span>`;
+                const modelLine = `${modelInfo} <span style="color:cyan;">${modelValues}</span>`;
                 const isLinked = this.selected
                     ? this.selected === cloner || cloned.includes(this.selected)
                     : false;
