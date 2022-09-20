@@ -7,7 +7,7 @@ import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode
 import type { GraphNode } from '../../../core/lib/nodes/abstract/graphNode';
 import { getGraphNode, trackNodeId } from '../../../core/lib/nodes/factory';
 import type { ObjectGraph } from './objectGraph';
-import { type NodeOptionsSchema, type NodeSchema, createProjectSchema } from './schema';
+import { type NodeOptionsSchema, type NodeSchema, createProjectSchema, getCloneInfoSchema } from './schema';
 import { getUserName } from './user';
 
 const userName = getUserName();
@@ -319,21 +319,27 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         const parentId = nodeElement.get('parent').value() as string;
 
-        // remove from nodes RealTimeObject
-        this.nodes.remove(nodeId);
-
-        // unregister RealTimeObject for node
-        this.unRegisterNode(nodeId);
-
         // cleanup cloned reference in cloner if present
         const node = getGraphNode(nodeId);
 
-        if (node?.cloneInfo.cloner)
+        if (node)
         {
-            node.cloneInfo.removeCloned(node);
-        }
+            if (node.cloneInfo.cloner)
+            {
+                node.cloneInfo.removeCloned(node);
+                const cloneInfoSchema = getCloneInfoSchema(node);
 
-        this.emit('datastoreNodeRemoved', nodeId, parentId);
+                nodeElement.get('cloneInfo').value(cloneInfoSchema);
+            }
+
+            // remove from nodes RealTimeObject
+            this.nodes.remove(nodeId);
+
+            // unregister RealTimeObject for node
+            this.unRegisterNode(nodeId);
+
+            this.emit('datastoreNodeRemoved', nodeId, parentId);
+        }
     }
 
     public connect()

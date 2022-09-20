@@ -235,6 +235,17 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return this.children.indexOf(component) > -1;
     }
 
+    public allChildren<T extends GraphNode = GraphNode>()
+    {
+        return this.walk((node, options) =>
+        {
+            options.data.push(node);
+        }, {
+            data: [],
+            includeSelf: false,
+        }) as T[];
+    }
+
     protected onAddedToParent(): void
     {
         // subclasses

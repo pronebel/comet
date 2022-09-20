@@ -1,6 +1,5 @@
 import type { ModelBase } from '../../../core/lib/model/model';
-import { type ClonableNode, getAllCloneUpdateRefs } from '../../../core/lib/nodes/abstract/clonableNode';
-import { sortNode } from '../../../core/lib/nodes/abstract/graphNode';
+import {  getAllCloneUpdateRefs } from '../../../core/lib/nodes/abstract/clonableNode';
 import { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import { getGraphNode } from '../../../core/lib/nodes/factory';
 import { type NodeOptionsSchema, createNodeSchema } from '../sync/schema';
@@ -67,14 +66,6 @@ export class CreateNodeCommand<M extends ModelBase> extends Command
                     ...nodeOptions,
                     parent: node.id,
                 });
-
-                const newNode = getGraphNode(nodeSchema.id);
-                const lastNode = getGraphNode(lastNodeId);
-
-                if (newNode && lastNode)
-                {
-                    // lastNode.cloneInfo.cloned.push(newNode);
-                }
 
                 lastNodeId = nodeSchema.id;
             });
