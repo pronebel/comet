@@ -1,3 +1,4 @@
+import { getAllCloneUpdateRefs } from '../../../core/lib/nodes/abstract/clonableNode';
 import { getGraphNode } from '../../../core/lib/nodes/factory';
 import { Command } from '.';
 
@@ -23,17 +24,16 @@ export class RemoveNodeCommand extends Command
 
         if (node)
         {
-            const childIds = node.walk((childNode, { data }) =>
-            {
-                data.push(childNode.id);
-            }, { data: [] }) as string[];
+            const cloneRefs = getAllCloneUpdateRefs(node);
 
-            childIds.reverse();
+            const deleteNodeIds = cloneRefs.map((node) => node.id);
 
-            childIds.forEach((nodeId) => datastore.removeNode(nodeId));
+            deleteNodeIds.push(node.id);
+
+            console.log('Clone refs:', deleteNodeIds);
+
+            deleteNodeIds.forEach((nodeId) => datastore.removeNode(nodeId));
         }
-
-        // todo: store deleted nodes for undo
     }
 
     public undo(): void

@@ -3,6 +3,7 @@ import { filters, Sprite, Texture } from 'pixi.js';
 
 import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
+import type { GraphNode } from '../../../core/lib/nodes/abstract/graphNode';
 import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { ContainerModel, ContainerNode } from '../../../core/lib/nodes/concrete/container';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
@@ -175,12 +176,9 @@ export class TestApp extends Application
         {
             const parentId = this.selected.id;
 
-            this.pushCommand(new CreateNodeCommand<ContainerModel>('Empty', {
-                parent: parentId,
-                model: {
-                    x: 20,
-                    y: 20,
-                },
+            this.pushCommand(new CreateNodeCommand<ContainerModel>('Empty', parentId, {
+                x: 20,
+                y: 20,
             }));
         }
     }
@@ -191,15 +189,12 @@ export class TestApp extends Application
         {
             const parentId = this.selected.id;
 
-            this.pushCommand(new CreateNodeCommand<DebugModel>('Debug', {
-                parent: parentId,
-                model: {
-                    x: 20,
-                    y: 20,
-                    width: 20,
-                    height: 20,
-                    tint: Math.round(Math.random() * 100000),
-                },
+            this.pushCommand(new CreateNodeCommand<DebugModel>('Debug', parentId, {
+                x: 20,
+                y: 20,
+                width: 20,
+                height: 20,
+                tint: Math.round(Math.random() * 100000),
             }));
         }
     }
@@ -399,7 +394,7 @@ export class TestApp extends Application
         {
             let html = '';
 
-            const componentId = (component: ContainerNode) => component.id.replace('Node', '');
+            const componentId = (component?: GraphNode) => (component ? component.id.replace('Node', '') : '.');
 
             this.project.walk<ContainerNode>((component, options) =>
             {
@@ -411,7 +406,7 @@ export class TestApp extends Application
                 const cloner = cloneInfo.getCloner<ContainerNode>();
 
                 const pad = ''.padStart(options.depth, '+');
-                const id = `&lt;${componentId(component)}&gt;`;
+                const id = `&lt;${componentId(component)}&gt;(${componentId(component.parent)})`;
                 const modelInfo = `${modelId}`;
                 const clonerInfo = cloner
                     ? `<span style="color:lime"><- ${componentId(cloner)}</span>`

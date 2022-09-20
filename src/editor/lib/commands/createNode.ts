@@ -1,7 +1,8 @@
 import type { ModelBase } from '../../../core/lib/model/model';
-import { type ClonableNode, getAllCloned, getAllCloners } from '../../../core/lib/nodes/abstract/clonableNode';
+import { type ClonableNode, getAllCloneUpdateRefs } from '../../../core/lib/nodes/abstract/clonableNode';
 import { sortNode } from '../../../core/lib/nodes/abstract/graphNode';
-import { getGraphNode, newGraphNodeId } from '../../../core/lib/nodes/factory';
+import { CloneMode } from '../../../core/lib/nodes/cloneInfo';
+import { getGraphNode } from '../../../core/lib/nodes/factory';
 import { type NodeOptionsSchema, createNodeSchema } from '../sync/schema';
 import { Command } from '.';
 
@@ -9,7 +10,8 @@ export class CreateNodeCommand<M extends ModelBase> extends Command
 {
     constructor(
         public readonly nodeType: string,
-        public readonly nodeOptions: NodeOptionsSchema<M> = {},
+        public readonly parentId: string,
+        public readonly model: Partial<M> = {},
     )
     {
         super();
@@ -22,62 +24,38 @@ export class CreateNodeCommand<M extends ModelBase> extends Command
 
     public apply(): void
     {
-        const { nodeType, datastore, nodeOptions } = this;
+        const { nodeType, datastore, parentId, model } = this;
 
-        if (nodeOptions.parent)
+        const parentNode = getGraphNode(parentId);
+
+        if (parentNode)
         {
-            const primaryParentId = nodeOptions.parent;
-
-            // create primary new node
-            const nodeSchema = createNodeSchema<M>(nodeType, nodeOptions);
-
-            console.log(`Primary node: ${primaryParentId}->${nodeSchema.id}`);
-
-            datastore.createNode(nodeSchema, nodeOptions);
+            const nodeOptions: NodeOptionsSchema<M> = {
+                parent: parentId,
+                model,
+            };
 
             // update down through all cloned copies
-            const parentNode = getGraphNode(primaryParentId) as ClonableNode;
-            const cloneRefs = getAllCloned(parentNode);
-
-            // update up through cloners, but only for references
-            const parentCloners = getAllCloners(parentNode, (node) =>
-            {
-                const { isReferenceOrRoot, isOriginal, hasCloned } = node.cloneInfo;
-
-                return parentNode.cloneInfo.isReferenceOrRoot && (isReferenceOrRoot || (isOriginal && hasCloned));
-            });
-
-            parentCloners.sort(sortNode());
-
-            if (parentCloners.length > 0)
-            {
-                const parentCloner = parentCloners[0];
-                const parentClonerCloned = getAllCloned(parentCloner);
-
-                cloneRefs.push(parentCloner);
-
-                parentClonerCloned.forEach((node) =>
-                {
-                    if (cloneRefs.indexOf(node) === -1 && node.id !== primaryParentId)
-                    {
-                        cloneRefs.push(node);
-                    }
-                });
-            }
-
-            cloneRefs.sort(sortNode());
+            const cloneRefs = getAllCloneUpdateRefs(parentNode, true);
 
             console.log('Clone refs:', cloneRefs.map((node) => node.id));
 
             // return;
 
-            let lastNodeId = nodeSchema.id;
+            let lastNodeId: string | undefined;
 
             cloneRefs.forEach((node) =>
             {
-                const { cloneMode } = node.cloneInfo;
+                let { cloneMode } = node.cloneInfo;
+
+                if (cloneMode === CloneMode.ReferenceRoot)
+                {
+                    cloneMode = CloneMode.Reference;
+                }
+
                 const nodeSchema = createNodeSchema<M>(nodeType, {
                     ...nodeOptions,
+                    parent: node.id,
                     cloneInfo: {
                         cloneMode,
                         cloner: lastNodeId,
@@ -95,7 +73,7 @@ export class CreateNodeCommand<M extends ModelBase> extends Command
 
                 if (newNode && lastNode)
                 {
-                    lastNode?.cloneInfo.cloned.push(newNode);
+                    // lastNode.cloneInfo.cloned.push(newNode);
                 }
 
                 lastNodeId = nodeSchema.id;

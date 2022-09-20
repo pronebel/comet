@@ -2,7 +2,7 @@ import { type Model, type ModelBase, createModel } from '../../model/model';
 import type { ModelSchema } from '../../model/schema';
 import { type Clonable, CloneInfo, CloneMode } from '../cloneInfo';
 import { type CustomProperty, type CustomPropertyType, CustomProperties } from '../customProperties';
-import { type GraphNodeEvents, GraphNode } from './graphNode';
+import { type GraphNodeEvents, GraphNode, sortNode } from './graphNode';
 
 export type ClonableNodeEvents = GraphNodeEvents | 'modelChanged' | 'unlinked';
 
@@ -459,4 +459,45 @@ export function sortNodesById(a: ClonableNode, b: ClonableNode)
     }
 
     return 1;
+}
+
+export function getAllCloneUpdateRefs(node: ClonableNode, includeSelf = false)
+{
+    // update down through all cloned copies
+    const cloneRefs = getAllCloned(node);
+
+    // update up through cloners, but only for references
+    const parentCloners = getAllCloners(node, (clonedNode) =>
+    {
+        const { isReferenceOrRoot, isOriginal, hasCloned } = clonedNode.cloneInfo;
+
+        return node.cloneInfo.isReferenceOrRoot && (isReferenceOrRoot || (isOriginal && hasCloned));
+    });
+
+    parentCloners.sort(sortNode());
+
+    if (parentCloners.length > 0)
+    {
+        const parentCloner = parentCloners[0];
+        const parentClonerCloned = getAllCloned(parentCloner);
+
+        cloneRefs.push(parentCloner);
+
+        parentClonerCloned.forEach((clonedNode) =>
+        {
+            if (cloneRefs.indexOf(clonedNode) === -1 && clonedNode.id !== node.id)
+            {
+                cloneRefs.push(clonedNode);
+            }
+        });
+    }
+
+    if (includeSelf)
+    {
+        cloneRefs.push(node);
+    }
+
+    cloneRefs.sort(sortNode());
+
+    return cloneRefs;
 }

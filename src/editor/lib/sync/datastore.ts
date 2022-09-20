@@ -319,8 +319,19 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         const parentId = nodeElement.get('parent').value() as string;
 
+        // remove from nodes RealTimeObject
         this.nodes.remove(nodeId);
+
+        // unregister RealTimeObject for node
         this.unRegisterNode(nodeId);
+
+        // cleanup cloned reference in cloner if present
+        const node = getGraphNode(nodeId);
+
+        if (node?.cloneInfo.cloner)
+        {
+            node.cloneInfo.removeCloned(node);
+        }
 
         this.emit('datastoreNodeRemoved', nodeId, parentId);
     }
