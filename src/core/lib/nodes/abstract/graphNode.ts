@@ -88,7 +88,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
             const aCreated = a.created;
             const bCreated = b.created;
 
-            if (aCreated < bCreated)
+            if (aCreated <= bCreated)
             {
                 return -1;
             }
@@ -248,3 +248,15 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
     }
 }
 
+export const sortNode = <T = string>(propName: keyof GraphNode = 'id') => (a: GraphNode, b: GraphNode) =>
+{
+    const aValue = a[propName] as T;
+    const bValue = b[propName] as T;
+
+    if (aValue <= bValue)
+    {
+        return -1;
+    }
+
+    return 1;
+};

@@ -38,12 +38,14 @@ export class SpriteNode<M extends SpriteModel, V extends Sprite> extends Contain
 
     public updateView(): void
     {
-        const { view, values: { anchorX, anchorY, tint } } = this;
+        const { view, values: { anchorX, anchorY, tint, width, height } } = this;
 
         super.updateView();
 
         view.anchor.x = anchorX;
         view.anchor.y = anchorY;
+        view.width = width;
+        view.height = height;
         view.tint = tint;
     }
 }

@@ -134,7 +134,28 @@ export class TestApp extends Application
         this.fitSelection();
     }
 
-    public clear()
+    public saveDatastore()
+    {
+        const nodes = this.datastore.nodes.toJSON();
+
+        localStorage['comet'] = JSON.stringify(nodes);
+        console.log('Datastore saved', nodes);
+    }
+
+    public restoreDatastore(reload = true)
+    {
+        const json = localStorage.getItem('comet');
+
+        if (json)
+        {
+            const nodes = JSON.parse(json);
+
+            this.datastore.nodes.value(nodes);
+            reload && window.location.reload();
+        }
+    }
+
+    public clearDatastore()
     {
         this.datastore.nodes.keys().forEach((id) =>
         {

@@ -97,8 +97,6 @@ export abstract class ClonableNode<
                     this.model.isReference = true;
                 }
             }
-
-            this.enableCloneEvents();
         }
     }
 
@@ -192,8 +190,6 @@ export abstract class ClonableNode<
                 this.initModel();
             }
 
-            this.disableCloneEvents();
-
             if (!isDuplicate)
             {
                 this.unlinkCustomProperties();
@@ -264,32 +260,6 @@ export abstract class ClonableNode<
         });
     }
 
-    public enableCloneEvents()
-    {
-        const { cloneInfo } = this;
-
-        const cloner = cloneInfo.getCloner<ClonableNode>();
-
-        if (cloner)
-        {
-            cloner.on('childAdded', this.onClonerChildAdded);
-            cloner.on('childRemoved', this.onClonerChildRemoved);
-        }
-    }
-
-    public disableCloneEvents()
-    {
-        const { cloneInfo } = this;
-
-        const cloner = cloneInfo.getCloner<ClonableNode>();
-
-        if (cloner)
-        {
-            cloner.off('childAdded', this.onClonerChildAdded);
-            cloner.off('childRemoved', this.onClonerChildRemoved);
-        }
-    }
-
     protected onModelModified = <T>(key: string, value: T, oldValue: T) =>
     {
         this.update();
@@ -297,88 +267,9 @@ export abstract class ClonableNode<
         this.emit('modelChanged', key, value, oldValue);
     };
 
-    public onClonerChildAdded = (component: ClonableNode) =>
-    {
-        const { cloneMode } = this.cloneInfo;
-
-        const copy = component.clone(
-            cloneMode === CloneMode.ReferenceRoot ? CloneMode.Reference : cloneMode,
-            1,
-        );
-
-        this.addChild(copy);
-    };
-
-    public onClonedChildAdded = (component: ClonableNode) =>
-    {
-        const copy = component.clone(
-            CloneMode.Reference,
-            1,
-        );
-
-        copy.parent = this;
-        this.children.push(copy);
-
-        copy.onAddedToParent();
-    };
-
-    public onClonerChildRemoved = (component: ClonableNode) =>
-    {
-        this.forEach<ClonableNode>((child) =>
-        {
-            if ((child).cloneInfo.isClonedFrom(component))
-            {
-                child.deleteSelf();
-            }
-        });
-    };
-
     public getView<T = V>(): T
     {
         return this.view as unknown as T;
-    }
-
-    protected onAddedToParent(): void
-    {
-        const parent = this.getParent<ClonableNode>();
-
-        const { cloneInfo, cloneInfo: { isReferenceOrRoot } }  = parent;
-        const cloner = cloneInfo.getCloner<ClonableNode>();
-
-        if (cloner && isReferenceOrRoot)
-        {
-            if (parent.children.length !== cloner.children.length)
-            {
-                cloner.onClonedChildAdded(this as unknown as ClonableNode);
-            }
-        }
-    }
-
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onRemovedFromParent(oldParent: GraphNode)
-    {
-        const { cloneInfo, cloneInfo: { isReferenceOrRoot } } = this;
-        const cloner = cloneInfo.getCloner<ClonableNode>();
-
-        if (cloner && isReferenceOrRoot)
-        {
-            cloner.deleteSelf();
-        }
-        else
-        {
-            cloneInfo.forEachCloned<ClonableNode>((clonedNode) =>
-            {
-                const { cloneInfo: { cloner, isReferenceOrRoot } } = clonedNode;
-
-                const isSameNode = cloner === this;
-
-                if (isSameNode && isReferenceOrRoot)
-                {
-                    clonedNode.deleteSelf();
-                }
-            });
-        }
     }
 
     public get values()
@@ -526,3 +417,46 @@ export abstract class ClonableNode<
     public abstract updateView(): void;
 }
 
+export function getAllCloned(node: ClonableNode, array: ClonableNode[] = [])
+{
+    node.cloneInfo.forEachCloned<ClonableNode>((cloned) =>
+    {
+        array.push(cloned);
+        getAllCloned(cloned, array);
+    });
+
+    return array;
+}
+
+export function getAllCloners(node: ClonableNode, predicateFn?: (node: ClonableNode) => boolean, array: ClonableNode[] = [])
+{
+    if (node.cloneInfo.cloner)
+    {
+        const cloner = node.cloneInfo.cloner as ClonableNode;
+
+        if (predicateFn)
+        {
+            const accepted = predicateFn(cloner);
+
+            if (!accepted)
+            {
+                return array;
+            }
+        }
+
+        array.push(cloner);
+        getAllCloners(cloner, predicateFn, array);
+    }
+
+    return array;
+}
+
+export function sortNodesById(a: ClonableNode, b: ClonableNode)
+{
+    if (a.id <= b.id)
+    {
+        return -1;
+    }
+
+    return 1;
+}

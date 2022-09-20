@@ -4,10 +4,10 @@
 
 [ Weekend + Monday ]
 
-* 🟠 Create, delete, custom props, cloning, unlink - finish core actions
-* 🟢 Deep delete - children need to be removed from datastore
 * 🟢 Undo stack needs: [cmd, cmd, [cmd, cmd, cmd], cmd] - to facilitate multi-select operations
-* ⚪ Test hydration from complete example, clones, custom props, etc
+* 🟠 Create, delete, custom props, cloning, unlink - finish core actions
+* 🟠 Deep delete - children need to be removed from datastore
+* 🟠 Test hydration from complete example, clones, custom props, etc
 * ⚪ Basic hotkeys for undo/redo
 * ⚪ Undo / Redo
 * ⚪ Consolidation, Refactors, Code Clean up - hide datastore internals in case backend replaced
@@ -22,7 +22,3 @@
 [ General ]
 * ⚪ Proper app startup flow
 * ⚪ Detect connection/disconnection to backend
-
-[ Notes ]
-* Clone command
-    - adding/removing children (clone detection) needs to be saved to datastore

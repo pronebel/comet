@@ -84,22 +84,15 @@
   };
 
   const onSaveDatastore = () => {
-    const nodes = app.datastore.nodes.toJSON();
-    localStorage["comet"] = JSON.stringify(nodes);
-    console.log("Datastore saved", nodes);
+    app.saveDatastore();
   };
 
   const onRestoreDatastore = () => {
-    const json = localStorage.getItem("comet");
-    if (json) {
-      const nodes = JSON.parse(json);
-      app.datastore.nodes.value(nodes);
-      window.location.reload();
-    }
+    app.restoreDatastore();
   };
 
   const onClearDatastore = () => {
-    app.clear();
+    app.clearDatastore();
     console.log("Datastore cleared");
   };
 
@@ -185,7 +178,7 @@
     <button on:click={onUnAssignCustomProp}>UnAssign Prop</button>
     <input bind:value={assignModelKey} />
   {:else}
-    <button on:click={onInit}>Init</button>
+    <button on:click={onInit}>Connect</button>
   {/if}
   <marker />
   <user>{userName}</user>

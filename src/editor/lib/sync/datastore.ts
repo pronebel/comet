@@ -124,12 +124,16 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         const nodeElements: RealTimeObject[] = [];
 
+        // prepare all nodeElements
+
         nodes.keys().forEach((id) =>
         {
             const nodeElement = nodes.get(id) as RealTimeObject;
 
             nodeElements.push(nodeElement);
         });
+
+        // sort by creation time to preserve position in hierarchy
 
         nodeElements.sort((a: RealTimeObject, b: RealTimeObject) =>
         {
@@ -140,15 +144,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             {
                 return -1;
             }
-            else if (aCreated > bCreated)
-            {
-                return 1;
-            }
 
-            return -1;
+            return 1;
         });
 
-        // create nodes first
+        // create nodes
 
         nodeElements.forEach((nodeElement) =>
         {
@@ -170,34 +170,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         nodeElements.reverse();
 
-        // prepare cloned nodes before parenting
-
-        // const cloned = Array.from(graphNodes.values()).filter((node) =>
-        // {
-        //     if (node.cloneInfo.wasCloned)
-        //     {
-        //         return true;
-        //     }
-
-        //     return false;
-        // });
-
-        // disable cloning events
-
-        // const clonerMap: Map<string, ClonableNode> = new Map();
-
-        // cloned.forEach((node) =>
-        // {
-        //     const cloner = node.cloneInfo.cloner as ClonableNode;
-
-        //     if (cloner)
-        //     {
-        //         clonerMap.set(node.id, cloner);
-        //         delete node.cloneInfo.cloner;
-        //     }
-        // });
-
-        // now parent
+        // parent
 
         nodeElements.forEach((nodeElement) =>
         {
@@ -211,17 +184,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 parentNode.addChild(childNode as GraphNode);
             }
         });
-
-        // re-enable cloned events
-        // cloned.forEach((node) =>
-        // {
-        //     const cloner = clonerMap.get(node.id);
-
-        //     if (cloner)
-        //     {
-        //         node.cloneInfo.cloner = cloner;
-        //     }
-        // });
 
         const graphNodesArray = nodeElements.map((nodeElement) => getGraphNode(nodeElement.get('id').value() as string));
 
@@ -334,24 +296,20 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         node?: ClonableNode,
     )
     {
-        if (nodeOptions.parent)
-        {
-            nodeSchema.parent = nodeOptions.parent;
-        }
+        const parentId = nodeOptions.parent ?? nodeSchema.parent;
 
-        const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
+        const nodeElement = this.nodes.set(nodeSchema.id, {
+            ...nodeSchema,
+            parent: parentId,
+        }) as RealTimeObject;
 
         this.registerNode(nodeSchema.id, nodeElement);
 
         this.emit('datastoreNodeCreated', nodeElement, node);
 
-        const parentId = nodeSchema.parent;
-
         if (parentId)
         {
-            const childId = nodeSchema.id;
-
-            this.emit('datastoreNodeSetParent', parentId, childId);
+            this.emit('datastoreNodeSetParent', parentId, nodeSchema.id);
         }
     }
 
