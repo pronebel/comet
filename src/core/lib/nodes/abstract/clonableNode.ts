@@ -451,16 +451,6 @@ export function getAllCloners(node: ClonableNode, predicateFn?: (node: ClonableN
     return array;
 }
 
-export function sortNodesById(a: ClonableNode, b: ClonableNode)
-{
-    if (a.id <= b.id)
-    {
-        return -1;
-    }
-
-    return 1;
-}
-
 export function getAllCloneUpdateRefs(node: ClonableNode, includeSelf = false)
 {
     // update down through all cloned copies
@@ -474,7 +464,7 @@ export function getAllCloneUpdateRefs(node: ClonableNode, includeSelf = false)
         return node.cloneInfo.isReferenceOrRoot && (isReferenceOrRoot || (isOriginal && hasCloned));
     });
 
-    parentCloners.sort(sortNode<number>('created'));
+    parentCloners.sort(sortNode());
 
     if (parentCloners.length > 0)
     {
@@ -497,7 +487,7 @@ export function getAllCloneUpdateRefs(node: ClonableNode, includeSelf = false)
         cloneRefs.push(node);
     }
 
-    cloneRefs.sort(sortNode<number>('created'));
+    cloneRefs.sort(sortNode());
 
     return cloneRefs;
 }

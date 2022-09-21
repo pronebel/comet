@@ -17,6 +17,7 @@ import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { UnlinkCommand } from '../commands/unlink';
+import type { NodeSchema } from '../sync/schema';
 import { getUserName } from '../sync/user';
 import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
@@ -54,7 +55,7 @@ export class TestApp extends Application
 
     public async init()
     {
-        if (userName === '!ali')
+        if (userName === 'ali')
         {
             await this.createProject('Test', 'test');
         }
@@ -238,6 +239,16 @@ export class TestApp extends Application
             console.dir(this.selected);
             (window as any).$ = this.selected;
         }
+    }
+
+    public inspectDatastore()
+    {
+        const data: Record<string, NodeSchema<{}>> = this.datastore.nodes.toJSON();
+        const nodes = Object.keys(data).map((id) => data[id]);
+
+        nodes.sort();
+
+        console.log(nodes.map((node) => node.id));
     }
 
     public randColor()

@@ -82,7 +82,7 @@
   };
 
   const onInspectDatastore = () => {
-    console.log(app.datastore.nodes.toJSON());
+    app.inspectDatastore();
   };
 
   const onSaveDatastore = () => {

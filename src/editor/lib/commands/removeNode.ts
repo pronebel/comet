@@ -44,7 +44,7 @@ export class RemoveNodeCommand extends Command
 
             deleteNodes.push(...nodes);
 
-            deleteNodes.sort(sortNode<number>('created')).reverse();
+            deleteNodes.sort(sortNode()).reverse();
 
             const deleteNodeIds = deleteNodes.map((node) => node.id);
 
