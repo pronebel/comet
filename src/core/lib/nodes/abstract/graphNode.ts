@@ -1,5 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
+import type { NodeSchema } from '../../../../editor/lib/sync/schema';
 import { newGraphNodeId } from '../factory';
 
 export type GraphNodeEvents = 'childAdded' | 'childRemoved' | 'disposed';
@@ -111,8 +112,6 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         this.parent = parent;
 
         parent.children.push(this);
-
-        parent.sortChildren();
 
         parent.emit('childAdded', this);
 
@@ -259,10 +258,10 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
     }
 }
 
-export const sortNode = <T = number>(propName: keyof GraphNode = 'created') => (a: GraphNode, b: GraphNode) =>
+export const sortNodesByCreation = (a: NodeSchema, b: NodeSchema) =>
 {
-    const aValue = a[propName] as T;
-    const bValue = b[propName] as T;
+    const aValue = a.created;
+    const bValue = b.created;
 
     if (aValue < bValue)
     {

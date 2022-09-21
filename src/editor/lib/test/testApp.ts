@@ -3,7 +3,7 @@ import { filters, Sprite, Texture } from 'pixi.js';
 
 import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
-import type { GraphNode } from '../../../core/lib/nodes/abstract/graphNode';
+import { type GraphNode, sortNodesByCreation } from '../../../core/lib/nodes/abstract/graphNode';
 import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import type { ContainerModel, ContainerNode } from '../../../core/lib/nodes/concrete/container';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
@@ -236,7 +236,7 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            console.dir(this.selected);
+            console.log(this.selected.getAllCloneRefNodes().map((node) => node.id), this.selected);
             (window as any).$ = this.selected;
         }
     }
@@ -246,9 +246,16 @@ export class TestApp extends Application
         const data: Record<string, NodeSchema<{}>> = this.datastore.nodes.toJSON();
         const nodes = Object.keys(data).map((id) => data[id]);
 
-        nodes.sort();
+        nodes.sort(sortNodesByCreation);
 
-        console.log(nodes.map((node) => node.id));
+        const info = nodes.map((node) =>
+            ({
+                id: node.id,
+                parent: node.parent,
+                children: node.children,
+            }));
+
+        console.log(JSON.stringify(info, null, 4));
     }
 
     public randColor()

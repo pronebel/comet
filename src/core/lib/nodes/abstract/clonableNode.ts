@@ -1,8 +1,9 @@
+import type { NodeSchema } from '../../../../editor/lib/sync/schema';
 import { type Model, type ModelBase, createModel } from '../../model/model';
 import type { ModelSchema } from '../../model/schema';
 import { type Clonable, CloneInfo, CloneMode } from '../cloneInfo';
 import { type CustomProperty, type CustomPropertyType, CustomProperties } from '../customProperties';
-import { type GraphNodeEvents, GraphNode, sortNode } from './graphNode';
+import { type GraphNodeEvents, GraphNode, sortNodesByCreation } from './graphNode';
 
 export type ClonableNodeEvents = GraphNodeEvents | 'modelChanged' | 'unlinked';
 
@@ -410,6 +411,21 @@ export abstract class ClonableNode<
         return customProps;
     }
 
+    public getAllCloneRefNodes(includeSelf = false): ClonableNode[]
+    {
+        return getAllCloneRefNodes(this as unknown as ClonableNode, includeSelf);
+    }
+
+    public getAllCloned()
+    {
+        return getAllCloned(this as unknown as ClonableNode);
+    }
+
+    public getAllCloners(predicateFn?: (node: ClonableNode) => boolean)
+    {
+        return getAllCloners(this, predicateFn);
+    }
+
     public abstract modelSchema(): ModelSchema<M>;
 
     public abstract createView(): V;
@@ -417,7 +433,7 @@ export abstract class ClonableNode<
     public abstract updateView(): void;
 }
 
-export function getAllCloned(node: ClonableNode, array: ClonableNode[] = [])
+export function getAllCloned(node: ClonableNode, array: ClonableNode[] = []): ClonableNode[]
 {
     node.cloneInfo.forEachCloned<ClonableNode>((cloned) =>
     {
@@ -451,11 +467,8 @@ export function getAllCloners(node: ClonableNode, predicateFn?: (node: ClonableN
     return array;
 }
 
-export function getAllCloneUpdateRefs(node: ClonableNode, includeSelf = false)
+export function getAllCloneRefNodes(node: ClonableNode, includeSelf = false)
 {
-    // update down through all cloned copies
-    const cloneRefs = getAllCloned(node);
-
     // update up through cloners, but only for references
     const parentCloners = getAllCloners(node, (clonedNode) =>
     {
@@ -464,7 +477,8 @@ export function getAllCloneUpdateRefs(node: ClonableNode, includeSelf = false)
         return node.cloneInfo.isReferenceOrRoot && (isReferenceOrRoot || (isOriginal && hasCloned));
     });
 
-    parentCloners.sort(sortNode());
+    // update down through all cloned copies
+    const cloneRefs = getAllCloned(node);
 
     if (parentCloners.length > 0)
     {
@@ -487,7 +501,7 @@ export function getAllCloneUpdateRefs(node: ClonableNode, includeSelf = false)
         cloneRefs.push(node);
     }
 
-    cloneRefs.sort(sortNode());
+    (cloneRefs as unknown as NodeSchema[]).sort(sortNodesByCreation);
 
     return cloneRefs;
 }

@@ -1,4 +1,3 @@
-import  type  { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
 import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
@@ -49,23 +48,27 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         return node;
     }
 
-    public onDatastoreNodeCreated = (nodeElement: RealTimeObject, node: ClonableNode) =>
+    public onDatastoreNodeCreated = (nodeSchema: NodeSchema, clonedNode?: ClonableNode) =>
     {
+        let node = clonedNode;
+
         if (node)
         {
             registerGraphNode(node);
         }
-
-        const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
+        else
+        {
+            node = this.createGraphNode(nodeSchema);
+        }
 
         // notify application
-        this.emit('objectGraphNodeCreated', node ?? this.createGraphNode(nodeSchema));
+        this.emit('objectGraphNodeCreated', node);
     };
 
-    public onDatastoreNodeSetParent = (parentId: string, childId: string) =>
+    public onDatastoreNodeSetParent = (nodeId: string, parentId: string) =>
     {
+        const childNode = getGraphNode(nodeId);
         const parentNode = getGraphNode(parentId);
-        const childNode = getGraphNode(childId);
 
         if (parentNode && childNode)
         {
@@ -73,18 +76,6 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
 
             // notify application
             this.emit('objectGraphParentSet', childNode, parentNode);
-
-            // const parentCloner = parentNode.cloneInfo.cloner;
-
-            // if (parentCloner)
-            // {
-            //     debugger;
-            //     Application.instance.pushCommand(new CreateNodeCommand(childNode.nodeType(), {
-            //         parent: parentCloner.id,
-            //     }));
-            // }
-
-            // todo: need to notify cloned children
         }
     };
 

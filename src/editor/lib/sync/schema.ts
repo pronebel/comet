@@ -21,12 +21,13 @@ export interface CloneInfoSchema
     cloned: id[];
 }
 
-export interface NodeSchema<M extends ModelBase>
+export interface NodeSchema<M extends ModelBase = {}>
 {
     id: string;
     created: number;
     type: string;
     parent?: string;
+    children: string[];
     model: Partial<M>;
     cloneInfo: CloneInfoSchema;
     customProperties: {
@@ -56,6 +57,8 @@ export function createProjectSchema(name: string): ProjectSchema
     const project = createNodeSchema('Project');
     const scene = createNodeSchema('Scene', { parent: project.id });
 
+    project.children.push(scene.id);
+
     return {
         name,
         version,
@@ -76,6 +79,7 @@ export function createNodeSchema<M extends ModelBase>(type: string, nodeOptions:
         created: Date.now(),
         type,
         parent,
+        children: [],
         model: model ?? {},
         cloneInfo: {
             cloner,
@@ -89,7 +93,7 @@ export function createNodeSchema<M extends ModelBase>(type: string, nodeOptions:
     };
 }
 
-export function getNodeSchema(node: ClonableNode)
+export function getNodeSchema(node: ClonableNode, includeParent = true, includeChildren = true)
 {
     const nodeSchema = createNodeSchema(node.nodeType(), {
         id: node.id,
@@ -97,9 +101,14 @@ export function getNodeSchema(node: ClonableNode)
         cloneInfo: getCloneInfoSchema(node),
     });
 
-    if (node.parent)
+    if (includeParent && node.parent)
     {
         nodeSchema.parent = node.parent.id;
+    }
+
+    if (includeChildren)
+    {
+        node.children.forEach((node) => nodeSchema.children.push(node.id));
     }
 
     node.customProperties.properties.forEach((value, key) =>

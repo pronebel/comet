@@ -1,7 +1,7 @@
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
-import { getAllCloneUpdateRefs } from '../../../core/lib/nodes/abstract/clonableNode';
-import { sortNode } from '../../../core/lib/nodes/abstract/graphNode';
+import { sortNodesByCreation } from '../../../core/lib/nodes/abstract/graphNode';
 import { getGraphNode } from '../../../core/lib/nodes/factory';
+import type { NodeSchema } from '../sync/schema';
 import { Command } from '.';
 
 export class RemoveNodeCommand extends Command
@@ -31,7 +31,7 @@ export class RemoveNodeCommand extends Command
 
             if ((isLinked || hasCloned) && !isReferenceRoot)
             {
-                const linkedNodes = getAllCloneUpdateRefs(node);
+                const linkedNodes = node.getAllCloneRefNodes();
 
                 deleteNodes.push(...linkedNodes);
             }
@@ -44,7 +44,7 @@ export class RemoveNodeCommand extends Command
 
             deleteNodes.push(...nodes);
 
-            deleteNodes.sort(sortNode()).reverse();
+            (deleteNodes as unknown as NodeSchema[]).sort(sortNodesByCreation).reverse();
 
             const deleteNodeIds = deleteNodes.map((node) => node.id);
 

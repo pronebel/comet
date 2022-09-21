@@ -35,7 +35,7 @@ export class CloneCommand extends Command
 
             clone.walk<ClonableNode>((clonedNode) =>
             {
-                const nodeSchema = getNodeSchema(clonedNode);
+                const nodeSchema = getNodeSchema(clonedNode, true, false);
 
                 const isClonedNode = clonedNode === clone;
 

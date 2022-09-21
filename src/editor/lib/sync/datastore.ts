@@ -1,4 +1,10 @@
-import type { ConvergenceDomain, IConvergenceEvent, ObjectSetEvent, RealTimeModel } from '@convergence/convergence';
+import type {
+    ConvergenceDomain,
+    IConvergenceEvent,
+    ObjectSetEvent,
+    RealTimeArray,
+    RealTimeModel,
+} from '@convergence/convergence';
 import Convergence, { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
@@ -42,9 +48,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     protected _model?: RealTimeModel;
     public nodeRealtimeObjects: Map<string, RealTimeObject>;
 
+    public static instance: Datastore;
+
     constructor()
     {
         super();
+
+        Datastore.instance = this;
         this.nodeRealtimeObjects = new Map();
     }
 
@@ -293,7 +303,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public createNode<M extends ModelBase>(
         nodeSchema: NodeSchema<M>,
         nodeOptions: NodeOptionsSchema<M> = {},
-        node?: ClonableNode,
+        clonedNode?: ClonableNode,
     )
     {
         const parentId = nodeOptions.parent ?? nodeSchema.parent;
@@ -305,12 +315,21 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         this.registerNode(nodeSchema.id, nodeElement);
 
-        this.emit('datastoreNodeCreated', nodeElement, node);
+        this.emit('datastoreNodeCreated', nodeSchema, clonedNode);
 
         if (parentId)
         {
-            this.emit('datastoreNodeSetParent', parentId, nodeSchema.id);
+            this.setParentNode(nodeSchema.id, parentId);
         }
+    }
+
+    public setParentNode(nodeId: string, parentId: string)
+    {
+        const parentElement = this.getNodeElement(parentId);
+        const childArray = parentElement.get('children') as RealTimeArray;
+
+        childArray.push(nodeId);
+        this.emit('datastoreNodeSetParent', nodeId, parentId);
     }
 
     public removeNode(nodeId: string)
