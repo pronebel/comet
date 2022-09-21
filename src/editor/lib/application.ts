@@ -70,6 +70,7 @@ export abstract class Application extends EventEmitter
         datastore.on('datastoreNodeUnlinked', objectGraph.onDatastoreNodeUnlinked);
 
         // get notified when datastore changes
+        datastore.on('datastoreHydrated', this.onDatastoreHydrated.bind(this));
         datastore.on('datastoreCustomPropDefined', this.onDatastoreCustomPropDefined.bind(this));
         datastore.on('datastoreCustomPropUndefined', this.onDatastoreCustomPropUndefined.bind(this));
         datastore.on('datastoreCustomPropAssigned', this.onDatastoreCustomPropAssigned.bind(this));
@@ -134,6 +135,14 @@ export abstract class Application extends EventEmitter
         await datastore.openProject(id);
 
         datastore.hydrate(objectGraph);
+    }
+
+    protected onDatastoreHydrated()
+    {
+        if (this.project)
+        {
+            this.project.updateRecursive();
+        }
     }
 
     protected onObjectGraphNodeCreated(node: ClonableNode)

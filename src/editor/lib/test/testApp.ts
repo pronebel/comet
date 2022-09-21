@@ -55,7 +55,7 @@ export class TestApp extends Application
 
     public async init()
     {
-        if (userName === 'ali')
+        if (userName === '!ali')
         {
             await this.createProject('Test', 'test');
         }
@@ -293,6 +293,9 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
+            const nodeElement = this.datastore.getNodeElement(this.selected.id);
+
+            nodeElement.get('model').value({});
             this.selected.model.reset();
             this.fitSelection(this.selected);
         }

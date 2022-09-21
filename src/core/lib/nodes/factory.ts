@@ -98,7 +98,7 @@ export function newGraphNodeId(nodeType: string, isUnregisteredType = false)
     return `${nodeType}:${nextId}`;
 }
 
-export function trackNodeId(id: string)
+export function consolidateNodeId(id: string)
 {
     const [nodeType, _idCount] = id.split(':');
     const idCount = parseInt(_idCount, 10);

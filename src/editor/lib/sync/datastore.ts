@@ -11,7 +11,7 @@ import { EventEmitter } from 'eventemitter3';
 import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import type { GraphNode } from '../../../core/lib/nodes/abstract/graphNode';
-import { getGraphNode, trackNodeId } from '../../../core/lib/nodes/factory';
+import { consolidateNodeId, getGraphNode } from '../../../core/lib/nodes/factory';
 import type { ObjectGraph } from './objectGraph';
 import { type NodeOptionsSchema, type NodeSchema, createProjectSchema, getCloneInfoSchema } from './schema';
 import { getUserName } from './user';
@@ -28,6 +28,7 @@ export const defaultProjectSettings = {
 export const connectionTimeout = 2500;
 
 export type DatastoreEvents =
+| 'datastoreHydrated'
 | 'datastoreNodeCreated'
 | 'datastoreNodeSetParent'
 | 'datastoreNodeRemoved'
@@ -96,7 +97,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const nodeId = nodeElement.get('id').value() as string;
             const parentId = nodeElement.get('parent').value() as string | undefined;
 
-            trackNodeId(nodeId);
+            consolidateNodeId(nodeId);
 
             console.log(`%c${userName}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
 
@@ -130,9 +131,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         const { nodes } = this;
 
-        const graphNodes: Map<string, ClonableNode> = new Map();
-
-        const nodeElements: RealTimeObject[] = [];
+        const nodeElements: Map<string, RealTimeObject> = new Map();
 
         // prepare all nodeElements
 
@@ -140,68 +139,68 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         {
             const nodeElement = nodes.get(id) as RealTimeObject;
 
-            nodeElements.push(nodeElement);
+            nodeElements.set(id, nodeElement);
         });
 
-        // sort by creation time to preserve position in hierarchy
+        // get the root
+        const rootId = this.model.root().get('root').value() as string;
+        const projectNode = nodeElements.get(rootId);
 
-        nodeElements.sort((a: RealTimeObject, b: RealTimeObject) =>
-        {
-            const aCreated = a.get('created').value() as number;
-            const bCreated = b.get('created').value() as number;
-
-            if (aCreated < bCreated)
-            {
-                return -1;
-            }
-
-            return 1;
-        });
-
-        // create nodes
-
-        nodeElements.forEach((nodeElement) =>
+        const hydrate = (nodeElement: RealTimeObject, parentNode?: ClonableNode) =>
         {
             const id = nodeElement.get('id').value() as string;
 
             // ensure local ids don't clash with hydrating ids
-            trackNodeId(id);
+            consolidateNodeId(id);
+
+            // register the RealTimeObject for this node
+
+            this.registerNode(id, nodeElement);
+
+            // create the graph node
 
             const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
 
             const node = objectGraph.createGraphNode(nodeSchema);
 
-            this.registerNode(id, nodeElement);
+            // add to parent if provided
 
-            graphNodes.set(id, node);
-        });
-
-        // reverse node list to recreate same order objects
-
-        nodeElements.reverse();
-
-        // parent
-
-        nodeElements.forEach((nodeElement) =>
-        {
-            const parentId = nodeElement.get('parent').value();
-            const childId = nodeElement.get('id').value();
-            const parentNode = graphNodes.get(parentId);
-            const childNode = graphNodes.get(childId);
-
-            if (parentNode && childNode)
+            if (parentNode)
             {
-                parentNode.addChild(childNode as GraphNode);
+                parentNode.addChild(node as GraphNode);
             }
-        });
 
-        const graphNodesArray = nodeElements.map((nodeElement) => getGraphNode(nodeElement.get('id').value() as string));
+            // recursively create children
 
-        console.log(`%c${userName}:hydrated [${graphNodesArray.map((node) => node?.id).join(',')}]`, 'color:lime');
+            (nodeElement.get('children').value() as RealTimeArray).forEach((id) =>
+            {
+                const childId = String(id);
+                const childNodeElement = nodeElements.get(childId);
 
-        graphNodesArray.forEach((node) => node?.update());
+                if (childNodeElement)
+                {
+                    hydrate(childNodeElement, node);
+                }
+                else
+                {
+                    throw new Error(`Could not find childElement "${childId}"`);
+                }
+            });
+        };
 
-        return graphNodes;
+        if (projectNode)
+        {
+            // start from the root node (Project)
+
+            hydrate(projectNode);
+        }
+        else
+        {
+            throw new Error('Could not find project node');
+        }
+
+        // update the application
+        this.emit('datastoreHydrated');
     }
 
     public registerNode(id: string, nodeElement: RealTimeObject)

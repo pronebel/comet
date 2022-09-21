@@ -29,39 +29,32 @@ export class CreateNodeCommand<M extends ModelBase> extends Command
 
         if (parentNode)
         {
+            const { cloneInfo: parentCloneInfo } = parentNode;
+
             const nodeOptions: NodeOptionsSchema<M> = {
                 parent: parentId,
                 model,
             };
 
-            // -temp-start
-
-            // const nodeSchema = createNodeSchema<M>(nodeType, nodeOptions);
-
-            // datastore.createNode(nodeSchema, {
-            //     ...nodeOptions,
-            //     parent: parentNode.id,
-            // });
-
-            // -temp-end
-
             const parentsToCreateNodeUnder: ClonableNode[] = [];
 
-            if (parentNode.cloneInfo.isOriginal)
+            if (parentCloneInfo.isOriginal || parentCloneInfo.isVariant)
             {
                 parentsToCreateNodeUnder.push(parentNode);
             }
-            else if (parentNode.cloneInfo.isCloned)
+            else if (parentCloneInfo.isReferenceOrRoot)
             {
                 const original = parentNode.getOriginal();
                 const cloned = original.getAllCloned();
 
                 parentsToCreateNodeUnder.push(original, ...cloned);
             }
+            else
+            {
+                throw new Error(`Unsupported cloning state`);
+            }
 
-            console.log(parentsToCreateNodeUnder.map((node) => node.id));
-
-            // update down through all cloned parents to add a new child
+            console.log('cloning under parents:', parentsToCreateNodeUnder.map((node) => node.id));
 
             let lastNodeId: string | undefined;
 
