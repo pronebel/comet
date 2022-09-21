@@ -236,7 +236,9 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            console.log(this.selected.getAllCloneRefNodes().map((node) => node.id), this.selected);
+            const original = this.selected.getOriginal();
+
+            console.log(original.id, original.getAllCloned().map((node) => node.id));
             (window as any).$ = this.selected;
         }
     }
@@ -253,6 +255,8 @@ export class TestApp extends Application
                 id: node.id,
                 parent: node.parent,
                 children: node.children,
+                cloner: node.cloneInfo.cloner,
+                cloned: node.cloneInfo.cloned,
             }));
 
         console.log(JSON.stringify(info, null, 4));
@@ -471,7 +475,7 @@ export class TestApp extends Application
                 });
 
                 const modelLine = `${modelInfo} <span style="color:cyan;">${modelValues}</span>`;
-                const isLinked = this.selected
+                const isCloned = this.selected
                     ? this.selected === cloner || cloned.includes(this.selected)
                     : false;
                 const cloneModeInfo = `${cloneMode.toUpperCase()}`;
@@ -484,7 +488,7 @@ export class TestApp extends Application
                 }
                 const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
 
-                html += isLinked ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
+                html += isCloned ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
             }, {
                 includeSelf: true,
             });

@@ -1,4 +1,5 @@
 import type { ModelBase } from '../../../core/lib/model/model';
+import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import { CloneMode } from '../../../core/lib/nodes/cloneInfo';
 import { getGraphNode } from '../../../core/lib/nodes/factory';
 import { type NodeOptionsSchema, createNodeSchema } from '../sync/schema';
@@ -35,49 +36,64 @@ export class CreateNodeCommand<M extends ModelBase> extends Command
 
             // -temp-start
 
-            const nodeSchema = createNodeSchema<M>(nodeType, nodeOptions);
+            // const nodeSchema = createNodeSchema<M>(nodeType, nodeOptions);
 
-            datastore.createNode(nodeSchema, {
-                ...nodeOptions,
-                parent: parentNode.id,
-            });
+            // datastore.createNode(nodeSchema, {
+            //     ...nodeOptions,
+            //     parent: parentNode.id,
+            // });
 
             // -temp-end
 
-            // update down through all cloned copies
-            // const cloneRefs = parentNode.getAllCloneRefNodes(true);
+            const parentsToCreateNodeUnder: ClonableNode[] = [];
 
-            // let lastNodeId: string | undefined;
+            if (parentNode.cloneInfo.isOriginal)
+            {
+                parentsToCreateNodeUnder.push(parentNode);
+            }
+            else if (parentNode.cloneInfo.isCloned)
+            {
+                const original = parentNode.getOriginal();
+                const cloned = original.getAllCloned();
 
-            // datastore.batch(() =>
-            // {
-            //     cloneRefs.forEach((node) =>
-            //     {
-            //         let { cloneMode } = node.cloneInfo;
+                parentsToCreateNodeUnder.push(original, ...cloned);
+            }
 
-            //         if (cloneMode === CloneMode.ReferenceRoot)
-            //         {
-            //             cloneMode = CloneMode.Reference;
-            //         }
+            console.log(parentsToCreateNodeUnder.map((node) => node.id));
 
-            //         const nodeSchema = createNodeSchema<M>(nodeType, {
-            //             ...nodeOptions,
-            //             parent: node.id,
-            //             cloneInfo: {
-            //                 cloneMode,
-            //                 cloner: lastNodeId,
-            //                 cloned: [],
-            //             },
-            //         });
+            // update down through all cloned parents to add a new child
 
-            //         datastore.createNode(nodeSchema, {
-            //             ...nodeOptions,
-            //             parent: node.id,
-            //         });
+            let lastNodeId: string | undefined;
 
-            //         lastNodeId = nodeSchema.id;
-            //     });
-            // });
+            datastore.batch(() =>
+            {
+                parentsToCreateNodeUnder.forEach((parentToCreateNodeUnder) =>
+                {
+                    let { cloneMode } = parentToCreateNodeUnder.cloneInfo;
+
+                    if (cloneMode === CloneMode.ReferenceRoot)
+                    {
+                        cloneMode = CloneMode.Reference;
+                    }
+
+                    const nodeSchema = createNodeSchema<M>(nodeType, {
+                        ...nodeOptions,
+                        parent: parentToCreateNodeUnder.id,
+                        cloneInfo: {
+                            cloneMode,
+                            cloner: lastNodeId,
+                            cloned: [],
+                        },
+                    });
+
+                    datastore.createNode(nodeSchema, {
+                        ...nodeOptions,
+                        parent: parentToCreateNodeUnder.id,
+                    });
+
+                    lastNodeId = nodeSchema.id;
+                });
+            });
         }
     }
 

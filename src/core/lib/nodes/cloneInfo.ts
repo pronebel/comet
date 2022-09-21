@@ -73,7 +73,7 @@ export class CloneInfo
         return this.cloneMode === CloneMode.ReferenceRoot;
     }
 
-    public get isLinked()
+    public get isCloned()
     {
         const { cloneMode } = this;
 
@@ -90,9 +90,13 @@ export class CloneInfo
         return this.cloner === cloner;
     }
 
-    public unlink()
+    public unlink(owner: Clonable)
     {
-        delete this.cloner;
+        if (this.cloner)
+        {
+            this.cloner.cloneInfo.removeCloned(owner);
+            delete this.cloner;
+        }
         this.cloneMode = CloneMode.Original;
     }
 

@@ -26,15 +26,16 @@ export class RemoveNodeCommand extends Command
 
         if (node)
         {
-            const { isLinked, hasCloned, isReferenceRoot } = node.cloneInfo;
             const deleteNodes: ClonableNode[] = [node];
+            const { isCloned, hasCloned, isReferenceRoot } = node.cloneInfo;
 
-            if ((isLinked || hasCloned) && !isReferenceRoot)
+            if ((isCloned || hasCloned) && !isReferenceRoot)
             {
                 const linkedNodes = node.getAllCloneRefNodes();
 
                 deleteNodes.push(...linkedNodes);
             }
+
             const nodes: ClonableNode[] = [];
 
             deleteNodes.forEach((node) =>

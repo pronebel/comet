@@ -150,6 +150,8 @@ export abstract class ClonableNode<
 
                 this.model.setValues(sourceModel.values as M);
                 this.unlinkCustomProperties();
+
+                this.cloneInfo.unlink(this);
             }
 
             this.updateRecursive();
@@ -197,7 +199,7 @@ export abstract class ClonableNode<
             }
 
             cloner.cloneInfo.removeCloned(this);
-            this.cloneInfo.unlink();
+            this.cloneInfo.unlink(this);
 
             this.emit('unlinked');
 
@@ -411,7 +413,7 @@ export abstract class ClonableNode<
         return customProps;
     }
 
-    public getAllCloneRefNodes(includeSelf = false): ClonableNode[]
+    public getAllCloneRefNodes(includeSelf = true): ClonableNode[]
     {
         return getAllCloneRefNodes(this as unknown as ClonableNode, includeSelf);
     }
@@ -424,6 +426,32 @@ export abstract class ClonableNode<
     public getAllCloners(predicateFn?: (node: ClonableNode) => boolean)
     {
         return getAllCloners(this, predicateFn);
+    }
+
+    public getOriginal(): ClonableNode
+    {
+        const { cloneInfo: { isOriginal } } = this;
+
+        if (isOriginal)
+        {
+            return this;
+        }
+
+        let node: ClonableNode = this as unknown as ClonableNode;
+
+        while (!node.cloneInfo.isOriginal)
+        {
+            if (node.cloneInfo.cloner)
+            {
+                node = node.cloneInfo.cloner as ClonableNode;
+            }
+            else
+            {
+                throw new Error('Could find original cloned node as parent undefined');
+            }
+        }
+
+        return node;
     }
 
     public abstract modelSchema(): ModelSchema<M>;

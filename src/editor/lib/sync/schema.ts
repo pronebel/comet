@@ -42,6 +42,7 @@ export interface ProjectSchema
     version: string;
     createdBy: string;
     nodes: Record<string, NodeSchema<any>>;
+    root: id;
 }
 
 export interface NodeOptionsSchema<M extends ModelBase>
@@ -67,6 +68,7 @@ export function createProjectSchema(name: string): ProjectSchema
             [project.id]: project,
             [scene.id]: scene,
         },
+        root: project.id,
     };
 }
 

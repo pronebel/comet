@@ -199,7 +199,7 @@ export class CustomProperties<C extends ClonableNode> implements Clonable
 
     public unlink(newCreator: C)
     {
-        this.cloneInfo.unlink();
+        this.cloneInfo.unlink(this);
 
         this.keys().forEach((key) =>
         {
