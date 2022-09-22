@@ -158,6 +158,15 @@
     on:mouseout={() => (shouldUpdateDebug = true)}>
   <span /></pre>
   {#if isInit}
+    <button on:click={onNewContainer}>New Empty</button>
+    <button on:click={onNewChild}>New Child</button>
+    <button on:click={onCloneVariant}>+ Variant</button>
+    <button on:click={onCloneReference}>+ Reference</button>
+    <button on:click={onDuplicate}>+ Duplicate</button>
+    <button on:click={onUnlink}>Unlink</button>
+    <button on:click={onDelete}>Delete</button>
+    <button on:click={onInspect}>Inspect</button>
+    <hr />
     <button on:click={onReload}>Reload</button>
     <button on:click={onRestoreDatastore}>Restore DStore</button>
     <button on:click={onSaveDatastore}>Save DStore</button>
@@ -167,15 +176,6 @@
     <input bind:value={undoStackEnd} />
     <button on:click={onWriteUndoStack}>Save Cmds</button>
     <button on:click={onReadUndoStack}>Load Cmds</button>
-    <hr />
-    <button on:click={onNewContainer}>New Empty</button>
-    <button on:click={onNewChild}>New Child</button>
-    <button on:click={onCloneVariant}>+ Variant</button>
-    <button on:click={onCloneReference}>+ Reference</button>
-    <button on:click={onDuplicate}>+ Duplicate</button>
-    <button on:click={onUnlink}>Unlink</button>
-    <button on:click={onDelete}>Delete</button>
-    <button on:click={onInspect}>Inspect</button>
     <hr />
     <button on:click={onDeselect}>Deselect</button>
     <button on:click={onRandColor}>Rand Color</button>

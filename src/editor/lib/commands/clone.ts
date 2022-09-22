@@ -23,8 +23,6 @@ export class CloneCommand extends Command<{
         {
             const clone = node.clone(cloneMode);
 
-            // update datastore with new cloned nodes
-
             clone.walk<ClonableNode>((clonedNode) =>
             {
                 const nodeSchema = getNodeSchema(clonedNode, true, false);
@@ -42,7 +40,7 @@ export class CloneCommand extends Command<{
                 clonedNode.cloneInfo.cloner = cloner;
             });
 
-            // update datastore for all cloners (NOTE: do this after cloned nodes have been created)
+            // update this node and all children with new cloneInfo.cloned details
 
             node.walk<ClonableNode>((node) =>
             {
@@ -56,8 +54,6 @@ export class CloneCommand extends Command<{
 
             datastore.emit('datastoreNodeCloned', clone);
         }
-
-        // todo: store nodeId for undo
     }
 
     public undo(): void

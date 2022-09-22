@@ -247,6 +247,7 @@ export class TestApp extends Application
             const original = this.selected.getOriginal();
 
             console.log(original.id, original.getAllCloned().map((node) => node.id));
+
             (window as any).$ = this.selected;
         }
     }
