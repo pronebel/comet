@@ -11,6 +11,7 @@
   let customPropName: string = "prop1";
   let customPropValue: string = "foo1";
   let assignModelKey: string = "label";
+  let undoStackEnd: number = 0;
 
   let isInit = false;
   let isInitialising = false;
@@ -99,18 +100,11 @@
   };
 
   const onWriteUndoStack = () => {
-    const data = JSON.stringify(app.undoStack.toJSON(), null, 4);
-    localStorage["undoStack"] = data;
-    console.log(data);
+    app.writeUndoStack(undoStackEnd);
   };
 
   const onReadUndoStack = () => {
-    const data = localStorage["undoStack"];
-    if (data) {
-      console.log(data);
-      const json = JSON.parse(data);
-      app.undoStack.fromJSON(json);
-    }
+    app.readUndoStack();
   };
 
   const onSetCustomProp = () => {
@@ -170,8 +164,9 @@
     <button on:click={onInspectDatastore}>Inspect DStore</button>
     <button on:click={onClearDatastore}>Clear DStore</button>
     <hr />
-    <button on:click={onWriteUndoStack}>Save Undo</button>
-    <button on:click={onReadUndoStack}>Load Undo</button>
+    <input bind:value={undoStackEnd} />
+    <button on:click={onWriteUndoStack}>Save Cmds</button>
+    <button on:click={onReadUndoStack}>Load Cmds</button>
     <hr />
     <button on:click={onNewContainer}>New Empty</button>
     <button on:click={onNewChild}>New Child</button>
@@ -261,23 +256,20 @@
     margin-top: 5px;
     margin-bottom: 10px;
     border: none;
-    border-bottom: 1px dashed #777;
+    border-bottom: 4px outset #8e8e8e;
     position: relative;
   }
 
   input {
     flex-grow: 0;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     text-align: center;
-    border-color: #666;
-    padding: 5px;
+    border: 1px solid #666;
+    padding: 3px;
     z-index: 100;
     opacity: 0.7;
     font-size: inherit;
-  }
-
-  br {
-    width: 100%;
+    height: 10px;
   }
 
   pre {

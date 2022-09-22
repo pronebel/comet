@@ -117,11 +117,25 @@ export abstract class Application extends EventEmitter
         this.undoStack.pushCommands(commands);
     }
 
-    public readUndoStack(jsonStrOutput: string)
+    public writeUndoStack(endIndex = 0)
     {
-        const json = JSON.parse(jsonStrOutput);
+        const data = JSON.stringify(this.undoStack.toJSON(endIndex), null, 4);
 
-        this.undoStack.fromJSON(json);
+        localStorage['undoStack'] = data;
+        console.log(`UndoStack${endIndex === 0 ? '' : endIndex}.write:`, data);
+    }
+
+    public readUndoStack()
+    {
+        const data = localStorage['undoStack'];
+
+        if (data)
+        {
+            console.log(`UndoStack.read:`, data);
+            const json = JSON.parse(data);
+
+            this.undoStack.fromJSON(json);
+        }
     }
 
     public async createProject(name: string, id: string)

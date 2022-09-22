@@ -1,5 +1,5 @@
 import type { Command } from './commands';
-import { createCommand } from './commands/_replay';
+import { createCommand } from './commands/_factory';
 // import { getUserName } from './sync/user';
 
 // const userName = getUserName();
@@ -42,9 +42,9 @@ export default class UndoStack
         });
     }
 
-    public toJSON(): object[]
+    public toJSON(endIndex = 0): object[]
     {
-        return this.stack.flat().map((cmd) => cmd.toJSON());
+        return this.stack.flat().slice(0, endIndex === 0 ? undefined : endIndex).map((cmd) => cmd.toJSON());
     }
 
     public fromJSON(json: any[])
