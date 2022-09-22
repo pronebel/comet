@@ -52,14 +52,17 @@ window.addEventListener('mouseup', () =>
 {
     if (state.component)
     {
-        const app: TestApp = TestApp.getInstance();
+        if (((state.newX !== state.startX) || (state.newY !== state.startY)))
+        {
+            const app: TestApp = TestApp.getInstance();
 
-        const nodeId = state.component.id;
+            const nodeId = state.component.id;
 
-        app.pushCommand(new ModifyModelCommand({ nodeId, values: {
-            x: state.newX,
-            y: state.newY,
-        } }));
+            app.pushCommand(new ModifyModelCommand({ nodeId, values: {
+                x: state.newX,
+                y: state.newY,
+            } }));
+        }
 
         delete state.component;
     }
@@ -71,5 +74,7 @@ export function startDrag(component: AnyContainer)
     state.startY = component.model.getValue('y');
     state.startClientX = state.clientX;
     state.startClientY = state.clientY;
+    state.newX = state.startX;
+    state.newY = state.startY;
     state.component = component;
 }
