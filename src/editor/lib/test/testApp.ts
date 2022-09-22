@@ -19,7 +19,7 @@ import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { UnlinkCommand } from '../commands/unlink';
 import type { NodeSchema } from '../sync/schema';
 import { getUserName } from '../sync/user';
-import { type DebugModel, DebugNode } from './debug';
+import { DebugNode } from './debug';
 import { startDrag } from './drag';
 
 export let app: TestApp;
@@ -177,9 +177,13 @@ export class TestApp extends Application
         {
             const parentId = this.selected.id;
 
-            this.pushCommand(new CreateNodeCommand<ContainerModel>('Empty', parentId, {
-                x: 20,
-                y: 20,
+            this.pushCommand(new CreateNodeCommand<ContainerModel>({
+                nodeType: 'Empty',
+                parentId,
+                model: {
+                    x: 20,
+                    y: 20,
+                },
             }));
         }
     }
@@ -190,12 +194,16 @@ export class TestApp extends Application
         {
             const parentId = this.selected.id;
 
-            this.pushCommand(new CreateNodeCommand<DebugModel>('Debug', parentId, {
-                x: 20,
-                y: 20,
-                width: 20,
-                height: 20,
-                tint: Math.round(Math.random() * 100000),
+            this.pushCommand(new CreateNodeCommand<ContainerModel>({
+                nodeType: 'Debug',
+                parentId,
+                model: {
+                    x: 20,
+                    y: 20,
+                    width: 20,
+                    height: 20,
+                    tint: Math.round(Math.random() * 100000),
+                },
             }));
         }
     }
@@ -205,7 +213,7 @@ export class TestApp extends Application
     {
         if (this.project && this.selected)
         {
-            this.pushCommand(new CloneCommand(this.selected.id, cloneMode));
+            this.pushCommand(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
         }
     }
 
@@ -213,7 +221,7 @@ export class TestApp extends Application
     {
         if (this.project && this.selected)
         {
-            this.pushCommand(new UnlinkCommand(this.selected.id));
+            this.pushCommand(new UnlinkCommand({ nodeId: this.selected.id }));
         }
     }
 
@@ -223,7 +231,7 @@ export class TestApp extends Application
         {
             const parentNode = this.selected.parent;
 
-            this.pushCommand(new RemoveNodeCommand(this.selected.id));
+            this.pushCommand(new RemoveNodeCommand({ nodeId: this.selected.id }));
 
             if (parentNode)
             {
@@ -311,7 +319,12 @@ export class TestApp extends Application
             const propType = isNaN(value) ? 'string' : 'number';
             const propValue = propType === 'string' ? value : parseFloat(value);
 
-            this.pushCommand(new SetCustomPropCommand(selected.id, name, propType, propValue));
+            this.pushCommand(new SetCustomPropCommand({
+                nodeId: selected.id,
+                propName: name,
+                type: propType,
+                value: propValue,
+            }));
         }
     }
 
@@ -321,7 +334,10 @@ export class TestApp extends Application
 
         if (selected)
         {
-            this.pushCommand(new RemoveCustomPropCommand(selected.id, name));
+            this.pushCommand(new RemoveCustomPropCommand({
+                nodeId: selected.id,
+                propName: name,
+            }));
         }
     }
 
@@ -331,7 +347,11 @@ export class TestApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.pushCommand(new AssignCustomPropCommand(selected.id, modelKey, customKey));
+            this.pushCommand(new AssignCustomPropCommand({
+                nodeId: selected.id,
+                modelKey,
+                customKey,
+            }));
         }
     }
 
@@ -341,7 +361,10 @@ export class TestApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.pushCommand(new UnAssignCustomPropCommand(selected.id, modelKey));
+            this.pushCommand(new UnAssignCustomPropCommand({
+                nodeId: selected.id,
+                modelKey,
+            }));
         }
     }
 

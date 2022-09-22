@@ -2,25 +2,17 @@ import type { RealTimeObject } from '@convergence/convergence';
 
 import { Command } from '.';
 
-export class ModifyModelCommand extends Command
+export class ModifyModelCommand extends Command<{
+    nodeId: string;
+    key: string;
+    value: any;
+}>
 {
-    constructor(
-        public readonly nodeId: string,
-        public readonly key: string,
-        public readonly value: any,
-    )
-    {
-        super();
-    }
-
-    public name()
-    {
-        return 'ModifyModel';
-    }
+    public name = 'ModifyModel';
 
     public apply(): void
     {
-        const { nodeId, key, value, datastore } = this;
+        const { datastore, params: { nodeId, key, value } } = this;
 
         const nodeElement = datastore.getNodeElement(nodeId);
 

@@ -117,11 +117,6 @@ export abstract class Application extends EventEmitter
         this.undoStack.pushCommands(commands);
     }
 
-    public writeUndoStack()
-    {
-        console.log(JSON.stringify(this.undoStack.toJSON(), null, 4));
-    }
-
     public readUndoStack(jsonStrOutput: string)
     {
         const json = JSON.parse(jsonStrOutput);

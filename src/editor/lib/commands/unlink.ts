@@ -3,23 +3,15 @@ import { getGraphNode } from '../../../core/lib/nodes/factory';
 import { getCloneInfoSchema } from '../sync/schema';
 import { Command } from '.';
 
-export class UnlinkCommand extends Command
+export class UnlinkCommand extends Command<{
+    nodeId: string;
+}>
 {
-    constructor(
-        public readonly nodeId: string,
-    )
-    {
-        super();
-    }
-
-    public name()
-    {
-        return 'Unlink';
-    }
+    public name = 'Unlink';
 
     public apply(): void
     {
-        const { nodeId, datastore } = this;
+        const { datastore, params: { nodeId } } = this;
 
         const node = getGraphNode(nodeId);
 

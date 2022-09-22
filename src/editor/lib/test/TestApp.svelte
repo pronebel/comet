@@ -98,6 +98,20 @@
     console.log("Datastore cleared");
   };
 
+  const onWriteUndoStack = () => {
+    const data = JSON.stringify(app.undoStack.toJSON(), null, 4);
+    localStorage["undoStack"] = data;
+    console.log(data);
+  };
+
+  const onReadUndoStack = () => {
+    const data = localStorage["undoStack"];
+    if (data) {
+      const json = JSON.parse(data);
+      app.undoStack.fromJSON(json);
+    }
+  };
+
   const onSetCustomProp = () => {
     app.setCustomProp(customPropName, customPropValue);
     app.fitSelection();
@@ -154,7 +168,10 @@
     <button on:click={onSaveDatastore}>Save DStore</button>
     <button on:click={onInspectDatastore}>Inspect DStore</button>
     <button on:click={onClearDatastore}>Clear DStore</button>
-    <br />
+    <hr />
+    <button on:click={onWriteUndoStack}>Write UndoStack</button>
+    <button on:click={onReadUndoStack}>Read UndoStack</button>
+    <hr />
     <button on:click={onNewContainer}>New Empty</button>
     <button on:click={onNewChild}>New Child</button>
     <button on:click={onCloneVariant}>+ Variant</button>
@@ -163,13 +180,13 @@
     <button on:click={onUnlink}>Unlink</button>
     <button on:click={onDelete}>Delete</button>
     <button on:click={onInspect}>Inspect</button>
-    <br />
+    <hr />
     <button on:click={onDeselect}>Deselect</button>
     <button on:click={onRandColor}>Rand Color</button>
     <button on:click={onRandSize}>Rand Size</button>
     <button on:click={onRotate}>Rotate</button>
     <button on:click={onResetModel}>Clear Model</button>
-    <br />
+    <hr />
     <button on:click={onSetCustomProp}>Set Prop</button>
     <keyvalue>
       <input bind:value={customPropName} />
@@ -201,7 +218,7 @@
 
   button {
     width: 100%;
-    margin-bottom: 10px;
+    margin-bottom: 5px;
     z-index: 100;
     opacity: 0.7;
     font-size: inherit;
@@ -234,6 +251,16 @@
 
   keyvalue input {
     width: 50%;
+  }
+
+  hr {
+    width: 100%;
+    height: 0px;
+    margin: 0;
+    margin-bottom: 5px;
+    border: none;
+    border-bottom: 1px dashed #777;
+    position: relative;
   }
 
   input {

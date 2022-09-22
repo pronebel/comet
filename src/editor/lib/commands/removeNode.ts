@@ -3,23 +3,15 @@ import { sortNodesByCreation } from '../../../core/lib/nodes/abstract/graphNode'
 import { getGraphNode } from '../../../core/lib/nodes/factory';
 import { Command } from '.';
 
-export class RemoveNodeCommand extends Command
+export class RemoveNodeCommand extends Command<{
+    nodeId: string;
+}>
 {
-    constructor(
-        public readonly nodeId: string,
-    )
-    {
-        super();
-    }
-
-    public name()
-    {
-        return 'RemoveNode';
-    }
+    public name = 'RemoveNode';
 
     public apply(): void
     {
-        const { datastore, nodeId } = this;
+        const { datastore, params: { nodeId } } = this;
 
         const node = getGraphNode(nodeId);
 

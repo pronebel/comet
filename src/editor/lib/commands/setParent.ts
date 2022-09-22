@@ -1,23 +1,15 @@
 import { Command } from '.';
 
-export class SetParentCommand extends Command
+export class SetParentCommand extends Command<{
+    parentId: string;
+    childId: string;
+}>
 {
-    constructor(
-        public readonly parentId: string,
-        public readonly childId: string,
-    )
-    {
-        super();
-    }
-
-    public name()
-    {
-        return 'SetParent';
-    }
+    public name = 'SetParent';
 
     public apply(): void
     {
-        const { datastore, parentId, childId } = this;
+        const { datastore, params: { parentId, childId } } = this;
 
         const nodeElement = datastore.getNodeElement(childId);
 

@@ -1,12 +1,17 @@
 import { Application } from '../application';
 
-export abstract class Command<T = void>
+export abstract class Command<T extends {} = {}>
 {
-    public abstract name(): string;
-    public abstract apply(): T;
+    constructor(public readonly params: T)
+    {
+
+    }
+
+    public abstract name: string;
+    public abstract apply(): void;
     public abstract undo(): void;
 
-    public redo(): T
+    public redo()
     {
         return this.apply();
     }
@@ -21,20 +26,11 @@ export abstract class Command<T = void>
         return this.app.datastore;
     }
 
-    public toString()
-    {
-        return JSON.stringify(this.toJSON(), null, 4);
-    }
-
     public toJSON()
     {
-        const json: any = { _name: this.name() };
-
-        Object.getOwnPropertyNames(this).forEach((key) =>
-        {
-            json[key] = (this as any)[key];
-        });
-
-        return json as object;
+        return {
+            $: this.name,
+            ...this.params,
+        };
     }
 }

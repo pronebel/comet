@@ -1,7 +1,7 @@
 import type { Command } from './commands';
-import { getUserName } from './sync/user';
+// import { getUserName } from './sync/user';
 
-const userName = getUserName();
+// const userName = getUserName();
 
 export default class UndoStack
 {
@@ -24,7 +24,7 @@ export default class UndoStack
         this.stack.push(command);
         this.head++;
 
-        // console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');
+        // console.log(`%c${userName}:Command<${command.name}>: ${command.toString()}`, 'color:yellow');
 
         return command.apply() as T;
     }
@@ -36,18 +36,21 @@ export default class UndoStack
 
         commands.forEach((command) =>
         {
-            console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');
+            // console.log(`%c${userName}:Command<${command.name}>: ${command.toString()}`, 'color:yellow');
             command.apply();
         });
     }
 
-    public toJSON()
+    public toJSON(): object[]
     {
         return this.stack.flat().map((cmd) => cmd.toJSON());
     }
 
-    public fromJSON(json: any)
+    public fromJSON(json: object[])
     {
+        json.forEach((params) =>
+        {
 
+        });
     }
 }

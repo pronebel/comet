@@ -6,24 +6,16 @@ import { getGraphNode } from '../../../core/lib/nodes/factory';
 import { getCloneInfoSchema, getNodeSchema } from '../sync/schema';
 import { Command } from '.';
 
-export class CloneCommand extends Command
+export class CloneCommand extends Command<{
+    nodeId: string;
+    cloneMode: CloneMode;
+}>
 {
-    constructor(
-        public readonly nodeId: string,
-        public readonly cloneMode: CloneMode,
-    )
-    {
-        super();
-    }
-
-    public name()
-    {
-        return 'Clone';
-    }
+    public name = 'Clone';
 
     public apply(): void
     {
-        const { nodeId, cloneMode, datastore } = this;
+        const { datastore, params: { nodeId, cloneMode } } = this;
 
         const node = getGraphNode(nodeId);
 

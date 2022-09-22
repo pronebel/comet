@@ -5,25 +5,17 @@ import { getGraphNode } from '../../../core/lib/nodes/factory';
 import { type NodeOptionsSchema, createNodeSchema } from '../sync/schema';
 import { Command } from '.';
 
-export class CreateNodeCommand<M extends ModelBase> extends Command
+export class CreateNodeCommand<M extends ModelBase> extends Command<{
+    nodeType: string;
+    parentId: string;
+    model: Partial<M>;
+}>
 {
-    constructor(
-        public readonly nodeType: string,
-        public readonly parentId: string,
-        public readonly model: Partial<M> = {},
-    )
-    {
-        super();
-    }
-
-    public name()
-    {
-        return 'CreateNode';
-    }
+    public name = 'CreateNode';
 
     public apply(): void
     {
-        const { nodeType, datastore, parentId, model } = this;
+        const { datastore, params: { nodeType, parentId, model = {} } } = this;
 
         const parentNode = getGraphNode(parentId);
 
