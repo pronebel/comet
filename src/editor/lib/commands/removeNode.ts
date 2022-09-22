@@ -7,7 +7,7 @@ export class RemoveNodeCommand extends Command<{
     nodeId: string;
 }>
 {
-    public name = 'RemoveNode';
+    public static commandName = 'RemoveNode';
 
     public apply(): void
     {

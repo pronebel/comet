@@ -10,7 +10,7 @@ export class SetCustomPropCommand extends Command<{
     value: CustomPropertyValueType;
 }>
 {
-    public name = 'SetCustomProp';
+    public static commandName = 'SetCustomProp';
 
     public apply(): void
     {

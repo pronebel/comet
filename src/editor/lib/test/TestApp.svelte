@@ -107,6 +107,7 @@
   const onReadUndoStack = () => {
     const data = localStorage["undoStack"];
     if (data) {
+      console.log(data);
       const json = JSON.parse(data);
       app.undoStack.fromJSON(json);
     }
@@ -169,8 +170,8 @@
     <button on:click={onInspectDatastore}>Inspect DStore</button>
     <button on:click={onClearDatastore}>Clear DStore</button>
     <hr />
-    <button on:click={onWriteUndoStack}>Write UndoStack</button>
-    <button on:click={onReadUndoStack}>Read UndoStack</button>
+    <button on:click={onWriteUndoStack}>Save Undo</button>
+    <button on:click={onReadUndoStack}>Load Undo</button>
     <hr />
     <button on:click={onNewContainer}>New Empty</button>
     <button on:click={onNewChild}>New Child</button>
@@ -257,7 +258,8 @@
     width: 100%;
     height: 0px;
     margin: 0;
-    margin-bottom: 5px;
+    margin-top: 5px;
+    margin-bottom: 10px;
     border: none;
     border-bottom: 1px dashed #777;
     position: relative;

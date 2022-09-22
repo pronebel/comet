@@ -3,7 +3,7 @@ import '../../core/lib/nodes/register';
 import { EventEmitter } from 'eventemitter3';
 import { Application as PixiApplication } from 'pixi.js';
 
-import type { ModelValue } from '../../core/lib/model/model';
+import type { ModelBase } from '../../core/lib/model/model';
 import type { ClonableNode } from '../../core/lib/nodes/abstract/clonableNode';
 import type { ProjectNode } from '../../core/lib/nodes/concrete/project';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/lib/nodes/customProperties';
@@ -216,7 +216,7 @@ export abstract class Application extends EventEmitter
     }
 
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onDatastoreModelModified(nodeId: string, key: string, value: ModelValue)
+    protected onDatastoreModelModified(nodeId: string, values: ModelBase)
     {
         // subclasses
     }

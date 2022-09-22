@@ -5,7 +5,7 @@ export class SetParentCommand extends Command<{
     childId: string;
 }>
 {
-    public name = 'SetParent';
+    public static commandName = 'SetParent';
 
     public apply(): void
     {

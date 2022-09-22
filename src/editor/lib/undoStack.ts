@@ -1,4 +1,5 @@
 import type { Command } from './commands';
+import { createCommand } from './commands/_replay';
 // import { getUserName } from './sync/user';
 
 // const userName = getUserName();
@@ -46,11 +47,16 @@ export default class UndoStack
         return this.stack.flat().map((cmd) => cmd.toJSON());
     }
 
-    public fromJSON(json: object[])
+    public fromJSON(json: any[])
     {
+        this.stack.length = 0;
+
         json.forEach((params) =>
         {
+            const name = params.$;
+            const command = createCommand(name, params);
 
+            this.pushCommand(command);
         });
     }
 }

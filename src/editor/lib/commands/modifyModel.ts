@@ -1,26 +1,32 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
+import type { ModelBase } from '../../../core/lib/model/model';
 import { Command } from '.';
 
-export class ModifyModelCommand extends Command<{
+export class ModifyModelCommand<M extends ModelBase> extends Command<{
     nodeId: string;
-    key: string;
-    value: any;
+    values: Partial<M>;
 }>
 {
-    public name = 'ModifyModel';
+    public static commandName = 'ModifyModel';
 
     public apply(): void
     {
-        const { datastore, params: { nodeId, key, value } } = this;
+        const { datastore, params: { nodeId, values } } = this;
 
         const nodeElement = datastore.getNodeElement(nodeId);
 
         const model = nodeElement.get('model') as RealTimeObject;
 
-        model.set(key, value);
+        datastore.batch(() =>
+        {
+            for (const [k, v] of Object.entries(values))
+            {
+                model.set(k, v);
+            }
+        });
 
-        datastore.emit('datastoreModelModified', nodeId, key, value);
+        datastore.emit('datastoreModelModified', nodeId, values);
     }
 
     public undo(): void

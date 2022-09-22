@@ -11,7 +11,7 @@ export class CreateNodeCommand<M extends ModelBase> extends Command<{
     model: Partial<M>;
 }>
 {
-    public name = 'CreateNode';
+    public static commandName = 'CreateNode';
 
     public apply(): void
     {

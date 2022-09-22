@@ -8,7 +8,7 @@ export class AssignCustomPropCommand extends Command<{
     customKey: string;
 }>
 {
-    public name = 'AssignCustomProp';
+    public static commandName = 'AssignCustomProp';
 
     public apply(): void
     {

@@ -7,7 +7,7 @@ export class UnAssignCustomPropCommand extends Command<{
     modelKey: string;
 }>
 {
-    public name = 'UnAssignCustomProp';
+    public static commandName = 'UnAssignCustomProp';
 
     public apply(): void
     {

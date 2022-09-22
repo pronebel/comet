@@ -7,7 +7,8 @@ export abstract class Command<T extends {} = {}>
 
     }
 
-    public abstract name: string;
+    public static commandName = 'Untitled';
+
     public abstract apply(): void;
     public abstract undo(): void;
 
@@ -29,7 +30,7 @@ export abstract class Command<T extends {} = {}>
     public toJSON()
     {
         return {
-            $: this.name,
+            $: (Object.getPrototypeOf(this).constructor as {commandName: string}).commandName,
             ...this.params,
         };
     }

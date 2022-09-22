@@ -13,6 +13,8 @@ interface State
     startClientY: number;
     clientX: number;
     clientY: number;
+    newX: number;
+    newY: number;
 }
 
 const state: State = {
@@ -22,6 +24,8 @@ const state: State = {
     startClientY: 0,
     clientX: 0,
     clientY: 0,
+    newX: 0,
+    newY: 0,
 };
 
 window.addEventListener('mousemove', (e: MouseEvent) =>
@@ -34,17 +38,11 @@ window.addEventListener('mousemove', (e: MouseEvent) =>
         const deltaX = state.clientX - state.startClientX;
         const deltaY = state.clientY - state.startClientY;
 
-        const newX = state.startX + deltaX;
-        const newY = state.startY + deltaY;
+        const newX = state.newX = state.startX + deltaX;
+        const newY = state.newY = state.startY + deltaY;
 
-        const app: TestApp = TestApp.getInstance();
-
-        const nodeId = state.component.id;
-
-        app.pushCommand(new ModifyModelCommand(nodeId, 'x', newX));
-        app.pushCommand(new ModifyModelCommand(nodeId, 'y', newY));
-        // state.component.model.x = newX;
-        // state.component.model.y = newY;
+        state.component.model.x = newX;
+        state.component.model.y = newY;
 
         TestApp.getInstance().fitSelection(state.component);
     }
@@ -52,7 +50,19 @@ window.addEventListener('mousemove', (e: MouseEvent) =>
 
 window.addEventListener('mouseup', () =>
 {
-    delete state.component;
+    if (state.component)
+    {
+        const app: TestApp = TestApp.getInstance();
+
+        const nodeId = state.component.id;
+
+        app.pushCommand(new ModifyModelCommand({ nodeId, values: {
+            x: state.newX,
+            y: state.newY,
+        } }));
+
+        delete state.component;
+    }
 });
 
 export function startDrag(component: AnyContainer)

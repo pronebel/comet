@@ -11,7 +11,7 @@ export class CloneCommand extends Command<{
     cloneMode: CloneMode;
 }>
 {
-    public name = 'Clone';
+    public static commandName = 'Clone';
 
     public apply(): void
     {

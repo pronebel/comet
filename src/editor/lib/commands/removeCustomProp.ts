@@ -7,7 +7,7 @@ export class RemoveCustomPropCommand extends Command<{
     propName: string;
 }>
 {
-    public name = 'RemoveCustomProp';
+    public static commandName = 'RemoveCustomProp';
 
     public apply(): void
     {

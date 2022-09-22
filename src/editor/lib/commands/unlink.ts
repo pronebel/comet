@@ -7,7 +7,7 @@ export class UnlinkCommand extends Command<{
     nodeId: string;
 }>
 {
-    public name = 'Unlink';
+    public static commandName = 'Unlink';
 
     public apply(): void
     {
