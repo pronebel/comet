@@ -35,6 +35,9 @@ export abstract class Application extends EventEmitter
 
         Application._instance = this;
 
+        (window as any).app = this;
+
+        // todo: this shouldn't be needed
         this.eventFilter = new Map();
 
         this.pixiApp = new PixiApplication({
@@ -112,6 +115,18 @@ export abstract class Application extends EventEmitter
     public pushCommands(commands: Command[])
     {
         this.undoStack.pushCommands(commands);
+    }
+
+    public writeUndoStack()
+    {
+        console.log(JSON.stringify(this.undoStack.toJSON(), null, 4));
+    }
+
+    public readUndoStack(jsonStrOutput: string)
+    {
+        const json = JSON.parse(jsonStrOutput);
+
+        this.undoStack.fromJSON(json);
     }
 
     public async createProject(name: string, id: string)

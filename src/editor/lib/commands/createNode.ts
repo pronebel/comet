@@ -29,7 +29,7 @@ export class CreateNodeCommand<M extends ModelBase> extends Command
 
         if (parentNode)
         {
-            const { cloneInfo: parentCloneInfo } = parentNode;
+            const { cloneInfo: { isOriginal, isVariant } } = parentNode;
 
             const nodeOptions: NodeOptionsSchema<M> = {
                 parent: parentId,
@@ -37,22 +37,13 @@ export class CreateNodeCommand<M extends ModelBase> extends Command
             };
 
             const parentsToCreateNodeUnder: ClonableNode[] = [];
+            const original = isOriginal || isVariant ? parentNode : parentNode.getOriginal();
 
-            if ((parentCloneInfo.isOriginal || parentCloneInfo.isVariant))
-            {
-                parentsToCreateNodeUnder.push(parentNode);
-            }
-            else if (parentCloneInfo.isReferenceOrRoot)
-            {
-                const original = parentNode.getOriginal();
-                const cloned = original.getAllCloned();
+            parentsToCreateNodeUnder.push(original);
 
-                parentsToCreateNodeUnder.push(original, ...cloned);
-            }
-            else
-            {
-                throw new Error(`Unsupported cloning state`);
-            }
+            const cloned = original.getAllCloned();
+
+            parentsToCreateNodeUnder.push(...cloned);
 
             console.log('cloning under parents:', parentsToCreateNodeUnder.map((node) => node.id));
 

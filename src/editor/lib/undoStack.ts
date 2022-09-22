@@ -5,12 +5,12 @@ const userName = getUserName();
 
 export default class UndoStack
 {
-    public undoStack: (Command[] | Command)[];
+    public stack: (Command[] | Command)[];
     public head: number;
 
     constructor()
     {
-        this.undoStack = [];
+        this.stack = [];
         this.head = -1;
     }
 
@@ -21,7 +21,7 @@ export default class UndoStack
 
     public pushCommand<T = void>(command: Command): T
     {
-        this.undoStack.push(command);
+        this.stack.push(command);
         this.head++;
 
         // console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');
@@ -31,7 +31,7 @@ export default class UndoStack
 
     public pushCommands(commands: Command[])
     {
-        this.undoStack.push(commands);
+        this.stack.push(commands);
         this.head += commands.length;
 
         commands.forEach((command) =>
@@ -39,5 +39,15 @@ export default class UndoStack
             console.log(`%c${userName}:Command<${command.name()}>: ${command.toString()}`, 'color:yellow');
             command.apply();
         });
+    }
+
+    public toJSON()
+    {
+        return this.stack.flat().map((cmd) => cmd.toJSON());
+    }
+
+    public fromJSON(json: any)
+    {
+
     }
 }
