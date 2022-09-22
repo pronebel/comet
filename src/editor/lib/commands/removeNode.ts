@@ -1,7 +1,6 @@
 import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
 import { sortNodesByCreation } from '../../../core/lib/nodes/abstract/graphNode';
 import { getGraphNode } from '../../../core/lib/nodes/factory';
-import type { NodeSchema } from '../sync/schema';
 import { Command } from '.';
 
 export class RemoveNodeCommand extends Command
@@ -26,26 +25,35 @@ export class RemoveNodeCommand extends Command
 
         if (node)
         {
-            const deleteNodes: ClonableNode[] = [node];
-            const { isCloned, hasCloned, isReferenceRoot } = node.cloneInfo;
+            const deleteNodes: ClonableNode[] = [];
+            const { isOriginal, hasCloned, isReferenceRoot, isVariant } = node.cloneInfo;
 
-            if ((isCloned || hasCloned) && !isReferenceRoot)
+            if (((isOriginal || isVariant) && !hasCloned))
             {
-                const linkedNodes = node.getAllCloneRefNodes();
+                // original or variant which wasn't cloned
+                deleteNodes.push(...node.getAllChildren<ClonableNode>(true));
+            }
+            else if (isReferenceRoot)
+            {
+                // node has been cloned, will need to delete all cloned nodes
+                const nodes = node.getAllCloned();
 
-                deleteNodes.push(...linkedNodes);
+                deleteNodes.push(node);
+
+                nodes.forEach((node) => deleteNodes.push(...node.getAllChildren<ClonableNode>(true)));
+            }
+            else
+            {
+                // node has been cloned, will need to delete all cloned nodes
+                const original = node.getOriginal();
+                const nodes = original.getAllCloned();
+
+                deleteNodes.push(original);
+
+                nodes.forEach((node) => deleteNodes.push(...node.getAllChildren<ClonableNode>(true)));
             }
 
-            const nodes: ClonableNode[] = [];
-
-            deleteNodes.forEach((node) =>
-            {
-                nodes.push(...node.allChildren<ClonableNode>());
-            });
-
-            deleteNodes.push(...nodes);
-
-            (deleteNodes as unknown as NodeSchema[]).sort(sortNodesByCreation).reverse();
+            deleteNodes.sort(sortNodesByCreation).reverse();
 
             const deleteNodeIds = deleteNodes.map((node) => node.id);
 

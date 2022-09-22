@@ -38,7 +38,7 @@ export class CreateNodeCommand<M extends ModelBase> extends Command
 
             const parentsToCreateNodeUnder: ClonableNode[] = [];
 
-            if (parentCloneInfo.isOriginal || parentCloneInfo.isVariant)
+            if ((parentCloneInfo.isOriginal || parentCloneInfo.isVariant))
             {
                 parentsToCreateNodeUnder.push(parentNode);
             }

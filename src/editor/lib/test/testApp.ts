@@ -55,7 +55,7 @@ export class TestApp extends Application
 
     public async init()
     {
-        if (userName === '!ali')
+        if (userName === 'ali')
         {
             await this.createProject('Test', 'test');
         }

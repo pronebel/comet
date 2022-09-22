@@ -58,9 +58,9 @@ export abstract class Application extends EventEmitter
 
         // update object graph when datastore changes
         datastore.on('datastoreNodeCreated', objectGraph.onDatastoreNodeCreated);
+        datastore.on('datastoreNodeRemoved', objectGraph.onDatastoreNodeRemoved);
         datastore.on('datastoreNodeSetParent', objectGraph.onDatastoreNodeSetParent);
         datastore.on('datastoreCustomPropDefined', objectGraph.onDataStoreCustomPropDefined);
-        datastore.on('datastoreNodeRemoved', objectGraph.onDatastoreNodeRemoved);
         datastore.on('datastoreCustomPropUndefined', objectGraph.onDatastoreCustomPropUndefined);
         datastore.on('datastoreCustomPropAssigned', objectGraph.onDatastoreCustomPropAssigned);
         datastore.on('datastoreCustomPropUnAssigned', objectGraph.onDatastoreCustomPropUnAssigned);

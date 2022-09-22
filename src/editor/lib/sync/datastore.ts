@@ -322,15 +322,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         }
     }
 
-    public setParentNode(nodeId: string, parentId: string)
-    {
-        const parentElement = this.getNodeElement(parentId);
-        const childArray = parentElement.get('children') as RealTimeArray;
-
-        childArray.push(nodeId);
-        this.emit('datastoreNodeSetParent', nodeId, parentId);
-    }
-
     public removeNode(nodeId: string)
     {
         const nodeElement = this.getNodeElement(nodeId);
@@ -346,22 +337,43 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             if (cloner)
             {
-                cloner.cloneInfo.removeCloned(node);
                 const cloneInfoSchema = getCloneInfoSchema(cloner);
-
                 const clonerNodeElement = this.getNodeElement(cloner.id);
 
+                cloner.cloneInfo.removeCloned(node);
                 clonerNodeElement.get('cloneInfo').value(cloneInfoSchema);
             }
 
             // remove from nodes RealTimeObject
             this.nodes.remove(nodeId);
 
+            // remove from parents children array
+            const parentElement = this.getNodeElement(parentId);
+            const childArray = parentElement.get('children') as RealTimeArray;
+            const index = childArray.findIndex((id) =>
+                id.value() === nodeId);
+
+            if (index === -1)
+            {
+                throw new Error(`Could not remove child node "${nodeId}" from parent "${parentId}"`);
+            }
+
+            childArray.remove(index);
+
             // unregister RealTimeObject for node
             this.unRegisterNode(nodeId);
 
             this.emit('datastoreNodeRemoved', nodeId, parentId);
         }
+    }
+
+    public setParentNode(nodeId: string, parentId: string)
+    {
+        const parentElement = this.getNodeElement(parentId);
+        const childArray = parentElement.get('children') as RealTimeArray;
+
+        childArray.push(nodeId);
+        this.emit('datastoreNodeSetParent', nodeId, parentId);
     }
 
     public connect()

@@ -65,6 +65,27 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         this.emit('objectGraphNodeCreated', node);
     };
 
+    public onDatastoreNodeRemoved = (nodeId: string, parentId: string) =>
+    {
+        const parentNode = getGraphNode(parentId);
+        const childNode = getGraphNode(nodeId);
+
+        if (parentNode && childNode)
+        {
+            parentNode.removeChild(childNode);
+
+            // notify application
+            this.emit('objectGraphNodeRemoved', nodeId, parentId);
+
+            // remove from node graph map
+            disposeGraphNode(childNode);
+        }
+        else
+        {
+            throw new Error(`Could not find parent "${parentId}" or child "${nodeId}" to remove child`);
+        }
+    };
+
     public onDatastoreNodeSetParent = (nodeId: string, parentId: string) =>
     {
         const childNode = getGraphNode(nodeId);
@@ -91,27 +112,6 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
         if (node)
         {
             node.setCustomProperty(name, type, value);
-        }
-    };
-
-    public onDatastoreNodeRemoved = (nodeId: string, parentId: string) =>
-    {
-        const parentNode = getGraphNode(parentId);
-        const childNode = getGraphNode(nodeId);
-
-        if (parentNode && childNode)
-        {
-            parentNode.removeChild(childNode);
-
-            // notify application
-            this.emit('objectGraphNodeRemoved', nodeId, parentId);
-
-            // remove from node graph map
-            disposeGraphNode(childNode);
-        }
-        else
-        {
-            throw new Error(`Could not find parent "${parentId}" or child "${nodeId}" to remove child`);
         }
     };
 
@@ -186,6 +186,7 @@ export class ObjectGraph extends EventEmitter<ObjectGraphEvent>
 
             // update cloned
             node.cloneInfo.cloned = [];
+
             cloneInfo.cloned.forEach((id) =>
             {
                 const clonedNode = getGraphNode(id);

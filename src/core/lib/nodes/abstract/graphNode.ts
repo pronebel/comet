@@ -1,6 +1,5 @@
 import EventEmitter from 'eventemitter3';
 
-import type { NodeSchema } from '../../../../editor/lib/sync/schema';
 import { newGraphNodeId } from '../factory';
 
 export type GraphNodeEvents = 'childAdded' | 'childRemoved' | 'disposed';
@@ -183,6 +182,17 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return opts.data as boolean;
     }
 
+    public getAllChildren<T extends GraphNode = GraphNode>(includeSelf = false)
+    {
+        return this.walk((node, options) =>
+        {
+            options.data.push(node);
+        }, {
+            data: [],
+            includeSelf,
+        }) as T[];
+    }
+
     public walk<T extends GraphNode>(
         fn: (component: T, options: WalkOptions) => void,
         options: Partial<WalkOptions> = {},
@@ -234,17 +244,6 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return this.children.indexOf(component) > -1;
     }
 
-    public allChildren<T extends GraphNode = GraphNode>()
-    {
-        return this.walk((node, options) =>
-        {
-            options.data.push(node);
-        }, {
-            data: [],
-            includeSelf: false,
-        }) as T[];
-    }
-
     protected onAddedToParent(): void
     {
         // subclasses
@@ -258,7 +257,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
     }
 }
 
-export const sortNodesByCreation = (a: NodeSchema, b: NodeSchema) =>
+export const sortNodesByCreation = (a: {created: number; id: string}, b: {created: number; id: string}) =>
 {
     const aValue = a.created;
     const bValue = b.created;

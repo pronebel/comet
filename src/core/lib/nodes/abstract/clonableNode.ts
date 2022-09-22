@@ -1,9 +1,8 @@
-import type { NodeSchema } from '../../../../editor/lib/sync/schema';
 import { type Model, type ModelBase, createModel } from '../../model/model';
 import type { ModelSchema } from '../../model/schema';
 import { type Clonable, CloneInfo, CloneMode } from '../cloneInfo';
 import { type CustomProperty, type CustomPropertyType, CustomProperties } from '../customProperties';
-import { type GraphNodeEvents, GraphNode, sortNodesByCreation } from './graphNode';
+import { type GraphNodeEvents, GraphNode } from './graphNode';
 
 export type ClonableNodeEvents = GraphNodeEvents | 'modelChanged' | 'unlinked';
 
@@ -413,19 +412,9 @@ export abstract class ClonableNode<
         return customProps;
     }
 
-    public getAllCloneRefNodes(includeSelf = true): ClonableNode[]
-    {
-        return getAllCloneRefNodes(this as unknown as ClonableNode, includeSelf);
-    }
-
     public getAllCloned()
     {
         return getAllCloned(this as unknown as ClonableNode);
-    }
-
-    public getAllCloners(predicateFn?: (node: ClonableNode) => boolean)
-    {
-        return getAllCloners(this, predicateFn);
     }
 
     public getOriginal(): ClonableNode
@@ -434,7 +423,7 @@ export abstract class ClonableNode<
 
         if (isOriginal)
         {
-            return this;
+            return this as unknown as ClonableNode;
         }
 
         let node: ClonableNode = this as unknown as ClonableNode;
@@ -470,66 +459,4 @@ export function getAllCloned(node: ClonableNode, array: ClonableNode[] = []): Cl
     });
 
     return array;
-}
-
-export function getAllCloners(node: ClonableNode, predicateFn?: (node: ClonableNode) => boolean, array: ClonableNode[] = [])
-{
-    if (node.cloneInfo.cloner)
-    {
-        const cloner = node.cloneInfo.cloner as ClonableNode;
-
-        if (predicateFn)
-        {
-            const accepted = predicateFn(cloner);
-
-            if (!accepted)
-            {
-                return array;
-            }
-        }
-
-        array.push(cloner);
-        getAllCloners(cloner, predicateFn, array);
-    }
-
-    return array;
-}
-
-export function getAllCloneRefNodes(node: ClonableNode, includeSelf = false)
-{
-    // update up through cloners, but only for references
-    const parentCloners = getAllCloners(node, (clonedNode) =>
-    {
-        const { isReferenceOrRoot, isOriginal, hasCloned } = clonedNode.cloneInfo;
-
-        return node.cloneInfo.isReferenceOrRoot && (isReferenceOrRoot || (isOriginal && hasCloned));
-    });
-
-    // update down through all cloned copies
-    const cloneRefs = getAllCloned(node);
-
-    if (parentCloners.length > 0)
-    {
-        const parentCloner = parentCloners[0];
-        const parentClonerCloned = getAllCloned(parentCloner);
-
-        cloneRefs.push(parentCloner);
-
-        parentClonerCloned.forEach((clonedNode) =>
-        {
-            if (cloneRefs.indexOf(clonedNode) === -1 && clonedNode.id !== node.id)
-            {
-                cloneRefs.push(clonedNode);
-            }
-        });
-    }
-
-    if (includeSelf)
-    {
-        cloneRefs.push(node);
-    }
-
-    (cloneRefs as unknown as NodeSchema[]).sort(sortNodesByCreation);
-
-    return cloneRefs;
 }
