@@ -1,7 +1,7 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
-import { AbstractCommand } from '../baseCommand';
+import { AbstractCommand } from '../abstractCommand';
 
 export interface SetCustomPropCommandParams
 {

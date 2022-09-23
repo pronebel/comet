@@ -351,7 +351,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
 
-            const node = new CreateNodeCommand({ nodeSchema }).exec();
+            const { node } = new CreateNodeCommand({ nodeSchema }).exec();
 
             // add to parent if provided
 

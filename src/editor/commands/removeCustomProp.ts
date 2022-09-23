@@ -1,6 +1,6 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
-import { AbstractCommand } from '../baseCommand';
+import { AbstractCommand } from '../abstractCommand';
 
 export interface RemoveCustomPropCommandParams
 {

@@ -75,3 +75,5 @@ docs
 
 # indexDB for wsProvider
 dbDir
+
+datastore.json

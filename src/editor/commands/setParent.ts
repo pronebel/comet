@@ -1,17 +1,24 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getGraphNode } from '../../core/nodes/factory';
-import { AbstractCommand } from '../baseCommand';
+import { AbstractCommand } from '../abstractCommand';
 
 export interface SetParentCommandParams
 {
     parentId: string;
     childId: string;
 }
-export class SetParentCommand extends AbstractCommand<SetParentCommandParams, ClonableNode>
+
+export interface SetParentCommandReturn
+{
+    parentNode: ClonableNode;
+    childNode: ClonableNode;
+}
+
+export class SetParentCommand extends AbstractCommand<SetParentCommandParams, SetParentCommandReturn>
 {
     public static commandName = 'SetParent';
 
-    public exec(): ClonableNode
+    public exec(): SetParentCommandReturn
     {
         const { datastore, params: { parentId, childId } } = this;
 
@@ -22,7 +29,7 @@ export class SetParentCommand extends AbstractCommand<SetParentCommandParams, Cl
 
         parentNode.addChild(childNode);
 
-        return parentNode;
+        return { parentNode, childNode };
     }
 
     public undo(): void

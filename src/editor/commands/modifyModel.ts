@@ -1,7 +1,7 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ModelBase } from '../../core/model/model';
-import { AbstractCommand } from '../baseCommand';
+import { AbstractCommand } from '../abstractCommand';
 
 export interface ModifyModelCommandParams<M>
 {

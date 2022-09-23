@@ -1,4 +1,5 @@
 import { Application } from './application';
+import type { CommandName } from './commandFactory';
 
 export abstract class AbstractCommand<T extends {} = {}, R = void>
 {
@@ -11,6 +12,11 @@ export abstract class AbstractCommand<T extends {} = {}, R = void>
 
     public abstract exec(): R;
     public abstract undo(): void;
+
+    public get name(): CommandName
+    {
+        return (Object.getPrototypeOf(this).constructor as {commandName: string}).commandName as CommandName;
+    }
 
     public get canUndo()
     {
@@ -35,7 +41,7 @@ export abstract class AbstractCommand<T extends {} = {}, R = void>
     public toJSON()
     {
         return {
-            $: (Object.getPrototypeOf(this).constructor as {commandName: string}).commandName,
+            $: this.name,
             ...this.params,
         };
     }

@@ -3,14 +3,15 @@ import { filters, Sprite, Texture } from 'pixi.js';
 
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
-import type { ContainerModel, ContainerNode } from '../../core/nodes/concrete/container';
-import type { EmptyNode } from '../../core/nodes/concrete/empty';
+import type { ContainerNode } from '../../core/nodes/concrete/container';
+import { type ContainerModel } from '../../core/nodes/concrete/container';
 import { registerGraphNodeType } from '../../core/nodes/factory';
 import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
+import type { AbstractCommand } from '../abstractCommand';
 import { type AppOptions, Application } from '../application';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
-import { CloneCommand } from '../commands/clone';
-import { CreateNodeCommand } from '../commands/createNode';
+import { type CloneCommandReturn, CloneCommand } from '../commands/clone';
+import { type CreateNodeCommandReturn, CreateNodeCommand } from '../commands/createNode';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
@@ -66,6 +67,23 @@ export class TestApp extends Application
         this.deselect();
     }
 
+    protected onCommand(command: AbstractCommand<{}, void>, result: unknown): void
+    {
+        super.onCommand(command, result);
+
+        if (command.name === 'Clone')
+        {
+            const { clonedNode } = result as CloneCommandReturn;
+
+            clonedNode.walk<ContainerNode>((node) =>
+            {
+                this.makeInteractive(node);
+            });
+
+            this.select(clonedNode.cast<ContainerNode>());
+        }
+    }
+
     public saveDatastore()
     {
         const nodes = this.datastore.nodes.toJSON();
@@ -113,7 +131,8 @@ export class TestApp extends Application
                 },
             });
 
-            const empty = this.exec<EmptyNode>(new CreateNodeCommand<ContainerModel>({ nodeSchema }));
+            const { node } = this.exec<CreateNodeCommandReturn>(new CreateNodeCommand<ContainerModel>({ nodeSchema }));
+            const empty = node as unknown as ContainerNode;
 
             this.exec(new SetParentCommand({
                 parentId: this.selected.id,
@@ -142,7 +161,7 @@ export class TestApp extends Application
                 },
             });
 
-            const debug = this.exec<DebugNode>(new CreateNodeCommand<DebugModel>({ nodeSchema }));
+            const { node: debug } = this.exec<CreateNodeCommandReturn>(new CreateNodeCommand<DebugModel>({ nodeSchema }));
 
             this.exec(new SetParentCommand({
                 parentId: this.selected.id,

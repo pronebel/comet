@@ -1,5 +1,5 @@
 import type { ModelBase } from '../core/model/model';
-import type { AbstractCommand } from './baseCommand';
+import type { AbstractCommand } from './abstractCommand';
 import { type AssignCustomPropCommandParams, AssignCustomPropCommand } from './commands/assignCustomProp';
 import { type CloneCommandParams, CloneCommand } from './commands/clone';
 import { type CreateNodeCommandParams, CreateNodeCommand } from './commands/createNode';
@@ -11,7 +11,7 @@ import { type SetParentCommandParams, SetParentCommand } from './commands/setPar
 import { type UnAssignCustomPropCommandParams, UnAssignCustomPropCommand } from './commands/unassignCustomProp';
 import { type UnlinkCommandParams, UnlinkCommand } from './commands/unlink';
 
-export type Command =
+export type CommandName =
     'AssignCustomProp' |
     'Clone' |
     'CreateNode' |

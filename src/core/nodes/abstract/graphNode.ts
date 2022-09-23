@@ -44,6 +44,11 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
     public abstract nodeType(): string;
 
+    public cast<T extends GraphNode>()
+    {
+        return this as unknown as T;
+    }
+
     public dispose()
     {
         // subclass

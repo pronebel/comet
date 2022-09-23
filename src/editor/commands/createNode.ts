@@ -3,7 +3,7 @@ import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneInfo } from '../../core/nodes/cloneInfo';
 import { createGraphNode, getGraphNode } from '../../core/nodes/factory';
 import type { NodeSchema } from '../../core/nodes/schema';
-import { AbstractCommand } from '../baseCommand';
+import { AbstractCommand } from '../abstractCommand';
 import type { Datastore } from '../sync/datastore';
 
 export interface CreateNodeCommandParams<M extends ModelBase>
@@ -11,13 +11,18 @@ export interface CreateNodeCommandParams<M extends ModelBase>
     nodeSchema: NodeSchema<M>;
 }
 
+export interface CreateNodeCommandReturn
+{
+    node: ClonableNode;
+}
+
 export class CreateNodeCommand<
     M extends ModelBase = ModelBase,
-> extends AbstractCommand<CreateNodeCommandParams<M>, ClonableNode>
+> extends AbstractCommand<CreateNodeCommandParams<M>, CreateNodeCommandReturn>
 {
     public static commandName = 'CreateNode';
 
-    public static createNode(datastore: Datastore, nodeSchema: NodeSchema): ClonableNode
+    public static createNode(datastore: Datastore, nodeSchema: NodeSchema): CreateNodeCommandReturn
     {
         const { type, id, model, cloneInfo: { cloneMode, cloner, cloned }, customProperties } = nodeSchema;
 
@@ -50,10 +55,10 @@ export class CreateNodeCommand<
             node.assignCustomProperty(modelKey, customPropertyKey);
         }
 
-        return node as ClonableNode;
+        return { node: node as ClonableNode };
     }
 
-    public exec(): ClonableNode
+    public exec(): CreateNodeCommandReturn
     {
         const { datastore, params: { nodeSchema } } = this;
 

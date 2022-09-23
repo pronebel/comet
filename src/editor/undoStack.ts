@@ -1,4 +1,4 @@
-import type { AbstractCommand } from './baseCommand';
+import type { AbstractCommand } from './abstractCommand';
 import { createCommand } from './commandFactory';
 // import { getUserName } from './sync/user';
 
