@@ -2,6 +2,7 @@ import type { ModelBase } from '../core/model/model';
 import type { AbstractCommand } from './abstractCommand';
 import { type AssignCustomPropCommandParams, AssignCustomPropCommand } from './commands/assignCustomProp';
 import { type CloneCommandParams, CloneCommand } from './commands/clone';
+import { type CreateChildCommandParams, CreateChildCommand } from './commands/createChild';
 import { type CreateNodeCommandParams, CreateNodeCommand } from './commands/createNode';
 import { type ModifyModelCommandParams, ModifyModelCommand } from './commands/modifyModel';
 import { type RemoveCustomPropCommandParams, RemoveCustomPropCommand } from './commands/removeCustomProp';
@@ -14,6 +15,7 @@ import { type UnlinkCommandParams, UnlinkCommand } from './commands/unlink';
 export type CommandName =
     'AssignCustomProp' |
     'Clone' |
+    'CreateChild' |
     'CreateNode' |
     'ModifyModel' |
     'RemoveCustomProp' |
@@ -27,6 +29,7 @@ export const Commands
 = {
     AssignCustomProp: AssignCustomPropCommand,
     Clone: CloneCommand,
+    CreateChild: CreateChildCommand,
     CreateNode: CreateNodeCommand,
     ModifyModel: ModifyModelCommand,
     RemoveCustomProp: RemoveCustomPropCommand,
@@ -41,6 +44,7 @@ export interface CommandParams
 {
     AssignCustomProp: AssignCustomPropCommandParams;
     Clone: CloneCommandParams;
+    CreateChild: CreateChildCommandParams<ModelBase>;
     CreateNode: CreateNodeCommandParams<ModelBase>;
     ModifyModel: ModifyModelCommandParams<ModelBase>;
     RemoveCustomProp: RemoveCustomPropCommandParams;

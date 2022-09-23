@@ -23,6 +23,11 @@ export abstract class AbstractCommand<T extends {} = {}, R = void>
         return true;
     }
 
+    public get isStandAlone()
+    {
+        return false;
+    }
+
     public redo()
     {
         return this.exec();

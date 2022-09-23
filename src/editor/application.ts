@@ -108,6 +108,11 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public exec<R = unknown>(command: AbstractCommand): R
     {
+        if (command.isStandAlone)
+        {
+            throw new Error(`Command ${command.name} is stand alone and must be called separately to Application.exec().`);
+        }
+
         this.undoStack.push(command);
 
         const result = command.exec();
@@ -122,7 +127,9 @@ export abstract class Application extends EventEmitter<AppEvents>
     {
         console.log('🔔', { name: command.name, command, result });
 
-        if (command.name === 'Clone')
+        const commandName = command.name;
+
+        if (commandName === 'Clone')
         {
             const { sourceNode, clonedNode } = result as CloneCommandReturn;
 

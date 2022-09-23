@@ -3,7 +3,8 @@ import { filters, Sprite, Texture } from 'pixi.js';
 
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
-import type { ContainerModel, ContainerNode } from '../../core/nodes/concrete/container';
+import type { ContainerNode } from '../../core/nodes/concrete/container';
+import { type ContainerModel } from '../../core/nodes/concrete/container';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import { registerGraphNodeType } from '../../core/nodes/factory';
 import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
@@ -11,6 +12,7 @@ import type { AbstractCommand } from '../abstractCommand';
 import { type AppOptions, Application } from '../application';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { type CloneCommandReturn, CloneCommand } from '../commands/clone';
+import { CreateChildCommand } from '../commands/createChild';
 import { type CreateNodeCommandReturn, CreateNodeCommand } from '../commands/createNode';
 import { ModifyModelCommand } from '../commands/modifyModel';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
@@ -132,16 +134,28 @@ export class TestApp extends Application
                 },
             });
 
-            const { node } = this.exec<CreateNodeCommandReturn>(new CreateNodeCommand<ContainerModel>({ nodeSchema }));
-            const empty = node as unknown as ContainerNode;
+            // create node
+            // const { node } = this.exec<CreateNodeCommandReturn>(new CreateNodeCommand<ContainerModel>({ nodeSchema }));
+            // const empty = node as unknown as ContainerNode;
 
-            this.exec(new SetParentCommand({
-                parentId: this.selected.id,
-                childId: empty.id,
-            }));
+            // // parent
+            // this.exec(new SetParentCommand({
+            //     parentId: this.selected.id,
+            //     childId: empty.id,
+            // }));
 
-            this.makeInteractive(empty);
-            this.select(empty);
+            // this.makeInteractive(empty);
+            // this.select(empty);
+
+            const { nodes } = new CreateChildCommand({ parentId, nodeSchema }).exec();
+
+            nodes.forEach((node) =>
+            {
+                const asContainerNode = node.cast<ContainerNode>();
+
+                this.makeInteractive(asContainerNode);
+                this.select(asContainerNode);
+            });
         }
     }
 
@@ -162,15 +176,27 @@ export class TestApp extends Application
                 },
             });
 
-            const { node: debug } = this.exec<CreateNodeCommandReturn>(new CreateNodeCommand<DebugModel>({ nodeSchema }));
+            // // create node
+            // const { node: debug } = this.exec<CreateNodeCommandReturn>(new CreateNodeCommand<DebugModel>({ nodeSchema }));
 
-            this.exec(new SetParentCommand({
-                parentId: this.selected.id,
-                childId: debug.id,
-            }));
+            // // parent
+            // this.exec(new SetParentCommand({
+            //     parentId: this.selected.id,
+            //     childId: debug.id,
+            // }));
 
-            this.makeInteractive(debug as unknown as ContainerNode);
-            this.select(debug as unknown as ContainerNode);
+            // this.makeInteractive(debug as unknown as ContainerNode);
+            // this.select(debug as unknown as ContainerNode);
+
+            const { nodes } = new CreateChildCommand({ parentId, nodeSchema }).exec();
+
+            nodes.forEach((node) =>
+            {
+                const asContainerNode = node.cast<ContainerNode>();
+
+                this.makeInteractive(asContainerNode);
+                this.select(asContainerNode);
+            });
         }
     }
 

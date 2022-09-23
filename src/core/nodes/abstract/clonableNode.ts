@@ -443,6 +443,19 @@ export abstract class ClonableNode<
         return node;
     }
 
+    public getChildCloneMode()
+    {
+        const { isReferenceOrRoot, cloneMode } = this.cloneInfo;
+
+        if (isReferenceOrRoot)
+        {
+            return CloneMode.Reference;
+        }
+
+        // Variant | Original
+        return cloneMode;
+    }
+
     public abstract modelSchema(): ModelSchema<M>;
 
     public abstract createView(): V;
