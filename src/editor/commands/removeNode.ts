@@ -1,7 +1,7 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import { getGraphNode } from '../../core/nodes/factory';
-import { AbstractCommand } from '../command';
+import { AbstractCommand } from '../baseCommand';
 
 export interface RemoveNodeCommandParams
 {

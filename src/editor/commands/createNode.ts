@@ -3,7 +3,7 @@ import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneMode } from '../../core/nodes/cloneInfo';
 import { getGraphNode } from '../../core/nodes/factory';
 import { type NodeOptionsSchema, createNodeSchema } from '../../core/nodes/schema';
-import { AbstractCommand } from '../command';
+import { AbstractCommand } from '../baseCommand';
 
 export interface CreateNodeCommandParams<M>
 {

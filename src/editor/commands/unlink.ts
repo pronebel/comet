@@ -1,7 +1,7 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getGraphNode } from '../../core/nodes/factory';
 import { getCloneInfoSchema } from '../../core/nodes/schema';
-import { AbstractCommand } from '../command';
+import { AbstractCommand } from '../baseCommand';
 
 export interface UnlinkCommandParams
 {

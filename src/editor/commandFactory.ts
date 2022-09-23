@@ -1,5 +1,5 @@
 import type { ModelBase } from '../core/model/model';
-import type { AbstractCommand } from './command';
+import type { AbstractCommand } from './baseCommand';
 import { type AssignCustomPropCommandParams, AssignCustomPropCommand } from './commands/assignCustomProp';
 import { type CloneCommandParams, CloneCommand } from './commands/clone';
 import { type CreateNodeCommandParams, CreateNodeCommand } from './commands/createNode';
@@ -61,5 +61,3 @@ export function createCommand<
 
     return new CommandClass(params);
 }
-
-createCommand('Unlink', { nodeId: 'as' });

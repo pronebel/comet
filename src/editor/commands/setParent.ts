@@ -1,4 +1,4 @@
-import { AbstractCommand } from '../command';
+import { AbstractCommand } from '../baseCommand';
 
 export interface SetParentCommandParams
 {
