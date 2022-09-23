@@ -1,13 +1,10 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
-// import type { ModelBase } from '../../core/model/model';
-// import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerModel, ContainerNode } from '../../core/nodes/concrete/container';
 import type { EmptyNode } from '../../core/nodes/concrete/empty';
-// import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import { registerGraphNodeType } from '../../core/nodes/factory';
 import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
 import { type AppOptions, Application } from '../application';
@@ -28,7 +25,7 @@ export let app: TestApp;
 
 const userName = getUserName();
 
-// must register any nodes outside of core
+// must register any nodes outside of core explicitly
 registerGraphNodeType(DebugNode);
 
 export class TestApp extends Application
@@ -69,83 +66,6 @@ export class TestApp extends Application
         this.deselect();
     }
 
-    // protected onObjectGraphNodeCreated(node: ClonableNode<ModelBase, object, string>): void
-    // {
-    //     super.onObjectGraphNodeCreated(node);
-
-    //     this.makeInteractive(node as unknown as ContainerNode);
-
-    //     this.select(node as unknown as ContainerNode);
-    // }
-
-    // protected onObjectGraphNodeRemoved(nodeId: string, parentId: string): void
-    // {
-    //     super.onObjectGraphNodeRemoved(nodeId, parentId);
-
-    //     const parentNode = getGraphNode(parentId);
-
-    //     if (parentNode)
-    //     {
-    //         this.select(parentNode as unknown as ContainerNode);
-    //     }
-    // }
-
-    // protected onObjectGraphParentSet(childNode: ClonableNode<ModelBase, object, string>): void
-    // {
-    //     this.select(childNode as unknown as ContainerNode);
-    // }
-
-    // protected onDatastoreCustomPropDefined(
-    //     // @ts-ignore
-    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //     id: string,
-    //     // @ts-ignore
-    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //     name: string,
-    //     // @ts-ignore
-    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //     type: CustomPropertyType,
-    //     // @ts-ignore
-    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //     value: CustomPropertyValueType,
-    // ): void
-    // {
-    //     this.fitSelection();
-    // }
-
-    // // @ts-ignore
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onDatastoreCustomPropUndefined(nodeId: string, propName: string): void
-    // {
-    //     this.fitSelection();
-    // }
-
-    // // @ts-ignore
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onDatastoreCustomPropAssigned(nodeId: string, modelKey: string, customKey: string): void
-    // {
-    //     this.fitSelection();
-    // }
-
-    // // @ts-ignore
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onDatastoreCustomPropUnAssigned(nodeId: string, modelKey: string): void
-    // {
-    //     this.fitSelection();
-    // }
-
-    // protected onDatastoreNodeCloned(clonedNode: ClonableNode): void
-    // {
-    //     this.select(clonedNode as unknown as ContainerNode);
-    // }
-
-    // // @ts-ignore
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onDatastoreModelModified(nodeId: string, values: ModelBase): void
-    // {
-    //     this.fitSelection();
-    // }
-
     public saveDatastore()
     {
         const nodes = this.datastore.nodes.toJSON();
@@ -178,8 +98,6 @@ export class TestApp extends Application
         });
         window.location.reload();
     }
-
-    // Button commands...
 
     public newContainer()
     {

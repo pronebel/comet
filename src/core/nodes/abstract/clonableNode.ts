@@ -124,7 +124,7 @@ export abstract class ClonableNode<
 
         this.forEach<ClonableNode>((child) =>
         {
-            const childNode = (child).clone(cloneMode, depth + 1);
+            const childNode = child.clone(cloneMode, depth + 1);
 
             childNode.setParent(component);
         });

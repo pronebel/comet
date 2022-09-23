@@ -1,5 +1,3 @@
-import type { RealTimeObject } from '@convergence/convergence';
-
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneInfo } from '../../core/nodes/cloneInfo';
@@ -23,18 +21,16 @@ export class CreateNodeCommand<
     {
         const { type, id, model, cloneInfo: { cloneMode, cloner, cloned }, customProperties } = nodeSchema;
 
-        const nodeElement = datastore.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
-
-        datastore.registerNode(nodeSchema.id, nodeElement);
+        datastore.createNodeSchema(nodeSchema);
 
         // build clone info
-        const cloneInfo = new CloneInfo(cloneMode, getGraphNode(cloner));
+        const cloneInfo = new CloneInfo(cloneMode, cloner ? getGraphNode(cloner) : undefined);
 
         cloned.forEach((id) =>
         {
             const node = getGraphNode(id);
 
-            node && cloneInfo.cloned.push(node);
+            cloneInfo.cloned.push(node);
         });
 
         // create and register graph node

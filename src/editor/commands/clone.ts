@@ -1,10 +1,9 @@
-import type { RealTimeObject } from '@convergence/convergence';
-
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
-import { getGraphNode } from '../../core/nodes/factory';
+import { getGraphNode, registerGraphNode } from '../../core/nodes/factory';
 import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../baseCommand';
+import { SetParentCommand } from './setParent';
 
 export interface CloneCommandParams
 {
@@ -16,50 +15,40 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams>
 {
     public static commandName = 'Clone';
 
-    public exec(): void
+    public exec(): ClonableNode
     {
         const { datastore, params: { nodeId, cloneMode } } = this;
 
-        const tempNode = getGraphNode(nodeId);
-        const node = tempNode?.cloneInfo.isReferenceOrRoot
-            ? tempNode?.getOriginal()
-            : getGraphNode(nodeId);
+        const node = getGraphNode(nodeId);
+        const parentNode = node.parent;
 
-        if (node)
+        const original = node.getOriginal();
+
+        const clone = original.clone(cloneMode);
+
+        const cloneInfoSchema = getCloneInfoSchema(original);
+
+        datastore.updateNodeCloneInfo(original.id, cloneInfoSchema);
+
+        clone.walk<ClonableNode>((clonedNode) =>
         {
-            const clone = node.clone(cloneMode);
+            const cloneInfoSchema = getCloneInfoSchema(clonedNode);
+            const nodeSchema = {
+                ...getNodeSchema(clonedNode),
+                cloneInfo: cloneInfoSchema,
+            };
 
-            clone.walk<ClonableNode>((clonedNode) =>
-            {
-                const nodeSchema = getNodeSchema(clonedNode, true, false);
+            datastore.createNodeSchema(nodeSchema);
 
-                const isClonedNode = clonedNode === clone;
+            registerGraphNode(clonedNode);
+        });
 
-                const cloner = clonedNode.cloneInfo.cloner;
-
-                delete clonedNode.cloneInfo.cloner;
-
-                datastore.createNode(nodeSchema, {
-                    parent: isClonedNode ? node.parent?.id : undefined,
-                }, clonedNode);
-
-                clonedNode.cloneInfo.cloner = cloner;
-            });
-
-            // update this node and all children with new cloneInfo.cloned details
-
-            node.walk<ClonableNode>((node) =>
-            {
-                const cloneInfoSchema = getCloneInfoSchema(node);
-                const nodeElement = datastore.getNodeElement(node.id);
-
-                const cloneInfoElement = nodeElement.get('cloneInfo') as RealTimeObject;
-
-                cloneInfoElement.value(cloneInfoSchema);
-            });
-
-            datastore.emit('datastoreNodeCloned', clone);
+        if (parentNode)
+        {
+            this.app.exec(new SetParentCommand({ parentId: parentNode.id, childId: clone.id }));
         }
+
+        return clone;
     }
 
     public undo(): void

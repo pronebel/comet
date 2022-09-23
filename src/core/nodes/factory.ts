@@ -17,14 +17,16 @@ export function registerGraphNodeType(nodeClass: ClonableNodeConstructor)
     nodeClasses.set(nodeType, nodeClass);
 }
 
-export function getGraphNode(id?: string)
+export function getGraphNode(id: string)
 {
-    if (id)
+    const node = nodeInstances.get(id);
+
+    if (!node)
     {
-        return nodeInstances.get(id);
+        throw new Error(`Could not find graph node "${id}"`);
     }
 
-    return undefined;
+    return node;
 }
 
 export function createGraphNode(nodeType: string, options: NodeOptions<{}>)

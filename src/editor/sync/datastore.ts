@@ -12,7 +12,7 @@ import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { GraphNode } from '../../core/nodes/abstract/graphNode';
 import { consolidateNodeId, getGraphNode } from '../../core/nodes/factory';
-import { type NodeSchema, createProjectSchema } from '../../core/nodes/schema';
+import { type CloneInfoSchema, type NodeSchema, createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import { CreateNodeCommand } from '../commands/createNode';
 import { getUserName } from './user';
@@ -219,6 +219,34 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         console.log(`${userName}:Registered RealTimeObject "${id}"`);
     }
 
+    public createNodeSchema(nodeSchema: NodeSchema)
+    {
+        const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
+
+        this.registerNode(nodeSchema.id, nodeElement);
+    }
+
+    public setNodeParent(childId: string, parentId: string)
+    {
+        const parentElement = this.getNodeElement(parentId);
+        const childElement = this.getNodeElement(childId);
+
+        // set parent data
+        childElement.set('parent', parentId);
+
+        // set children data
+        const childArray = parentElement.get('children') as RealTimeArray;
+
+        childArray.push(childId);
+    }
+
+    public updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+
+        nodeElement.get('cloneInfo').value(cloneInfoSchema);
+    }
+
     public removeNode(nodeId: string)
     {
         // remove from nodes RealTimeObject
@@ -362,11 +390,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         }
 
         const rootNode = getGraphNode(rootId);
-
-        if (!rootNode)
-        {
-            throw new Error(`Could create root node "${rootId}"`);
-        }
 
         return rootNode;
     }

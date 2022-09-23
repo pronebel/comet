@@ -27,8 +27,6 @@ export abstract class Application extends EventEmitter<AppEvents>
     // public objectGraph: ObjectGraph;
     public project?: ProjectNode;
 
-    protected eventFilter: Map<string, any[]>;
-
     private static _instance: Application;
 
     constructor(public readonly options: AppOptions)
@@ -38,9 +36,6 @@ export abstract class Application extends EventEmitter<AppEvents>
         Application._instance = this;
 
         (window as any).app = this;
-
-        // todo: this shouldn't be needed
-        this.eventFilter = new Map();
 
         this.pixiApp = new PixiApplication({
             view: options.canvas,
@@ -116,8 +111,14 @@ export abstract class Application extends EventEmitter<AppEvents>
         const result = command.exec();
 
         this.emit('commandExec', command, result);
+        this.onCommand(command, result);
 
         return result as unknown as R;
+    }
+
+    protected onCommand(command: AbstractCommand, result: unknown)
+    {
+        console.log('🔔', { command, result });
     }
 
     public writeUndoStack(endIndex = 0)
