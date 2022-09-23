@@ -17,7 +17,10 @@ export class CloneCommand extends Command<{
     {
         const { datastore, params: { nodeId, cloneMode } } = this;
 
-        const node = getGraphNode(nodeId);
+        const tempNode = getGraphNode(nodeId);
+        const node = tempNode?.cloneInfo.isReferenceOrRoot
+            ? tempNode?.getOriginal()
+            : getGraphNode(nodeId);
 
         if (node)
         {
