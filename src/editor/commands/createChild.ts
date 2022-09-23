@@ -1,8 +1,7 @@
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { CloneMode } from '../../core/nodes/cloneInfo';
 import { getGraphNode } from '../../core/nodes/factory';
-import { type NodeSchema, getCloneInfoSchema } from '../../core/nodes/schema';
+import type { NodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 import { type CloneCommandReturn, CloneCommand } from './clone';
 import { type CreateNodeCommandReturn, CreateNodeCommand } from './createNode';
@@ -32,7 +31,7 @@ export class CreateChildCommand<
 
     public exec(): CreateChildCommandReturn
     {
-        const { datastore, app, params: { parentId, nodeSchema } } = this;
+        const { app, params: { parentId, nodeSchema } } = this;
 
         const originalParentNode = getGraphNode(parentId).getOriginal();
         const clonedNodes = originalParentNode.getAllCloned();
@@ -48,13 +47,8 @@ export class CreateChildCommand<
             const { clonedNode } = app.exec<CloneCommandReturn>(new CloneCommand({
                 nodeId: node.id,
                 cloneMode,
+                depth: 1,
             }));
-
-            if (cloneMode === CloneMode.Reference && clonedNode.cloneInfo.isReferenceRoot)
-            {
-                clonedNode.cloneInfo.cloneMode = CloneMode.Reference;
-                datastore.updateNodeCloneInfo(clonedNode.id, getCloneInfoSchema(clonedNode));
-            }
 
             nodes.push(clonedNode);
 

@@ -8,6 +8,7 @@ export interface CloneCommandParams
 {
     nodeId: string;
     cloneMode: CloneMode;
+    depth?: number;
 }
 
 export interface CloneCommandReturn
@@ -23,14 +24,14 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
 
     public exec(): CloneCommandReturn
     {
-        const { datastore, params: { nodeId, cloneMode } } = this;
+        const { datastore, params: { nodeId, cloneMode, depth } } = this;
 
         const sourceNode = getGraphNode(nodeId);
         const originalNode = sourceNode.cloneInfo.isVariant ? sourceNode : sourceNode.getOriginal();
         const cloneInfoSchema = getCloneInfoSchema(originalNode);
 
         // clone original
-        const clonedNode = originalNode.clone(cloneMode);
+        const clonedNode = originalNode.clone(cloneMode, depth);
 
         // update originals new cloneInfo
         datastore.updateNodeCloneInfo(originalNode.id, cloneInfoSchema);
