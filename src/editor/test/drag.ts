@@ -1,5 +1,4 @@
 import type { ContainerNode } from '../../core/nodes/concrete/container';
-import { ModifyModelCommand } from '../commands/modifyModel';
 import { TestApp } from './testApp';
 
 type AnyContainer = ContainerNode<any, any>;
@@ -58,10 +57,10 @@ window.addEventListener('mouseup', () =>
 
             const nodeId = state.component.id;
 
-            app.pushCommand(new ModifyModelCommand({ nodeId, values: {
+            app.exec('ModifyModel', { nodeId, values: {
                 x: state.newX,
                 y: state.newY,
-            } }));
+            } });
         }
 
         delete state.component;

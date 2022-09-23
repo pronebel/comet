@@ -11,47 +11,44 @@ import { type SetParentCommandParams, SetParentCommand } from './commands/setPar
 import { type UnAssignCustomPropCommandParams, UnAssignCustomPropCommand } from './commands/unassignCustomProp';
 import { type UnlinkCommandParams, UnlinkCommand } from './commands/unlink';
 
-export enum Command
-// eslint-disable-next-line @typescript-eslint/indent
-{
-    AssignCustomProp,
-    Clone,
-    CreateNode,
-    ModifyModel,
-    RemoveCustomProp,
-    RemoveNode,
-    SetCustomProp,
-    SetParent,
-    UnAssignCustomProp,
-    Unlink,
-}
+export type Command =
+    'AssignCustomProp' |
+    'Clone' |
+    'CreateNode' |
+    'ModifyModel' |
+    'RemoveCustomProp' |
+    'RemoveNode' |
+    'SetCustomProp' |
+    'SetParent' |
+    'UnAssignCustomProp' |
+    'Unlink';
 
 export const Commands
 = {
-    [Command.AssignCustomProp]: AssignCustomPropCommand,
-    [Command.Clone]: CloneCommand,
-    [Command.CreateNode]: CreateNodeCommand,
-    [Command.ModifyModel]: ModifyModelCommand,
-    [Command.RemoveCustomProp]: RemoveCustomPropCommand,
-    [Command.RemoveNode]: RemoveNodeCommand,
-    [Command.SetCustomProp]: SetCustomPropCommand,
-    [Command.SetParent]: SetParentCommand,
-    [Command.UnAssignCustomProp]: UnAssignCustomPropCommand,
-    [Command.Unlink]: UnlinkCommand,
+    AssignCustomProp: AssignCustomPropCommand,
+    Clone: CloneCommand,
+    CreateNode: CreateNodeCommand,
+    ModifyModel: ModifyModelCommand,
+    RemoveCustomProp: RemoveCustomPropCommand,
+    RemoveNode: RemoveNodeCommand,
+    SetCustomProp: SetCustomPropCommand,
+    SetParent: SetParentCommand,
+    UnAssignCustomProp: UnAssignCustomPropCommand,
+    Unlink: UnlinkCommand,
 };
 
 export interface CommandParams
 {
-    [Command.AssignCustomProp]: AssignCustomPropCommandParams;
-    [Command.Clone]: CloneCommandParams;
-    [Command.CreateNode]: CreateNodeCommandParams<ModelBase>;
-    [Command.ModifyModel]: ModifyModelCommandParams<ModelBase>;
-    [Command.RemoveCustomProp]: RemoveCustomPropCommandParams;
-    [Command.RemoveNode]: RemoveNodeCommandParams;
-    [Command.SetCustomProp]: SetCustomPropCommandParams;
-    [Command.SetParent]: SetParentCommandParams;
-    [Command.UnAssignCustomProp]: UnAssignCustomPropCommandParams;
-    [Command.Unlink]: UnlinkCommandParams;
+    AssignCustomProp: AssignCustomPropCommandParams;
+    Clone: CloneCommandParams;
+    CreateNode: CreateNodeCommandParams<ModelBase>;
+    ModifyModel: ModifyModelCommandParams<ModelBase>;
+    RemoveCustomProp: RemoveCustomPropCommandParams;
+    RemoveNode: RemoveNodeCommandParams;
+    SetCustomProp: SetCustomPropCommandParams;
+    SetParent: SetParentCommandParams;
+    UnAssignCustomProp: UnAssignCustomPropCommandParams;
+    Unlink: UnlinkCommandParams;
 }
 
 export function createCommand<
@@ -65,4 +62,4 @@ export function createCommand<
     return new CommandClass(params);
 }
 
-createCommand(Command.Unlink, { nodeId: 'foo' });
+createCommand('Unlink', { nodeId: 'as' });

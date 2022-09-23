@@ -84,49 +84,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return this.model.elementAt('nodes') as RealTimeObject;
     }
 
-    protected async initProjectModel(projectModel: RealTimeModel)
-    {
-        this._model = projectModel;
-
-        await this.joinActivity('editProject', projectModel.modelId());
-
-        // catch events when a remote user...
-        this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-        {
-            const nodeElement = (event as ObjectSetEvent).value as RealTimeObject;
-            const nodeId = nodeElement.get('id').value() as string;
-            const parentId = nodeElement.get('parent').value() as string | undefined;
-
-            consolidateNodeId(nodeId);
-
-            console.log(`%c${userName}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
-
-            this.registerNode(nodeId, nodeElement);
-
-            this.emit('datastoreNodeCreated', nodeElement);
-
-            if (parentId)
-            {
-                const childId = nodeElement.get('id').value() as string;
-
-                this.emit('datastoreNodeSetParent', parentId, childId);
-            }
-        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
-        {
-            const nodeId = (event as ObjectSetEvent).key;
-
-            const nodeElement = (event as ObjectSetEvent).oldValue as RealTimeObject;
-            const parentId = nodeElement.get('parent').value() as string | undefined;
-
-            console.log(`%c${userName}:nodes.remove: ${nodeId}`, logStyle);
-
-            if (parentId)
-            {
-                this.emit('datastoreNodeRemoved', nodeId, parentId);
-            }
-        });
-    }
-
     public hydrate(objectGraph: ObjectGraph)
     {
         const { nodes } = this;
@@ -446,7 +403,45 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         console.log(`%c${userName}:Opened project "${model.modelId()}"`, logStyle);
 
-        await this.initProjectModel(model);
+        this._model = model;
+
+        await this.joinActivity('editProject', model.modelId());
+
+        // catch events when a remote user...
+        this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+        {
+            const nodeElement = (event as ObjectSetEvent).value as RealTimeObject;
+            const nodeId = nodeElement.get('id').value() as string;
+            const parentId = nodeElement.get('parent').value() as string | undefined;
+
+            consolidateNodeId(nodeId);
+
+            console.log(`%c${userName}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
+
+            this.registerNode(nodeId, nodeElement);
+
+            this.emit('datastoreNodeCreated', nodeElement);
+
+            if (parentId)
+            {
+                const childId = nodeElement.get('id').value() as string;
+
+                this.emit('datastoreNodeSetParent', parentId, childId);
+            }
+        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
+        {
+            const nodeId = (event as ObjectSetEvent).key;
+
+            const nodeElement = (event as ObjectSetEvent).oldValue as RealTimeObject;
+            const parentId = nodeElement.get('parent').value() as string | undefined;
+
+            console.log(`%c${userName}:nodes.remove: ${nodeId}`, logStyle);
+
+            if (parentId)
+            {
+                this.emit('datastoreNodeRemoved', nodeId, parentId);
+            }
+        });
     }
 
     protected async joinActivity(type: string, id: string)

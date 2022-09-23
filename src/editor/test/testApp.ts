@@ -10,16 +10,8 @@ import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nod
 import { getGraphNode, registerGraphNodeType } from '../../core/nodes/factory';
 import type { NodeSchema } from '../../core/nodes/schema';
 import { type AppOptions, Application } from '../application';
-import { AssignCustomPropCommand } from '../commands/assignCustomProp';
-import { CloneCommand } from '../commands/clone';
-import { CreateNodeCommand } from '../commands/createNode';
-import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
-import { RemoveNodeCommand } from '../commands/removeNode';
-import { SetCustomPropCommand } from '../commands/setCustomProp';
-import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
-import { UnlinkCommand } from '../commands/unlink';
 import { getUserName } from '../sync/user';
-import { DebugNode } from './debug';
+import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
 
 export let app: TestApp;
@@ -185,14 +177,14 @@ export class TestApp extends Application
         {
             const parentId = this.selected.id;
 
-            this.pushCommand(new CreateNodeCommand<ContainerModel>({
+            this.exec('CreateNode', {
                 nodeType: 'Empty',
                 parentId,
                 model: {
                     x: 20,
                     y: 20,
-                },
-            }));
+                } as ContainerModel,
+            });
         }
     }
 
@@ -202,7 +194,7 @@ export class TestApp extends Application
         {
             const parentId = this.selected.id;
 
-            this.pushCommand(new CreateNodeCommand<ContainerModel>({
+            this.exec('CreateNode', {
                 nodeType: 'Debug',
                 parentId,
                 model: {
@@ -211,8 +203,8 @@ export class TestApp extends Application
                     width: 20,
                     height: 20,
                     tint: Math.round(Math.random() * 100000),
-                },
-            }));
+                } as DebugModel,
+            });
         }
     }
 
@@ -221,7 +213,7 @@ export class TestApp extends Application
     {
         if (this.project && this.selected)
         {
-            this.pushCommand(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
+            this.exec('Clone', { nodeId: this.selected.id, cloneMode });
         }
     }
 
@@ -229,7 +221,7 @@ export class TestApp extends Application
     {
         if (this.project && this.selected)
         {
-            this.pushCommand(new UnlinkCommand({ nodeId: this.selected.id }));
+            this.exec('Unlink', { nodeId: this.selected.id });
         }
     }
 
@@ -239,7 +231,7 @@ export class TestApp extends Application
         {
             const parentNode = this.selected.parent;
 
-            this.pushCommand(new RemoveNodeCommand({ nodeId: this.selected.id }));
+            this.exec('RemoveNode', { nodeId: this.selected.id });
 
             if (parentNode)
             {
@@ -328,12 +320,12 @@ export class TestApp extends Application
             const propType = isNaN(value) ? 'string' : 'number';
             const propValue = propType === 'string' ? value : parseFloat(value);
 
-            this.pushCommand(new SetCustomPropCommand({
+            this.exec('SetCustomProp', {
                 nodeId: selected.id,
                 propName: name,
                 type: propType,
                 value: propValue,
-            }));
+            });
         }
     }
 
@@ -343,10 +335,10 @@ export class TestApp extends Application
 
         if (selected)
         {
-            this.pushCommand(new RemoveCustomPropCommand({
+            this.exec('RemoveCustomProp', {
                 nodeId: selected.id,
                 propName: name,
-            }));
+            });
         }
     }
 
@@ -356,11 +348,11 @@ export class TestApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.pushCommand(new AssignCustomPropCommand({
+            this.exec('AssignCustomProp', {
                 nodeId: selected.id,
                 modelKey,
                 customKey,
-            }));
+            });
         }
     }
 
@@ -370,10 +362,10 @@ export class TestApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.pushCommand(new UnAssignCustomPropCommand({
+            this.exec('UnAssignCustomProp', {
                 nodeId: selected.id,
                 modelKey,
-            }));
+            });
         }
     }
 

@@ -20,7 +20,7 @@ export default class UndoStack
         return this.head > -1;
     }
 
-    public pushCommand<T = void>(command: AbstractCommand): T
+    public push<T = void>(command: AbstractCommand): T
     {
         this.stack.push(command);
         this.head++;
@@ -56,7 +56,7 @@ export default class UndoStack
             const name = params.$;
             const command = createCommand(name, params);
 
-            this.pushCommand(command);
+            this.push(command);
         });
     }
 }
