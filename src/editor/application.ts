@@ -18,7 +18,9 @@ export interface AppOptions
     canvas: HTMLCanvasElement;
 }
 
-export abstract class Application extends EventEmitter
+export type AppEvents = 'commandExec';
+
+export abstract class Application extends EventEmitter<AppEvents>
 {
     public pixiApp: PixiApplication;
     public datastore: Datastore;
@@ -112,7 +114,9 @@ export abstract class Application extends EventEmitter
     {
         const command = createCommand(commandName, params);
 
-        return this.undoStack.push<T>(command);
+        const result = this.undoStack.push<T>(command);
+
+        this.emit('commandExec', command, result);
     }
 
     public writeUndoStack(endIndex = 0)
