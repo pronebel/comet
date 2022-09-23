@@ -26,7 +26,7 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
         const { datastore, params: { nodeId, cloneMode } } = this;
 
         const sourceNode = getGraphNode(nodeId);
-        const originalNode = sourceNode.getOriginal();
+        const originalNode = sourceNode.cloneInfo.isVariant ? sourceNode : sourceNode.getOriginal();
         const cloneInfoSchema = getCloneInfoSchema(originalNode);
 
         // clone original

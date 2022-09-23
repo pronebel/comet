@@ -1,6 +1,7 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ModelBase } from '../../core/model/model';
+import { getGraphNode } from '../../core/nodes/factory';
 import { AbstractCommand } from '../abstractCommand';
 
 export interface ModifyModelCommandParams<M>
@@ -16,9 +17,8 @@ export class ModifyModelCommand<M extends ModelBase> extends AbstractCommand<Mod
     public exec(): void
     {
         const { datastore, params: { nodeId, values } } = this;
-
+        const node = getGraphNode(nodeId);
         const nodeElement = datastore.getNodeElement(nodeId);
-
         const model = nodeElement.get('model') as RealTimeObject;
 
         datastore.batch(() =>
@@ -28,6 +28,8 @@ export class ModifyModelCommand<M extends ModelBase> extends AbstractCommand<Mod
                 model.set(k, v);
             }
         });
+
+        node.model.setValues(values);
     }
 
     public undo(): void

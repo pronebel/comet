@@ -3,8 +3,8 @@ import { filters, Sprite, Texture } from 'pixi.js';
 
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
-import type { ContainerNode } from '../../core/nodes/concrete/container';
-import { type ContainerModel } from '../../core/nodes/concrete/container';
+import type { ContainerModel, ContainerNode } from '../../core/nodes/concrete/container';
+import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import { registerGraphNodeType } from '../../core/nodes/factory';
 import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
 import type { AbstractCommand } from '../abstractCommand';
@@ -12,6 +12,7 @@ import { type AppOptions, Application } from '../application';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { type CloneCommandReturn, CloneCommand } from '../commands/clone';
 import { type CreateNodeCommandReturn, CreateNodeCommand } from '../commands/createNode';
+import { ModifyModelCommand } from '../commands/modifyModel';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
@@ -240,7 +241,11 @@ export class TestApp extends Application
     {
         if (this.selected && this.selected instanceof DebugNode)
         {
-            this.selected.model.tint = Math.round(Math.random() * 100000);
+            this.exec(new ModifyModelCommand<SpriteModel>({
+                nodeId: this.selected.id,
+                values: {
+                    tint: Math.round(Math.random() * 100000),
+                } }));
         }
     }
 
@@ -248,8 +253,13 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            this.selected.model.width = Math.round(Math.random() * 50);
-            this.selected.model.height = Math.round(Math.random() * 50);
+            this.exec(new ModifyModelCommand<SpriteModel>({
+                nodeId: this.selected.id,
+                values: {
+                    width: Math.round(Math.random() * 50),
+                    height: Math.round(Math.random() * 50),
+                } }));
+
             this.select(this.selected);
         }
     }
