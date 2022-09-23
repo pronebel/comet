@@ -1,16 +1,19 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ModelBase } from '../../core/model/model';
-import { Command } from '.';
+import { AbstractCommand } from '../command';
 
-export class ModifyModelCommand<M extends ModelBase> extends Command<{
+export interface ModifyModelCommandParams<M>
+{
     nodeId: string;
     values: Partial<M>;
-}>
+}
+
+export class ModifyModelCommand<M extends ModelBase> extends AbstractCommand<ModifyModelCommandParams<M>>
 {
     public static commandName = 'ModifyModel';
 
-    public apply(): void
+    public exec(): void
     {
         const { datastore, params: { nodeId, values } } = this;
 

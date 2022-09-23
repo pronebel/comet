@@ -1,18 +1,21 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
-import { Command } from '.';
+import { AbstractCommand } from '../command';
 
-export class SetCustomPropCommand extends Command<{
+export interface SetCustomPropCommandParams
+{
     nodeId: string;
     propName: string;
     type: CustomPropertyType;
     value: CustomPropertyValueType;
-}>
+}
+
+export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandParams>
 {
     public static commandName = 'SetCustomProp';
 
-    public apply(): void
+    public exec(): void
     {
         const { datastore, params: { nodeId, propName, type, value } } = this;
 

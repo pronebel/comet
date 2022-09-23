@@ -1,15 +1,18 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import { getGraphNode } from '../../core/nodes/factory';
-import { Command } from '.';
+import { AbstractCommand } from '../command';
 
-export class RemoveNodeCommand extends Command<{
+export interface RemoveNodeCommandParams
+{
     nodeId: string;
-}>
+}
+
+export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams>
 {
     public static commandName = 'RemoveNode';
 
-    public apply(): void
+    public exec(): void
     {
         const { datastore, params: { nodeId } } = this;
 

@@ -3,17 +3,20 @@ import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneMode } from '../../core/nodes/cloneInfo';
 import { getGraphNode } from '../../core/nodes/factory';
 import { type NodeOptionsSchema, createNodeSchema } from '../../core/nodes/schema';
-import { Command } from '.';
+import { AbstractCommand } from '../command';
 
-export class CreateNodeCommand<M extends ModelBase> extends Command<{
+export interface CreateNodeCommandParams<M>
+{
     nodeType: string;
     parentId: string;
     model: Partial<M>;
-}>
+}
+
+export class CreateNodeCommand<M extends ModelBase> extends AbstractCommand<CreateNodeCommandParams<M>>
 {
     public static commandName = 'CreateNode';
 
-    public apply(): void
+    public exec(): void
     {
         const { datastore, params: { nodeType, parentId, model = {} } } = this;
 

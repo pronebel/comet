@@ -7,7 +7,8 @@ import type { ModelBase } from '../core/model/model';
 import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { ProjectNode } from '../core/nodes/concrete/project';
 import type { CustomPropertyType, CustomPropertyValueType } from '../core/nodes/customProperties';
-import type { Command } from './commands';
+import type { Commands } from './commandFactory';
+import { type Command, type CommandParams, createCommand } from './commandFactory';
 import { Datastore } from './sync/datastore';
 import { ObjectGraph } from './sync/objectGraph';
 import UndoStack from './undoStack';
@@ -107,14 +108,11 @@ export abstract class Application extends EventEmitter
         // subclasses
     }
 
-    public pushCommand<T = void>(command: Command): T
+    public exec<T, K extends keyof typeof Commands, P extends CommandParams[K]>(commandName: Command, params: P)
     {
-        return this.undoStack.pushCommand<T>(command);
-    }
+        const command = createCommand(commandName, params);
 
-    public pushCommands(commands: Command[])
-    {
-        this.undoStack.pushCommands(commands);
+        return command.exec() as T;
     }
 
     public writeUndoStack(endIndex = 0)

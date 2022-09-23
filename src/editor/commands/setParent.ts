@@ -1,13 +1,15 @@
-import { Command } from '.';
+import { AbstractCommand } from '../command';
 
-export class SetParentCommand extends Command<{
+export interface SetParentCommandParams
+{
     parentId: string;
     childId: string;
-}>
+}
+export class SetParentCommand extends AbstractCommand<SetParentCommandParams>
 {
     public static commandName = 'SetParent';
 
-    public apply(): void
+    public exec(): void
     {
         const { datastore, params: { parentId, childId } } = this;
 

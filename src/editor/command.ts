@@ -1,6 +1,6 @@
-import { Application } from '../application';
+import { Application } from './application';
 
-export abstract class Command<T extends {} = {}>
+export abstract class AbstractCommand<T extends {} = {}, R = void>
 {
     constructor(public readonly params: T)
     {
@@ -9,12 +9,17 @@ export abstract class Command<T extends {} = {}>
 
     public static commandName = 'Untitled';
 
-    public abstract apply(): void;
+    public abstract exec(): R;
     public abstract undo(): void;
+
+    public get canUndo()
+    {
+        return true;
+    }
 
     public redo()
     {
-        return this.apply();
+        return this.exec();
     }
 
     public get app()

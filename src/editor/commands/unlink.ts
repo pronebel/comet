@@ -1,15 +1,18 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getGraphNode } from '../../core/nodes/factory';
 import { getCloneInfoSchema } from '../../core/nodes/schema';
-import { Command } from '.';
+import { AbstractCommand } from '../command';
 
-export class UnlinkCommand extends Command<{
+export interface UnlinkCommandParams
+{
     nodeId: string;
-}>
+}
+
+export class UnlinkCommand extends AbstractCommand<UnlinkCommandParams>
 {
     public static commandName = 'Unlink';
 
-    public apply(): void
+    public exec(): void
     {
         const { datastore, params: { nodeId } } = this;
 

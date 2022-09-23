@@ -1,15 +1,18 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
-import { Command } from '.';
+import { AbstractCommand } from '../command';
 
-export class UnAssignCustomPropCommand extends Command<{
+export interface UnAssignCustomPropCommandParams
+{
     nodeId: string;
     modelKey: string;
-}>
+}
+
+export class UnAssignCustomPropCommand extends AbstractCommand<UnAssignCustomPropCommandParams>
 {
     public static commandName = 'UnAssignCustomProp';
 
-    public apply(): void
+    public exec(): void
     {
         const { datastore, params: { nodeId, modelKey } } = this;
 

@@ -4,16 +4,19 @@ import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import { getGraphNode } from '../../core/nodes/factory';
 import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
-import { Command } from '.';
+import { AbstractCommand } from '../command';
 
-export class CloneCommand extends Command<{
+export interface CloneCommandParams
+{
     nodeId: string;
     cloneMode: CloneMode;
-}>
+}
+
+export class CloneCommand extends AbstractCommand<CloneCommandParams>
 {
     public static commandName = 'Clone';
 
-    public apply(): void
+    public exec(): void
     {
         const { datastore, params: { nodeId, cloneMode } } = this;
 
