@@ -247,6 +247,20 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         nodeElement.get('cloneInfo').value(cloneInfoSchema);
     }
 
+    public modifyNodeModel(nodeId: string, values: object)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+        const modelElement = nodeElement.get('model') as RealTimeObject;
+
+        this.batch(() =>
+        {
+            for (const [k, v] of Object.entries(values))
+            {
+                modelElement.set(k, v);
+            }
+        });
+    }
+
     public removeNode(nodeId: string)
     {
         // remove from nodes RealTimeObject
