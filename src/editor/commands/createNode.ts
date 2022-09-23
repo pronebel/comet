@@ -1,79 +1,67 @@
+import type { RealTimeObject } from '@convergence/convergence';
+
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { CloneMode } from '../../core/nodes/cloneInfo';
-import { getGraphNode } from '../../core/nodes/factory';
-import { type NodeOptionsSchema, createNodeSchema } from '../../core/nodes/schema';
+import { CloneInfo } from '../../core/nodes/cloneInfo';
+import { createGraphNode, getGraphNode } from '../../core/nodes/factory';
+import type { NodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../baseCommand';
+import type { Datastore } from '../sync/datastore';
 
-export interface CreateNodeCommandParams<M>
+export interface CreateNodeCommandParams<M extends ModelBase>
 {
-    nodeType: string;
-    parentId: string;
-    model: Partial<M>;
+    nodeSchema: NodeSchema<M>;
 }
 
-export class CreateNodeCommand<M extends ModelBase> extends AbstractCommand<CreateNodeCommandParams<M>>
+export class CreateNodeCommand<
+    M extends ModelBase = ModelBase,
+> extends AbstractCommand<CreateNodeCommandParams<M>, ClonableNode>
 {
     public static commandName = 'CreateNode';
 
-    public exec(): void
+    public static createNode(datastore: Datastore, nodeSchema: NodeSchema): ClonableNode
     {
-        const { datastore, params: { nodeType, parentId, model = {} } } = this;
+        const { type, id, model, cloneInfo: { cloneMode, cloner, cloned }, customProperties } = nodeSchema;
 
-        const parentNode = getGraphNode(parentId);
+        const nodeElement = datastore.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
-        if (parentNode)
+        datastore.registerNode(nodeSchema.id, nodeElement);
+
+        // build clone info
+        const cloneInfo = new CloneInfo(cloneMode, getGraphNode(cloner));
+
+        cloned.forEach((id) =>
         {
-            const { cloneInfo: { isOriginal, isVariant } } = parentNode;
+            const node = getGraphNode(id);
 
-            const nodeOptions: NodeOptionsSchema<M> = {
-                parent: parentId,
-                model,
-            };
+            node && cloneInfo.cloned.push(node);
+        });
 
-            const parentsToCreateNodeUnder: ClonableNode[] = [];
-            const original = isOriginal || isVariant ? parentNode : parentNode.getOriginal();
+        // create and register graph node
+        const node = createGraphNode(type,
+            { id, model, cloneInfo });
 
-            parentsToCreateNodeUnder.push(original);
+        node.created = nodeSchema.created;
 
-            const cloned = original.getAllCloned();
-
-            parentsToCreateNodeUnder.push(...cloned);
-
-            console.log('cloning under parents:', parentsToCreateNodeUnder.map((node) => node.id));
-
-            let lastNodeId: string | undefined;
-
-            datastore.batch(() =>
-            {
-                parentsToCreateNodeUnder.forEach((parentToCreateNodeUnder) =>
-                {
-                    let { cloneMode } = parentToCreateNodeUnder.cloneInfo;
-
-                    if (cloneMode === CloneMode.ReferenceRoot)
-                    {
-                        cloneMode = CloneMode.Reference;
-                    }
-
-                    const nodeSchema = createNodeSchema<M>(nodeType, {
-                        ...nodeOptions,
-                        parent: parentToCreateNodeUnder.id,
-                        cloneInfo: {
-                            cloneMode,
-                            cloner: lastNodeId,
-                            cloned: [],
-                        },
-                    });
-
-                    datastore.createNode(nodeSchema, {
-                        ...nodeOptions,
-                        parent: parentToCreateNodeUnder.id,
-                    });
-
-                    lastNodeId = nodeSchema.id;
-                });
-            });
+        // build custom properties
+        for (const [name, props] of Object.entries(customProperties.defined))
+        {
+            props.forEach(({ type, value }) => node.setCustomProperty(name, type, value));
         }
+
+        for (const [modelKey, customPropertyKey] of Object.entries(customProperties.assigned))
+        {
+            node.assignCustomProperty(modelKey, customPropertyKey);
+        }
+
+        return node as ClonableNode;
+    }
+
+    public exec(): ClonableNode
+    {
+        const { datastore, params: { nodeSchema } } = this;
+
+        return CreateNodeCommand.createNode(datastore, nodeSchema);
     }
 
     public undo(): void

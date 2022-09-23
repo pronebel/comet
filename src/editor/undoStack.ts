@@ -20,27 +20,25 @@ export default class UndoStack
         return this.head > -1;
     }
 
-    public push<T = void>(command: AbstractCommand): T
+    public push(command: AbstractCommand)
     {
         this.stack.push(command);
         this.head++;
 
         // console.log(`%c${userName}:Command<${command.name}>: ${command.toString()}`, 'color:yellow');
-
-        return command.exec() as unknown as T;
     }
 
-    public pushCommands(commands: AbstractCommand[])
-    {
-        this.stack.push(commands);
-        this.head += commands.length;
+    // public pushCommands(commands: AbstractCommand[])
+    // {
+    //     this.stack.push(commands);
+    //     this.head += commands.length;
 
-        commands.forEach((command) =>
-        {
-            // console.log(`%c${userName}:Command<${command.name}>: ${command.toString()}`, 'color:yellow');
-            command.exec();
-        });
-    }
+    //     commands.forEach((command) =>
+    //     {
+    //         // console.log(`%c${userName}:Command<${command.name}>: ${command.toString()}`, 'color:yellow');
+    //         command.exec();
+    //     });
+    // }
 
     public toJSON(endIndex = 0): object[]
     {

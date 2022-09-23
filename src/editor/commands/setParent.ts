@@ -1,3 +1,6 @@
+import type { RealTimeArray } from '@convergence/convergence';
+
+import { getGraphNode } from '../../core/nodes/factory';
 import { AbstractCommand } from '../baseCommand';
 
 export interface SetParentCommandParams
@@ -13,11 +16,24 @@ export class SetParentCommand extends AbstractCommand<SetParentCommandParams>
     {
         const { datastore, params: { parentId, childId } } = this;
 
-        const nodeElement = datastore.getNodeElement(childId);
+        const parentElement = datastore.getNodeElement(parentId);
+        const childElement = datastore.getNodeElement(childId);
 
-        nodeElement.set('parent', parentId);
+        // set parent data
+        childElement.set('parent', parentId);
 
-        datastore.emit('datastoreNodeSetParent', parentId, childId);
+        // set children data
+        const childArray = parentElement.get('children') as RealTimeArray;
+
+        childArray.push(childId);
+
+        const parentNode = getGraphNode(parentId);
+        const childNode = getGraphNode(childId);
+
+        if (parentNode && childNode)
+        {
+            parentNode?.addChild(childNode);
+        }
     }
 
     public undo(): void

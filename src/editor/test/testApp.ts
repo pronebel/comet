@@ -1,15 +1,25 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
-import type { ModelBase } from '../../core/model/model';
-import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+// import type { ModelBase } from '../../core/model/model';
+// import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerModel, ContainerNode } from '../../core/nodes/concrete/container';
-import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
-import { getGraphNode, registerGraphNodeType } from '../../core/nodes/factory';
-import type { NodeSchema } from '../../core/nodes/schema';
+import type { EmptyNode } from '../../core/nodes/concrete/empty';
+// import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
+import { registerGraphNodeType } from '../../core/nodes/factory';
+import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
 import { type AppOptions, Application } from '../application';
+import { AssignCustomPropCommand } from '../commands/assignCustomProp';
+import { CloneCommand } from '../commands/clone';
+import { CreateNodeCommand } from '../commands/createNode';
+import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
+import { RemoveNodeCommand } from '../commands/removeNode';
+import { SetCustomPropCommand } from '../commands/setCustomProp';
+import { SetParentCommand } from '../commands/setParent';
+import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
+import { UnlinkCommand } from '../commands/unlink';
 import { getUserName } from '../sync/user';
 import { type DebugModel, DebugNode } from './debug';
 import { startDrag } from './drag';
@@ -59,82 +69,82 @@ export class TestApp extends Application
         this.deselect();
     }
 
-    protected onObjectGraphNodeCreated(node: ClonableNode<ModelBase, object, string>): void
-    {
-        super.onObjectGraphNodeCreated(node);
+    // protected onObjectGraphNodeCreated(node: ClonableNode<ModelBase, object, string>): void
+    // {
+    //     super.onObjectGraphNodeCreated(node);
 
-        this.makeInteractive(node as unknown as ContainerNode);
+    //     this.makeInteractive(node as unknown as ContainerNode);
 
-        this.select(node as unknown as ContainerNode);
-    }
+    //     this.select(node as unknown as ContainerNode);
+    // }
 
-    protected onObjectGraphNodeRemoved(nodeId: string, parentId: string): void
-    {
-        super.onObjectGraphNodeRemoved(nodeId, parentId);
+    // protected onObjectGraphNodeRemoved(nodeId: string, parentId: string): void
+    // {
+    //     super.onObjectGraphNodeRemoved(nodeId, parentId);
 
-        const parentNode = getGraphNode(parentId);
+    //     const parentNode = getGraphNode(parentId);
 
-        if (parentNode)
-        {
-            this.select(parentNode as unknown as ContainerNode);
-        }
-    }
+    //     if (parentNode)
+    //     {
+    //         this.select(parentNode as unknown as ContainerNode);
+    //     }
+    // }
 
-    protected onObjectGraphParentSet(childNode: ClonableNode<ModelBase, object, string>): void
-    {
-        this.select(childNode as unknown as ContainerNode);
-    }
+    // protected onObjectGraphParentSet(childNode: ClonableNode<ModelBase, object, string>): void
+    // {
+    //     this.select(childNode as unknown as ContainerNode);
+    // }
 
-    protected onDatastoreCustomPropDefined(
-        // @ts-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        id: string,
-        // @ts-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        name: string,
-        // @ts-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        type: CustomPropertyType,
-        // @ts-ignore
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        value: CustomPropertyValueType,
-    ): void
-    {
-        this.fitSelection();
-    }
+    // protected onDatastoreCustomPropDefined(
+    //     // @ts-ignore
+    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //     id: string,
+    //     // @ts-ignore
+    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //     name: string,
+    //     // @ts-ignore
+    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //     type: CustomPropertyType,
+    //     // @ts-ignore
+    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //     value: CustomPropertyValueType,
+    // ): void
+    // {
+    //     this.fitSelection();
+    // }
 
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onDatastoreCustomPropUndefined(nodeId: string, propName: string): void
-    {
-        this.fitSelection();
-    }
+    // // @ts-ignore
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // protected onDatastoreCustomPropUndefined(nodeId: string, propName: string): void
+    // {
+    //     this.fitSelection();
+    // }
 
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onDatastoreCustomPropAssigned(nodeId: string, modelKey: string, customKey: string): void
-    {
-        this.fitSelection();
-    }
+    // // @ts-ignore
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // protected onDatastoreCustomPropAssigned(nodeId: string, modelKey: string, customKey: string): void
+    // {
+    //     this.fitSelection();
+    // }
 
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onDatastoreCustomPropUnAssigned(nodeId: string, modelKey: string): void
-    {
-        this.fitSelection();
-    }
+    // // @ts-ignore
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // protected onDatastoreCustomPropUnAssigned(nodeId: string, modelKey: string): void
+    // {
+    //     this.fitSelection();
+    // }
 
-    protected onDatastoreNodeCloned(clonedNode: ClonableNode): void
-    {
-        this.select(clonedNode as unknown as ContainerNode);
-    }
+    // protected onDatastoreNodeCloned(clonedNode: ClonableNode): void
+    // {
+    //     this.select(clonedNode as unknown as ContainerNode);
+    // }
 
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onDatastoreModelModified(nodeId: string, values: ModelBase): void
-    {
-        this.fitSelection();
-    }
+    // // @ts-ignore
+    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    // protected onDatastoreModelModified(nodeId: string, values: ModelBase): void
+    // {
+    //     this.fitSelection();
+    // }
 
     public saveDatastore()
     {
@@ -177,14 +187,23 @@ export class TestApp extends Application
         {
             const parentId = this.selected.id;
 
-            this.exec('CreateNode', {
-                nodeType: 'Empty',
-                parentId,
+            const nodeSchema = createNodeSchema('Empty', {
+                parent: parentId,
                 model: {
                     x: 20,
                     y: 20,
-                } as ContainerModel,
+                },
             });
+
+            const empty = this.exec<EmptyNode>(new CreateNodeCommand<ContainerModel>({ nodeSchema }));
+
+            this.exec(new SetParentCommand({
+                parentId: this.selected.id,
+                childId: empty.id,
+            }));
+
+            this.makeInteractive(empty);
+            this.select(empty);
         }
     }
 
@@ -194,17 +213,26 @@ export class TestApp extends Application
         {
             const parentId = this.selected.id;
 
-            this.exec('CreateNode', {
-                nodeType: 'Debug',
-                parentId,
+            const nodeSchema = createNodeSchema('Debug', {
+                parent: parentId,
                 model: {
                     x: 20,
                     y: 20,
                     width: 20,
                     height: 20,
                     tint: Math.round(Math.random() * 100000),
-                } as DebugModel,
+                },
             });
+
+            const debug = this.exec<DebugNode>(new CreateNodeCommand<DebugModel>({ nodeSchema }));
+
+            this.exec(new SetParentCommand({
+                parentId: this.selected.id,
+                childId: debug.id,
+            }));
+
+            this.makeInteractive(debug as unknown as ContainerNode);
+            this.select(debug as unknown as ContainerNode);
         }
     }
 
@@ -213,7 +241,7 @@ export class TestApp extends Application
     {
         if (this.project && this.selected)
         {
-            this.exec('Clone', { nodeId: this.selected.id, cloneMode });
+            this.exec(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
         }
     }
 
@@ -221,7 +249,7 @@ export class TestApp extends Application
     {
         if (this.project && this.selected)
         {
-            this.exec('Unlink', { nodeId: this.selected.id });
+            this.exec(new UnlinkCommand({ nodeId: this.selected.id }));
         }
     }
 
@@ -231,7 +259,7 @@ export class TestApp extends Application
         {
             const parentNode = this.selected.parent;
 
-            this.exec('RemoveNode', { nodeId: this.selected.id });
+            this.exec(new RemoveNodeCommand({ nodeId: this.selected.id }));
 
             if (parentNode)
             {
@@ -320,12 +348,12 @@ export class TestApp extends Application
             const propType = isNaN(value) ? 'string' : 'number';
             const propValue = propType === 'string' ? value : parseFloat(value);
 
-            this.exec('SetCustomProp', {
+            this.exec(new SetCustomPropCommand({
                 nodeId: selected.id,
                 propName: name,
                 type: propType,
                 value: propValue,
-            });
+            }));
         }
     }
 
@@ -335,10 +363,10 @@ export class TestApp extends Application
 
         if (selected)
         {
-            this.exec('RemoveCustomProp', {
+            this.exec(new RemoveCustomPropCommand({
                 nodeId: selected.id,
                 propName: name,
-            });
+            }));
         }
     }
 
@@ -348,11 +376,11 @@ export class TestApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.exec('AssignCustomProp', {
+            this.exec(new AssignCustomPropCommand({
                 nodeId: selected.id,
                 modelKey,
                 customKey,
-            });
+            }));
         }
     }
 
@@ -362,10 +390,10 @@ export class TestApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.exec('UnAssignCustomProp', {
+            this.exec(new UnAssignCustomPropCommand({
                 nodeId: selected.id,
                 modelKey,
-            });
+            }));
         }
     }
 
@@ -377,7 +405,7 @@ export class TestApp extends Application
         });
     }
 
-    public makeInteractive(component: ContainerNode)
+    public makeInteractive<T extends ContainerNode>(component: T)
     {
         const sprite = component.getView<Container>();
 

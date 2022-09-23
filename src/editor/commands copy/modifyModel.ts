@@ -28,6 +28,8 @@ export class ModifyModelCommand<M extends ModelBase> extends AbstractCommand<Mod
                 model.set(k, v);
             }
         });
+
+        datastore.emit('datastoreModelModified', nodeId, values);
     }
 
     public undo(): void

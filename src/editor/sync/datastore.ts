@@ -8,12 +8,13 @@ import type {
 import Convergence, { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
-import type { ModelBase, ModelValue } from '../../core/model/model';
+import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { GraphNode } from '../../core/nodes/abstract/graphNode';
 import { consolidateNodeId, getGraphNode } from '../../core/nodes/factory';
-import { type NodeOptionsSchema, type NodeSchema, createProjectSchema, getCloneInfoSchema } from '../../core/nodes/schema';
-import type { ObjectGraph } from './objectGraph';
+import { type NodeSchema, createProjectSchema } from '../../core/nodes/schema';
+import { Application } from '../application';
+import { CreateNodeCommand } from '../commands/createNode';
 import { getUserName } from './user';
 
 const userName = getUserName();
@@ -59,6 +60,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.nodeRealtimeObjects = new Map();
     }
 
+    public get app()
+    {
+        return Application.instance;
+    }
+
     public get domain()
     {
         if (!this._domain)
@@ -84,80 +90,37 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return this.model.elementAt('nodes') as RealTimeObject;
     }
 
-    public hydrate(objectGraph: ObjectGraph)
+    public connect(): Promise<ConvergenceDomain>
     {
-        const { nodes } = this;
-
-        const nodeElements: Map<string, RealTimeObject> = new Map();
-
-        // prepare all nodeElements
-
-        nodes.keys().forEach((id) =>
+        return new Promise<ConvergenceDomain>((resolve, reject) =>
         {
-            const nodeElement = nodes.get(id) as RealTimeObject;
+            const url = 'https://localhost/realtime/convergence/default';
 
-            nodeElements.set(id, nodeElement);
+            const timeout = setTimeout(() =>
+            {
+                reject(new Error(`Connection timeout`));
+            }, connectionTimeout);
+
+            Convergence.connect(url, userName, 'password', {
+                connection: {
+                    connectionRequestTimeout: connectionTimeout,
+                    timeout: connectionTimeout,
+                },
+                models: {
+                    data: {
+                        undefinedObjectValues: 'omit',
+                        undefinedArrayValues: 'null',
+                    },
+                },
+            }).then((domain) =>
+            {
+                clearTimeout(timeout);
+                console.log(`%cConnected as ${userName}!`, 'color:lime');
+
+                this._domain = domain;
+                resolve(domain);
+            }).catch(reject);
         });
-
-        // get the root
-        const rootId = this.model.root().get('root').value() as string;
-        const projectNode = nodeElements.get(rootId);
-
-        const hydrate = (nodeElement: RealTimeObject, parentNode?: ClonableNode) =>
-        {
-            const id = nodeElement.get('id').value() as string;
-
-            // ensure local ids don't clash with hydrating ids
-            consolidateNodeId(id);
-
-            // register the RealTimeObject for this node
-
-            this.registerNode(id, nodeElement);
-
-            // create the graph node
-
-            const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
-
-            const node = objectGraph.createGraphNode(nodeSchema);
-
-            // add to parent if provided
-
-            if (parentNode)
-            {
-                parentNode.addChild(node as GraphNode);
-            }
-
-            // recursively create children
-
-            (nodeElement.get('children').value() as RealTimeArray).forEach((id) =>
-            {
-                const childId = String(id);
-                const childNodeElement = nodeElements.get(childId);
-
-                if (childNodeElement)
-                {
-                    hydrate(childNodeElement, node);
-                }
-                else
-                {
-                    throw new Error(`Could not find childElement "${childId}"`);
-                }
-            });
-        };
-
-        if (projectNode)
-        {
-            // start from the root node (Project)
-
-            hydrate(projectNode);
-        }
-        else
-        {
-            throw new Error('Could not find project node');
-        }
-
-        // update the application
-        this.emit('datastoreHydrated');
     }
 
     public registerNode(id: string, nodeElement: RealTimeObject)
@@ -167,10 +130,10 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             throw new Error(`Node "${id}" RealTimeObject already registered.`);
         }
 
-        // track element
+        // store element
         this.nodeRealtimeObjects.set(id, nodeElement);
 
-        // catch events on nodeElement prop changes (as a remote user)
+        // track remote events on node changes
         nodeElement.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
         {
             const key = (event as ObjectSetEvent).key;
@@ -256,130 +219,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         console.log(`${userName}:Registered RealTimeObject "${id}"`);
     }
 
-    public createNode<M extends ModelBase>(
-        nodeSchema: NodeSchema<M>,
-        nodeOptions: NodeOptionsSchema<M> = {},
-        clonedNode?: ClonableNode,
-    )
-    {
-        const parentId = nodeOptions.parent ?? nodeSchema.parent;
-
-        const nodeElement = this.nodes.set(nodeSchema.id, {
-            ...nodeSchema,
-            parent: parentId,
-        }) as RealTimeObject;
-
-        this.registerNode(nodeSchema.id, nodeElement);
-
-        this.emit('datastoreNodeCreated', nodeSchema, clonedNode);
-
-        if (parentId)
-        {
-            this.setParentNode(nodeSchema.id, parentId);
-        }
-    }
-
     public removeNode(nodeId: string)
     {
-        const nodeElement = this.getNodeElement(nodeId);
+        // remove from nodes RealTimeObject
+        this.nodes.remove(nodeId);
 
-        const parentId = nodeElement.get('parent').value() as string;
-
-        // cleanup cloned reference in cloner if present
-        const node = getGraphNode(nodeId);
-
-        if (node)
-        {
-            const cloner = node.cloneInfo.cloner as ClonableNode;
-
-            if (cloner)
-            {
-                const cloneInfoSchema = getCloneInfoSchema(cloner);
-                const clonerNodeElement = this.getNodeElement(cloner.id);
-
-                cloner.cloneInfo.removeCloned(node);
-                clonerNodeElement.get('cloneInfo').value(cloneInfoSchema);
-            }
-
-            // remove from nodes RealTimeObject
-            this.nodes.remove(nodeId);
-
-            // remove from parents children array
-            const parentElement = this.getNodeElement(parentId);
-            const childArray = parentElement.get('children') as RealTimeArray;
-            const index = childArray.findIndex((id) =>
-                id.value() === nodeId);
-
-            if (index === -1)
-            {
-                throw new Error(`Could not remove child node "${nodeId}" from parent "${parentId}"`);
-            }
-
-            childArray.remove(index);
-
-            // unregister RealTimeObject for node
-            this.unRegisterNode(nodeId);
-
-            this.emit('datastoreNodeRemoved', nodeId, parentId);
-        }
-    }
-
-    public setParentNode(nodeId: string, parentId: string)
-    {
-        const parentElement = this.getNodeElement(parentId);
-        const childArray = parentElement.get('children') as RealTimeArray;
-
-        childArray.push(nodeId);
-        this.emit('datastoreNodeSetParent', nodeId, parentId);
-    }
-
-    public connect(): Promise<ConvergenceDomain>
-    {
-        return new Promise<ConvergenceDomain>((resolve, reject) =>
-        {
-            const url = 'https://localhost/realtime/convergence/default';
-
-            const timeout = setTimeout(() =>
-            {
-                reject(new Error(`Connection timeout`));
-            }, connectionTimeout);
-
-            Convergence.connect(url, userName, 'password', {
-                connection: {
-                    connectionRequestTimeout: connectionTimeout,
-                    timeout: connectionTimeout,
-                },
-                models: {
-                    data: {
-                        undefinedObjectValues: 'omit',
-                        undefinedArrayValues: 'null',
-                    },
-                },
-            }).then((domain) =>
-            {
-                clearTimeout(timeout);
-                console.log(`%cConnected as ${userName}!`, 'color:lime');
-
-                this._domain = domain;
-                resolve(domain);
-            }).catch(reject);
-        });
-    }
-
-    public disconnect(): void
-    {
-        if (!this.domain.isDisposed())
-        {
-            this.domain.dispose();
-            console.log('%c${userName}:Domain disposed', logStyle);
-        }
-    }
-
-    public batch(fn: () => void)
-    {
-        this.model.startBatch();
-        fn();
-        this.model.completeBatch();
+        // unregister RealTimeObject for node
+        this.unRegisterNode(nodeId);
     }
 
     public async createProject(name: string, id?: string)
@@ -394,10 +240,10 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         console.log(`%c${userName}:Created project "${model.modelId()}"`, logStyle);
 
-        await this.openProject(model.modelId());
+        return await this.openProject(model.modelId());
     }
 
-    public async openProject(id: string)
+    public async openProject(id: string): Promise<ClonableNode>
     {
         const model = await this.domain.models().open(id);
 
@@ -407,7 +253,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         await this.joinActivity('editProject', model.modelId());
 
-        // catch events when a remote user...
+        // catch events when a remote user adds or removes a node...
         this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
         {
             const nodeElement = (event as ObjectSetEvent).value as RealTimeObject;
@@ -442,6 +288,103 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 this.emit('datastoreNodeRemoved', nodeId, parentId);
             }
         });
+
+        return this.hydrate();
+    }
+
+    public hydrate()
+    {
+        const { nodes } = this;
+
+        const nodeElements: Map<string, RealTimeObject> = new Map();
+
+        // prepare all nodeElements
+
+        nodes.keys().forEach((id) =>
+        {
+            const nodeElement = nodes.get(id) as RealTimeObject;
+
+            nodeElements.set(id, nodeElement);
+        });
+
+        // get the root
+        const rootId = this.model.root().get('root').value() as string;
+        const projectNode = nodeElements.get(rootId);
+
+        const hydrate = (nodeElement: RealTimeObject, parentNode?: ClonableNode) =>
+        {
+            const id = nodeElement.get('id').value() as string;
+
+            // ensure local ids don't clash with hydrating ids
+
+            consolidateNodeId(id);
+
+            // create the graph node
+
+            const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
+
+            const node = new CreateNodeCommand({ nodeSchema }).exec();
+
+            // add to parent if provided
+
+            if (parentNode)
+            {
+                parentNode.addChild(node as GraphNode);
+            }
+
+            // recursively create children
+
+            (nodeElement.get('children').value() as RealTimeArray).forEach((id) =>
+            {
+                const childId = String(id);
+                const childNodeElement = nodeElements.get(childId);
+
+                if (childNodeElement)
+                {
+                    hydrate(childNodeElement, node);
+                }
+                else
+                {
+                    throw new Error(`Could not find childElement "${childId}"`);
+                }
+            });
+        };
+
+        if (projectNode)
+        {
+            // start from the root node (Project)
+
+            hydrate(projectNode);
+        }
+        else
+        {
+            throw new Error('Could not find project node');
+        }
+
+        const rootNode = getGraphNode(rootId);
+
+        if (!rootNode)
+        {
+            throw new Error(`Could create root node "${rootId}"`);
+        }
+
+        return rootNode;
+    }
+
+    public disconnect(): void
+    {
+        if (!this.domain.isDisposed())
+        {
+            this.domain.dispose();
+            console.log('%c${userName}:Domain disposed', logStyle);
+        }
+    }
+
+    public batch(fn: () => void)
+    {
+        this.model.startBatch();
+        fn();
+        this.model.completeBatch();
     }
 
     protected async joinActivity(type: string, id: string)
