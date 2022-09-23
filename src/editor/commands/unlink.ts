@@ -1,6 +1,6 @@
-import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
-import { getGraphNode } from '../../../core/lib/nodes/factory';
-import { getCloneInfoSchema } from '../sync/schema';
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { getGraphNode } from '../../core/nodes/factory';
+import { getCloneInfoSchema } from '../../core/nodes/schema';
 import { Command } from '.';
 
 export class UnlinkCommand extends Command<{

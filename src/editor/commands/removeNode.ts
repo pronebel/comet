@@ -1,6 +1,6 @@
-import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
-import { sortNodesByCreation } from '../../../core/lib/nodes/abstract/graphNode';
-import { getGraphNode } from '../../../core/lib/nodes/factory';
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
+import { getGraphNode } from '../../core/nodes/factory';
 import { Command } from '.';
 
 export class RemoveNodeCommand extends Command<{

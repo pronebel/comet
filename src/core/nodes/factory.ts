@@ -1,8 +1,7 @@
-import type { id } from '../../../editor/lib/sync/schema';
 import type { ClonableNode, ClonableNodeConstructor, NodeOptions } from './abstract/clonableNode';
 
-export const nodeClasses: Map<id, ClonableNodeConstructor> = new Map();
-export const nodeInstances: Map<id, ClonableNode> = new Map();
+export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
+export const nodeInstances: Map<string, ClonableNode> = new Map();
 export const nodeIdCount = {} as Record<string, number>;
 
 export function registerGraphNodeType(nodeClass: ClonableNodeConstructor)

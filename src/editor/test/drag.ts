@@ -1,4 +1,4 @@
-import type { ContainerNode } from '../../../core/lib/nodes/concrete/container';
+import type { ContainerNode } from '../../core/nodes/concrete/container';
 import { ModifyModelCommand } from '../commands/modifyModel';
 import { TestApp } from './testApp';
 

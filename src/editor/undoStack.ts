@@ -27,7 +27,7 @@ export default class UndoStack
 
         // console.log(`%c${userName}:Command<${command.name}>: ${command.toString()}`, 'color:yellow');
 
-        return command.apply() as T;
+        return command.apply() as unknown as T;
     }
 
     public pushCommands(commands: Command[])

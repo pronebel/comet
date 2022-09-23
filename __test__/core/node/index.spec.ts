@@ -1,9 +1,9 @@
 import { Sprite } from 'pixi.js';
 
-import type { ModelBase } from '../../../src/core/lib/model/model';
-import { ModelSchema } from '../../../src/core/lib/model/schema';
-import { ClonableNode } from '../../../src/core/lib/nodes/clonableNode';
-import { CloneMode } from '../../../src/core/lib/nodes/cloneInfo';
+import type { ModelBase } from '../../../src/core/model/model';
+import { ModelSchema } from '../../../src/core/model/schema';
+import { ClonableNode } from '../../../src/core/nodes/abstract/clonableNode';
+import { CloneMode } from '../../../src/core/nodes/cloneInfo';
 
 export interface TestModel extends ModelBase
 {
@@ -20,6 +20,11 @@ const clearLog = () => log.length = 0;
 
 class TestComponent extends ClonableNode<TestModel, Sprite>
 {
+    public nodeType(): string
+    {
+        return 'Test';
+    }
+
     public modelSchema(): ModelSchema<TestModel>
     {
         log.push('modelSchema');
@@ -78,7 +83,9 @@ describe('Component', () =>
         it('should populate model values from given values', () =>
         {
             const component = new TestComponent({
-                x: 5,
+                model: {
+                    x: 5,
+                },
             });
 
             expect(component.model.ownValues).toStrictEqual({
@@ -226,7 +233,7 @@ describe('Component', () =>
 
         it('should reference cloner model when copied linked', () =>
         {
-            const component = new TestComponent({ x: 15 });
+            const component = new TestComponent({ model: { x: 15 } });
             const copy = component.clone();
 
             expect(copy.cloneInfo.isClonedFrom(component)).toBeTruthy();
@@ -236,7 +243,7 @@ describe('Component', () =>
 
         it('should not reference cloner model when copied unlinked', () =>
         {
-            const component = new TestComponent({ x: 15 });
+            const component = new TestComponent({ model: { x: 15 } });
             const copy = component.clone(CloneMode.Original);
 
             expect(copy.cloneInfo.isClonedFrom(component)).toBeTruthy();
@@ -317,7 +324,7 @@ describe('Component', () =>
 
             expect(copy.children).toHaveLength(1);
 
-            const component = new TestComponent({ x: 123 });
+            const component = new TestComponent({ model: { x: 123 } });
 
             parent.addChild(component);
 

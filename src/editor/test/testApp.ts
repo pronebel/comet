@@ -1,13 +1,14 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
-import type { ModelBase } from '../../../core/lib/model/model';
-import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
-import { type GraphNode, sortNodesByCreation } from '../../../core/lib/nodes/abstract/graphNode';
-import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
-import type { ContainerModel, ContainerNode } from '../../../core/lib/nodes/concrete/container';
-import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
-import { getGraphNode, registerGraphNodeType } from '../../../core/lib/nodes/factory';
+import type { ModelBase } from '../../core/model/model';
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
+import type { CloneMode } from '../../core/nodes/cloneInfo';
+import type { ContainerModel, ContainerNode } from '../../core/nodes/concrete/container';
+import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
+import { getGraphNode, registerGraphNodeType } from '../../core/nodes/factory';
+import type { NodeSchema } from '../../core/nodes/schema';
 import { type AppOptions, Application } from '../application';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { CloneCommand } from '../commands/clone';
@@ -17,7 +18,6 @@ import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { UnlinkCommand } from '../commands/unlink';
-import type { NodeSchema } from '../sync/schema';
 import { getUserName } from '../sync/user';
 import { DebugNode } from './debug';
 import { startDrag } from './drag';
@@ -94,12 +94,16 @@ export class TestApp extends Application
     }
 
     protected onDatastoreCustomPropDefined(
+        // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         id: string,
+        // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         name: string,
+        // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         type: CustomPropertyType,
+        // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         value: CustomPropertyValueType,
     ): void
@@ -107,18 +111,21 @@ export class TestApp extends Application
         this.fitSelection();
     }
 
+    // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onDatastoreCustomPropUndefined(nodeId: string, propName: string): void
     {
         this.fitSelection();
     }
 
+    // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onDatastoreCustomPropAssigned(nodeId: string, modelKey: string, customKey: string): void
     {
         this.fitSelection();
     }
 
+    // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onDatastoreCustomPropUnAssigned(nodeId: string, modelKey: string): void
     {
@@ -130,6 +137,7 @@ export class TestApp extends Application
         this.select(clonedNode as unknown as ContainerNode);
     }
 
+    // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onDatastoreModelModified(nodeId: string, values: ModelBase): void
     {

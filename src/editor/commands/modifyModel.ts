@@ -1,6 +1,6 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
-import type { ModelBase } from '../../../core/lib/model/model';
+import type { ModelBase } from '../../core/model/model';
 import { Command } from '.';
 
 export class ModifyModelCommand<M extends ModelBase> extends Command<{

@@ -1,6 +1,6 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
-import type { CustomPropertyType, CustomPropertyValueType } from '../../../core/lib/nodes/customProperties';
+import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import { Command } from '.';
 
 export class SetCustomPropCommand extends Command<{

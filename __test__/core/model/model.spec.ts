@@ -1,6 +1,6 @@
-import { NumericRangeLimitConstraint } from '../../../src/core/lib/model/constraints';
-import { createModel } from '../../../src/core/lib/model/model';
-import { ModelSchema } from '../../../src/core/lib/model/schema';
+import { NumericRangeLimitConstraint } from '../../../src/core/model/constraints';
+import { createModel } from '../../../src/core/model/model';
+import { ModelSchema } from '../../../src/core/model/schema';
 
 export interface TestModel
 {

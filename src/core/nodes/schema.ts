@@ -1,10 +1,10 @@
-import { version } from '../../../../package.json';
-import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
-import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
-import { CloneMode } from '../../../core/lib/nodes/cloneInfo';
-import type { CustomPropertyType } from '../../../core/lib/nodes/customProperties';
-import { newGraphNodeId } from '../../../core/lib/nodes/factory';
-import { getUserName } from './user';
+import { version } from '../../../package.json';
+import { getUserName } from '../../editor/sync/user';
+import type { ModelBase, ModelValue } from '../model/model';
+import type { ClonableNode } from './abstract/clonableNode';
+import { CloneMode } from './cloneInfo';
+import type { CustomPropertyType } from './customProperties';
+import { newGraphNodeId } from './factory';
 
 export type id = string;
 

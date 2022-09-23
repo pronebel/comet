@@ -1,4 +1,4 @@
-import { NumericRangeLimitConstraint } from '../../../src/core/lib/model/constraints';
+import { NumericRangeLimitConstraint } from '../../../src/core/model/constraints';
 
 describe('Model Constraints', () =>
 {

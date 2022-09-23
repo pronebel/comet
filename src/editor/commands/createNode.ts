@@ -1,8 +1,8 @@
-import type { ModelBase } from '../../../core/lib/model/model';
-import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
-import { CloneMode } from '../../../core/lib/nodes/cloneInfo';
-import { getGraphNode } from '../../../core/lib/nodes/factory';
-import { type NodeOptionsSchema, createNodeSchema } from '../sync/schema';
+import type { ModelBase } from '../../core/model/model';
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { CloneMode } from '../../core/nodes/cloneInfo';
+import { getGraphNode } from '../../core/nodes/factory';
+import { type NodeOptionsSchema, createNodeSchema } from '../../core/nodes/schema';
 import { Command } from '.';
 
 export class CreateNodeCommand<M extends ModelBase> extends Command<{

@@ -1,4 +1,4 @@
-import { ModelSchema } from '../../../src/core/lib/model/schema';
+import { ModelSchema } from '../../../src/core/model/schema';
 
 describe('Model Schema', () =>
 {

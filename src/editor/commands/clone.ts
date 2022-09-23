@@ -1,9 +1,9 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
-import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
-import type { CloneMode } from '../../../core/lib/nodes/cloneInfo';
-import { getGraphNode } from '../../../core/lib/nodes/factory';
-import { getCloneInfoSchema, getNodeSchema } from '../sync/schema';
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import type { CloneMode } from '../../core/nodes/cloneInfo';
+import { getGraphNode } from '../../core/nodes/factory';
+import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Command } from '.';
 
 export class CloneCommand extends Command<{

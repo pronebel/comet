@@ -1,12 +1,12 @@
-import '../../core/lib/nodes/register';
+import '../core/nodes/register';
 
 import { EventEmitter } from 'eventemitter3';
 import { Application as PixiApplication } from 'pixi.js';
 
-import type { ModelBase } from '../../core/lib/model/model';
-import type { ClonableNode } from '../../core/lib/nodes/abstract/clonableNode';
-import type { ProjectNode } from '../../core/lib/nodes/concrete/project';
-import type { CustomPropertyType, CustomPropertyValueType } from '../../core/lib/nodes/customProperties';
+import type { ModelBase } from '../core/model/model';
+import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
+import type { ProjectNode } from '../core/nodes/concrete/project';
+import type { CustomPropertyType, CustomPropertyValueType } from '../core/nodes/customProperties';
 import type { Command } from './commands';
 import { Datastore } from './sync/datastore';
 import { ObjectGraph } from './sync/objectGraph';
@@ -179,12 +179,14 @@ export abstract class Application extends EventEmitter
         }
     }
 
+    // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onObjectGraphNodeRemoved(nodeId: string, parentId: string)
     {
         // subclasses
     }
 
+    // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onObjectGraphParentSet(childNode: ClonableNode, parentNode: ClonableNode)
     {
@@ -192,12 +194,16 @@ export abstract class Application extends EventEmitter
     }
 
     protected onDatastoreCustomPropDefined(
+        // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         id: string,
+        // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         name: string,
+        // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         type: CustomPropertyType,
+        // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         value: CustomPropertyValueType,
     )
@@ -205,30 +211,35 @@ export abstract class Application extends EventEmitter
         // subclasses
     }
 
+    // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onDatastoreCustomPropUndefined(nodeId: string, propName: string)
     {
         // subclasses
     }
 
+    // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onDatastoreCustomPropAssigned(nodeId: string, modelKey: string, customKey: string)
     {
         // subclasses
     }
 
+    // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onDatastoreCustomPropUnAssigned(nodeId: string, modelKey: string)
     {
         // subclasses
     }
 
+    // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onDatastoreNodeCloned(clonedNode: ClonableNode)
     {
         // subclasses
     }
 
+    // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onDatastoreModelModified(nodeId: string, values: ModelBase)
     {

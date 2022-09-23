@@ -1,4 +1,4 @@
-import type { CloneInfoSchema } from '../../../editor/lib/sync/schema';
+import type { CloneInfoSchema } from './schema';
 
 export enum CloneMode
     {

@@ -8,12 +8,12 @@ import type {
 import Convergence, { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
-import type { ModelBase, ModelValue } from '../../../core/lib/model/model';
-import type { ClonableNode } from '../../../core/lib/nodes/abstract/clonableNode';
-import type { GraphNode } from '../../../core/lib/nodes/abstract/graphNode';
-import { consolidateNodeId, getGraphNode } from '../../../core/lib/nodes/factory';
+import type { ModelBase, ModelValue } from '../../core/model/model';
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import type { GraphNode } from '../../core/nodes/abstract/graphNode';
+import { consolidateNodeId, getGraphNode } from '../../core/nodes/factory';
+import { type NodeOptionsSchema, type NodeSchema, createProjectSchema, getCloneInfoSchema } from '../../core/nodes/schema';
 import type { ObjectGraph } from './objectGraph';
-import { type NodeOptionsSchema, type NodeSchema, createProjectSchema, getCloneInfoSchema } from './schema';
 import { getUserName } from './user';
 
 const userName = getUserName();
@@ -376,9 +376,9 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.emit('datastoreNodeSetParent', nodeId, parentId);
     }
 
-    public connect()
+    public connect(): Promise<ConvergenceDomain>
     {
-        return new Promise((resolve, reject) =>
+        return new Promise<ConvergenceDomain>((resolve, reject) =>
         {
             const url = 'https://localhost/realtime/convergence/default';
 
