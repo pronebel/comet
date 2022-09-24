@@ -27,7 +27,7 @@
     });
   };
 
-  if (getUrlParam("connect")) {
+  if (getUrlParam<number>("connect") === 1) {
     onConnect();
   }
 

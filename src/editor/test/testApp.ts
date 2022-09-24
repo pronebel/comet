@@ -59,7 +59,7 @@ export class TestApp extends Application
 
     public async init()
     {
-        if (userName === 'ali' && !getUrlParam('open'))
+        if (userName === 'ali' && getUrlParam<number>('open') !== 1)
         {
             await this.createProject('Test', 'test');
         }
