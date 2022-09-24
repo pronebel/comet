@@ -44,7 +44,9 @@ window.addEventListener('mousemove', (e: MouseEvent) =>
         state.component.model.x = newX;
         state.component.model.y = newY;
 
-        TestApp.getInstance().fitSelection(state.component);
+        const app = TestApp.getInstance();
+
+        app.fitSelection(app.selected);
     }
 });
 

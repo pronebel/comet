@@ -36,6 +36,7 @@
   };
 
   const onReOpen = () => {
+    console.clear();
     app.openProject("test");
   };
 
