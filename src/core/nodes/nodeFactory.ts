@@ -1,4 +1,5 @@
 import type { ClonableNode, ClonableNodeConstructor, NodeOptions } from './abstract/clonableNode';
+import { sortNodesByCreation } from './abstract/graphNode';
 
 export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
 export const nodeInstances: Map<string, ClonableNode> = new Map();
@@ -111,6 +112,11 @@ export function consolidateNodeId(id: string)
     const idCount = parseInt(_idCount, 10);
 
     nodeIdCount[nodeType] = Math.max(isNaN(nodeIdCount[nodeType]) ? 1 : nodeIdCount[nodeType], idCount);
+}
+
+export function getLatestNode()
+{
+    return Array.from(nodeInstances.values()).sort(sortNodesByCreation).shift();
 }
 
 (window as any).node = (id: string) => getGraphNode(id);

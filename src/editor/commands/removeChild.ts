@@ -44,7 +44,14 @@ export class RemoveChildCommand extends AbstractCommand<RemoveChildCommandParams
         {
             nodes.forEach((node) =>
             {
+                const cloner = node.cloneInfo.cloner;
+
                 app.exec(new RemoveNodeCommand({ nodeId: node.id }));
+
+                if (cloner)
+                {
+                    cloner.cloneInfo.removeCloned(node);
+                }
             });
         });
 

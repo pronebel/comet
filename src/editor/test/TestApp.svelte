@@ -21,6 +21,9 @@
   const app = TestApp.getInstance();
 
   const onConnect = () => {
+    if (isInitialising) {
+      return;
+    }
     isInitialising = true;
     app.init().then(() => {
       isInit = true;
@@ -37,7 +40,13 @@
 
   const onReOpen = () => {
     console.clear();
-    app.openProject("test");
+    const selectedId = app.selected?.id;
+    app.openProject("test").then(() => {
+      if (selectedId) {
+        const node = getGraphNode(selectedId);
+        app.select(node.cast());
+      }
+    });
   };
 
   const onNewContainer = () => {

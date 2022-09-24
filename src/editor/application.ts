@@ -3,6 +3,7 @@ import '../core/nodes/nodeRegister';
 import { EventEmitter } from 'eventemitter3';
 import { Application as PixiApplication } from 'pixi.js';
 
+import { resetModelIds } from '../core/model/model';
 import type { ProjectNode } from '../core/nodes/concrete/project';
 import { clearGraphNodeRegistrations } from '../core/nodes/nodeFactory';
 import type { AbstractCommand } from './abstractCommand';
@@ -89,9 +90,11 @@ export abstract class Application extends EventEmitter<AppEvents>
         return result as unknown as R;
     }
 
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onCommand(command: AbstractCommand, result: unknown)
     {
-        console.log('🔔', { name: command.name, command, result });
+        console.log(`%c🔔 ${command.name}: %c${JSON.stringify(command.params)}`, 'color:cyan', 'color:yellow');
     }
 
     public writeUndoStack()
@@ -124,6 +127,7 @@ export abstract class Application extends EventEmitter<AppEvents>
         {
             this.undoStack.clear();
             clearGraphNodeRegistrations();
+            resetModelIds();
             this.datastore.reset();
             this.stage.removeChild(this.project.view);
             delete this.project;

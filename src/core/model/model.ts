@@ -3,6 +3,11 @@ import type { ModelSchema } from './schema';
 
 let id = 1;
 
+export function resetModelIds()
+{
+    id = 1;
+}
+
 export type ModelValue = string | number | boolean | object | null;
 export type ModelBase = Record<string, ModelValue>;
 

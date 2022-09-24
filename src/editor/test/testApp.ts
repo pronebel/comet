@@ -6,7 +6,7 @@ import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
-import {  registerGraphNodeType } from '../../core/nodes/nodeFactory';
+import {  getLatestNode, registerGraphNodeType } from '../../core/nodes/nodeFactory';
 import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
 import type { AbstractCommand } from '../abstractCommand';
 import { type AppOptions, Application } from '../application';
@@ -16,7 +16,6 @@ import { CreateChildCommand } from '../commands/createChild';
 import { ModifyModelCommand } from '../commands/modifyModel';
 import { RemoveChildCommand } from '../commands/removeChild';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
-import type { RemoveNodeCommandReturn } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { SetParentCommand } from '../commands/setParent';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
@@ -99,9 +98,12 @@ export class TestApp extends Application
         }
         else if (commandName === 'RemoveNode')
         {
-            const { parentNode }  = result as RemoveNodeCommandReturn;
+            const node = getLatestNode();
 
-            this.select(parentNode.cast<ContainerNode>());
+            if (node)
+            {
+                this.select(node.cast<ContainerNode>());
+            }
         }
     }
 
@@ -206,20 +208,17 @@ export class TestApp extends Application
         if (this.project && this.selected)
         {
             const parentNode = this.selected.parent;
-            const { clonedNode } = this.exec<CloneCommandReturn>(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
+            const {
+                sourceNode,
+                clonedNode,
+            } = this.exec<CloneCommandReturn>(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
 
             if (parentNode)
             {
                 this.exec(new SetParentCommand({ parentId: parentNode.id, childId: clonedNode.id }));
+                this.exec(new ModifyModelCommand({ nodeId: clonedNode.id, values: sourceNode.model.ownValues }));
+                this.select(clonedNode.cast());
             }
-        }
-    }
-
-    public unlink()
-    {
-        if (this.project && this.selected)
-        {
-            this.exec(new UnlinkCommand({ nodeId: this.selected.id }));
         }
     }
 
@@ -228,6 +227,14 @@ export class TestApp extends Application
         if (this.selected && (this.selected.nodeType() !== 'Scene' || this.selected?.nodeType() !== 'Project'))
         {
             new RemoveChildCommand({ nodeId: this.selected.id }).exec();
+        }
+    }
+
+    public unlink()
+    {
+        if (this.project && this.selected)
+        {
+            this.exec(new UnlinkCommand({ nodeId: this.selected.id }));
         }
     }
 
@@ -267,7 +274,7 @@ export class TestApp extends Application
         if (this.selected && this.selected instanceof DebugNode)
         {
             this.exec(new ModifyModelCommand<SpriteModel>({
-                nodeId: this.selected.id,
+                nodeId: this.selected.getOriginal().id,
                 values: {
                     tint: Math.round(Math.random() * 100000),
                 } }));
@@ -279,7 +286,7 @@ export class TestApp extends Application
         if (this.selected)
         {
             this.exec(new ModifyModelCommand<SpriteModel>({
-                nodeId: this.selected.id,
+                nodeId: this.selected.getOriginal().id,
                 values: {
                     width: Math.round(Math.random() * 50),
                     height: Math.round(Math.random() * 50),
