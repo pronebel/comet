@@ -3,6 +3,7 @@ import type { CloneMode } from '../../core/nodes/cloneInfo';
 import { getGraphNode, registerGraphNode } from '../../core/nodes/nodeFactory';
 import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
+import { SetParentCommand } from './setParent';
 
 export interface CloneCommandParams
 {
@@ -27,7 +28,7 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
         const { datastore, params: { nodeId, cloneMode, depth } } = this;
 
         const sourceNode = getGraphNode(nodeId);
-        const originalNode = sourceNode.cloneInfo.isVariant ? sourceNode : sourceNode.getOriginal();
+        const originalNode = sourceNode.getModificationOriginal();
         const cloneInfoSchema = getCloneInfoSchema(originalNode);
 
         // clone original
@@ -36,13 +37,12 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
         // update originals new cloneInfo
         datastore.updateNodeCloneInfo(originalNode.id, cloneInfoSchema);
 
-        // for each cloned node...
+        // for each cloned node (including primary cloned node)...
         clonedNode.walk<ClonableNode>((node) =>
         {
-            const cloneInfoSchema = getCloneInfoSchema(node);
             const nodeSchema = {
                 ...getNodeSchema(node),
-                cloneInfo: cloneInfoSchema,
+                cloneInfo: getCloneInfoSchema(node),
             };
 
             // create the datastore version of the cloned graph node
@@ -52,7 +52,7 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
             registerGraphNode(node);
 
             // update the cloners cloneInfo in the datastore
-            const clonerId = cloneInfoSchema.cloner;
+            const clonerId = nodeSchema.cloneInfo.cloner;
 
             if (clonerId)
             {
@@ -62,8 +62,6 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
                 datastore.updateNodeCloneInfo(clonerId, cloneInfoSchema);
             }
         });
-
-        // todo: need to parent correct cloned node to parent (and avoid bad child update bug)
 
         return {
             sourceNode,

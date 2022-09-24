@@ -6,8 +6,6 @@ import { Application as PixiApplication } from 'pixi.js';
 import type { ProjectNode } from '../core/nodes/concrete/project';
 import { clearGraphNodeRegistrations } from '../core/nodes/nodeFactory';
 import type { AbstractCommand } from './abstractCommand';
-import type { CloneCommandReturn } from './commands/clone';
-import { SetParentCommand } from './commands/setParent';
 import { Datastore } from './sync/datastore';
 import UndoStack from './undoStack';
 
@@ -84,8 +82,9 @@ export abstract class Application extends EventEmitter<AppEvents>
 
         const result = command.exec();
 
-        this.emit('commandExec', command, result);
         this.onCommand(command, result);
+
+        this.emit('commandExec', command, result);
 
         return result as unknown as R;
     }
@@ -93,20 +92,6 @@ export abstract class Application extends EventEmitter<AppEvents>
     protected onCommand(command: AbstractCommand, result: unknown)
     {
         console.log('🔔', { name: command.name, command, result });
-
-        const commandName = command.name;
-
-        // if (commandName === 'Clone')
-        // {
-        //     const { sourceNode, clonedNode } = result as CloneCommandReturn;
-
-        //     const parentNode = sourceNode.parent;
-
-        //     if (parentNode)
-        //     {
-        //         this.exec(new SetParentCommand({ parentId: parentNode.id, childId: clonedNode.id }));
-        //     }
-        // }
     }
 
     public writeUndoStack(endIndex = 0)

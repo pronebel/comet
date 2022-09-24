@@ -1,8 +1,8 @@
+import { getUrlParam } from '../util';
+
 export function getUserName()
 {
-    const url = new URL(window.location.href);
-    const params = new URLSearchParams(url.search);
-    const user = params.get('user');
+    const user = getUrlParam('user');
 
     if (!user)
     {

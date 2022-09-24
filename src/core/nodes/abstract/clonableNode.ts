@@ -443,6 +443,11 @@ export abstract class ClonableNode<
         return node;
     }
 
+    public getModificationOriginal(): ClonableNode
+    {
+        return this.cloneInfo.isVariant ? this as unknown as ClonableNode : this.getOriginal();
+    }
+
     public getChildCloneMode()
     {
         const { isReferenceOrRoot, cloneMode } = this.cloneInfo;

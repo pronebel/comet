@@ -18,9 +18,11 @@ import { RemoveChildCommand } from '../commands/removeChild';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import type { RemoveNodeCommandReturn } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
+import { SetParentCommand } from '../commands/setParent';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { UnlinkCommand } from '../commands/unlink';
 import { getUserName } from '../sync/user';
+import { getUrlParam } from '../util';
 import { DebugNode } from './debug';
 import { startDrag } from './drag';
 
@@ -57,7 +59,7 @@ export class TestApp extends Application
 
     public async init()
     {
-        if (userName === 'ali')
+        if (userName === 'ali' && !getUrlParam('open'))
         {
             await this.createProject('Test', 'test');
         }
@@ -128,7 +130,13 @@ export class TestApp extends Application
     {
         this.datastore.nodes.keys().forEach((id) =>
         {
-            if (id !== 'Project:1' && id !== 'Scene:1')
+            if (id === 'Scene:1')
+            {
+                const nodeElement = this.datastore.getNodeElement(id);
+
+                nodeElement.get('children').value([]);
+            }
+            else if (id !== 'Project:1' && id !== 'Scene:1')
             {
                 this.datastore.nodes.remove(id);
             }
@@ -196,7 +204,13 @@ export class TestApp extends Application
     {
         if (this.project && this.selected)
         {
-            this.exec(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
+            const parentNode = this.selected.parent;
+            const { clonedNode } = this.exec<CloneCommandReturn>(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
+
+            if (parentNode)
+            {
+                this.exec(new SetParentCommand({ parentId: parentNode.id, childId: clonedNode.id }));
+            }
         }
     }
 
@@ -375,7 +389,10 @@ export class TestApp extends Application
                 e.stopPropagation();
 
                 this.select(component);
-                startDrag(component);
+
+                const original = component.getModificationOriginal();
+
+                startDrag(original.cast());
             });
         }
     }

@@ -3,6 +3,7 @@
   import type { ContainerNode } from "../../core/nodes/concrete/container";
   import { getGraphNode } from "../../core/nodes/nodeFactory";
   import { getUserName } from "../sync/user";
+  import { getUrlParam } from "../util";
 
   import { TestApp } from "./testApp";
 
@@ -19,12 +20,16 @@
 
   const app = TestApp.getInstance();
 
-  const onInit = () => {
+  const onConnect = () => {
     isInitialising = true;
     app.init().then(() => {
       isInit = true;
     });
   };
+
+  if (getUrlParam("connect")) {
+    onConnect();
+  }
 
   const onReload = () => {
     window.location.reload();
@@ -198,7 +203,7 @@
     <button on:click={onUnAssignCustomProp}>UnAssign Prop</button>
     <input bind:value={assignModelKey} />
   {:else}
-    <button on:click={onInit}
+    <button on:click={onConnect}
       >{isInitialising ? "Connecting..." : "Connect"}</button
     >
   {/if}
