@@ -264,18 +264,20 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
 export const sortNodesByCreation = (a: {created: number; id: string}, b: {created: number; id: string}) =>
 {
-    const aValue = a.created;
-    const bValue = b.created;
+    const aCreation = a.created;
+    const bCreation = b.created;
 
-    if (aValue < bValue)
+    // sort by creation
+    if (aCreation < bCreation)
     {
         return -1;
     }
-    else if (aValue > bValue)
+    else if (aCreation > bCreation)
     {
         return 1;
     }
 
+    // if creation is equal sort by id index
     const aIdIndex = parseInt(a.id.split(':')[1]);
     const bIdIndex = parseInt(b.id.split(':')[1]);
 

@@ -3,15 +3,12 @@ import '../core/nodes/register';
 import { EventEmitter } from 'eventemitter3';
 import { Application as PixiApplication } from 'pixi.js';
 
-// import type { ModelBase } from '../core/model/model';
-// import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { ProjectNode } from '../core/nodes/concrete/project';
-// import type { CustomPropertyType, CustomPropertyValueType } from '../core/nodes/customProperties';
+import { clearGraphNodeRegistrations } from '../core/nodes/factory';
 import type { AbstractCommand } from './abstractCommand';
 import type { CloneCommandReturn } from './commands/clone';
 import { SetParentCommand } from './commands/setParent';
 import { Datastore } from './sync/datastore';
-// import { ObjectGraph } from './sync/objectGraph';
 import UndoStack from './undoStack';
 
 export interface AppOptions
@@ -49,36 +46,6 @@ export abstract class Application extends EventEmitter<AppEvents>
 
         // create datastore
         this.datastore = new Datastore();
-
-        // create object graph
-        // const objectGraph = this.objectGraph = new ObjectGraph();
-
-        // get notified when object graph has changed
-        // objectGraph.on('objectGraphNodeCreated', this.onObjectGraphNodeCreated.bind(this));
-        // objectGraph.on('objectGraphNodeRemoved', this.onObjectGraphNodeRemoved.bind(this));
-        // objectGraph.on('objectGraphParentSet', this.onObjectGraphParentSet.bind(this));
-
-        // update object graph when datastore changes
-        // datastore.on('datastoreNodeCreated', objectGraph.onDatastoreNodeCreated);
-        // datastore.on('datastoreNodeRemoved', objectGraph.onDatastoreNodeRemoved);
-        // datastore.on('datastoreNodeSetParent', objectGraph.onDatastoreNodeSetParent);
-        // datastore.on('datastoreCustomPropDefined', objectGraph.onDataStoreCustomPropDefined);
-        // datastore.on('datastoreCustomPropUndefined', objectGraph.onDatastoreCustomPropUndefined);
-        // datastore.on('datastoreCustomPropAssigned', objectGraph.onDatastoreCustomPropAssigned);
-        // datastore.on('datastoreCustomPropUnAssigned', objectGraph.onDatastoreCustomPropUnAssigned);
-        // datastore.on('datastoreNodeCloned', objectGraph.onDatastoreNodeCloned);
-        // datastore.on('datastoreModelModified', objectGraph.onDatastoreModelModified);
-        // datastore.on('datastoreCloneInfoModified', objectGraph.onDatastoreCloneInfoModified);
-        // datastore.on('datastoreNodeUnlinked', objectGraph.onDatastoreNodeUnlinked);
-
-        // get notified when datastore changes
-        // datastore.on('datastoreHydrated', this.onDatastoreHydrated.bind(this));
-        // datastore.on('datastoreCustomPropDefined', this.onDatastoreCustomPropDefined.bind(this));
-        // datastore.on('datastoreCustomPropUndefined', this.onDatastoreCustomPropUndefined.bind(this));
-        // datastore.on('datastoreCustomPropAssigned', this.onDatastoreCustomPropAssigned.bind(this));
-        // datastore.on('datastoreCustomPropUnAssigned', this.onDatastoreCustomPropUnAssigned.bind(this));
-        // datastore.on('datastoreNodeCloned', this.onDatastoreNodeCloned.bind(this));
-        // datastore.on('datastoreModelModified', this.onDatastoreModelModified.bind(this));
     }
 
     public static get instance()
@@ -108,12 +75,12 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public exec<R = unknown>(command: AbstractCommand): R
     {
-        if (command.isStandAlone)
-        {
-            throw new Error(`Command ${command.name} is stand alone and must be called separately to Application.exec().`);
-        }
+        const shouldTrack = !command.isStandAlone;
 
-        this.undoStack.push(command);
+        if (shouldTrack)
+        {
+            this.undoStack.push(command);
+        }
 
         const result = command.exec();
 
@@ -163,9 +130,23 @@ export abstract class Application extends EventEmitter<AppEvents>
         }
     }
 
+    protected resetState()
+    {
+        if (this.project)
+        {
+            this.undoStack.clear();
+            clearGraphNodeRegistrations();
+            this.datastore.reset();
+            this.stage.removeChild(this.project.view);
+            delete this.project;
+        }
+    }
+
     public async createProject(name: string, id: string)
     {
         const { datastore } = this;
+
+        this.resetState();
 
         if (await datastore.hasProject(name))
         {
@@ -179,6 +160,8 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public async openProject(id: string)
     {
+        this.resetState();
+
         const project = await this.datastore.openProject(id) as unknown as ProjectNode;
 
         this.initProject(project);
@@ -187,7 +170,6 @@ export abstract class Application extends EventEmitter<AppEvents>
     protected initProject(project: ProjectNode)
     {
         this.project = project;
-        this.stage.addChild(project.view);
     }
 
     protected onDatastoreHydrated()
@@ -197,81 +179,4 @@ export abstract class Application extends EventEmitter<AppEvents>
             this.project.updateRecursive();
         }
     }
-
-    // protected onObjectGraphNodeCreated(node: ClonableNode)
-    // {
-    //     if (node.nodeType() === 'Project')
-    //     {
-    //         const project = this.project = node as unknown as ProjectNode;
-
-    //         this.stage.addChild(project.view);
-    //     }
-    // }
-
-    // // @ts-ignore
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onObjectGraphNodeRemoved(nodeId: string, parentId: string)
-    // {
-    //     // subclasses
-    // }
-
-    // // @ts-ignore
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onObjectGraphParentSet(childNode: ClonableNode, parentNode: ClonableNode)
-    // {
-    //     // subclasses
-    // }
-
-    // protected onDatastoreCustomPropDefined(
-    //     // @ts-ignore
-    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //     id: string,
-    //     // @ts-ignore
-    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //     name: string,
-    //     // @ts-ignore
-    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //     type: CustomPropertyType,
-    //     // @ts-ignore
-    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    //     value: CustomPropertyValueType,
-    // )
-    // {
-    //     // subclasses
-    // }
-
-    // // @ts-ignore
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onDatastoreCustomPropUndefined(nodeId: string, propName: string)
-    // {
-    //     // subclasses
-    // }
-
-    // // @ts-ignore
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onDatastoreCustomPropAssigned(nodeId: string, modelKey: string, customKey: string)
-    // {
-    //     // subclasses
-    // }
-
-    // // @ts-ignore
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onDatastoreCustomPropUnAssigned(nodeId: string, modelKey: string)
-    // {
-    //     // subclasses
-    // }
-
-    // // @ts-ignore
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onDatastoreNodeCloned(clonedNode: ClonableNode)
-    // {
-    //     // subclasses
-    // }
-
-    // // @ts-ignore
-    // // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onDatastoreModelModified(nodeId: string, values: ModelBase)
-    // {
-    //     // subclasses
-    // }
 }

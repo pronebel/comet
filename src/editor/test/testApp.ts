@@ -4,8 +4,9 @@ import { filters, Sprite, Texture } from 'pixi.js';
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
+import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
-import { registerGraphNodeType } from '../../core/nodes/factory';
+import {  registerGraphNodeType } from '../../core/nodes/factory';
 import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
 import type { AbstractCommand } from '../abstractCommand';
 import { type AppOptions, Application } from '../application';
@@ -13,8 +14,9 @@ import { AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { type CloneCommandReturn, CloneCommand } from '../commands/clone';
 import { CreateChildCommand } from '../commands/createChild';
 import { ModifyModelCommand } from '../commands/modifyModel';
+import { RemoveChildCommand } from '../commands/removeChild';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
-import { RemoveNodeCommand } from '../commands/removeNode';
+import type { RemoveNodeCommandReturn } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { UnlinkCommand } from '../commands/unlink';
@@ -67,11 +69,22 @@ export class TestApp extends Application
         this.deselect();
     }
 
+    protected initProject(project: ProjectNode): void
+    {
+        super.initProject(project);
+
+        this.stage.addChild(project.view);
+
+        this.makeInteractiveDeep(project.cast<ContainerNode>());
+    }
+
     protected onCommand(command: AbstractCommand<{}, void>, result: unknown): void
     {
         super.onCommand(command, result);
 
-        if (command.name === 'Clone')
+        const commandName = command.name;
+
+        if (commandName === 'Clone')
         {
             const { clonedNode } = result as CloneCommandReturn;
 
@@ -81,6 +94,12 @@ export class TestApp extends Application
             });
 
             this.select(clonedNode.cast<ContainerNode>());
+        }
+        else if (commandName === 'RemoveNode')
+        {
+            const { parentNode }  = result as RemoveNodeCommandReturn;
+
+            this.select(parentNode.cast<ContainerNode>());
         }
     }
 
@@ -191,16 +210,9 @@ export class TestApp extends Application
 
     public deleteSelected()
     {
-        if (this.selected && this.selected.nodeType() !== 'Scene')
+        if (this.selected && (this.selected.nodeType() !== 'Scene' || this.selected?.nodeType() !== 'Project'))
         {
-            const parentNode = this.selected.parent;
-
-            this.exec(new RemoveNodeCommand({ nodeId: this.selected.id }));
-
-            if (parentNode)
-            {
-                this.select(parentNode as ContainerNode);
-            }
+            new RemoveChildCommand({ nodeId: this.selected.id }).exec();
         }
     }
 

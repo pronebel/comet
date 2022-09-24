@@ -30,6 +30,10 @@
     window.location.reload();
   };
 
+  const onReOpen = () => {
+    app.openProject("test");
+  };
+
   const onNewContainer = () => {
     app.newContainer();
   };
@@ -168,6 +172,7 @@
     <button on:click={onInspect}>Inspect</button>
     <hr />
     <button on:click={onReload}>Reload</button>
+    <button on:click={onReOpen}>ReOpen</button>
     <button on:click={onRestoreDatastore}>Restore DStore</button>
     <button on:click={onSaveDatastore}>Save DStore</button>
     <button on:click={onInspectDatastore}>Inspect DStore</button>

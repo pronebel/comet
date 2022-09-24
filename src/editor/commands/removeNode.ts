@@ -1,5 +1,4 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import { getGraphNode } from '../../core/nodes/factory';
 import { AbstractCommand } from '../abstractCommand';
 
@@ -8,54 +7,37 @@ export interface RemoveNodeCommandParams
     nodeId: string;
 }
 
-export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams>
+export interface RemoveNodeCommandReturn
+{
+    node: ClonableNode;
+    parentNode: ClonableNode;
+}
+
+export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, RemoveNodeCommandReturn>
 {
     public static commandName = 'RemoveNode';
 
-    public exec(): void
+    public exec(): RemoveNodeCommandReturn
     {
         const { datastore, params: { nodeId } } = this;
 
         const node = getGraphNode(nodeId);
+        const parentNode = node.parent;
 
-        const deleteNodes: ClonableNode[] = [];
-        const { isOriginal, hasCloned, isReferenceRoot, isVariant } = node.cloneInfo;
-
-        if (((isOriginal || isVariant) && !hasCloned))
+        if (!parentNode)
         {
-            // original or variant which wasn't cloned
-            deleteNodes.push(...node.getAllChildren<ClonableNode>(true));
-        }
-        else if (isReferenceRoot)
-        {
-            // node has been cloned, will need to delete all cloned nodes
-            const nodes = node.getAllCloned();
-
-            deleteNodes.push(node);
-
-            nodes.forEach((node) => deleteNodes.push(...node.getAllChildren<ClonableNode>(true)));
-        }
-        else
-        {
-            // node has been cloned, will need to delete all cloned nodes
-            const original = node.getOriginal();
-            const nodes = original.getAllCloned();
-
-            deleteNodes.push(original);
-
-            nodes.forEach((node) => deleteNodes.push(...node.getAllChildren<ClonableNode>(true)));
+            throw new Error(`Cannot remove node "${nodeId}" which has no parent`);
         }
 
-        deleteNodes.sort(sortNodesByCreation).reverse();
+        const parentId = parentNode.id;
 
-        const deleteNodeIds = deleteNodes.map((node) => node.id);
+        // delete data from datastore
+        datastore.removeNode(nodeId, parentId);
 
-        console.log('Delete ids:', deleteNodeIds);
+        // remove from parent graph node
+        parentNode.removeChild(node);
 
-        datastore.batch(() =>
-        {
-            deleteNodeIds.forEach((nodeId) => datastore.removeNode(nodeId));
-        });
+        return { node, parentNode: parentNode.cast<ClonableNode>() };
     }
 
     public undo(): void

@@ -5,6 +5,7 @@ import { type CloneCommandParams, CloneCommand } from './commands/clone';
 import { type CreateChildCommandParams, CreateChildCommand } from './commands/createChild';
 import { type CreateNodeCommandParams, CreateNodeCommand } from './commands/createNode';
 import { type ModifyModelCommandParams, ModifyModelCommand } from './commands/modifyModel';
+import { type RemoveChildCommandParams, RemoveChildCommand } from './commands/removeChild';
 import { type RemoveCustomPropCommandParams, RemoveCustomPropCommand } from './commands/removeCustomProp';
 import { type RemoveNodeCommandParams, RemoveNodeCommand } from './commands/removeNode';
 import { type SetCustomPropCommandParams, SetCustomPropCommand } from './commands/setCustomProp';
@@ -18,6 +19,7 @@ export type CommandName =
     'CreateChild' |
     'CreateNode' |
     'ModifyModel' |
+    'RemoveChild' |
     'RemoveCustomProp' |
     'RemoveNode' |
     'SetCustomProp' |
@@ -32,6 +34,7 @@ export const Commands
     CreateChild: CreateChildCommand,
     CreateNode: CreateNodeCommand,
     ModifyModel: ModifyModelCommand,
+    RemoveChild: RemoveChildCommand,
     RemoveCustomProp: RemoveCustomPropCommand,
     RemoveNode: RemoveNodeCommand,
     SetCustomProp: SetCustomPropCommand,
@@ -47,6 +50,7 @@ export interface CommandParams
     CreateChild: CreateChildCommandParams<ModelBase>;
     CreateNode: CreateNodeCommandParams<ModelBase>;
     ModifyModel: ModifyModelCommandParams<ModelBase>;
+    RemoveChild: RemoveChildCommandParams;
     RemoveCustomProp: RemoveCustomPropCommandParams;
     RemoveNode: RemoveNodeCommandParams;
     SetCustomProp: SetCustomPropCommandParams;

@@ -2,7 +2,7 @@ import type { ClonableNode, ClonableNodeConstructor, NodeOptions } from './abstr
 
 export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
 export const nodeInstances: Map<string, ClonableNode> = new Map();
-export const nodeIdCount = {} as Record<string, number>;
+export let nodeIdCount = {} as Record<string, number>;
 
 export function registerGraphNodeType(nodeClass: ClonableNodeConstructor)
 {
@@ -15,6 +15,12 @@ export function registerGraphNodeType(nodeClass: ClonableNodeConstructor)
     }
 
     nodeClasses.set(nodeType, nodeClass);
+}
+
+export function clearGraphNodeRegistrations()
+{
+    nodeInstances.clear();
+    nodeIdCount = {};
 }
 
 export function getGraphNode(id: string)

@@ -57,6 +57,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         super();
 
         Datastore.instance = this;
+
         this.nodeRealtimeObjects = new Map();
     }
 
@@ -90,6 +91,12 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return this.model.elementAt('nodes') as RealTimeObject;
     }
 
+    public reset()
+    {
+        this.nodeRealtimeObjects.clear();
+        delete this._model;
+    }
+
     public connect(): Promise<ConvergenceDomain>
     {
         return new Promise<ConvergenceDomain>((resolve, reject) =>
@@ -116,7 +123,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             {
                 clearTimeout(timeout);
                 console.log(`%cConnected as ${userName}!`, 'color:lime');
-
                 this._domain = domain;
                 resolve(domain);
             }).catch(reject);
@@ -261,10 +267,23 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         });
     }
 
-    public removeNode(nodeId: string)
+    public removeNode(nodeId: string, parentId: string)
     {
+        const parentElement = this.getNodeElement(parentId);
+
         // remove from nodes RealTimeObject
         this.nodes.remove(nodeId);
+
+        // remove child reference in parent element
+        const childArray = parentElement.get('children') as RealTimeArray;
+        const index = childArray.findIndex((id) => id.value() === nodeId);
+
+        if (index === -1)
+        {
+            throw new Error(`Could not find child "${nodeId}" reference in parent "${parentId}"`);
+        }
+
+        childArray.remove(index);
 
         // unregister RealTimeObject for node
         this.unRegisterNode(nodeId);

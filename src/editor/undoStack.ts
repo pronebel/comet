@@ -20,6 +20,12 @@ export default class UndoStack
         return this.head > -1;
     }
 
+    public clear()
+    {
+        this.stack.length = 0;
+        this.head = -1;
+    }
+
     public push(command: AbstractCommand)
     {
         this.stack.push(command);
