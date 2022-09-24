@@ -116,7 +116,7 @@ export function consolidateNodeId(id: string)
 
 export function getLatestNode()
 {
-    return Array.from(nodeInstances.values()).sort(sortNodesByCreation).shift();
+    return Array.from(nodeInstances.values()).sort(sortNodesByCreation).pop();
 }
 
 (window as any).node = (id: string) => getGraphNode(id);

@@ -1,5 +1,5 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getGraphNode } from '../../core/nodes/nodeFactory';
+import { disposeGraphNode, getGraphNode } from '../../core/nodes/nodeFactory';
 import { AbstractCommand } from '../abstractCommand';
 
 export interface RemoveNodeCommandParams
@@ -36,6 +36,9 @@ export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, 
 
         // remove from parent graph node
         parentNode.removeChild(node);
+
+        // unregister graph node
+        disposeGraphNode(node);
 
         return { node, parentNode: parentNode.cast<ClonableNode>() };
     }
