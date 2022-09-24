@@ -243,6 +243,8 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         // set children data
         const childArray = parentElement.get('children') as RealTimeArray;
 
+        // const index = childArray.findIndex((id) => id.value() === childId);
+
         childArray.push(childId);
     }
 
@@ -377,24 +379,20 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const id = nodeElement.get('id').value() as string;
 
             // ensure local ids don't clash with hydrating ids
-
             consolidateNodeId(id);
 
             // create the graph node
-
             const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
 
             const { node } = new CreateNodeCommand({ nodeSchema }).exec();
 
             // add to parent if provided
-
             if (parentNode)
             {
                 parentNode.addChild(node as GraphNode);
             }
 
             // recursively create children
-
             (nodeElement.get('children').value() as RealTimeArray).forEach((id) =>
             {
                 const childId = String(id);

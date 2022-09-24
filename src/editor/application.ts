@@ -96,17 +96,17 @@ export abstract class Application extends EventEmitter<AppEvents>
 
         const commandName = command.name;
 
-        if (commandName === 'Clone')
-        {
-            const { sourceNode, clonedNode } = result as CloneCommandReturn;
+        // if (commandName === 'Clone')
+        // {
+        //     const { sourceNode, clonedNode } = result as CloneCommandReturn;
 
-            const parentNode = sourceNode.parent;
+        //     const parentNode = sourceNode.parent;
 
-            if (parentNode)
-            {
-                this.exec(new SetParentCommand({ parentId: parentNode.id, childId: clonedNode.id }));
-            }
-        }
+        //     if (parentNode)
+        //     {
+        //         this.exec(new SetParentCommand({ parentId: parentNode.id, childId: clonedNode.id }));
+        //     }
+        // }
     }
 
     public writeUndoStack(endIndex = 0)

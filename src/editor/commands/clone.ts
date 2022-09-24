@@ -63,6 +63,8 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
             }
         });
 
+        // todo: need to parent correct cloned node to parent (and avoid bad child update bug)
+
         return {
             sourceNode,
             clonedNode,

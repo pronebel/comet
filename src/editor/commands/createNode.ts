@@ -24,19 +24,12 @@ export class CreateNodeCommand<
 
     public static createNode(datastore: Datastore, nodeSchema: NodeSchema): CreateNodeCommandReturn
     {
-        const { type, id, model, cloneInfo: { cloneMode, cloner, cloned }, customProperties } = nodeSchema;
+        const { type, id, model, cloneInfo: { cloneMode, cloner }, customProperties } = nodeSchema;
 
         datastore.createNodeSchema(nodeSchema);
 
         // build clone info
         const cloneInfo = new CloneInfo(cloneMode, cloner ? getGraphNode(cloner) : undefined);
-
-        cloned.forEach((id) =>
-        {
-            const node = getGraphNode(id);
-
-            cloneInfo.cloned.push(node);
-        });
 
         // create and register graph node
         const node = createGraphNode(type,
