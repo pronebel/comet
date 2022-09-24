@@ -22,7 +22,6 @@ export abstract class Application extends EventEmitter<AppEvents>
     public pixiApp: PixiApplication;
     public datastore: Datastore;
     public undoStack: UndoStack;
-    // public objectGraph: ObjectGraph;
     public project?: ProjectNode;
 
     private static _instance: Application;
@@ -43,7 +42,6 @@ export abstract class Application extends EventEmitter<AppEvents>
 
         this.undoStack = new UndoStack();
 
-        // create datastore
         this.datastore = new Datastore();
     }
 

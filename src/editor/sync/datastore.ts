@@ -29,18 +29,15 @@ export const defaultProjectSettings = {
 export const connectionTimeout = 2500;
 
 export type DatastoreEvents =
-| 'datastoreHydrated'
-| 'datastoreNodeCreated'
-| 'datastoreNodeSetParent'
-| 'datastoreNodeRemoved'
-| 'datastoreCustomPropDefined'
-| 'datastoreCustomPropUndefined'
-| 'datastoreCustomPropAssigned'
-| 'datastoreCustomPropUnAssigned'
-| 'datastoreNodeCloned'
-| 'datastoreModelModified'
-| 'datastoreCloneInfoModified'
-| 'datastoreNodeUnlinked';
+| 'nodeCreated'
+| 'setParent'
+| 'nodeRemoved'
+| 'customPropDefined'
+| 'customPropUndefined'
+| 'customPropAssigned'
+| 'customPropUnassigned'
+| 'modelModified'
+| 'cloneInfoModified';
 
 const logStyle = 'color:cyan';
 
@@ -151,7 +148,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
                 console.log(`%c${userName}:${id}:parent.set: ${parentId} ${childId}`, logStyle);
 
-                this.emit('datastoreNodeSetParent', parentId, childId);
+                this.emit('setParent', parentId, childId);
             }
         });
 
@@ -166,14 +163,14 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             console.log(`%c${userName}:${id}:customProperties.defined: ${info}`, logStyle);
 
-            this.emit('datastoreCustomPropDefined', id, name, type, value);
+            this.emit('customPropDefined', id, name, type, value);
         }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
         {
             const propName = (event as ObjectSetEvent).key;
 
             console.log(`%c${userName}:${id}:customProperties.undefined: "${propName}"`, logStyle);
 
-            this.emit('datastoreCustomPropUndefined', id, propName);
+            this.emit('customPropUndefined', id, propName);
         });
 
         // catch events on nodeElement custom prop assigned changes (as a remote user)
@@ -184,14 +181,14 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             console.log(`%c${userName}:${id}:customProperties.assign: "${modelKey}->${customKey}"`, logStyle);
 
-            this.emit('datastoreCustomPropAssigned', id, modelKey, customKey);
+            this.emit('customPropAssigned', id, modelKey, customKey);
         }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
         {
             const modelKey = (event as ObjectSetEvent).key;
 
             console.log(`%c${userName}:${id}:customProperties.unassigned: "${modelKey}"`, logStyle);
 
-            this.emit('datastoreCustomPropUnAssigned', id, modelKey);
+            this.emit('customPropUnassigned', id, modelKey);
         });
 
         // catch events from model
@@ -202,14 +199,14 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             console.log(`%c${userName}:${id}:model.set: ${key}->${value}`, logStyle);
 
-            this.emit('datastoreModelModified', id, key, value);
+            this.emit('modelModified', id, key, value);
         }).on(RealTimeObject.Events.VALUE, (event: IConvergenceEvent) =>
         {
             const model = (event as ObjectSetEvent).element.value();
 
             console.log(`%c${userName}:${id}:model.value: ${JSON.stringify(model)}`, logStyle);
 
-            this.emit('datastoreModelModified', id, undefined, model);
+            this.emit('modelModified', id, undefined, model);
         }); // todo: REMOVE?
 
         // catch events from cloneInfo
@@ -219,7 +216,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             console.log(`%c${userName}:${id}:cloneInfo.set: ${JSON.stringify(cloneInfo)}`, logStyle);
 
-            this.emit('datastoreCloneInfoModified', id, cloneInfo);
+            this.emit('cloneInfoModified', id, cloneInfo);
         });
 
         console.log(`${userName}:Registered RealTimeObject "${id}"`);
@@ -329,13 +326,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             this.registerNode(nodeId, nodeElement);
 
-            this.emit('datastoreNodeCreated', nodeElement);
+            this.emit('nodeCreated', nodeElement);
 
             if (parentId)
             {
                 const childId = nodeElement.get('id').value() as string;
 
-                this.emit('datastoreNodeSetParent', parentId, childId);
+                this.emit('setParent', parentId, childId);
             }
         }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
         {
@@ -348,7 +345,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             if (parentId)
             {
-                this.emit('datastoreNodeRemoved', nodeId, parentId);
+                this.emit('nodeRemoved', nodeId, parentId);
             }
         });
 
