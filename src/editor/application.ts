@@ -6,6 +6,7 @@ import { Application as PixiApplication } from 'pixi.js';
 import type { ProjectNode } from '../core/nodes/concrete/project';
 import { clearGraphNodeRegistrations } from '../core/nodes/nodeFactory';
 import type { AbstractCommand } from './abstractCommand';
+import { createCommand } from './commandFactory';
 import { Datastore } from './sync/datastore';
 import UndoStack from './undoStack';
 
@@ -78,6 +79,7 @@ export abstract class Application extends EventEmitter<AppEvents>
         if (shouldTrack)
         {
             this.undoStack.push(command);
+            this.writeUndoStack();
         }
 
         const result = command.exec();
@@ -94,25 +96,28 @@ export abstract class Application extends EventEmitter<AppEvents>
         console.log('🔔', { name: command.name, command, result });
     }
 
-    public writeUndoStack(endIndex = 0)
+    public writeUndoStack()
     {
-        const data = JSON.stringify(this.undoStack.toJSON(endIndex), null, 4);
+        const data = JSON.stringify(this.undoStack.toJSON(), null, 4);
 
         localStorage['undoStack'] = data;
-        console.log(`UndoStack${endIndex === 0 ? '' : endIndex}.write:`, data);
     }
 
-    public readUndoStack()
+    public readUndoStack(endIndex: number | undefined = undefined)
     {
         const data = localStorage['undoStack'];
 
         if (data)
         {
-            console.log(`UndoStack.read:`, data);
-            const json = JSON.parse(data);
+            let json = JSON.parse(data) as any[];
 
-            this.undoStack.fromJSON(json);
+            json = json.slice(0, endIndex);
+
+            return json.map((params) =>
+                createCommand(params.$, params));
         }
+
+        return [];
     }
 
     protected resetState()

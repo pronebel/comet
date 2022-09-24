@@ -1,8 +1,4 @@
 import type { AbstractCommand } from './abstractCommand';
-import { createCommand } from './commandFactory';
-// import { getUserName } from './sync/user';
-
-// const userName = getUserName();
 
 export default class UndoStack
 {
@@ -30,37 +26,10 @@ export default class UndoStack
     {
         this.stack.push(command);
         this.head++;
-
-        // console.log(`%c${userName}:Command<${command.name}>: ${command.toString()}`, 'color:yellow');
     }
 
-    // public pushCommands(commands: AbstractCommand[])
-    // {
-    //     this.stack.push(commands);
-    //     this.head += commands.length;
-
-    //     commands.forEach((command) =>
-    //     {
-    //         // console.log(`%c${userName}:Command<${command.name}>: ${command.toString()}`, 'color:yellow');
-    //         command.exec();
-    //     });
-    // }
-
-    public toJSON(endIndex = 0): object[]
+    public toJSON(): object[]
     {
-        return this.stack.flat().slice(0, endIndex === 0 ? undefined : endIndex).map((cmd) => cmd.toJSON());
-    }
-
-    public fromJSON(json: any[])
-    {
-        this.stack.length = 0;
-
-        json.forEach((params) =>
-        {
-            const name = params.$;
-            const command = createCommand(name, params);
-
-            this.push(command);
-        });
+        return this.stack.flat().map((cmd) => cmd.toJSON());
     }
 }

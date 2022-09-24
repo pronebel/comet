@@ -12,7 +12,7 @@
   let customPropName: string = "prop1";
   let customPropValue: string = "foo1";
   let assignModelKey: string = "label";
-  let undoStackEnd: number = 0;
+  let undoStackEnd: number = -1;
 
   let isInit = false;
   let isInitialising = false;
@@ -109,12 +109,14 @@
     console.log("Datastore cleared");
   };
 
-  const onWriteUndoStack = () => {
-    app.writeUndoStack(undoStackEnd);
+  const onPeekUndoStack = () => {
+    const commands = app.readUndoStack();
+    console.log(commands);
   };
 
   const onReadUndoStack = () => {
-    app.readUndoStack();
+    const commands = app.readUndoStack(undoStackEnd);
+    commands.forEach((command) => app.exec(command));
   };
 
   const onSetCustomProp = () => {
@@ -185,7 +187,7 @@
     <button on:click={onClearDatastore}>Clear DStore</button>
     <hr />
     <input bind:value={undoStackEnd} />
-    <button on:click={onWriteUndoStack}>Save Cmds</button>
+    <button on:click={onPeekUndoStack}>Peek Cmds</button>
     <button on:click={onReadUndoStack}>Load Cmds</button>
     <hr />
     <button on:click={onDeselect}>Deselect</button>

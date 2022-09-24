@@ -141,6 +141,7 @@ export class TestApp extends Application
                 this.datastore.nodes.remove(id);
             }
         });
+
         window.location.reload();
     }
 
