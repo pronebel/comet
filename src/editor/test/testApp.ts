@@ -399,7 +399,7 @@ export class TestApp extends Application
 
                 this.select(component);
 
-                const original = component.getModificationOriginal();
+                const original = component.getCloneRootForModifications();
 
                 startDrag(original.cast());
             });

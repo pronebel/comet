@@ -443,7 +443,7 @@ export abstract class ClonableNode<
         return node;
     }
 
-    public getModificationOriginal(): ClonableNode
+    public getCloneRootForModifications(): ClonableNode
     {
         const { isVariant, isReferenceRoot, cloner } = this.cloneInfo;
 
