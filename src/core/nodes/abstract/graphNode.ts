@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
-import { newGraphNodeId } from '../factory';
+import { newGraphNodeId } from '../nodeFactory';
 
 export type GraphNodeEvents = 'childAdded' | 'childRemoved' | 'disposed';
 

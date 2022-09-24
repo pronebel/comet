@@ -1,10 +1,10 @@
-import '../core/nodes/register';
+import '../core/nodes/nodeRegister';
 
 import { EventEmitter } from 'eventemitter3';
 import { Application as PixiApplication } from 'pixi.js';
 
 import type { ProjectNode } from '../core/nodes/concrete/project';
-import { clearGraphNodeRegistrations } from '../core/nodes/factory';
+import { clearGraphNodeRegistrations } from '../core/nodes/nodeFactory';
 import type { AbstractCommand } from './abstractCommand';
 import type { CloneCommandReturn } from './commands/clone';
 import { SetParentCommand } from './commands/setParent';

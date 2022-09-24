@@ -1,7 +1,7 @@
 import type { ClonableNode } from './abstract/clonableNode';
 import type { Clonable } from './cloneInfo';
 import { CloneInfo, CloneMode } from './cloneInfo';
-import { newGraphNodeId } from './factory';
+import { newGraphNodeId } from './nodeFactory';
 
 export type CustomPropertyType = 'string' | 'number' | 'boolean';
 export type CustomPropertyValueType = string | number | boolean;

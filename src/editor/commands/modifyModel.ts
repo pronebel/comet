@@ -1,5 +1,5 @@
 import type { ModelBase } from '../../core/model/model';
-import { getGraphNode } from '../../core/nodes/factory';
+import { getGraphNode } from '../../core/nodes/nodeFactory';
 import { AbstractCommand } from '../abstractCommand';
 
 export interface ModifyModelCommandParams<M>

@@ -1,6 +1,6 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
-import { getGraphNode, registerGraphNode } from '../../core/nodes/factory';
+import { getGraphNode, registerGraphNode } from '../../core/nodes/nodeFactory';
 import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 

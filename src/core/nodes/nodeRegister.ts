@@ -5,7 +5,7 @@ import { ProjectNode } from './concrete/project';
 import { SceneNode } from './concrete/scene';
 import { SpriteNode } from './concrete/sprite';
 // end concrete nodes...
-import { registerGraphNodeType } from './factory';
+import { registerGraphNodeType } from './nodeFactory';
 
 registerGraphNodeType(ContainerNode);
 registerGraphNodeType(EmptyNode);

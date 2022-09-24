@@ -11,7 +11,7 @@ import { EventEmitter } from 'eventemitter3';
 import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { GraphNode } from '../../core/nodes/abstract/graphNode';
-import { consolidateNodeId, getGraphNode } from '../../core/nodes/factory';
+import { consolidateNodeId, getGraphNode } from '../../core/nodes/nodeFactory';
 import { type CloneInfoSchema, type NodeSchema, createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import { CreateNodeCommand } from '../commands/createNode';

@@ -4,7 +4,7 @@ import type { ModelBase, ModelValue } from '../model/model';
 import type { ClonableNode } from './abstract/clonableNode';
 import { CloneMode } from './cloneInfo';
 import type { CustomPropertyType } from './customProperties';
-import { newGraphNodeId } from './factory';
+import { newGraphNodeId } from './nodeFactory';
 
 export type id = string;
 

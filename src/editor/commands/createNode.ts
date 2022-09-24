@@ -1,7 +1,7 @@
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneInfo } from '../../core/nodes/cloneInfo';
-import { createGraphNode, getGraphNode } from '../../core/nodes/factory';
+import { createGraphNode, getGraphNode } from '../../core/nodes/nodeFactory';
 import type { NodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 import type { Datastore } from '../sync/datastore';

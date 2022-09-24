@@ -1,7 +1,7 @@
 <script lang="ts">
   import { CloneMode } from "../../core/nodes/cloneInfo";
   import type { ContainerNode } from "../../core/nodes/concrete/container";
-  import { getGraphNode } from "../../core/nodes/factory";
+  import { getGraphNode } from "../../core/nodes/nodeFactory";
   import { getUserName } from "../sync/user";
 
   import { TestApp } from "./testApp";
