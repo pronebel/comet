@@ -445,7 +445,15 @@ export abstract class ClonableNode<
 
     public getModificationOriginal(): ClonableNode
     {
-        const { isVariant, isReferenceRoot } = this.cloneInfo;
+        const { isVariant, isReferenceRoot, cloner } = this.cloneInfo;
+
+        if (cloner)
+        {
+            if (cloner.cloneInfo.isVariant)
+            {
+                return cloner as unknown as ClonableNode;
+            }
+        }
 
         return (isVariant || isReferenceRoot) ? this as unknown as ClonableNode : this.getOriginal();
     }

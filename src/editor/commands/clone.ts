@@ -62,6 +62,8 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
             }
         });
 
+        clonedNode.model.setValues(sourceNode.model.ownValues);
+
         return {
             sourceNode,
             clonedNode,
