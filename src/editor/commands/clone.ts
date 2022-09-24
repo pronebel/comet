@@ -28,7 +28,9 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
 
         const sourceNode = getGraphNode(nodeId);
         // const originalNode = sourceNode.getModificationOriginal();
-        const originalNode = sourceNode.getOriginal();
+        // todo: need to find cloneRoot
+        // const originalNode = sourceNode.cloneInfo.isVariant ? sourceNode : sourceNode.getOriginal();
+        const originalNode = sourceNode.getCloneRoot();
         const cloneInfoSchema = getCloneInfoSchema(originalNode);
 
         // clone original
