@@ -61,12 +61,17 @@ export class CloneInfo
 
     public get isVariant()
     {
-        return this.cloneMode === CloneMode.Variant || this.cloneMode === CloneMode.VariantRoot;
+        return this.cloneMode === CloneMode.Variant;
     }
 
     public get isReferenceOrRoot()
     {
         return this.cloneMode === CloneMode.Reference || this.cloneMode === CloneMode.ReferenceRoot;
+    }
+
+    public get isVariantOrRoot()
+    {
+        return this.cloneMode === CloneMode.Variant || this.cloneMode === CloneMode.VariantRoot;
     }
 
     public get isRoot()

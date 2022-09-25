@@ -434,9 +434,11 @@ export abstract class ClonableNode<
 
             if (cloneRoot)
             {
+                const cloneRootCloned = cloneRoot.getAllCloned();
+
                 originalCloned.forEach((originalClone) =>
                 {
-                    cloneRoot.cloneInfo.forEachCloned<ClonableNode>((clone) =>
+                    cloneRootCloned.forEach((clone) =>
                     {
                         if (clone.contains(originalClone))
                         {
@@ -509,19 +511,26 @@ export abstract class ClonableNode<
 
     public getCloneRootForModifications(): ClonableNode
     {
-        const { isVariant, isReferenceRoot } = this.cloneInfo;
+        const { isVariant, isRoot } = this.cloneInfo;
 
-        return (isVariant || isReferenceRoot) ? this as unknown as ClonableNode : this.getOriginal();
+        return (isVariant || isRoot) ? this as unknown as ClonableNode : this.getOriginal();
     }
 
     public getVariantOriginal(): ClonableNode
     {
-        return this.cloneInfo.isVariant ? this as unknown as ClonableNode : this.getOriginal();
+        const { cloner, isReferenceOrRoot } = this.cloneInfo;
+
+        if (cloner && isReferenceOrRoot)
+        {
+            return cloner as unknown as ClonableNode;
+        }
+
+        return this as unknown as ClonableNode;
     }
 
     public getNewCloneTarget(): ClonableNode
     {
-        const { isVariant, isReferenceRoot, cloner } = this.cloneInfo;
+        const { isVariant, isVariantRoot, isReferenceRoot, cloner } = this.cloneInfo;
 
         if (cloner)
         {
@@ -529,7 +538,7 @@ export abstract class ClonableNode<
             {
                 return cloner as ClonableNode;
             }
-            else if (isVariant)
+            else if (isVariant || isVariantRoot)
             {
                 return this as unknown as ClonableNode;
             }
@@ -540,14 +549,17 @@ export abstract class ClonableNode<
 
     public getChildCloneMode()
     {
-        const { isReferenceOrRoot, cloneMode } = this.cloneInfo;
+        const { isReferenceOrRoot, isVariantOrRoot, cloneMode } = this.cloneInfo;
 
         if (isReferenceOrRoot)
         {
             return CloneMode.Reference;
         }
+        else if (isVariantOrRoot)
+        {
+            return CloneMode.Variant;
+        }
 
-        // Variant | Original
         return cloneMode;
     }
 
