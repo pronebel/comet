@@ -7,20 +7,20 @@ import { type CloneCommandReturn, CloneCommand } from './clone';
 import { type CreateNodeCommandReturn, CreateNodeCommand } from './createNode';
 import { SetParentCommand } from './setParent';
 
-export interface CreateChildCommandParams<M extends ModelBase>
+export interface AddChildCommandParams<M extends ModelBase>
 {
     parentId: string;
     nodeSchema: NodeSchema<M>;
 }
 
-export interface CreateChildCommandReturn
+export interface AddChildCommandReturn
 {
     nodes: ClonableNode[];
 }
 
-export class CreateChildCommand<
+export class AddChildCommand<
     M extends ModelBase = ModelBase,
-> extends AbstractCommand<CreateChildCommandParams<M>, CreateChildCommandReturn>
+> extends AbstractCommand<AddChildCommandParams<M>, AddChildCommandReturn>
 {
     public static commandName = 'CreateChild';
 
@@ -29,7 +29,7 @@ export class CreateChildCommand<
         return true;
     }
 
-    public exec(): CreateChildCommandReturn
+    public exec(): AddChildCommandReturn
     {
         const { app, params: { parentId, nodeSchema } } = this;
 

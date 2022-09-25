@@ -10,9 +10,9 @@ import {  getLatestNode, registerGraphNodeType } from '../../core/nodes/nodeFact
 import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
 import type { AbstractCommand } from '../abstractCommand';
 import { type AppOptions, Application } from '../application';
+import { AddChildCommand } from '../commands/addChild';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { type CloneCommandReturn, CloneCommand } from '../commands/clone';
-import { CreateChildCommand } from '../commands/createChild';
 import { ModifyModelCommand } from '../commands/modifyModel';
 import { RemoveChildCommand } from '../commands/removeChild';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
@@ -161,7 +161,7 @@ export class TestApp extends Application
                 },
             });
 
-            const { nodes } = new CreateChildCommand({ parentId, nodeSchema }).exec();
+            const { nodes } = new AddChildCommand({ parentId, nodeSchema }).exec();
 
             nodes.forEach((node) =>
             {
@@ -190,7 +190,7 @@ export class TestApp extends Application
                 },
             });
 
-            const { nodes } = new CreateChildCommand({ parentId, nodeSchema }).exec();
+            const { nodes } = new AddChildCommand({ parentId, nodeSchema }).exec();
 
             nodes.forEach((node) =>
             {
