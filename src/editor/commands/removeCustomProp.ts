@@ -16,10 +16,10 @@ export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCom
     public exec(): void
     {
         const { datastore, params: { nodeId, propName } } = this;
-
         const nodeElement = datastore.getNodeElement(nodeId);
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
+        // update datastore
         definedCustomProps.remove(propName);
 
         // update graph node

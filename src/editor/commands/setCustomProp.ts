@@ -19,11 +19,10 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
     public exec(): void
     {
         const { datastore, params: { nodeId, propName, type, value } } = this;
-
         const nodeElement = datastore.getNodeElement(nodeId);
-
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
+        // update datastore
         definedCustomProps.set(propName, {
             type,
             value,
