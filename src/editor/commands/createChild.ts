@@ -34,7 +34,7 @@ export class CreateChildCommand<
         const { app, params: { parentId, nodeSchema } } = this;
 
         const sourceNode = getGraphNode(parentId);
-        const originalParentNode = sourceNode.cloneInfo.isVariant ? sourceNode : sourceNode.getOriginal();
+        const originalParentNode = sourceNode.getVariantOriginal();
         const clonedParentNodes = originalParentNode.getAllCloned();
 
         const { node } = app.exec<CreateNodeCommandReturn>(new CreateNodeCommand({ nodeSchema }));

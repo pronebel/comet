@@ -450,6 +450,11 @@ export abstract class ClonableNode<
         return (isVariant || isReferenceRoot) ? this as unknown as ClonableNode : this.getOriginal();
     }
 
+    public getVariantOriginal(): ClonableNode
+    {
+        return this.cloneInfo.isVariant ? this as unknown as ClonableNode : this.getOriginal();
+    }
+
     public getCloneRoot(): ClonableNode
     {
         const { isVariant, isReferenceRoot, cloner } = this.cloneInfo;

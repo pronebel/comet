@@ -20,10 +20,12 @@ export class SetParentCommand extends AbstractCommand<SetParentCommandParams, Se
 
     public exec(): SetParentCommandReturn
     {
+        // update datastore
         const { datastore, params: { parentId, childId } } = this;
 
         datastore.setNodeParent(childId, parentId);
 
+        // update graph node
         const parentNode = getGraphNode(parentId);
         const childNode = getGraphNode(childId);
 
