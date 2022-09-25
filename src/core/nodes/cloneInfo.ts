@@ -34,7 +34,7 @@ export class CloneInfo
         return this.cloned.length;
     }
 
-    public get wasCloned()
+    public get isClone()
     {
         return this.cloner !== undefined;
     }
@@ -87,13 +87,6 @@ export class CloneInfo
     public get isReferenceRoot()
     {
         return this.cloneMode === CloneMode.ReferenceRoot;
-    }
-
-    public get isCloned()
-    {
-        const { cloneMode } = this;
-
-        return cloneMode === CloneMode.Reference || cloneMode === CloneMode.ReferenceRoot || cloneMode === CloneMode.Variant;
     }
 
     public getClonedAt<T>(index: number)
