@@ -240,19 +240,23 @@ export class TestApp extends Application
 
     public inspect()
     {
-        if (this.selected)
+        const { selected } = this;
+
+        if (selected)
         {
-            // const original = this.selected.getOriginal();
+            const cloneRoot = selected.getCloneRoot();
 
-            // console.log(this.selected, [original.id, original.getAllCloned().map((node) => node.id)]);
-            console.log({
-                cloneRoot: this.selected.getCloneRoot().id,
-                original: this.selected.getOriginal().id,
-                rootForModifications: this.selected.getCloneRootForModifications().id,
-                cloned: this.selected.getAllCloned().map((node) => node.id),
-            });
+            const info = {
+                cloneTarget: selected.getNewCloneTarget().id,
+                cloneRoot: cloneRoot ? cloneRoot.id : undefined,
+                original: selected.getOriginal().id,
+                rootForModifications: selected.getCloneRootForModifications().id,
+                cloned: selected.getAllCloned().map((node) => node.id),
+            };
 
-            (window as any).$ = this.selected;
+            console.log(JSON.stringify(info, null, 4));
+
+            (window as any).$ = selected;
         }
     }
 

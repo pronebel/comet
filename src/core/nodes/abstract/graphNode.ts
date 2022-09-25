@@ -4,13 +4,15 @@ import { newGraphNodeId } from '../nodeFactory';
 
 export type GraphNodeEvents = 'childAdded' | 'childRemoved' | 'disposed';
 
+export type WalkReturnData = Record<string, any>;
+
 export interface WalkOptions
 {
     includeSelf?: boolean;
     depth: number;
     cancel: boolean;
     direction: 'up' | 'down';
-    data: any;
+    data: WalkReturnData;
 }
 
 export const defaultWalkOptions: WalkOptions = {
@@ -169,54 +171,46 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return node.hasParent(this);
     }
 
-    public hasParent(node: GraphNode)
+    public hasParent(node: GraphNode): boolean
     {
-        const opts: Partial<WalkOptions> = {
-            data: false,
-        };
-
-        this.walk((parentNode, options) =>
+        return this.walk<GraphNode, { hasParent?: boolean }>((parentNode, options) =>
         {
             if (parentNode === node)
             {
                 options.cancel = true;
-                options.data = true;
+                options.data.hasParent = true;
             }
-        }, opts);
-
-        return opts.data as boolean;
+        }, { direction: 'up', includeSelf: false }).hasParent === true;
     }
 
-    public getAllChildren<T extends GraphNode = GraphNode>(includeSelf = false)
-    {
-        return this.walk((node, options) =>
-        {
-            options.data.push(node);
-        }, {
-            data: [],
-            includeSelf,
-        }) as T[];
-    }
-
-    public walk<T extends GraphNode>(
+    public walk<T extends GraphNode, R extends WalkReturnData = {}>(
         fn: (component: T, options: WalkOptions) => void,
         options: Partial<WalkOptions> = {},
-    ): any
+    ): R
     {
         const currentOptions = {
             ...defaultWalkOptions,
+            data: {},
             ...options,
         };
+
         const { includeSelf, depth, direction, cancel } = currentOptions;
 
+        // prevent traversing deeper
         if (cancel)
         {
-            return options.data;
+            return currentOptions.data as R;
         }
 
         if (includeSelf)
         {
             fn(this as unknown as T, currentOptions);
+        }
+
+        // cancel if current call requested
+        if (currentOptions.cancel)
+        {
+            return currentOptions.data as R;
         }
 
         if (direction === 'down')
@@ -241,7 +235,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
             });
         }
 
-        return options.data;
+        return currentOptions.data as R;
     }
 
     public containsChild<T extends GraphNode>(component: T)

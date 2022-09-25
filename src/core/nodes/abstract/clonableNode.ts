@@ -2,7 +2,7 @@ import { type Model, type ModelBase, createModel } from '../../model/model';
 import type { ModelSchema } from '../../model/schema';
 import { type Clonable, CloneInfo, CloneMode } from '../cloneInfo';
 import { type CustomProperty, type CustomPropertyType, CustomProperties } from '../customProperties';
-import { type GraphNodeEvents, GraphNode } from './graphNode';
+import { type GraphNodeEvents, GraphNode, sortNodesByCreation } from './graphNode';
 
 export type ClonableNodeEvents = GraphNodeEvents | 'modelChanged' | 'unlinked';
 
@@ -109,12 +109,20 @@ export abstract class ClonableNode<
     {
         const Ctor = Object.getPrototypeOf(this).constructor as ClonableNodeConstructor;
 
-        const cloneInfo = new CloneInfo(
-            cloneMode === CloneMode.Reference && depth === 0
-                ? CloneMode.ReferenceRoot
-                : cloneMode,
-            this,
-        );
+        const cloneInfo = new CloneInfo(cloneMode, this);
+
+        if (depth === 0)
+        {
+            // change to root type for top level clone node
+            if (cloneInfo.isReference)
+            {
+                cloneInfo.cloneMode = CloneMode.ReferenceRoot;
+            }
+            else if (cloneInfo.isVariant)
+            {
+                cloneInfo.cloneMode = CloneMode.VariantRoot;
+            }
+        }
 
         const component = new Ctor(
             {
@@ -414,7 +422,63 @@ export abstract class ClonableNode<
 
     public getAllCloned()
     {
-        return getAllCloned(this as unknown as ClonableNode);
+        const { isVariant } = this.cloneInfo;
+
+        const nodes: ClonableNode[] = [];
+
+        if (isVariant)
+        {
+            const original = this.getOriginal();
+            const originalCloned = original.getAllCloned();
+            const cloneRoot = this.getCloneRoot();
+
+            if (cloneRoot)
+            {
+                originalCloned.forEach((originalClone) =>
+                {
+                    cloneRoot.cloneInfo.forEachCloned<ClonableNode>((clone) =>
+                    {
+                        if (clone.contains(originalClone))
+                        {
+                            nodes.push(originalClone);
+                        }
+                    });
+                });
+            }
+        }
+        else
+        {
+            nodes.push(...getAllCloned(this as unknown as ClonableNode));
+        }
+
+        nodes.sort(sortNodesByCreation);
+
+        return nodes;
+    }
+
+    public getAllRelatedClones()
+    {
+        const original = this.getOriginal();
+        const nodes = original.getAllCloned();
+
+        nodes.push(original.cast<ClonableNode>());
+        nodes.sort(sortNodesByCreation);
+
+        return nodes;
+    }
+
+    public getCloneRoot()
+    {
+        return this.walk<ClonableNode, { node?: ClonableNode }>((node, options) =>
+        {
+            if (node.cloneInfo.isRoot)
+            {
+                options.data.node = node;
+                options.cancel = true;
+            }
+        }, {
+            direction: 'up',
+        }).node;
     }
 
     public getOriginal(): ClonableNode
@@ -455,7 +519,7 @@ export abstract class ClonableNode<
         return this.cloneInfo.isVariant ? this as unknown as ClonableNode : this.getOriginal();
     }
 
-    public getCloneRoot(): ClonableNode
+    public getNewCloneTarget(): ClonableNode
     {
         const { isVariant, isReferenceRoot, cloner } = this.cloneInfo;
 

@@ -4,9 +4,10 @@ export enum CloneMode
     {
     Original = 'original',
     Duplicate = 'duplicate',
-    Variant = 'variant',
     ReferenceRoot = 'reference_root',
     Reference = 'reference',
+    VariantRoot = 'variant_root',
+    Variant = 'variant',
 }
 
 export interface Clonable
@@ -53,14 +54,24 @@ export class CloneInfo
         return this.cloneMode === CloneMode.Duplicate;
     }
 
+    public get isVariantRoot()
+    {
+        return this.cloneMode === CloneMode.VariantRoot;
+    }
+
     public get isVariant()
     {
-        return this.cloneMode === CloneMode.Variant;
+        return this.cloneMode === CloneMode.Variant || this.cloneMode === CloneMode.VariantRoot;
     }
 
     public get isReferenceOrRoot()
     {
         return this.cloneMode === CloneMode.Reference || this.cloneMode === CloneMode.ReferenceRoot;
+    }
+
+    public get isRoot()
+    {
+        return this.isReferenceRoot || this.isVariantRoot;
     }
 
     public get isReference()

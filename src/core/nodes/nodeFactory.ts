@@ -36,6 +36,8 @@ export function getGraphNode(id: string)
     return node;
 }
 
+(window as any).getGraphNode = getGraphNode;
+
 export function createGraphNode(nodeType: string, options: NodeOptions<{}>)
 {
     const NodeClass = nodeClasses.get(nodeType);
