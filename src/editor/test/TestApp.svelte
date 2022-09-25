@@ -181,11 +181,11 @@
   {#if isInit}
     <button on:click={onNewContainer}>New Empty</button>
     <button on:click={onNewChild}>New Child</button>
+    <button on:click={onDelete}>Delete</button>
     <button on:click={onCloneVariant}>+ Variant</button>
     <button on:click={onCloneReference}>+ Reference</button>
     <button on:click={onDuplicate}>+ Duplicate</button>
     <button on:click={onUnlink}>Unlink</button>
-    <button on:click={onDelete}>Delete</button>
     <button on:click={onInspect}>Inspect</button>
     <hr />
     <button on:click={onReload}>Reload</button>

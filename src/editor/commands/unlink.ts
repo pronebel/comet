@@ -18,21 +18,16 @@ export class UnlinkCommand extends AbstractCommand<UnlinkCommandParams>
 
         const node = getGraphNode(nodeId);
 
-        node.unlink();
-
         node.walk<ClonableNode>((node) =>
         {
+            node.unlink();
+
             const nodeId = node.id;
-
             const nodeElement = datastore.getNodeElement(nodeId);
-
             const cloneInfoSchema = getCloneInfoSchema(node);
 
             nodeElement.get('cloneInfo').value(cloneInfoSchema);
-
             nodeElement.get('model').value(node.model.ownValues);
-
-            datastore.emit('datastoreNodeUnlinked', nodeId);
         });
     }
 

@@ -1,6 +1,7 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
+import { getGraphNode } from '../../core/nodes/nodeFactory';
 import { AbstractCommand } from '../abstractCommand';
 
 export interface SetCustomPropCommandParams
@@ -28,7 +29,10 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
             value,
         });
 
-        datastore.emit('datastoreCustomPropDefined', nodeId, propName, type, value);
+        // update graph node
+        const node = getGraphNode(nodeId);
+
+        node.setCustomProperty(propName, type, value);
     }
 
     public undo(): void

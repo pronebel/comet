@@ -189,7 +189,7 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
 
     public clone<T extends Model<M>>(): T
     {
-        return createModel(this.schema, this.values) as unknown as T;
+        return createModel(this.schema, this.ownValues) as unknown as T;
     }
 
     public reset()
