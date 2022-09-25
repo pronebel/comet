@@ -245,7 +245,12 @@ export class TestApp extends Application
             // const original = this.selected.getOriginal();
 
             // console.log(this.selected, [original.id, original.getAllCloned().map((node) => node.id)]);
-            console.log(this.selected.getCloneRoot());
+            console.log({
+                cloneRoot: this.selected.getCloneRoot().id,
+                original: this.selected.getOriginal().id,
+                rootForModifications: this.selected.getCloneRootForModifications().id,
+                cloned: this.selected.getAllCloned().map((node) => node.id),
+            });
 
             (window as any).$ = this.selected;
         }
@@ -275,7 +280,7 @@ export class TestApp extends Application
         if (this.selected && this.selected instanceof DebugNode)
         {
             this.exec(new ModifyModelCommand<SpriteModel>({
-                nodeId: this.selected.getOriginal().id,
+                nodeId: this.selected.getCloneRootForModifications().id,
                 values: {
                     tint: Math.round(Math.random() * 100000),
                 } }));
@@ -287,7 +292,7 @@ export class TestApp extends Application
         if (this.selected)
         {
             this.exec(new ModifyModelCommand<SpriteModel>({
-                nodeId: this.selected.getOriginal().id,
+                nodeId: this.selected.getCloneRootForModifications().id,
                 values: {
                     width: Math.round(Math.random() * 50),
                     height: Math.round(Math.random() * 50),

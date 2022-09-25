@@ -445,22 +445,9 @@ export abstract class ClonableNode<
 
     public getCloneRootForModifications(): ClonableNode
     {
-        const { isVariant, isReferenceRoot, cloner } = this.cloneInfo;
+        const { isVariant, isReferenceRoot } = this.cloneInfo;
 
-        if (isReferenceRoot)
-        {
-            return this as unknown as ClonableNode;
-        }
-
-        if (cloner)
-        {
-            if (cloner.cloneInfo.isVariant)
-            {
-                return cloner as unknown as ClonableNode;
-            }
-        }
-
-        return isVariant ? this as unknown as ClonableNode : this.getOriginal();
+        return (isVariant || isReferenceRoot) ? this as unknown as ClonableNode : this.getOriginal();
     }
 
     public getCloneRoot(): ClonableNode
@@ -502,7 +489,7 @@ export abstract class ClonableNode<
     public abstract updateView(): void;
 }
 
-export function getAllCloned(node: ClonableNode, array: ClonableNode[] = []): ClonableNode[]
+function getAllCloned(node: ClonableNode, array: ClonableNode[] = []): ClonableNode[]
 {
     node.cloneInfo.forEachCloned<ClonableNode>((cloned) =>
     {
