@@ -28,7 +28,7 @@ export class RemoveChildCommand extends AbstractCommand<RemoveChildCommandParams
         const { app, datastore, params: { nodeId } } = this;
 
         const sourceNode = getGraphNode(nodeId);
-        const originalNode = sourceNode.getCloneRootForModifications();
+        const originalNode = sourceNode.getRemoveChildCloneTarget();
         const clonedNodes = originalNode.getAllCloned();
 
         const nodes: ClonableNode[] = [originalNode, ...clonedNodes];

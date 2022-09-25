@@ -458,17 +458,6 @@ export abstract class ClonableNode<
         return nodes;
     }
 
-    public getAllRelatedClones()
-    {
-        const original = this.getOriginal();
-        const nodes = original.getAllCloned();
-
-        nodes.push(original.cast<ClonableNode>());
-        nodes.sort(sortNodesByCreation);
-
-        return nodes;
-    }
-
     public getCloneRoot()
     {
         return this.walk<ClonableNode, { node?: ClonableNode }>((node, options) =>
@@ -509,14 +498,14 @@ export abstract class ClonableNode<
         return node;
     }
 
-    public getCloneRootForModifications(): ClonableNode
+    public getRemoveChildCloneTarget(): ClonableNode
     {
         const { isVariant, isRoot } = this.cloneInfo;
 
         return (isVariant || isRoot) ? this as unknown as ClonableNode : this.getOriginal();
     }
 
-    public getVariantOriginal(): ClonableNode
+    public getAddChildCloneTarget(): ClonableNode
     {
         const { cloner, isReferenceOrRoot } = this.cloneInfo;
 
@@ -528,7 +517,7 @@ export abstract class ClonableNode<
         return this as unknown as ClonableNode;
     }
 
-    public getNewCloneTarget(): ClonableNode
+    public getCloneTarget(): ClonableNode
     {
         const { isVariant, isVariantRoot, isReferenceRoot, cloner } = this.cloneInfo;
 
@@ -547,7 +536,7 @@ export abstract class ClonableNode<
         return this.getOriginal();
     }
 
-    public getChildCloneMode()
+    public getNewChildCloneMode()
     {
         const { isReferenceOrRoot, isVariantOrRoot, cloneMode } = this.cloneInfo;
 

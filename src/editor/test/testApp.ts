@@ -247,10 +247,11 @@ export class TestApp extends Application
             const cloneRoot = selected.getCloneRoot();
 
             const info = {
-                cloneTarget: selected.getNewCloneTarget().id,
+                cloneTarget: selected.getCloneTarget().id,
                 cloneRoot: cloneRoot ? cloneRoot.id : undefined,
                 original: selected.getOriginal().id,
-                rootForModifications: selected.getCloneRootForModifications().id,
+                addChildCloneTarget: selected.getAddChildCloneTarget().id,
+                removeChildCloneTarget: selected.getRemoveChildCloneTarget().id,
                 cloned: selected.getAllCloned().map((node) => node.id),
             };
 
@@ -284,7 +285,7 @@ export class TestApp extends Application
         if (this.selected && this.selected instanceof DebugNode)
         {
             this.exec(new ModifyModelCommand<SpriteModel>({
-                nodeId: this.selected.getCloneRootForModifications().id,
+                nodeId: this.selected.getRemoveChildCloneTarget().id,
                 values: {
                     tint: Math.round(Math.random() * 100000),
                 } }));
@@ -296,7 +297,7 @@ export class TestApp extends Application
         if (this.selected)
         {
             this.exec(new ModifyModelCommand<SpriteModel>({
-                nodeId: this.selected.getCloneRootForModifications().id,
+                nodeId: this.selected.getRemoveChildCloneTarget().id,
                 values: {
                     width: Math.round(Math.random() * 50),
                     height: Math.round(Math.random() * 50),
@@ -408,7 +409,7 @@ export class TestApp extends Application
 
                 this.select(component);
 
-                const original = component.getCloneRootForModifications();
+                const original = component.getRemoveChildCloneTarget();
 
                 startDrag(original.cast());
             });
