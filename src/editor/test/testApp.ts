@@ -253,6 +253,7 @@ export class TestApp extends Application
                 addChildCloneTarget: selected.getAddChildCloneTarget().id,
                 removeChildCloneTarget: selected.getRemoveChildCloneTarget().id,
                 cloned: selected.getAllCloned().map((node) => node.id),
+                ancestors: selected.getCloneAncestors().map((node) => node.id),
             };
 
             console.log(JSON.stringify(info, null, 4));

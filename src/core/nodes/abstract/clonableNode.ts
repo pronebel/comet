@@ -552,6 +552,21 @@ export abstract class ClonableNode<
         return cloneMode;
     }
 
+    public getCloneAncestors(): ClonableNode[]
+    {
+        const array: ClonableNode[] = [];
+
+        let node: ClonableNode = this.cloneInfo.getCloner<ClonableNode>();
+
+        while (node !== undefined)
+        {
+            array.push(node);
+            node = node.cloneInfo.getCloner<ClonableNode>();
+        }
+
+        return array;
+    }
+
     public abstract modelSchema(): ModelSchema<M>;
 
     public abstract createView(): V;

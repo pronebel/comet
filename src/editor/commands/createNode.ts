@@ -38,13 +38,15 @@ export class CreateNodeCommand<
         node.created = nodeSchema.created;
 
         // build custom properties
-        // for (const [name, prop] of Object.entries(customProperties.defined))
-        // {
-        //     if (prop) {
-        //         const { type, value } = prop;
-        //         node.setCustomProperty(name, type, value))
-        //     }
-        // }
+        for (const [name, prop] of Object.entries(customProperties.defined))
+        {
+            if (prop)
+            {
+                const { type, value } = prop;
+
+                node.setCustomProperty(name, type, value);
+            }
+        }
 
         for (const [modelKey, customPropertyKey] of Object.entries(customProperties.assigned))
         {

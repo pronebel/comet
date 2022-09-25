@@ -31,7 +31,7 @@ export interface NodeSchema<M extends ModelBase = {}>
     model: Partial<M>;
     cloneInfo: CloneInfoSchema;
     customProperties: {
-        defined: Record<string, CustomPropSchema[]>;
+        defined: Record<string, CustomPropSchema>;
         assigned: Record<string, string>;
     };
 }
@@ -115,12 +115,15 @@ export function getNodeSchema(node: ClonableNode, includeParent = true, includeC
 
     node.customProperties.properties.forEach((value, key) =>
     {
-        const props = value.map((customProp) => ({
-            type: customProp.type,
-            value: customProp.value,
-        }));
+        if (value.length && value[0].creator === node)
+        {
+            const prop = value[0];
 
-        nodeSchema.customProperties.defined[key] = props;
+            nodeSchema.customProperties.defined[key] = {
+                type: prop.type,
+                value: prop.value,
+            };
+        }
     });
 
     node.customProperties.assignments.forEach((customKey, modelKey) =>
