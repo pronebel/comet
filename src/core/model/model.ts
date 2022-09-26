@@ -165,6 +165,14 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
         });
     }
 
+    public clearValue(key: keyof M)
+    {
+        const oldValue = this.ownValues[key];
+
+        delete this.data[key];
+        this.onModified(key, undefined, oldValue);
+    }
+
     public flatten()
     {
         if (this.parent)
@@ -206,7 +214,7 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
         this.emit('modified');
     }
 
-    public onModified(key: keyof M, value: M[keyof M], oldValue: M[keyof M]): void
+    public onModified(key: keyof M, value: M[keyof M] | undefined, oldValue: M[keyof M]): void
     {
         this.emit('modified', key, value, oldValue);
 

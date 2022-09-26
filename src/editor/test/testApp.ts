@@ -347,7 +347,7 @@ export class TestApp extends Application
 
             this.exec(new SetCustomPropCommand({
                 nodeId: selected.id,
-                propName: name,
+                customKey: name,
                 type: propType,
                 value: propValue,
             }));
@@ -362,7 +362,7 @@ export class TestApp extends Application
         {
             this.exec(new RemoveCustomPropCommand({
                 nodeId: selected.id,
-                propName: name,
+                customKey: name,
             }));
         }
     }

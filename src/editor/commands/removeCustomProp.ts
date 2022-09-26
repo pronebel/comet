@@ -1,12 +1,14 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getGraphNode } from '../../core/nodes/nodeFactory';
 import { AbstractCommand } from '../abstractCommand';
+import { UnAssignCustomPropCommand } from './unassignCustomProp';
 
 export interface RemoveCustomPropCommandParams
 {
     nodeId: string;
-    propName: string;
+    customKey: string;
 }
 
 export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCommandParams>
@@ -15,17 +17,30 @@ export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCom
 
     public exec(): void
     {
-        const { datastore, params: { nodeId, propName } } = this;
+        const { datastore, params: { nodeId, customKey } } = this;
+
+        // update datastore
         const nodeElement = datastore.getNodeElement(nodeId);
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
-        // update datastore
-        definedCustomProps.remove(propName);
+        definedCustomProps.remove(customKey);
 
         // update graph node
         const node = getGraphNode(nodeId);
 
-        node.removeCustomProperty(propName);
+        node.removeCustomProperty(customKey);
+
+        // update node tree
+        node.walk<ClonableNode>((node) =>
+        {
+            node.getAssignedModelKeys(customKey).forEach((modelKey) =>
+            {
+                new UnAssignCustomPropCommand({
+                    nodeId: node.id,
+                    modelKey,
+                }).exec();
+            });
+        });
     }
 
     public undo(): void

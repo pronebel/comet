@@ -1,13 +1,15 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import { getGraphNode } from '../../core/nodes/nodeFactory';
 import { AbstractCommand } from '../abstractCommand';
+import { AssignCustomPropCommand } from './assignCustomProp';
 
 export interface SetCustomPropCommandParams
 {
     nodeId: string;
-    propName: string;
+    customKey: string;
     type: CustomPropertyType;
     value: CustomPropertyValueType;
 }
@@ -18,14 +20,13 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
 
     public exec(): void
     {
-        const { datastore, params: { nodeId, propName, type, value } } = this;
+        const { datastore, params: { nodeId, customKey, type, value } } = this;
 
         const nodeElement = datastore.getNodeElement(nodeId);
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
         // update datastore
-        definedCustomProps.set(propName, {
-            propName,
+        definedCustomProps.set(customKey, {
             type,
             value,
         });
@@ -33,7 +34,20 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
         // update graph node
         const node = getGraphNode(nodeId);
 
-        node.setCustomProperty(propName, type, value);
+        node.setCustomProperty(customKey, type, value);
+
+        // update node tree
+        node.walk<ClonableNode>((node) =>
+        {
+            node.getAssignedModelKeys(customKey).forEach((modelKey) =>
+            {
+                new AssignCustomPropCommand({
+                    nodeId: node.id,
+                    customKey,
+                    modelKey,
+                }).exec();
+            });
+        });
     }
 
     public undo(): void

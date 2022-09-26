@@ -26,13 +26,14 @@ export class AssignCustomPropCommand extends AbstractCommand<AssignCustomPropCom
 
         if (customProp)
         {
+            // update model value
             node.model.setValue(modelKey, customProp.value as ModelValue);
 
+            // update datastore
             const nodeElement = datastore.getNodeElement(nodeId);
             const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
 
-            // update datastore
-            assignedCustomProps.set(modelKey, customProp.name);
+            assignedCustomProps.set(modelKey, customKey);
         }
     }
 

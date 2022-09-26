@@ -16,16 +16,23 @@ export class UnAssignCustomPropCommand extends AbstractCommand<UnAssignCustomPro
     public exec(): void
     {
         const { datastore, params: { nodeId, modelKey } } = this;
-        const nodeElement = datastore.getNodeElement(nodeId);
-        const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
-
-        // update datastore
-        assignedCustomProps.remove(modelKey);
 
         // update graph node
         const node = getGraphNode(nodeId);
 
-        node.unAssignCustomProperty(modelKey);
+        const customKey = node.unAssignCustomProperty(modelKey);
+
+        if (customKey)
+        {
+            // update model value
+            node.model.clearValue(modelKey);
+
+            // update datastore
+            const nodeElement = datastore.getNodeElement(nodeId);
+            const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
+
+            assignedCustomProps.remove(modelKey);
+        }
     }
 
     public undo(): void
