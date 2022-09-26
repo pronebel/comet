@@ -9,6 +9,7 @@ import type { Datastore } from '../sync/datastore';
 export interface CreateNodeCommandParams<M extends ModelBase>
 {
     nodeSchema: NodeSchema<M>;
+    isNewNode: boolean;
 }
 
 export interface CreateNodeCommandReturn
@@ -22,11 +23,15 @@ export class CreateNodeCommand<
 {
     public static commandName = 'CreateNode';
 
-    public static createNode(datastore: Datastore, nodeSchema: NodeSchema): CreateNodeCommandReturn
+    public static createNode(datastore: Datastore, nodeSchema: NodeSchema, isNewNode: boolean): CreateNodeCommandReturn
     {
         const { type, id, model, cloneInfo: { cloneMode, cloner }, customProperties } = nodeSchema;
 
-        datastore.createNodeSchema(nodeSchema);
+        if (isNewNode)
+        {
+            // create datastore entry
+            datastore.createNodeSchema(nodeSchema);
+        }
 
         // build clone info
         const cloneInfo = new CloneInfo(cloneMode, cloner ? getGraphNode(cloner) : undefined);
@@ -53,9 +58,9 @@ export class CreateNodeCommand<
 
     public exec(): CreateNodeCommandReturn
     {
-        const { datastore, params: { nodeSchema } } = this;
+        const { datastore, params: { nodeSchema, isNewNode } } = this;
 
-        return CreateNodeCommand.createNode(datastore, nodeSchema);
+        return CreateNodeCommand.createNode(datastore, nodeSchema, isNewNode);
     }
 
     public undo(): void
