@@ -1,7 +1,11 @@
 import { type Model, type ModelBase, createModel } from '../../model/model';
 import type { ModelSchema } from '../../model/schema';
 import { type Clonable, CloneInfo, CloneMode } from '../cloneInfo';
-import { type CustomProperty, type CustomPropertyType, CustomProperties } from '../customProperties';
+import type {
+    CustomProperty,
+    CustomPropertyType,
+    CustomPropertyValueType,
+} from '../customProperties';
 import { type GraphNodeEvents, GraphNode, sortNodesByCreation } from './graphNode';
 
 export type ClonableNodeEvents = GraphNodeEvents | 'modelChanged' | 'unlinked';
@@ -31,7 +35,8 @@ export abstract class ClonableNode<
     public view: V;
 
     public cloneInfo: CloneInfo;
-    public customProperties: CustomProperties<ClonableNode>;
+    public defineCustomProperties: Map<string, CustomProperty>;
+    public assignedCustomProperties: Map<keyof M, string>;
 
     constructor(
         options: NodeOptions<M> = {},
@@ -58,7 +63,8 @@ export abstract class ClonableNode<
             });
         }
 
-        this.customProperties = new CustomProperties();
+        this.defineCustomProperties = new Map();
+        this.assignedCustomProperties = new Map();
 
         this.view = this.createView();
 
@@ -149,37 +155,17 @@ export abstract class ClonableNode<
 
         if (cloner)
         {
-            this.customProperties = cloner.customProperties.clone();
-
             if (isDuplicate)
             {
                 const sourceModel = cloner.model;
 
                 this.model.setValues(sourceModel.values as M);
-                this.unlinkCustomProperties();
 
                 this.cloneInfo.unlink(this);
             }
 
             this.updateRecursive();
         }
-    }
-
-    public unlinkCustomProperties()
-    {
-        // this.walk<ClonableNode>((node) =>
-        // {
-        //     const componentCloner = node.cloneInfo.getCloner<ClonableNode>();
-
-        //     if (componentCloner)
-        //     {
-        //         const props = componentCloner.customProperties;
-
-        //         node.customProperties = props.clone().unlink(node);
-
-        //         componentCloner.customProperties.cloneInfo.removeCloned(node.customProperties);
-        //     }
-        // });
     }
 
     public unlink(unlinkChildren = true)
@@ -199,8 +185,6 @@ export abstract class ClonableNode<
 
                 this.initModel();
             }
-
-            this.unlinkCustomProperties();
 
             cloner.cloneInfo.removeCloned(this);
             this.cloneInfo.unlink(this);
@@ -224,13 +208,13 @@ export abstract class ClonableNode<
 
         if (this.cloneInfo.isClone)
         {
-            // todo: check this
+            // todo: check if this is done beforehand (via remove node or set parent?)
             this.unlink();
         }
 
         this.emit('disposed');
 
-        // todo: and this, might need a rework
+        // todo: ...and this, might need a rework to ensure its done reflecting new changes
         this.cloneInfo.forEachCloned<ClonableNode>((node) => node.unlink());
 
         this.children.forEach((child) =>
@@ -281,23 +265,6 @@ export abstract class ClonableNode<
     {
         const values = this.model.values;
 
-        const customProps = this.getCustomProps();
-
-        for (const [key] of Object.entries(values))
-        {
-            const assignedProperty = customProps.getAssignedPropertyForModelKey(String(key));
-
-            if (assignedProperty)
-            {
-                const assignedValue = assignedProperty.value;
-
-                if (assignedValue !== undefined)
-                {
-                    values[key as keyof M] = assignedValue as M[keyof M];
-                }
-            }
-        }
-
         return values;
     }
 
@@ -309,98 +276,6 @@ export abstract class ClonableNode<
     public set<K extends keyof M>(modelKey: K, value: M[K])
     {
         this.model.setValue(modelKey, value);
-    }
-
-    public setCustomProperty(customKey: string, type: CustomPropertyType, value: any): CustomProperty
-    {
-        const property = this.customProperties.set(this as unknown as ClonableNode, customKey, type, value);
-
-        this.updateRecursiveWithClones();
-
-        return property;
-    }
-
-    public removeCustomProperty(customKey: string)
-    {
-        this.customProperties.remove(this as unknown as ClonableNode, customKey);
-
-        const modelKey = this.customProperties.getAssignedModelKeyForCustomKey(customKey);
-
-        if (modelKey)
-        {
-            this.unAssignCustomProperty(modelKey as keyof M);
-        }
-
-        this.updateRecursiveWithClones();
-    }
-
-    public assignCustomProperty(modelKey: keyof M, customPropertyKey: string)
-    {
-        this.customProperties.assign(String(modelKey), customPropertyKey);
-
-        const customProps = this.getCustomProps();
-
-        this.customProperties.assignments.forEach((assignedCustomKey: string, assignedModelKey: string) =>
-        {
-            const array = customProps.properties.get(assignedCustomKey);
-
-            if (assignedCustomKey === customPropertyKey && array && array.length === 0)
-            {
-                this.customProperties.assignments.delete(assignedModelKey);
-            }
-        });
-
-        this.update();
-
-        this.getAllCloned().forEach((node) =>
-        {
-            if (!node.customProperties.hasAssignedToModelKey(String(modelKey)))
-            {
-                node.assignCustomProperty(String(modelKey), customPropertyKey);
-            }
-
-            node.update();
-        });
-    }
-
-    public unAssignCustomProperty(modelKey: keyof M)
-    {
-        this.customProperties.unAssign(String(modelKey));
-
-        this.update();
-
-        this.getAllCloned().forEach((node) =>
-        {
-            if (node.customProperties.hasAssignedToModelKey(String(modelKey)))
-            {
-                node.unAssignCustomProperty(String(modelKey));
-            }
-
-            node.update();
-        });
-    }
-
-    public getAvailableCustomPropsAsArray(props: CustomProperty[] = [])
-    {
-        // todo: walk up this clone tree, then traverse up through clone ancestry
-        this.getCloneAncestors().forEach((node) => node.customProperties.values().forEach((array) => props.push(...array)));
-
-        return props;
-    }
-
-    public getCustomProps()
-    {
-        const array = this.getAvailableCustomPropsAsArray();
-        const customProps = new CustomProperties();
-
-        array.forEach((property) =>
-        {
-            customProps.addProperty(property);
-        });
-
-        customProps.assignments = this.customProperties.assignments;
-
-        return customProps;
     }
 
     public getAllCloned()
@@ -548,6 +423,69 @@ export abstract class ClonableNode<
         }
 
         return array;
+    }
+
+    public setCustomProperty(name: string, type: CustomPropertyType, value?: CustomPropertyValueType)
+    {
+        const { defineCustomProperties } = this;
+
+        let prop = defineCustomProperties.get(name);
+
+        if (prop)
+        {
+            prop.type = type;
+            prop.value = value;
+        }
+        else
+        {
+            prop = {
+                name,
+                type,
+                value,
+            };
+            defineCustomProperties.set(name, prop);
+        }
+        // todo: update any assignments
+    }
+
+    public assignCustomProperty(modelKey: keyof M, customKey: string): CustomProperty | undefined
+    {
+        const definedProps = this.getDefinedCustomProps();
+        const propArray = definedProps.get(customKey);
+
+        if (propArray?.length)
+        {
+            const prop = propArray[0];
+
+            this.assignedCustomProperties.set(modelKey, prop.name);
+
+            return prop;
+        }
+
+        return undefined;
+    }
+
+    public getDefinedCustomProps()
+    {
+        const definedProps: Map<string, CustomProperty[]> = new Map();
+
+        this.walk<ClonableNode>((node) =>
+        {
+            node.defineCustomProperties.forEach((prop, key) =>
+            {
+                let array = definedProps.get(key);
+
+                if (!array)
+                {
+                    array = [];
+                    definedProps.set(key, array);
+                }
+
+                array.push(prop);
+            });
+        }, { direction: 'up' });
+
+        return definedProps;
     }
 
     public abstract modelSchema(): ModelSchema<M>;

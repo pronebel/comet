@@ -1,17 +1,17 @@
 import { version } from '../../../package.json';
 import { getUserName } from '../../editor/sync/user';
-import type { ModelBase, ModelValue } from '../model/model';
+import type { ModelBase } from '../model/model';
 import type { ClonableNode } from './abstract/clonableNode';
 import { CloneMode } from './cloneInfo';
-import type { CustomPropertyType } from './customProperties';
+import type { CustomProperty } from './customProperties';
 import { newGraphNodeId } from './nodeFactory';
 
 export type id = string;
 
-export interface CustomPropSchema
+export interface CustomPropsSchema
 {
-    type: CustomPropertyType;
-    value: ModelValue;
+    defined: Record<string, CustomProperty>;
+    assigned: Record<string, string>;
 }
 
 export interface CloneInfoSchema
@@ -30,10 +30,7 @@ export interface NodeSchema<M extends ModelBase = {}>
     children: string[];
     model: Partial<M>;
     cloneInfo: CloneInfoSchema;
-    customProperties: {
-        defined: Record<string, CustomPropSchema>;
-        assigned: Record<string, string>;
-    };
+    customProperties: CustomPropsSchema;
 }
 
 export interface ProjectSchema
@@ -113,20 +110,12 @@ export function getNodeSchema(node: ClonableNode, includeParent = true, includeC
         node.children.forEach((node) => nodeSchema.children.push(node.id));
     }
 
-    node.customProperties.properties.forEach((value, key) =>
+    node.defineCustomProperties.forEach((definedProp, key) =>
     {
-        if (value.length && value[0].creator === node)
-        {
-            const prop = value[0];
-
-            nodeSchema.customProperties.defined[key] = {
-                type: prop.type,
-                value: prop.value,
-            };
-        }
+        nodeSchema.customProperties.defined[key] = definedProp;
     });
 
-    node.customProperties.assignments.forEach((customKey, modelKey) =>
+    node.assignedCustomProperties.forEach((customKey, modelKey) =>
     {
         nodeSchema.customProperties.assigned[modelKey] = customKey;
     });

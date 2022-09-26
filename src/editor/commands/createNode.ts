@@ -38,19 +38,14 @@ export class CreateNodeCommand<
         node.created = nodeSchema.created;
 
         // build custom properties
-        for (const [name, prop] of Object.entries(customProperties.defined))
+        for (const [name, definedProp] of Object.entries(customProperties.defined))
         {
-            if (prop)
-            {
-                const { type, value } = prop;
-
-                node.setCustomProperty(name, type, value);
-            }
+            node.setCustomProperty(name, definedProp.type, definedProp.value);
         }
 
-        for (const [modelKey, customPropertyKey] of Object.entries(customProperties.assigned))
+        for (const [modelKey, customKey] of Object.entries(customProperties.assigned))
         {
-            node.assignCustomProperty(modelKey, customPropertyKey);
+            node.assignCustomProperty(modelKey, customKey);
         }
 
         return { node: node as ClonableNode };

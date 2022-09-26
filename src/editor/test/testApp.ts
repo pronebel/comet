@@ -6,6 +6,7 @@ import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
+import type { CustomProperty } from '../../core/nodes/customProperties';
 import {  getLatestNode, registerGraphNodeType } from '../../core/nodes/nodeFactory';
 import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
 import type { AbstractCommand } from '../abstractCommand';
@@ -246,6 +247,10 @@ export class TestApp extends Application
         {
             const cloneRoot = selected.getCloneRoot();
 
+            const definedProps: Record<string, CustomProperty[]> = {};
+
+            selected.getDefinedCustomProps().forEach((props, key) => { definedProps[key] = props; });
+
             const info = {
                 cloneTarget: selected.getCloneTarget().id,
                 cloneRoot: cloneRoot ? cloneRoot.id : undefined,
@@ -254,6 +259,7 @@ export class TestApp extends Application
                 removeChildCloneTarget: selected.getRemoveChildCloneTarget().id,
                 cloned: selected.getAllCloned().map((node) => node.id),
                 ancestors: selected.getCloneAncestors().map((node) => node.id),
+                definedProps,
             };
 
             console.log(JSON.stringify(info, null, 4));
@@ -465,62 +471,36 @@ export class TestApp extends Application
         {
             let html = '';
 
-            const componentId = (component?: GraphNode) => (component ? component.id.replace('Node', '') : '.');
+            const nodeId = (node?: GraphNode) => (node ? node.id.replace('Node', '') : '.');
 
-            this.project.walk<ContainerNode>((component, options) =>
+            this.project.walk<ContainerNode>((node, options) =>
             {
                 const {
                     model: { id: modelId },
                     cloneInfo, cloneInfo: { cloned, cloneMode },
-                } = component;
+                } = node;
 
                 const cloner = cloneInfo.getCloner<ContainerNode>();
 
                 const pad = ''.padStart(options.depth, '+');
-                const id = `&lt;${componentId(component)}&gt;(${componentId(component.parent)})`;
+                const id = `&lt;${nodeId(node)}&gt;(${nodeId(node.parent)})`;
                 const modelInfo = `${modelId}`;
                 const clonerInfo = cloner
-                    ? `<span style="color:lime"><- ${componentId(cloner)}</span>`
+                    ? `<span style="color:lime"><- ${nodeId(cloner)}</span>`
                     : '';
                 const clonedInfo = cloned.length > 0
                     ? `<span style="color:green">-> [${cloned.length}] ${cloned
-                        .map((component) => `${componentId(component as unknown as ContainerNode)}`).join(',')}</span>`
+                        .map((component) => `${nodeId(component as unknown as ContainerNode)}`).join(',')}</span>`
                     : '';
-                const modelValues = JSON.stringify(component.model.ownValues).replace(/^{|}$/g, '');
-                const customProps = component.getCustomProps();
-                const customPropArray: string[] = [];
+                const modelValues = JSON.stringify(node.model.ownValues).replace(/^{|}$/g, '');
 
-                Array.from(customProps.keys()).forEach((key) =>
+                const customPropsDefined: string[] = [];
+                const customPropsAssigned: string[] = [];
+
+                node.defineCustomProperties.forEach((prop, key) => { customPropsDefined.push(`${key}=${prop.value}`); });
+                node.assignedCustomProperties.forEach((customKey, modelKey) =>
                 {
-                    const array = customProps.properties.get(key);
-
-                    if (array)
-                    {
-                        customPropArray.push(array.map((prop, i) =>
-                        {
-                            const isActive = i === 0;
-                            const creator = prop.creator as unknown as ContainerNode;
-                            const creatorId = componentId(creator);
-                            const isCreator = component === creator;
-
-                            let line = `&lt;${creatorId}&gt;~"${prop.name}":${JSON.stringify(prop.value)}`;
-
-                            line = isActive ? `<b>${line}</b>` : `<span style="font-style:italic">${line}</span>`;
-                            line = isCreator ? `<span style="color:salmon">${line}</span>` : line;
-
-                            // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                            return line;
-                        }).join(', '));
-                    }
-                });
-                const customPropDefineInfo = customPropArray.join(' / ');
-                const customPropAssignmentsArray: string[] = [];
-
-                Array.from(component.customProperties.assignments.keys()).forEach((key) =>
-                {
-                    const customKey = component.customProperties.assignments.get(key);
-
-                    customPropAssignmentsArray.push(`${key} -> ${customKey}`);
+                    customPropsAssigned.push(`${modelKey}->${customKey}`);
                 });
 
                 const modelLine = `${modelInfo} <span style="color:cyan;">${modelValues}</span>`;
@@ -531,11 +511,24 @@ export class TestApp extends Application
                 let output = `${pad} ${id} ${cloneModeInfo} ${clonerInfo} ${clonedInfo}\n`;
 
                 output += `${pad}  ... ${modelLine}\n`;
-                if (customPropDefineInfo.length)
+
+                if (customPropsDefined.length || customPropsAssigned.length)
                 {
-                    output += `${pad}  ... ${customPropDefineInfo} : ${customPropAssignmentsArray.join(', ')}\n`;
+                    output += `${pad}  ... `;
+
+                    if (customPropsDefined.length)
+                    {
+                        output += `<span style="color:pink">${customPropsDefined}</span> `;
+                    }
+                    if (customPropsAssigned.length)
+                    {
+                        output += `<span style="color:orange">${customPropsAssigned}</span> `;
+                    }
+
+                    output += '\n';
                 }
-                const line = component === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
+
+                const line = node === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
 
                 html += isCloned ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
             }, {

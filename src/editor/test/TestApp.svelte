@@ -9,7 +9,7 @@
 
   const userName = getUserName();
 
-  let customPropName: string = "prop1";
+  let customPropName: string = "name";
   let customPropValue: string = "foo1";
   let assignModelKey: string = "label";
   let undoStackEnd: number = -1;

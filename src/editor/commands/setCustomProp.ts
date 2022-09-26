@@ -25,6 +25,7 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
 
         // update datastore
         definedCustomProps.set(propName, {
+            propName,
             type,
             value,
         });
