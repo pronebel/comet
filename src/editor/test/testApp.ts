@@ -7,7 +7,7 @@ import type { ContainerNode } from '../../core/nodes/concrete/container';
 import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
-import {  getLatestNode, registerGraphNodeType } from '../../core/nodes/nodeFactory';
+import {  getGraphNode, getLatestNode, registerGraphNodeType } from '../../core/nodes/nodeFactory';
 import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
 import type { AbstractCommand } from '../abstractCommand';
 import { type AppOptions, Application } from '../application';
@@ -21,6 +21,7 @@ import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { SetParentCommand } from '../commands/setParent';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { UnlinkCommand } from '../commands/unlink';
+import type { DSNodeCreatedEvent } from '../sync/datastoreEvents';
 import { getUserName } from '../sync/user';
 import { getUrlParam } from '../util';
 import { DebugNode } from './debug';
@@ -55,6 +56,24 @@ export class TestApp extends Application
         this.selection.alpha = 0.33;
 
         this.stage.addChild(selection);
+
+        this.initDatastoreEvents();
+    }
+
+    protected initDatastoreEvents()
+    {
+        const { datastore } = this;
+
+        datastore.on('parentSet', (e: DSNodeCreatedEvent) =>
+        {
+            const node = getGraphNode(e.nodeId).cast<ContainerNode>();
+
+            this.makeInteractive(node);
+            this.select(node);
+        }).on('nodeRemoved', () =>
+        {
+            this.selectLastNode();
+        });
     }
 
     public async init()
@@ -99,12 +118,17 @@ export class TestApp extends Application
         }
         else if (commandName === 'RemoveNode')
         {
-            const node = getLatestNode();
+            this.selectLastNode();
+        }
+    }
 
-            if (node)
-            {
-                this.select(node.cast<ContainerNode>());
-            }
+    protected selectLastNode()
+    {
+        const node = getLatestNode();
+
+        if (node)
+        {
+            this.select(node.cast<ContainerNode>());
         }
     }
 

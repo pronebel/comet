@@ -127,6 +127,86 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         });
     }
 
+    public registerExistingNode(nodeId: string)
+    {
+        const nodeElement = this.nodes.get(nodeId) as RealTimeObject;
+
+        if (!nodeElement)
+        {
+            throw new Error(`Existing Node "${nodeId}" RealTimeObject not found.`);
+        }
+
+        // store element, node is already tracked
+        this.nodeRealtimeObjects.set(nodeId, nodeElement);
+
+        console.log(`${userName}:Registered Existing RealTimeObject "${nodeId}"`);
+    }
+
+    public getNodeSchema(nodeId: string)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+
+        return nodeElement.toJSON() as NodeSchema;
+    }
+
+    public async createProject(name: string, id?: string)
+    {
+        const data = createProjectSchema(name);
+
+        const model = await this.domain.models().openAutoCreate({
+            ...defaultProjectSettings,
+            id,
+            data,
+        });
+
+        console.log(`%c${userName}:Created project "${model.modelId()}"`, logStyle);
+
+        return await this.openProject(model.modelId());
+    }
+
+    public async openProject(id: string): Promise<ClonableNode>
+    {
+        const model = await this.domain.models().open(id);
+
+        console.log(`%c${userName}:Opened project "${model.modelId()}"`, logStyle);
+
+        this._model = model;
+
+        await this.joinActivity('editProject', model.modelId());
+
+        // catch events when a remote user adds or removes a node...
+        this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+        {
+            const nodeElement = (event as ObjectSetEvent).value as RealTimeObject;
+            const nodeId = nodeElement.get('id').value() as string;
+
+            consolidateNodeId(nodeId);
+
+            console.log(`%c${userName}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
+
+            this.registerNode(nodeId, nodeElement);
+
+            const e: DSNodeCreatedEvent = { nodeId };
+
+            this.emit('nodeCreated', e);
+        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
+        {
+            const nodeId = (event as ObjectSetEvent).key;
+
+            const nodeElement = (event as ObjectSetEvent).oldValue as RealTimeObject;
+            const parentId = nodeElement.get('parent').value() as string | undefined;
+
+            console.log(`%c${userName}:nodes.remove: ${nodeId}`, logStyle);
+
+            if (parentId)
+            {
+                this.emit('nodeRemoved', { nodeId, parentId } as DSNodeRemovedEvent);
+            }
+        });
+
+        return this.hydrate();
+    }
+
     public registerNode(nodeId: string, nodeElement: RealTimeObject)
     {
         if (this.nodeRealtimeObjects.has(nodeId))
@@ -137,10 +217,21 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         // store element
         this.nodeRealtimeObjects.set(nodeId, nodeElement);
 
+        // track remote events
+        this.trackNodeRemoteEvents(nodeId);
+
+        console.log(`${userName}:Registered New RealTimeObject "${nodeId}"`);
+    }
+
+    protected trackNodeRemoteEvents(nodeId: string)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+
         // track remote events on node changes
         nodeElement.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
         {
-            const key = (event as ObjectSetEvent).key;
+            const setEvent = event as ObjectSetEvent;
+            const key = setEvent.key;
 
             if (key === 'parent')
             {
@@ -235,142 +326,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             this.emit('cloneInfoModified', e);
         });
-
-        console.log(`${userName}:Registered RealTimeObject "${nodeId}"`);
-    }
-
-    public createNodeSchema(nodeSchema: NodeSchema)
-    {
-        const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
-
-        this.registerNode(nodeSchema.id, nodeElement);
-    }
-
-    public setNodeParent(childId: string, parentId: string)
-    {
-        const parentElement = this.getNodeElement(parentId);
-        const childElement = this.getNodeElement(childId);
-
-        // set parent data
-        childElement.set('parent', parentId);
-
-        // set children data
-        const childArray = parentElement.get('children') as RealTimeArray;
-
-        // const index = childArray.findIndex((id) => id.value() === childId);
-
-        childArray.push(childId);
-    }
-
-    public updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema)
-    {
-        const nodeElement = this.getNodeElement(nodeId);
-
-        nodeElement.get('cloneInfo').value(cloneInfoSchema);
-    }
-
-    public modifyNodeModel(nodeId: string, values: object)
-    {
-        const nodeElement = this.getNodeElement(nodeId);
-        const modelElement = nodeElement.get('model') as RealTimeObject;
-
-        this.batch(() =>
-        {
-            for (const [k, v] of Object.entries(values))
-            {
-                modelElement.set(k, v);
-            }
-        });
-    }
-
-    public removeNode(nodeId: string, parentId: string)
-    {
-        const parentElement = this.getNodeElement(parentId);
-
-        // remove from nodes RealTimeObject
-        this.nodes.remove(nodeId);
-
-        // remove child reference in parent element
-        const childArray = parentElement.get('children') as RealTimeArray;
-        const index = childArray.findIndex((id) => id.value() === nodeId);
-
-        if (index === -1)
-        {
-            throw new Error(`Could not find child "${nodeId}" reference in parent "${parentId}"`);
-        }
-
-        childArray.remove(index);
-
-        // unregister RealTimeObject for node
-        this.unRegisterNode(nodeId);
-    }
-
-    public async createProject(name: string, id?: string)
-    {
-        const data = createProjectSchema(name);
-
-        const model = await this.domain.models().openAutoCreate({
-            ...defaultProjectSettings,
-            id,
-            data,
-        });
-
-        console.log(`%c${userName}:Created project "${model.modelId()}"`, logStyle);
-
-        return await this.openProject(model.modelId());
-    }
-
-    public async openProject(id: string): Promise<ClonableNode>
-    {
-        const model = await this.domain.models().open(id);
-
-        console.log(`%c${userName}:Opened project "${model.modelId()}"`, logStyle);
-
-        this._model = model;
-
-        await this.joinActivity('editProject', model.modelId());
-
-        // catch events when a remote user adds or removes a node...
-        this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-        {
-            const nodeElement = (event as ObjectSetEvent).value as RealTimeObject;
-            const nodeId = nodeElement.get('id').value() as string;
-            const parentId = nodeElement.get('parent').value() as string | undefined;
-
-            consolidateNodeId(nodeId);
-
-            console.log(`%c${userName}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
-
-            this.registerNode(nodeId, nodeElement);
-
-            const e: DSNodeCreatedEvent = { nodeId };
-
-            this.emit('nodeCreated', e);
-
-            if (parentId)
-            {
-                const childId = nodeElement.get('id').value() as string;
-
-                const e: DSParentSetEvent = { parentId, nodeId: childId };
-
-                this.emit('parentSet', e);
-            }
-        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
-        {
-            const nodeId = (event as ObjectSetEvent).key;
-
-            const nodeElement = (event as ObjectSetEvent).oldValue as RealTimeObject;
-            const parentId = nodeElement.get('parent').value() as string | undefined;
-
-            console.log(`%c${userName}:nodes.remove: ${nodeId}`, logStyle);
-
-            if (parentId)
-            {
-                this.emit('nodeRemoved', { nodeId, parentId } as DSNodeRemovedEvent);
-            }
-        });
-
-        return this.hydrate();
     }
 
     public hydrate()
@@ -441,6 +396,72 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const rootNode = getGraphNode(rootId);
 
         return rootNode;
+    }
+
+    public createNodeSchema(nodeSchema: NodeSchema)
+    {
+        const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
+
+        this.registerNode(nodeSchema.id, nodeElement);
+    }
+
+    public setNodeParent(childId: string, parentId: string)
+    {
+        const parentElement = this.getNodeElement(parentId);
+        const childElement = this.getNodeElement(childId);
+
+        // set parent data
+        childElement.set('parent', parentId);
+
+        // set children data
+        const childArray = parentElement.get('children') as RealTimeArray;
+
+        // const index = childArray.findIndex((id) => id.value() === childId);
+
+        childArray.push(childId);
+    }
+
+    public updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+
+        nodeElement.get('cloneInfo').value(cloneInfoSchema);
+    }
+
+    public modifyNodeModel(nodeId: string, values: object)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+        const modelElement = nodeElement.get('model') as RealTimeObject;
+
+        this.batch(() =>
+        {
+            for (const [k, v] of Object.entries(values))
+            {
+                modelElement.set(k, v);
+            }
+        });
+    }
+
+    public removeNode(nodeId: string, parentId: string)
+    {
+        const parentElement = this.getNodeElement(parentId);
+
+        // remove from nodes RealTimeObject
+        this.nodes.remove(nodeId);
+
+        // remove child reference in parent element
+        const childArray = parentElement.get('children') as RealTimeArray;
+        const index = childArray.findIndex((id) => id.value() === nodeId);
+
+        if (index === -1)
+        {
+            throw new Error(`Could not find child "${nodeId}" reference in parent "${parentId}"`);
+        }
+
+        childArray.remove(index);
+
+        // unregister RealTimeObject for node
+        this.unRegisterNode(nodeId);
     }
 
     public disconnect(): void

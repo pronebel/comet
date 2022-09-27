@@ -9,6 +9,7 @@ import { clearGraphNodeRegistrations } from '../core/nodes/nodeFactory';
 import type { AbstractCommand } from './abstractCommand';
 import { createCommand } from './commandFactory';
 import { Datastore } from './sync/datastore';
+import { NodeUpdater } from './sync/nodeUpdater';
 import UndoStack from './undoStack';
 
 export interface AppOptions
@@ -22,6 +23,7 @@ export abstract class Application extends EventEmitter<AppEvents>
 {
     public pixiApp: PixiApplication;
     public datastore: Datastore;
+    public nodeUpdater: NodeUpdater;
     public undoStack: UndoStack;
     public project?: ProjectNode;
 
@@ -43,7 +45,9 @@ export abstract class Application extends EventEmitter<AppEvents>
 
         this.undoStack = new UndoStack();
 
-        this.datastore = new Datastore();
+        const datastore = this.datastore = new Datastore();
+
+        this.nodeUpdater = new NodeUpdater(datastore);
     }
 
     public static get instance()

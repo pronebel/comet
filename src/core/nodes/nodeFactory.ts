@@ -1,9 +1,12 @@
+import { getUserName } from '../../editor/sync/user';
 import type { ClonableNode, ClonableNodeConstructor, NodeOptions } from './abstract/clonableNode';
 import { sortNodesByCreation } from './abstract/graphNode';
 
 export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
 export const nodeInstances: Map<string, ClonableNode> = new Map();
 export let nodeIdCount = {} as Record<string, number>;
+
+const userName = getUserName();
 
 export function registerGraphNodeType(nodeClass: ClonableNodeConstructor)
 {
@@ -55,6 +58,7 @@ export function createGraphNode(nodeType: string, options: NodeOptions<{}>)
         throw new Error(`Node with id "${id}" already registered.`);
     }
 
+    console.log(`${userName}:createGraphNode "${id}"`);
     nodeInstances.set(id, node);
 
     return node;

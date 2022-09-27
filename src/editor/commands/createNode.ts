@@ -32,6 +32,11 @@ export class CreateNodeCommand<
             // create datastore entry
             datastore.createNodeSchema(nodeSchema);
         }
+        else
+        {
+            // just register the model, we are loading existing nodes
+            datastore.registerExistingNode(nodeSchema.id);
+        }
 
         // build clone info
         const cloneInfo = new CloneInfo(cloneMode, cloner ? getGraphNode(cloner) : undefined);

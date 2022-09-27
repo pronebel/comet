@@ -5,6 +5,7 @@ import { AbstractCommand } from '../abstractCommand';
 export interface RemoveNodeCommandParams
 {
     nodeId: string;
+    isRemoteUpdate: boolean;
 }
 
 export interface RemoveNodeCommandReturn
@@ -19,7 +20,7 @@ export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, 
 
     public exec(): RemoveNodeCommandReturn
     {
-        const { datastore, params: { nodeId } } = this;
+        const { datastore, params: { nodeId, isRemoteUpdate } } = this;
 
         const node = getGraphNode(nodeId);
         const parentNode = node.parent;
@@ -31,8 +32,11 @@ export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, 
 
         const parentId = parentNode.id;
 
-        // delete data from datastore
-        datastore.removeNode(nodeId, parentId);
+        if (!isRemoteUpdate)
+        {
+            // delete data from datastore
+            datastore.removeNode(nodeId, parentId);
+        }
 
         // remove from parent graph node
         parentNode.removeChild(node);
