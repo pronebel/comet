@@ -47,12 +47,20 @@ export class CreateNodeCommand<
 
         node.created = nodeSchema.created;
 
-        // build custom properties
+        if (nodeSchema.parent && !isNewNode)
+        {
+            const parentNode = getGraphNode(nodeSchema.parent);
+
+            parentNode.addChild(node);
+        }
+
+        // build defined custom properties
         for (const [name, definedProp] of Object.entries(customProperties.defined))
         {
             node.setCustomProperty(name, definedProp.type, definedProp.value);
         }
 
+        // build assigned custom properties
         for (const [modelKey, customKey] of Object.entries(customProperties.assigned))
         {
             node.assignCustomProperty(modelKey, customKey);

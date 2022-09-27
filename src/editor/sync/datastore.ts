@@ -10,7 +10,6 @@ import { EventEmitter } from 'eventemitter3';
 
 import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import type { GraphNode } from '../../core/nodes/abstract/graphNode';
 import { consolidateNodeId, getGraphNode } from '../../core/nodes/nodeFactory';
 import { type CloneInfoSchema, type NodeSchema, createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
@@ -250,51 +249,53 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         });
 
         // catch events on nodeElement custom prop defined changes (as a remote user)
-        nodeElement.elementAt('customProperties', 'defined').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-        {
-            const customKey = (event as ObjectSetEvent).key;
-            const element = (event as ObjectSetEvent).value as RealTimeObject;
+        nodeElement.elementAt('customProperties', 'defined')
+            .on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+            {
+                const customKey = (event as ObjectSetEvent).key;
+                const element = (event as ObjectSetEvent).value as RealTimeObject;
 
-            const { type, value } = element.toJSON();
-            const info = JSON.stringify(element.toJSON());
+                const { type, value } = element.toJSON();
+                const info = JSON.stringify(element.toJSON());
 
-            console.log(`%c${userName}:${nodeId}:customProperties.defined: ${info}`, logStyle);
+                console.log(`%c${userName}:${nodeId}:customProperties.defined: ${info}`, logStyle);
 
-            const e: DSCustomPropDefinedEvent = { nodeId, customKey, type, value };
+                const e: DSCustomPropDefinedEvent = { nodeId, customKey, type, value };
 
-            this.emit('customPropDefined', e);
-        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
-        {
-            const customKey = (event as ObjectSetEvent).key;
+                this.emit('customPropDefined', e);
+            }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
+            {
+                const customKey = (event as ObjectSetEvent).key;
 
-            console.log(`%c${userName}:${nodeId}:customProperties.undefined: "${customKey}"`, logStyle);
+                console.log(`%c${userName}:${nodeId}:customProperties.undefined: "${customKey}"`, logStyle);
 
-            const e: DSCustomPropUndefinedEvent = { nodeId, customKey };
+                const e: DSCustomPropUndefinedEvent = { nodeId, customKey };
 
-            this.emit('customPropUndefined', e);
-        });
+                this.emit('customPropUndefined', e);
+            });
 
         // catch events on nodeElement custom prop assigned changes (as a remote user)
-        nodeElement.elementAt('customProperties', 'assigned').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-        {
-            const modelKey = (event as ObjectSetEvent).key;
-            const customKey = (event as ObjectSetEvent).value.value() as string;
+        nodeElement.elementAt('customProperties', 'assigned')
+            .on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
+            {
+                const modelKey = (event as ObjectSetEvent).key;
+                const customKey = (event as ObjectSetEvent).value.value() as string;
 
-            console.log(`%c${userName}:${nodeId}:customProperties.assign: "${modelKey}->${customKey}"`, logStyle);
+                console.log(`%c${userName}:${nodeId}:customProperties.assign: "${modelKey}->${customKey}"`, logStyle);
 
-            const e: DSCustomPropAssignedEvent = { nodeId, modelKey, customKey };
+                const e: DSCustomPropAssignedEvent = { nodeId, modelKey, customKey };
 
-            this.emit('customPropAssigned', e);
-        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
-        {
-            const modelKey = (event as ObjectSetEvent).key;
+                this.emit('customPropAssigned', e);
+            }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
+            {
+                const modelKey = (event as ObjectSetEvent).key;
 
-            console.log(`%c${userName}:${nodeId}:customProperties.unassigned: "${modelKey}"`, logStyle);
+                console.log(`%c${userName}:${nodeId}:customProperties.unassigned: "${modelKey}"`, logStyle);
 
-            const e: DSCustomPropUnassignedEvent = { nodeId, modelKey };
+                const e: DSCustomPropUnassignedEvent = { nodeId, modelKey };
 
-            this.emit('customPropUnassigned', e);
-        });
+                this.emit('customPropUnassigned', e);
+            });
 
         // catch events from model
         nodeElement.elementAt('model').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
@@ -353,7 +354,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const rootId = this.model.root().get('root').value() as string;
         const projectNode = nodeElements.get(rootId);
 
-        const hydrate = (nodeElement: RealTimeObject, parentNode?: ClonableNode) =>
+        const hydrate = (nodeElement: RealTimeObject) =>
         {
             const id = nodeElement.get('id').value() as string;
 
@@ -363,13 +364,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             // create the graph node
             const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
 
-            const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: false }).exec();
-
-            // add to parent if provided
-            if (parentNode)
-            {
-                parentNode.addChild(node as GraphNode);
-            }
+            new CreateNodeCommand({ nodeSchema, isNewNode: false }).exec();
 
             // recursively create children
             (nodeElement.get('children').value() as RealTimeArray).forEach((id) =>
@@ -379,7 +374,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
                 if (childNodeElement)
                 {
-                    hydrate(childNodeElement, node);
+                    hydrate(childNodeElement);
                 }
                 else
                 {

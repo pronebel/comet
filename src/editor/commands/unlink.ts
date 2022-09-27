@@ -28,6 +28,9 @@ export class UnlinkCommand extends AbstractCommand<UnlinkCommandParams>
             // update datastore with new cloneInfo and model values
             datastore.updateNodeCloneInfo(nodeId, getCloneInfoSchema(node));
             datastore.modifyNodeModel(nodeId, node.model.ownValues);
+
+            // call this command on all cloned nodes from this node
+            node.cloneInfo.forEachCloned<ClonableNode>((clone) => new UnlinkCommand({ nodeId: clone.id }).exec());
         });
     }
 
