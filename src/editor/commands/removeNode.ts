@@ -1,5 +1,6 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { disposeGraphNode, getGraphNode } from '../../core/nodes/nodeFactory';
+import { getCloneInfoSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 
 export interface RemoveNodeCommandParams
@@ -43,8 +44,17 @@ export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, 
             datastore.removeNode(nodeId, parentId);
         }
 
+        // track cloner before removeChild
+        const cloner = node.cloneInfo.getCloner<ClonableNode>();
+
         // remove from parent graph node
         parentNode.removeChild(node);
+
+        // update node cloneInfo
+        if (cloner)
+        {
+            datastore.updateNodeCloneInfo(cloner.id, getCloneInfoSchema(cloner));
+        }
 
         // unregister graph node
         disposeGraphNode(node);

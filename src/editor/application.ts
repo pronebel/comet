@@ -14,6 +14,7 @@ import { getUserName } from './sync/user';
 import UndoStack from './undoStack';
 
 const userName = getUserName();
+const localStorageCommandsKey = `${userName}:commands`;
 
 export interface AppOptions
 {
@@ -108,12 +109,12 @@ export abstract class Application extends EventEmitter<AppEvents>
     {
         const data = JSON.stringify(this.undoStack.toJSON(), null, 4);
 
-        localStorage['undoStack'] = data;
+        localStorage[localStorageCommandsKey] = data;
     }
 
     public readUndoStack(endIndex: number | undefined = undefined)
     {
-        const data = localStorage['undoStack'];
+        const data = localStorage[localStorageCommandsKey];
 
         if (data)
         {

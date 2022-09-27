@@ -225,6 +225,18 @@ export abstract class ClonableNode<
         this.removeAllListeners();
     }
 
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onRemovedFromParent(oldParent: GraphNode<string>): void
+    {
+        const cloner = this.cloneInfo.getCloner<ClonableNode>();
+
+        if (cloner)
+        {
+            cloner.cloneInfo.removeCloned(this);
+        }
+    }
+
     public update(recursive = false)
     {
         if (this.view)

@@ -25,11 +25,9 @@ export class UnlinkCommand extends AbstractCommand<UnlinkCommandParams>
 
             // update datastore with new cloneInfo and model values
             const nodeId = node.id;
-            const nodeElement = datastore.getNodeElement(nodeId);
-            const cloneInfoSchema = getCloneInfoSchema(node);
 
-            nodeElement.get('cloneInfo').value(cloneInfoSchema);
-            nodeElement.get('model').value(node.model.ownValues);
+            datastore.updateNodeCloneInfo(nodeId, getCloneInfoSchema(node));
+            datastore.modifyNodeModel(nodeId, node.model.ownValues);
         });
     }
 

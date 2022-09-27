@@ -431,6 +431,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public modifyNodeModel(nodeId: string, values: object)
     {
+        // todo: optimise into single call
         const nodeElement = this.getNodeElement(nodeId);
         const modelElement = nodeElement.get('model') as RealTimeObject;
 

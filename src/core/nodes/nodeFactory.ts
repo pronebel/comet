@@ -129,10 +129,10 @@ export function compactIds(nodeType: string)
     {
         const [type, id] = nodeId.split(':');
 
-        hash[type] = Math.max(hash[type] || 1, parseInt(id, 10));
+        hash[type] = Math.max(hash[type] || 0, parseInt(id, 10));
     });
 
-    nodeIdCount.set(nodeType, hash[nodeType] || 1);
+    nodeIdCount.set(nodeType, hash[nodeType] || 0);
 
     const k = Array.from(nodeInstances.keys());
 
