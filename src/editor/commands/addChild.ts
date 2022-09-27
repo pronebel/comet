@@ -1,5 +1,6 @@
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { CloneMode } from '../../core/nodes/cloneInfo';
 import { getGraphNode } from '../../core/nodes/nodeFactory';
 import type { NodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
@@ -39,16 +40,24 @@ export class AddChildCommand<
 
         const { node } = app.exec<CreateNodeCommandReturn>(new CreateNodeCommand({ nodeSchema, isNewNode: true }));
         const nodes: ClonableNode[] = [node];
+        let lastCloneSource = node;
 
         app.exec(new SetParentCommand({ parentId: originalParentNode.id, childId: node.id }));
 
         clonedParentNodes.forEach((clonedParent) =>
         {
+            const cloneMode = clonedParent.getNewChildCloneMode();
+
             const { clonedNode } = app.exec<CloneCommandReturn>(new CloneCommand({
-                nodeId: node.id,
-                cloneMode: clonedParent.getNewChildCloneMode(),
+                nodeId: lastCloneSource.id,
+                cloneMode,
                 depth: 1,
             }));
+
+            if (cloneMode === CloneMode.Variant)
+            {
+                lastCloneSource = clonedNode;
+            }
 
             nodes.push(clonedNode);
 

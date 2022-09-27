@@ -281,11 +281,11 @@ export class TestApp extends Application
             selected.getDefinedCustomProps().forEach((props, key) => { definedProps[key] = props; });
 
             const info = {
+                original: selected.getOriginal().id,
                 cloneTarget: selected.getCloneTarget().id,
                 cloneRoot: cloneRoot ? cloneRoot.id : undefined,
-                original: selected.getOriginal().id,
+                modifyCloneTarget: selected.getModificationCloneTarget().id,
                 addChildCloneTarget: selected.getAddChildCloneTarget().id,
-                removeChildCloneTarget: selected.getRemoveChildCloneTarget().id,
                 cloned: selected.getAllCloned().map((node) => node.id),
                 ancestors: selected.getCloneAncestors().map((node) => node.id),
                 definedProps,
@@ -321,7 +321,7 @@ export class TestApp extends Application
         if (this.selected && this.selected instanceof DebugNode)
         {
             this.exec(new ModifyModelCommand<SpriteModel>({
-                nodeId: this.selected.getRemoveChildCloneTarget().id,
+                nodeId: this.selected.getModificationCloneTarget().id,
                 values: {
                     tint: Math.round(Math.random() * 100000),
                 } }));
@@ -333,7 +333,7 @@ export class TestApp extends Application
         if (this.selected)
         {
             this.exec(new ModifyModelCommand<SpriteModel>({
-                nodeId: this.selected.getRemoveChildCloneTarget().id,
+                nodeId: this.selected.getModificationCloneTarget().id,
                 values: {
                     width: Math.round(Math.random() * 50),
                     height: Math.round(Math.random() * 50),
