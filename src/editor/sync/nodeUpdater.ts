@@ -92,6 +92,19 @@ export class NodeUpdater
     protected onModelModified = (event: DSModelModifiedEvent) =>
     {
         this.log('onModelModified', event);
+
+        const { key, nodeId, value } = event;
+
+        const node = getGraphNode(nodeId);
+
+        if (key === undefined)
+        {
+            node.model.setValues(value as object);
+        }
+        else
+        {
+            node.model.setValue(key, value);
+        }
     };
 
     protected onCloneInfoModified = (event: DSCloneInfoModifiedEvent) =>

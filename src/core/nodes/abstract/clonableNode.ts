@@ -356,6 +356,13 @@ export abstract class ClonableNode<
         return node;
     }
 
+    public getModificationCloneTarget(): ClonableNode
+    {
+        const { isVariant, isRoot, isOriginal } = this.cloneInfo;
+
+        return (isVariant || isRoot || isOriginal) ? this as unknown as ClonableNode : this.cloneInfo.getCloner();
+    }
+
     public getRemoveChildCloneTarget(): ClonableNode
     {
         const { isVariant, isRoot } = this.cloneInfo;

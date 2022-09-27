@@ -21,7 +21,7 @@ import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { SetParentCommand } from '../commands/setParent';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { UnlinkCommand } from '../commands/unlink';
-import type { DSNodeCreatedEvent } from '../sync/datastoreEvents';
+import type { DSModelModifiedEvent, DSNodeCreatedEvent } from '../sync/datastoreEvents';
 import { getUserName } from '../sync/user';
 import { getUrlParam } from '../util';
 import { DebugNode } from './debug';
@@ -73,6 +73,11 @@ export class TestApp extends Application
         }).on('nodeRemoved', () =>
         {
             this.selectLastNode();
+        }).on('modelModified', (e: DSModelModifiedEvent) =>
+        {
+            const node = getGraphNode(e.nodeId);
+
+            this.fitSelection(node.cast<ContainerNode>());
         });
     }
 
@@ -440,7 +445,7 @@ export class TestApp extends Application
 
                 this.select(component);
 
-                const original = component.getRemoveChildCloneTarget();
+                const original = component.getModificationCloneTarget();
 
                 startDrag(original.cast());
             });

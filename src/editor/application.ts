@@ -10,7 +10,10 @@ import type { AbstractCommand } from './abstractCommand';
 import { createCommand } from './commandFactory';
 import { Datastore } from './sync/datastore';
 import { NodeUpdater } from './sync/nodeUpdater';
+import { getUserName } from './sync/user';
 import UndoStack from './undoStack';
+
+const userName = getUserName();
 
 export interface AppOptions
 {
@@ -98,7 +101,7 @@ export abstract class Application extends EventEmitter<AppEvents>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onCommand(command: AbstractCommand, result: unknown)
     {
-        console.log(`%c🔔 ${command.name}: %c${JSON.stringify(command.params)}`, 'color:cyan', 'color:yellow');
+        console.log(`%c🔔 ${userName}:${command.name}: %c${JSON.stringify(command.params)}`, 'color:cyan', 'color:yellow');
     }
 
     public writeUndoStack()

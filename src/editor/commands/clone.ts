@@ -47,6 +47,12 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
             // create the datastore version of the cloned graph node
             datastore.createNodeSchema(nodeSchema);
 
+            // update parenting info in datastore to trigger remote users
+            if (node.parent)
+            {
+                datastore.setNodeParent(node.id, node.parent.id, false);
+            }
+
             // register the graph node
             registerGraphNode(node);
 

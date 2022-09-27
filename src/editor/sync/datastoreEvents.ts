@@ -56,7 +56,7 @@ export interface DSCustomPropUnassignedEvent extends DSNodeEvent
 export interface DSModelModifiedEvent extends DSNodeEvent
 {
     key: string | undefined; // undefined means whole object was set, which will be .value
-    value: ModelValue | object;
+    value: ModelValue;
 }
 
 export type DSCloneInfoModifiedEvent = DSNodeEvent & CloneInfoSchema;

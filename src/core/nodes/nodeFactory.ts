@@ -4,7 +4,7 @@ import { sortNodesByCreation } from './abstract/graphNode';
 
 export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
 export const nodeInstances: Map<string, ClonableNode> = new Map();
-export let nodeIdCount = {} as Record<string, number>;
+export const nodeIdCount: Map<string, number> = new Map();
 
 const userName = getUserName();
 
@@ -24,7 +24,7 @@ export function registerGraphNodeType(nodeClass: ClonableNodeConstructor)
 export function clearGraphNodeRegistrations()
 {
     nodeInstances.clear();
-    nodeIdCount = {};
+    nodeIdCount.clear();
 }
 
 export function getGraphNode(id: string)
@@ -50,16 +50,11 @@ export function createGraphNode(nodeType: string, options: NodeOptions<{}>)
         throw new Error(`Node type "${nodeType}" is unregistered.`);
     }
 
+    console.log(`${userName}:createGraphNode "${options.id}"`);
+
     const node = new NodeClass(options);
-    const { id } = node;
 
-    if (nodeInstances.has(id))
-    {
-        throw new Error(`Node with id "${id}" already registered.`);
-    }
-
-    console.log(`${userName}:createGraphNode "${id}"`);
-    nodeInstances.set(id, node);
+    registerGraphNode(node);
 
     return node;
 }
@@ -73,6 +68,8 @@ export function registerGraphNode(node: ClonableNode)
         throw new Error(`Node with id "${id}" already registered.`);
     }
 
+    console.log(`${userName}:registerGraphNode "${id}"`);
+
     nodeInstances.set(id, node);
 
     return node;
@@ -81,6 +78,7 @@ export function registerGraphNode(node: ClonableNode)
 export function disposeGraphNode(node: ClonableNode)
 {
     nodeInstances.delete(node.id);
+    compactIds(node.nodeType());
 }
 
 export function nextGraphNodeId(nodeType: string, isUnregisteredType = false)
@@ -95,19 +93,19 @@ export function nextGraphNodeId(nodeType: string, isUnregisteredType = false)
         }
     }
 
-    if (!nodeIdCount[nodeType])
+    if (!nodeIdCount.has(nodeType))
     {
         return 1;
     }
 
-    return nodeIdCount[nodeType] + 1;
+    return nodeIdCount.get(nodeType) as number + 1;
 }
 
 export function newGraphNodeId(nodeType: string, isUnregisteredType = false)
 {
     const nextId = nextGraphNodeId(nodeType, isUnregisteredType);
 
-    nodeIdCount[nodeType] = nextId;
+    nodeIdCount.set(nodeType, nextId);
 
     return `${nodeType}:${nextId}`;
 }
@@ -117,7 +115,28 @@ export function consolidateNodeId(id: string)
     const [nodeType, _idCount] = id.split(':');
     const idCount = parseInt(_idCount, 10);
 
-    nodeIdCount[nodeType] = Math.max(isNaN(nodeIdCount[nodeType]) ? 1 : nodeIdCount[nodeType], idCount);
+    nodeIdCount.set(
+        nodeType,
+        Math.max(isNaN(nodeIdCount.get(nodeType) as number) ? 1 : nodeIdCount.get(nodeType) as number, idCount),
+    );
+}
+
+export function compactIds(nodeType: string)
+{
+    const hash: Record<string, number> = {};
+
+    Array.from(nodeInstances.keys()).forEach((nodeId) =>
+    {
+        const [type, id] = nodeId.split(':');
+
+        hash[type] = Math.max(hash[type] || 1, parseInt(id, 10));
+    });
+
+    nodeIdCount.set(nodeType, hash[nodeType] || 1);
+
+    const k = Array.from(nodeInstances.keys());
+
+    console.log(`%c${userName}:compactIds "${nodeType}" = ${nodeIdCount.get(nodeType) as number} [${k}]`, 'color:orange');
 }
 
 export function getLatestNode()

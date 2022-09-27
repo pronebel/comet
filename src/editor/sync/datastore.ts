@@ -405,7 +405,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.registerNode(nodeSchema.id, nodeElement);
     }
 
-    public setNodeParent(childId: string, parentId: string)
+    public setNodeParent(childId: string, parentId: string, updateChildren = true)
     {
         const parentElement = this.getNodeElement(parentId);
         const childElement = this.getNodeElement(childId);
@@ -413,12 +413,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         // set parent data
         childElement.set('parent', parentId);
 
-        // set children data
-        const childArray = parentElement.get('children') as RealTimeArray;
+        if (updateChildren)
+        {
+            // set children data
+            const childArray = parentElement.get('children') as RealTimeArray;
 
-        // const index = childArray.findIndex((id) => id.value() === childId);
-
-        childArray.push(childId);
+            childArray.push(childId);
+        }
     }
 
     public updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema)

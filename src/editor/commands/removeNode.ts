@@ -32,7 +32,12 @@ export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, 
 
         const parentId = parentNode.id;
 
-        if (!isRemoteUpdate)
+        if (isRemoteUpdate)
+        {
+            // just unregister it, already removed from data
+            datastore.unRegisterNode(nodeId);
+        }
+        else
         {
             // delete data from datastore
             datastore.removeNode(nodeId, parentId);
