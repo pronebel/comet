@@ -380,6 +380,7 @@ export class TestApp extends Application
                 customKey: name,
                 type: propType,
                 value: propValue,
+                isRemoteUpdate: false,
             }));
         }
     }
@@ -393,6 +394,7 @@ export class TestApp extends Application
             this.exec(new RemoveCustomPropCommand({
                 nodeId: selected.id,
                 customKey: name,
+                isRemoteUpdate: false,
             }));
         }
     }
@@ -407,6 +409,7 @@ export class TestApp extends Application
                 nodeId: selected.id,
                 modelKey,
                 customKey,
+                isRemoteUpdate: false,
             }));
         }
     }
@@ -420,6 +423,7 @@ export class TestApp extends Application
             this.exec(new UnAssignCustomPropCommand({
                 nodeId: selected.id,
                 modelKey,
+                isRemoteUpdate: false,
             }));
         }
     }

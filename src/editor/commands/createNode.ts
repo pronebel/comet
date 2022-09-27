@@ -5,6 +5,8 @@ import { createGraphNode, getGraphNode } from '../../core/nodes/nodeFactory';
 import type { NodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 import type { Datastore } from '../sync/datastore';
+import { AssignCustomPropCommand } from './assignCustomProp';
+import { SetCustomPropCommand } from './setCustomProp';
 
 export interface CreateNodeCommandParams<M extends ModelBase>
 {
@@ -55,15 +57,17 @@ export class CreateNodeCommand<
         }
 
         // build defined custom properties
-        for (const [name, definedProp] of Object.entries(customProperties.defined))
+        for (const [customKey, definedProp] of Object.entries(customProperties.defined))
         {
-            node.setCustomProperty(name, definedProp.type, definedProp.value);
+            const { type, value } = definedProp;
+
+            new SetCustomPropCommand({ nodeId: id, customKey, type, value, isRemoteUpdate: true }).exec();
         }
 
         // build assigned custom properties
         for (const [modelKey, customKey] of Object.entries(customProperties.assigned))
         {
-            node.assignCustomProperty(modelKey, customKey);
+            new AssignCustomPropCommand({ nodeId: id, modelKey, customKey, isRemoteUpdate: true }).exec();
         }
 
         return { node: node as ClonableNode };

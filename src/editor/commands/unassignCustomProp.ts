@@ -7,6 +7,7 @@ export interface UnAssignCustomPropCommandParams
 {
     nodeId: string;
     modelKey: string;
+    isRemoteUpdate: boolean;
 }
 
 export class UnAssignCustomPropCommand extends AbstractCommand<UnAssignCustomPropCommandParams>
@@ -15,7 +16,7 @@ export class UnAssignCustomPropCommand extends AbstractCommand<UnAssignCustomPro
 
     public exec(): void
     {
-        const { datastore, params: { nodeId, modelKey } } = this;
+        const { datastore, params: { nodeId, modelKey, isRemoteUpdate } } = this;
 
         // update graph node
         const node = getGraphNode(nodeId);
@@ -27,11 +28,14 @@ export class UnAssignCustomPropCommand extends AbstractCommand<UnAssignCustomPro
             // update model value
             node.model.clearValue(modelKey);
 
-            // update datastore
-            const nodeElement = datastore.getNodeElement(nodeId);
-            const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
+            if (!isRemoteUpdate)
+            {
+                // update datastore
+                const nodeElement = datastore.getNodeElement(nodeId);
+                const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
 
-            assignedCustomProps.remove(modelKey);
+                assignedCustomProps.remove(modelKey);
+            }
         }
     }
 

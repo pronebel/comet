@@ -9,6 +9,7 @@ export interface RemoveCustomPropCommandParams
 {
     nodeId: string;
     customKey: string;
+    isRemoteUpdate: boolean;
 }
 
 export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCommandParams>
@@ -17,13 +18,16 @@ export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCom
 
     public exec(): void
     {
-        const { datastore, params: { nodeId, customKey } } = this;
+        const { datastore, params: { nodeId, customKey, isRemoteUpdate } } = this;
 
-        // update datastore
-        const nodeElement = datastore.getNodeElement(nodeId);
-        const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
+        if (!isRemoteUpdate)
+        {
+            // update datastore
+            const nodeElement = datastore.getNodeElement(nodeId);
+            const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
-        definedCustomProps.remove(customKey);
+            definedCustomProps.remove(customKey);
+        }
 
         // update graph node
         const node = getGraphNode(nodeId);
@@ -38,6 +42,7 @@ export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCom
                 new UnAssignCustomPropCommand({
                     nodeId: node.id,
                     modelKey,
+                    isRemoteUpdate,
                 }).exec();
             });
         });

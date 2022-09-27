@@ -11,7 +11,8 @@ export interface SetCustomPropCommandParams
     nodeId: string;
     customKey: string;
     type: CustomPropertyType;
-    value: CustomPropertyValueType;
+    value: CustomPropertyValueType | undefined;
+    isRemoteUpdate: boolean;
 }
 
 export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandParams>
@@ -20,16 +21,19 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
 
     public exec(): void
     {
-        const { datastore, params: { nodeId, customKey, type, value } } = this;
+        const { datastore, params: { nodeId, customKey, type, value, isRemoteUpdate } } = this;
 
         const nodeElement = datastore.getNodeElement(nodeId);
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
-        // update datastore
-        definedCustomProps.set(customKey, {
-            type,
-            value,
-        });
+        if (!isRemoteUpdate)
+        {
+            // update datastore
+            definedCustomProps.set(customKey, {
+                type,
+                value,
+            });
+        }
 
         // update graph node
         const node = getGraphNode(nodeId);
@@ -45,6 +49,7 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
                     nodeId: node.id,
                     customKey,
                     modelKey,
+                    isRemoteUpdate,
                 }).exec();
             });
         });
