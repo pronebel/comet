@@ -170,21 +170,12 @@ export abstract class ClonableNode<
 
     public unlink(unlinkChildren = true)
     {
-        const { model, cloneInfo, cloneInfo: { isVariant, isReference, isReferenceRoot } } = this;
+        const { model, cloneInfo } = this;
         const cloner = cloneInfo.getCloner<ClonableNode>();
 
         if (cloner)
         {
-            if ((model.parent && isVariant) || isReferenceRoot)
-            {
-                model.flatten();
-            }
-            else if (isReference)
-            {
-                this.model = cloner.model.clone() as unknown as Model<M> & M;
-
-                this.initModel();
-            }
+            model.flatten();
 
             cloner.cloneInfo.removeCloned(this);
             this.cloneInfo.unlink(this);

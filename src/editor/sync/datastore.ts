@@ -139,6 +139,9 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         // store element, node is already tracked
         this.nodeRealtimeObjects.set(nodeId, nodeElement);
 
+        // track remote changes
+        this.trackNodeRemoteEvents(nodeId);
+
         console.log(`${userName}:Registered Existing RealTimeObject "${nodeId}"`);
     }
 
@@ -310,10 +313,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             console.log(`%c${userName}:${nodeId}:model.value: ${JSON.stringify(model)}`, logStyle);
 
-            const e: DSModelModifiedEvent = { nodeId, key: undefined, value: model };
+            const e: DSModelModifiedEvent = { nodeId, key: null, value: model };
 
             this.emit('modelModified', e);
-        }); // todo: REMOVE?
+        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
+        {
+            throw new Error(`Model REMOVED event not supported yet ${event.name}`);
+        });
 
         // catch events from cloneInfo
         nodeElement.elementAt('cloneInfo').on(RealTimeObject.Events.VALUE, (event: IConvergenceEvent) =>
@@ -435,13 +441,18 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const nodeElement = this.getNodeElement(nodeId);
         const modelElement = nodeElement.get('model') as RealTimeObject;
 
-        this.batch(() =>
+        const entries = Object.entries(values);
+
+        if (entries.length > 0)
         {
-            for (const [k, v] of Object.entries(values))
+            this.batch(() =>
             {
-                modelElement.set(k, v);
-            }
-        });
+                for (const [k, v] of entries)
+                {
+                    modelElement.set(k, v);
+                }
+            });
+        }
     }
 
     public removeNode(nodeId: string, parentId: string)

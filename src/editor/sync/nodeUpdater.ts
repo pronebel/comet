@@ -97,12 +97,14 @@ export class NodeUpdater
 
         const node = getGraphNode(nodeId);
 
-        if (key === undefined)
+        if (key === null)
         {
+            // whole object was passed as value
             node.model.setValues(value as object);
         }
         else
         {
+            // individual key
             node.model.setValue(key, value);
         }
     };
@@ -110,5 +112,33 @@ export class NodeUpdater
     protected onCloneInfoModified = (event: DSCloneInfoModifiedEvent) =>
     {
         this.log('onCloneInfoModified', event);
+
+        const { nodeId, cloner, cloneMode, cloned } = event;
+
+        const node = getGraphNode(nodeId);
+        const cloneInfo = node.cloneInfo;
+
+        // remove from existing cloners .cloned info
+        if (cloneInfo.cloner)
+        {
+            cloneInfo.cloner.cloneInfo.removeCloned(node);
+        }
+
+        // set new cloner
+        if (cloner)
+        {
+            const clonerNode = getGraphNode(cloner);
+
+            clonerNode.cloneInfo.cloned.push(node);
+            cloneInfo.cloner = clonerNode;
+        }
+        else
+        {
+            delete cloneInfo.cloner;
+        }
+
+        // overwrite cloneMode and cloners
+        cloneInfo.cloneMode = cloneMode;
+        cloneInfo.cloned = cloned.map((clonedId) => getGraphNode(clonedId));
     };
 }

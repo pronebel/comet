@@ -51,10 +51,11 @@
     {/if}
   {/if}
   {#if windowError}
-    <pre class="windowError">{windowError.stack?.replace(
-        / at /g,
-        "\nat "
-      )}</pre>
+    <div class="windowError">
+      <!-- svelte-ignore a11y-invalid-attribute -->
+      <a href="javascript:window.location.reload()">Reload</a>
+      <pre>{windowError.stack?.replace(/ at /g, "\nat ")}</pre>
+    </div>
   {/if}
   <HotReload />
 </main>
@@ -86,7 +87,6 @@
     top: 20px;
     left: 20px;
     right: 20px;
-    opacity: 0.7;
     line-height: 12px;
     text-align: center;
     z-index: 100;
@@ -94,5 +94,15 @@
     padding: 5px;
     white-space: pre-line;
     font-size: 12px;
+  }
+
+  .windowError a {
+    position: absolute;
+    top: 0;
+    right: 0;
+    background-color: blue;
+    color: white;
+    padding: 3px;
+    border-radius: 5px;
   }
 </style>

@@ -291,6 +291,7 @@ export class TestApp extends Application
                 definedProps,
             };
 
+            console.log(selected);
             console.log(JSON.stringify(info, null, 4));
 
             (window as any).$ = selected;
