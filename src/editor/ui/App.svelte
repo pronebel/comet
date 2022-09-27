@@ -9,6 +9,7 @@
 
   const isTestApp = true;
 
+  let windowError: Error | undefined;
   let isConnected = false;
   let connectionError: Error | undefined;
 
@@ -32,6 +33,10 @@
         connectionError = e;
       });
   });
+
+  window.addEventListener("error", (error: ErrorEvent) => {
+    windowError = error.error;
+  });
 </script>
 
 <main>
@@ -45,6 +50,12 @@
       <!-- todo: EditorApp-->
     {/if}
   {/if}
+  {#if windowError}
+    <pre class="windowError">{windowError.stack?.replace(
+        / at /g,
+        "\nat "
+      )}</pre>
+  {/if}
   <HotReload />
 </main>
 
@@ -55,15 +66,33 @@
     width: 100%;
     height: 100%;
   }
-  .error {
+  .error,
+  .windowError {
     font-weight: bold;
     text-align: center;
     background-color: red;
     color: white;
     position: absolute;
+  }
+
+  .error {
     top: 0;
     left: 0;
     right: 0;
     height: 20px;
+  }
+
+  .windowError {
+    top: 20px;
+    left: 20px;
+    right: 20px;
+    opacity: 0.7;
+    line-height: 12px;
+    text-align: center;
+    z-index: 100;
+    border: 2px dashed white;
+    padding: 5px;
+    white-space: pre-line;
+    font-size: 12px;
   }
 </style>
