@@ -2,14 +2,14 @@ import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ModelValue } from '../../core/model/model';
 import { getGraphNode } from '../../core/nodes/nodeFactory';
-import { AbstractCommand } from '../abstractCommand';
+import { type UpdateMode, AbstractCommand } from '../abstractCommand';
 
 export interface AssignCustomPropCommandParams
 {
     nodeId: string;
     modelKey: string;
     customKey: string;
-    isRemoteUpdate: boolean;
+    updateMode: UpdateMode;
 }
 
 export class AssignCustomPropCommand extends AbstractCommand<AssignCustomPropCommandParams>
@@ -18,7 +18,7 @@ export class AssignCustomPropCommand extends AbstractCommand<AssignCustomPropCom
 
     public exec(): void
     {
-        const { datastore, params: { nodeId, modelKey, customKey, isRemoteUpdate } } = this;
+        const { datastore, params: { nodeId, modelKey, customKey, updateMode } } = this;
 
         // update graph node
         const node = getGraphNode(nodeId);
@@ -30,7 +30,7 @@ export class AssignCustomPropCommand extends AbstractCommand<AssignCustomPropCom
             // update model value
             node.model.setValue(modelKey, customProp.value as ModelValue);
 
-            if (!isRemoteUpdate)
+            if (updateMode === 'full')
             {
                 // update datastore
                 const nodeElement = datastore.getNodeElement(nodeId);

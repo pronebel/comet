@@ -61,13 +61,13 @@ export class CreateNodeCommand<
         {
             const { type, value } = definedProp;
 
-            new SetCustomPropCommand({ nodeId: id, customKey, type, value, isRemoteUpdate: true }).exec();
+            new SetCustomPropCommand({ nodeId: id, customKey, type, value, updateMode: 'graphOnly' }).exec();
         }
 
         // build assigned custom properties
         for (const [modelKey, customKey] of Object.entries(customProperties.assigned))
         {
-            new AssignCustomPropCommand({ nodeId: id, modelKey, customKey, isRemoteUpdate: true }).exec();
+            new AssignCustomPropCommand({ nodeId: id, modelKey, customKey, updateMode: 'graphOnly' }).exec();
         }
 
         return { node: node as ClonableNode };

@@ -2,14 +2,14 @@ import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getGraphNode } from '../../core/nodes/nodeFactory';
-import { AbstractCommand } from '../abstractCommand';
+import { type UpdateMode, AbstractCommand } from '../abstractCommand';
 import { UnAssignCustomPropCommand } from './unassignCustomProp';
 
 export interface RemoveCustomPropCommandParams
 {
     nodeId: string;
     customKey: string;
-    isRemoteUpdate: boolean;
+    updateMode: UpdateMode;
 }
 
 export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCommandParams>
@@ -18,9 +18,9 @@ export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCom
 
     public exec(): void
     {
-        const { datastore, params: { nodeId, customKey, isRemoteUpdate } } = this;
+        const { datastore, params: { nodeId, customKey, updateMode } } = this;
 
-        if (!isRemoteUpdate)
+        if (updateMode === 'full')
         {
             // update datastore
             const nodeElement = datastore.getNodeElement(nodeId);
@@ -42,7 +42,7 @@ export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCom
                 new UnAssignCustomPropCommand({
                     nodeId: node.id,
                     modelKey,
-                    isRemoteUpdate,
+                    updateMode,
                 }).exec();
             });
         });

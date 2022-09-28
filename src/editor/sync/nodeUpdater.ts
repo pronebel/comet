@@ -57,7 +57,7 @@ export class NodeUpdater
 
         const nodeId = event.nodeId;
 
-        new RemoveNodeCommand({ nodeId, isRemoteUpdate: true }).exec();
+        new RemoveNodeCommand({ nodeId, updateMode: 'graphOnly' }).exec();
     };
 
     protected onParentSet = (event: DSParentSetEvent) =>
@@ -79,7 +79,7 @@ export class NodeUpdater
 
         const { nodeId, customKey, type, value } = event;
 
-        new SetCustomPropCommand({ nodeId, customKey, type, value, isRemoteUpdate: true }).exec();
+        new SetCustomPropCommand({ nodeId, customKey, type, value, updateMode: 'graphOnly' }).exec();
     };
 
     protected onCustomPropUndefined = (event: DSCustomPropUndefinedEvent) =>
@@ -88,7 +88,7 @@ export class NodeUpdater
 
         const { nodeId, customKey } = event;
 
-        new RemoveCustomPropCommand({ nodeId, customKey, isRemoteUpdate: true }).exec();
+        new RemoveCustomPropCommand({ nodeId, customKey, updateMode: 'graphOnly' }).exec();
     };
 
     protected onCustomPropAssigned = (event: DSCustomPropAssignedEvent) =>
@@ -97,7 +97,7 @@ export class NodeUpdater
 
         const { nodeId, modelKey, customKey } = event;
 
-        new AssignCustomPropCommand({ nodeId, modelKey, customKey, isRemoteUpdate: true }).exec();
+        new AssignCustomPropCommand({ nodeId, modelKey, customKey, updateMode: 'graphOnly' }).exec();
     };
 
     protected onCustomPropUnassigned = (event: DSCustomPropUnassignedEvent) =>
@@ -106,7 +106,7 @@ export class NodeUpdater
 
         const { nodeId, modelKey } = event;
 
-        new UnAssignCustomPropCommand({ nodeId, modelKey, isRemoteUpdate: true }).exec();
+        new UnAssignCustomPropCommand({ nodeId, modelKey, updateMode: 'graphOnly' }).exec();
     };
 
     protected onModelModified = (event: DSModelModifiedEvent) =>

@@ -1,6 +1,10 @@
 import { Application } from './application';
 import type { CommandName } from './commandFactory';
 
+// 'graphOnly' = update just the nodes in the node graph (usually for updates from remote users where datastore is already modified)
+// 'full' = update both the graph nodes and the datastore (usually for local modifications)
+export type UpdateMode = 'graphOnly' | 'full';
+
 export abstract class AbstractCommand<T extends {} = {}, R = void>
 {
     constructor(public readonly params: T)

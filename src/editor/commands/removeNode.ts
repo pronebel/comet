@@ -1,12 +1,12 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { disposeGraphNode, getGraphNode } from '../../core/nodes/nodeFactory';
 import { getCloneInfoSchema } from '../../core/nodes/schema';
-import { AbstractCommand } from '../abstractCommand';
+import { type UpdateMode, AbstractCommand } from '../abstractCommand';
 
 export interface RemoveNodeCommandParams
 {
     nodeId: string;
-    isRemoteUpdate: boolean;
+    updateMode: UpdateMode;
 }
 
 export interface RemoveNodeCommandReturn
@@ -21,7 +21,7 @@ export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, 
 
     public exec(): RemoveNodeCommandReturn
     {
-        const { datastore, params: { nodeId, isRemoteUpdate } } = this;
+        const { datastore, params: { nodeId, updateMode } } = this;
 
         const node = getGraphNode(nodeId);
         const parentNode = node.parent;
@@ -33,7 +33,7 @@ export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, 
 
         const parentId = parentNode.id;
 
-        if (isRemoteUpdate)
+        if (updateMode === 'graphOnly')
         {
             // just unregister it, already removed from data
             datastore.unRegisterNode(nodeId);

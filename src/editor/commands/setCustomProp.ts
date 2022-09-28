@@ -3,7 +3,7 @@ import type { RealTimeObject } from '@convergence/convergence';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import { getGraphNode } from '../../core/nodes/nodeFactory';
-import { AbstractCommand } from '../abstractCommand';
+import { type UpdateMode, AbstractCommand } from '../abstractCommand';
 import { AssignCustomPropCommand } from './assignCustomProp';
 
 export interface SetCustomPropCommandParams
@@ -12,7 +12,7 @@ export interface SetCustomPropCommandParams
     customKey: string;
     type: CustomPropertyType;
     value: CustomPropertyValueType | undefined;
-    isRemoteUpdate: boolean;
+    updateMode: UpdateMode;
 }
 
 export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandParams>
@@ -21,12 +21,12 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
 
     public exec(): void
     {
-        const { datastore, params: { nodeId, customKey, type, value, isRemoteUpdate } } = this;
+        const { datastore, params: { nodeId, customKey, type, value, updateMode } } = this;
 
         const nodeElement = datastore.getNodeElement(nodeId);
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
-        if (!isRemoteUpdate)
+        if (updateMode === 'full')
         {
             // update datastore
             definedCustomProps.set(customKey, {
@@ -49,7 +49,7 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
                     nodeId: node.id,
                     customKey,
                     modelKey,
-                    isRemoteUpdate,
+                    updateMode,
                 }).exec();
             });
         });
