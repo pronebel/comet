@@ -5,16 +5,18 @@ import type { CommandName } from './commandFactory';
 // 'full' = update both the graph nodes and the datastore (usually for local modifications)
 export type UpdateMode = 'graphOnly' | 'full';
 
-export abstract class AbstractCommand<T extends {} = {}, R = void>
+export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = void, CacheType extends {} = {}>
 {
-    constructor(public readonly params: T)
-    {
+    public cache: CacheType;
 
+    constructor(public readonly params: ParamsType)
+    {
+        this.cache = {} as CacheType;
     }
 
     public static commandName = 'Untitled';
 
-    public abstract exec(): R;
+    public abstract exec(): ReturnType;
     public abstract undo(): void;
 
     public get name(): CommandName
@@ -27,8 +29,9 @@ export abstract class AbstractCommand<T extends {} = {}, R = void>
         return true;
     }
 
-    public get isStandAlone()
+    public get isTracked()
     {
+        // whether or not this command ends up in undoStack, or whether it just does something outside of the stack
         return false;
     }
 

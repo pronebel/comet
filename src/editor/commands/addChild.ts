@@ -25,7 +25,7 @@ export class AddChildCommand<
 {
     public static commandName = 'CreateChild';
 
-    public get isStandAlone()
+    public get isTracked()
     {
         return true;
     }

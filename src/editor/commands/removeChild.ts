@@ -18,7 +18,7 @@ export class RemoveChildCommand extends AbstractCommand<RemoveChildCommandParams
 {
     public static commandName = 'RemoveChild';
 
-    public get isStandAlone()
+    public get isTracked()
     {
         return true;
     }

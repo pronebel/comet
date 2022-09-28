@@ -81,7 +81,7 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public exec<R = unknown>(command: AbstractCommand): R
     {
-        const shouldTrack = !command.isStandAlone;
+        const shouldTrack = !command.isTracked;
 
         if (shouldTrack)
         {

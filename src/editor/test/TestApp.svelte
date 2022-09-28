@@ -120,7 +120,7 @@
 
   const onPeekUndoStack = () => {
     const commands = app.readUndoStack();
-    console.log(commands);
+    console.log(`head: ${app.undoStack.head}`, commands);
   };
 
   const onReadUndoStack = () => {

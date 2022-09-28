@@ -14,21 +14,29 @@ export interface SetParentCommandReturn
     childNode: ClonableNode;
 }
 
-export class SetParentCommand extends AbstractCommand<SetParentCommandParams, SetParentCommandReturn>
+export interface SetParentCommandCache
+{
+    prevParentId?: string;
+}
+
+export class SetParentCommand extends AbstractCommand<SetParentCommandParams, SetParentCommandReturn, SetParentCommandCache>
 {
     public static commandName = 'SetParent';
 
     public exec(): SetParentCommandReturn
     {
-        // update datastore
         const { datastore, params: { parentId, childId } } = this;
 
-        datastore.setNodeParent(childId, parentId);
-
-        // update graph node
         const parentNode = getGraphNode(parentId);
         const childNode = getGraphNode(childId);
 
+        // cache previous parent
+        this.cache.prevParentId = childNode.parent?.id;
+
+        // update datastore
+        datastore.setNodeParent(childId, parentId);
+
+        // update graph node
         parentNode.addChild(childNode);
 
         return { parentNode, childNode };
@@ -36,6 +44,12 @@ export class SetParentCommand extends AbstractCommand<SetParentCommandParams, Se
 
     public undo(): void
     {
-        throw new Error('Method not implemented.');
+        const { cache: { prevParentId } } = this;
+
+        debugger;
+        if (prevParentId)
+        {
+
+        }
     }
 }

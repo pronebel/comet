@@ -10,6 +10,7 @@ import type { CustomProperty } from '../../core/nodes/customProperties';
 import {  getGraphNode, getLatestNode, registerGraphNodeType } from '../../core/nodes/nodeFactory';
 import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
 import type { AbstractCommand } from '../abstractCommand';
+import { Action } from '../action';
 import { type AppOptions, Application } from '../application';
 import { AddChildCommand } from '../commands/addChild';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
@@ -58,6 +59,7 @@ export class TestApp extends Application
         this.stage.addChild(selection);
 
         this.initDatastoreEvents();
+        this.initKeyboardActions();
     }
 
     protected initDatastoreEvents()
@@ -80,6 +82,21 @@ export class TestApp extends Application
             this.fitSelection(node.cast<ContainerNode>());
         });
     }
+
+    protected initKeyboardActions()
+    {
+        Action.register('undo', this.undo, { hotkey: 'ctrl+z' });
+    }
+
+    public undo = () =>
+    {
+        this.undoStack.undo();
+    };
+
+    public redo = () =>
+    {
+        this.undoStack.redo();
+    };
 
     public async init()
     {
