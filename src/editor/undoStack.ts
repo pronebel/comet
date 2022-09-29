@@ -11,11 +11,16 @@ export default class UndoStack
         this.head = -1;
     }
 
+    public get length()
+    {
+        return this.stack.length;
+    }
+
     public push(command: AbstractCommand)
     {
         const { stack, head } = this;
 
-        if (head > -1 && head < stack.length - 1)
+        if (head >= -1 && head < stack.length - 1)
         {
             // if we have undone and there are commands past the head, delete them
             const deleteCount = stack.length - 1 - head;
@@ -52,21 +57,26 @@ export default class UndoStack
     {
         const { stack, head, nextRedoRootIndex } = this;
 
-        if (head === stack.length - 1)
+        if (head === stack.length - 1 || stack.length === 0)
         {
             return;
         }
 
-        const headStart = Math.max(0, head);
+        const headStart = nextRedoRootIndex;
 
-        for (let i = headStart; i <= nextRedoRootIndex; i++)
+        for (let i = headStart; i < stack.length; i++)
         {
             const cmd = stack[i];
 
+            if (cmd.isUndoRoot && i > headStart)
+            {
+                break;
+            }
+
+            this.head = i;
+
             cmd.redo();
         }
-
-        this.head = nextRedoRootIndex;
     }
 
     public get nextUndoRootIndex()
@@ -96,7 +106,7 @@ export default class UndoStack
             }
         }
 
-        return head + 1;
+        return stack.length - 1;
     }
 
     public get hasCommands()

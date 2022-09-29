@@ -45,7 +45,12 @@ export class SetParentCommand
 
     public undo(): void
     {
-        const { cache: { prevParentId }, params: { childId } } = this;
+        const { cache: { prevParentId }, params: { parentId, childId } } = this;
+
+        const parentNode = getInstance<ClonableNode>(parentId);
+        const childNode = getInstance<ClonableNode>(childId);
+
+        parentNode.removeChild(childNode);
 
         if (prevParentId)
         {

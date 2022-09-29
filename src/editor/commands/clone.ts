@@ -77,6 +77,6 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
 
     public undo(): void
     {
-        throw new Error('Method not implemented.');
+        // throw new Error('Method not implemented.');
     }
 }

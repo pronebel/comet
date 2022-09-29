@@ -12,7 +12,7 @@ export interface RemoveNodeCommandParams
 export interface RemoveNodeCommandReturn
 {
     node: ClonableNode;
-    parentNode: ClonableNode;
+    // parentNode: ClonableNode;
 }
 
 export interface RemoveNodeCommandCache
@@ -32,13 +32,6 @@ export class RemoveNodeCommand
         const node = getInstance<ClonableNode>(nodeId);
         const parentNode = node.parent;
 
-        if (!parentNode)
-        {
-            throw new Error(`Cannot remove node "${nodeId}" which has no parent`);
-        }
-
-        const parentId = parentNode.id;
-
         if (updateMode === 'graphOnly')
         {
             // just unregister it, already removed from data
@@ -47,14 +40,17 @@ export class RemoveNodeCommand
         else
         {
             // delete data from datastore
-            datastore.removeNode(nodeId, parentId);
+            datastore.removeNode(nodeId);
         }
 
         // track cloner before removeChild
         const cloner = node.cloneInfo.getCloner<ClonableNode>();
 
         // remove from parent graph node
-        parentNode.removeChild(node);
+        if (parentNode)
+        {
+            parentNode.removeChild(node);
+        }
 
         // update node cloneInfo
         if (cloner)
@@ -65,7 +61,7 @@ export class RemoveNodeCommand
         // unregister graph node
         unregisterInstance(node);
 
-        return { node, parentNode: parentNode.cast<ClonableNode>() };
+        return { node };
     }
 
     public undo(): void

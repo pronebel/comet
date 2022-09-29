@@ -122,8 +122,15 @@
     app.restoreDatastore();
   };
 
+  const onClearUndoStack = () => {
+    const size = app.undoStack.length;
+    app.undoStack.clear();
+    console.log(`${size} commands cleared`);
+  };
+
   const onPeekUndoStack = () => {
-    const commands = app.readUndoStack();
+    //const commands = app.readUndoStack();
+    const commands = app.undoStack.stack;
     console.log(`head: ${app.undoStack.head}`, commands);
   };
 
@@ -201,8 +208,9 @@
     <button on:click={onInspectDatastore}>Inspect DStore</button>
     <hr />
     <input bind:value={undoStackEnd} />
-    <button on:click={onPeekUndoStack}>Peek Cmds</button>
-    <button on:click={onReadUndoStack}>Load Cmds</button>
+    <button on:click={onClearUndoStack}>Clear Undo</button>
+    <button on:click={onPeekUndoStack}>Peek Undo</button>
+    <button on:click={onReadUndoStack}>Load Undo</button>
     <hr />
     <button on:click={onDeselect}>Deselect</button>
     <button on:click={onRandColor}>Rand Color</button>
@@ -323,5 +331,7 @@
     width: calc(100% - 95px);
     line-height: 14px;
     color: lightskyblue;
+    background-color: rgba(0, 0, 0, 0.7);
+    padding: 2px;
   }
 </style>

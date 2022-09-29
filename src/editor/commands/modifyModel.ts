@@ -30,10 +30,21 @@ export class ModifyModelCommand<M extends ModelBase>
         // update graph node
         const prevValues = node.model.setValues(values) as Partial<M>;
 
+        // update cache only if not set (otherwise its part of undo stack already)
         if (!cache.prevValues)
         {
-            // don't update if values already cached
-            this.cache.prevValues = prevValues;
+            const values = {} as Partial<M>;
+
+            for (const [k, v] of Object.entries(prevValues))
+            {
+                if (v !== undefined)
+                {
+                    // don't sore undefined values
+                    values[k as keyof M] = v;
+                }
+            }
+
+            this.cache.prevValues = values;
         }
     }
 
@@ -41,7 +52,7 @@ export class ModifyModelCommand<M extends ModelBase>
     {
         const { cache: { prevValues }, params: { nodeId } } = this;
 
-        if (prevValues)
+        if (prevValues && Object.values(prevValues).length > 0)
         {
             new ModifyModelCommand({ nodeId, values: prevValues }).exec();
         }

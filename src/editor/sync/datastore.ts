@@ -460,23 +460,28 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         }
     }
 
-    public removeNode(nodeId: string, parentId: string)
+    public removeNode(nodeId: string)
     {
-        const parentElement = this.getNodeElement(parentId);
+        const nodeElement = this.getNodeElement(nodeId);
+        const parentId = nodeElement.get('parent').value() as string | undefined;
 
         // remove from nodes RealTimeObject
         this.nodes.remove(nodeId);
 
-        // remove child reference in parent element
-        const childArray = parentElement.get('children') as RealTimeArray;
-        const index = childArray.findIndex((id) => id.value() === nodeId);
-
-        if (index === -1)
+        if (parentId)
         {
-            throw new Error(`Could not find child "${nodeId}" reference in parent "${parentId}"`);
-        }
+            // remove child reference in parent element
+            const parentElement = this.getNodeElement(parentId);
+            const childArray = parentElement.get('children') as RealTimeArray;
+            const index = childArray.findIndex((id) => id.value() === nodeId);
 
-        childArray.remove(index);
+            if (index === -1)
+            {
+                throw new Error(`Could not find child "${nodeId}" reference in parent "${parentId}"`);
+            }
+
+            childArray.remove(index);
+        }
 
         // unregister RealTimeObject for node
         this.unRegisterNode(nodeId);
