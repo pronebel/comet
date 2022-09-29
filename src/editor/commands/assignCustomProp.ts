@@ -17,7 +17,7 @@ export class AssignCustomPropCommand extends AbstractCommand<AssignCustomPropCom
 {
     public static commandName = 'AssignCustomProp';
 
-    public exec(): void
+    public apply(): void
     {
         const { datastore, params: { nodeId, modelKey, customKey, updateMode } } = this;
 

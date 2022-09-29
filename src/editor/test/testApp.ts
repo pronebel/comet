@@ -197,7 +197,7 @@ export class TestApp extends Application
                 },
             });
 
-            const { nodes } = new AddChildCommand({ parentId, nodeSchema }).exec();
+            const { nodes } = new AddChildCommand({ parentId, nodeSchema }).run();
 
             nodes.forEach((node) =>
             {
@@ -226,7 +226,7 @@ export class TestApp extends Application
                 },
             });
 
-            const { nodes } = new AddChildCommand({ parentId, nodeSchema }).exec();
+            const { nodes } = new AddChildCommand({ parentId, nodeSchema }).run();
 
             nodes.forEach((node) =>
             {
@@ -263,7 +263,7 @@ export class TestApp extends Application
     {
         if (this.selected && (this.selected.nodeType() !== 'Scene' || this.selected?.nodeType() !== 'Project'))
         {
-            new RemoveChildCommand({ nodeId: this.selected.id }).exec();
+            new RemoveChildCommand({ nodeId: this.selected.id }).run();
         }
     }
 

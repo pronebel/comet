@@ -25,7 +25,7 @@ export class RemoveNodeCommand
 {
     public static commandName = 'RemoveNode';
 
-    public exec(): RemoveNodeCommandReturn
+    public apply(): RemoveNodeCommandReturn
     {
         const { datastore, params: { nodeId, updateMode } } = this;
 

@@ -13,7 +13,7 @@ export class UnlinkCommand
 {
     public static commandName = 'Unlink';
 
-    public exec(): void
+    public apply(): void
     {
         const { datastore, params: { nodeId } } = this;
 
@@ -31,7 +31,7 @@ export class UnlinkCommand
             datastore.modifyNodeModel(nodeId, node.model.ownValues);
 
             // call this command on all cloned nodes from this node
-            node.cloneInfo.forEachCloned<ClonableNode>((clone) => new UnlinkCommand({ nodeId: clone.id }).exec());
+            node.cloneInfo.forEachCloned<ClonableNode>((clone) => { new UnlinkCommand({ nodeId: clone.id }).run(); });
         });
     }
 

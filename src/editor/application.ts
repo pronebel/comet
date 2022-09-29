@@ -111,7 +111,7 @@ export abstract class Application extends EventEmitter<AppEvents>
         this.undoStack.push(command);
         this.writeUndoStack();
 
-        const result = command.exec();
+        const result = command.run();
 
         this.onCommand(command, result);
 

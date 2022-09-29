@@ -23,7 +23,7 @@ export class RemoveChildCommand extends AbstractCommand<RemoveChildCommandParams
         return false;
     }
 
-    public exec(): RemoveChildCommandReturn
+    public apply(): RemoveChildCommandReturn
     {
         const { app, datastore, params: { nodeId } } = this;
 

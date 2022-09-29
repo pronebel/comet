@@ -19,7 +19,7 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
 {
     public static commandName = 'SetCustomProp';
 
-    public exec(): void
+    public apply(): void
     {
         const { datastore, params: { nodeId, customKey, type, value, updateMode } } = this;
 
@@ -50,7 +50,7 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
                     customKey,
                     modelKey,
                     updateMode,
-                }).exec();
+                }).run();
             });
         });
     }

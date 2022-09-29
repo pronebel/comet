@@ -1,9 +1,8 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import { getInstance, registerInstance } from '../../core/nodes/instances';
 import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
-import { type NodeTargetCommand, AbstractCommand } from '../abstractCommand';
+import { AbstractCommand } from '../abstractCommand';
 import { RemoveNodeCommand } from './removeNode';
 
 export interface CloneCommandParams
@@ -30,9 +29,9 @@ export class CloneCommand
 {
     public static commandName = 'Clone';
 
-    public exec(): CloneCommandReturn
+    public apply(): CloneCommandReturn
     {
-        const { app, datastore, params: { nodeId, cloneMode, depth }, cache } = this;
+        const { datastore, params: { nodeId, cloneMode, depth }, cache } = this;
 
         const sourceNode = getInstance<ClonableNode>(nodeId);
         const originalNode = sourceNode.getCloneTarget();
@@ -84,21 +83,16 @@ export class CloneCommand
         if (cache.nodes)
         {
             // adjust next command for new clone id
-            const nextCommands = app.undoStack.nextRedoCommands.commands;
-
-            for (const command of nextCommands)
+            for (let i = 0; i < clonedNodes.length; i++)
             {
-                if (command === this)
-                {
-                    continue;
-                }
+                const oldNodeId = cache.nodes[i].id;
+                const newNodeId = clonedNodes[i].id;
 
-                (command as unknown as NodeTargetCommand).params.nodeId = clonedNode.id;
+                this.updateAllFollowingCommands((command) => command.updateNodeId(oldNodeId, newNodeId));
             }
         }
 
         // store cache
-        clonedNodes.sort(sortNodesByCreation).reverse();
         cache.nodes = clonedNodes;
 
         return {
@@ -114,7 +108,7 @@ export class CloneCommand
 
         for (const node of nodes)
         {
-            new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).exec();
+            new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).run();
         }
     }
 }

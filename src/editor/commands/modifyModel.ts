@@ -19,7 +19,7 @@ export class ModifyModelCommand<M extends ModelBase>
 {
     public static commandName = 'ModifyModel';
 
-    public exec(): void
+    public apply(): void
     {
         const { datastore, params: { nodeId, values }, cache } = this;
         const node = getInstance<ClonableNode>(nodeId);
@@ -54,7 +54,7 @@ export class ModifyModelCommand<M extends ModelBase>
 
         if (prevValues && Object.values(prevValues).length > 0)
         {
-            new ModifyModelCommand({ nodeId, values: prevValues }).exec();
+            new ModifyModelCommand({ nodeId, values: prevValues }).run();
         }
     }
 }

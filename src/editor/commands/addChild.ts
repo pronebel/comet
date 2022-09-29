@@ -30,7 +30,7 @@ export class AddChildCommand<
         return false;
     }
 
-    public exec(): AddChildCommandReturn
+    public apply(): AddChildCommandReturn
     {
         const { app, params: { parentId, nodeSchema } } = this;
 

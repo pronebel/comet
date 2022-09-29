@@ -16,7 +16,7 @@ export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCom
 {
     public static commandName = 'RemoveCustomProp';
 
-    public exec(): void
+    public apply(): void
     {
         const { datastore, params: { nodeId, customKey, updateMode } } = this;
 
@@ -43,7 +43,7 @@ export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCom
                     nodeId: node.id,
                     modelKey,
                     updateMode,
-                }).exec();
+                }).run();
             });
         });
     }

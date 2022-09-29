@@ -374,7 +374,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             // create the graph node
             const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
 
-            new CreateNodeCommand({ nodeSchema, isNewNode: false }).exec();
+            new CreateNodeCommand({ nodeSchema, isNewNode: false }).run();
 
             // recursively create children
             (nodeElement.get('children').value() as RealTimeArray).forEach((id) =>
@@ -414,6 +414,33 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
         this.registerNodeElement(nodeSchema.id, nodeElement);
+    }
+
+    public removeNode(nodeId: string)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+        const parentId = nodeElement.get('parent').value() as string | undefined;
+
+        // remove from nodes RealTimeObject
+        this.nodes.remove(nodeId);
+
+        if (parentId)
+        {
+            // remove child reference in parent element
+            const parentElement = this.getNodeElement(parentId);
+            const childArray = parentElement.get('children') as RealTimeArray;
+            const index = childArray.findIndex((id) => id.value() === nodeId);
+
+            if (index === -1)
+            {
+                throw new Error(`Could not find child "${nodeId}" reference in parent "${parentId}"`);
+            }
+
+            childArray.remove(index);
+        }
+
+        // unregister RealTimeObject for node
+        this.unRegisterNode(nodeId);
     }
 
     public setNodeParent(childId: string, parentId: string, updateChildren = true)
@@ -458,33 +485,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 }
             });
         }
-    }
-
-    public removeNode(nodeId: string)
-    {
-        const nodeElement = this.getNodeElement(nodeId);
-        const parentId = nodeElement.get('parent').value() as string | undefined;
-
-        // remove from nodes RealTimeObject
-        this.nodes.remove(nodeId);
-
-        if (parentId)
-        {
-            // remove child reference in parent element
-            const parentElement = this.getNodeElement(parentId);
-            const childArray = parentElement.get('children') as RealTimeArray;
-            const index = childArray.findIndex((id) => id.value() === nodeId);
-
-            if (index === -1)
-            {
-                throw new Error(`Could not find child "${nodeId}" reference in parent "${parentId}"`);
-            }
-
-            childArray.remove(index);
-        }
-
-        // unregister RealTimeObject for node
-        this.unRegisterNode(nodeId);
     }
 
     public disconnect(): void

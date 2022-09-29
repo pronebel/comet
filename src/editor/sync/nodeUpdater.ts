@@ -49,7 +49,7 @@ export class NodeUpdater
 
         const nodeSchema = this.datastore.getNodeElementSchema(event.nodeId);
 
-        new CreateNodeCommand({ nodeSchema, isNewNode: false }).exec();
+        new CreateNodeCommand({ nodeSchema, isNewNode: false }).run();
     };
 
     protected onNodeRemoved = (event: DSNodeRemovedEvent) =>
@@ -58,7 +58,7 @@ export class NodeUpdater
 
         const nodeId = event.nodeId;
 
-        new RemoveNodeCommand({ nodeId, updateMode: 'graphOnly' }).exec();
+        new RemoveNodeCommand({ nodeId, updateMode: 'graphOnly' }).run();
     };
 
     protected onParentSet = (event: DSParentSetEvent) =>
@@ -80,7 +80,7 @@ export class NodeUpdater
 
         const { nodeId, customKey, type, value } = event;
 
-        new SetCustomPropCommand({ nodeId, customKey, type, value, updateMode: 'graphOnly' }).exec();
+        new SetCustomPropCommand({ nodeId, customKey, type, value, updateMode: 'graphOnly' }).run();
     };
 
     protected onCustomPropUndefined = (event: DSCustomPropUndefinedEvent) =>
@@ -89,7 +89,7 @@ export class NodeUpdater
 
         const { nodeId, customKey } = event;
 
-        new RemoveCustomPropCommand({ nodeId, customKey, updateMode: 'graphOnly' }).exec();
+        new RemoveCustomPropCommand({ nodeId, customKey, updateMode: 'graphOnly' }).run();
     };
 
     protected onCustomPropAssigned = (event: DSCustomPropAssignedEvent) =>
@@ -98,7 +98,7 @@ export class NodeUpdater
 
         const { nodeId, modelKey, customKey } = event;
 
-        new AssignCustomPropCommand({ nodeId, modelKey, customKey, updateMode: 'graphOnly' }).exec();
+        new AssignCustomPropCommand({ nodeId, modelKey, customKey, updateMode: 'graphOnly' }).run();
     };
 
     protected onCustomPropUnassigned = (event: DSCustomPropUnassignedEvent) =>
@@ -107,7 +107,7 @@ export class NodeUpdater
 
         const { nodeId, modelKey } = event;
 
-        new UnAssignCustomPropCommand({ nodeId, modelKey, updateMode: 'graphOnly' }).exec();
+        new UnAssignCustomPropCommand({ nodeId, modelKey, updateMode: 'graphOnly' }).run();
     };
 
     protected onModelModified = (event: DSModelModifiedEvent) =>

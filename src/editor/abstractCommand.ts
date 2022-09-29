@@ -1,3 +1,4 @@
+import type { NodeSchema } from '../core/nodes/schema';
 import { Application } from './application';
 import type { CommandName } from './commandFactory';
 
@@ -11,16 +12,18 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
 {
     public cache: CacheType;
     public isUndoRoot: boolean;
+    public hasRun: boolean;
 
     constructor(public readonly params: ParamsType)
     {
         this.cache = {} as CacheType;
         this.isUndoRoot = false;
+        this.hasRun = false;
     }
 
     public static commandName = 'Untitled';
 
-    public abstract exec(): ReturnType;
+    public abstract apply(): ReturnType;
     public abstract undo(): void;
 
     public get name(): CommandName
@@ -40,9 +43,79 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
         return this.app.undoStack.indexOf(this);
     }
 
+    public run(): ReturnType
+    {
+        const result = this.apply();
+
+        this.hasRun = true;
+
+        return result as unknown as ReturnType;
+    }
+
+    // protected updateNextRedoCommandsWithNodeId(nodeId: string)
+    // {
+    //     const nextCommands = this.app.undoStack.nextRedoCommands.commands;
+
+    //     for (const command of nextCommands)
+    //     {
+    //         if (command === this)
+    //         {
+    //             continue;
+    //         }
+
+    //         (command as unknown as NodeTargetCommand).params.nodeId = nodeId;
+    //     }
+    // }
+
+    protected updateAllFollowingCommands(updateFn: (command: AbstractCommand) => void)
+    {
+        const { index, app } = this;
+
+        for (let i = index; i < app.undoStack.length; i++)
+        {
+            const command = app.undoStack.getCommandAt(i);
+
+            if (command)
+            {
+                updateFn(command);
+            }
+        }
+    }
+
+    protected castParamsAs<T>()
+    {
+        return this.params as unknown as T;
+    }
+
+    public updateNodeId(oldNodeId: string, newNodeId: string)
+    {
+        const { params } = this;
+
+        const withNodeIdParams = this.castParamsAs<{nodeId: string}>();
+        const withParentIdParams = this.castParamsAs<{parentId: string}>();
+        const withNodeSchemaParams = this.castParamsAs<{nodeSchema: NodeSchema}>();
+
+        if ('nodeId' in params && (withNodeIdParams).nodeId === oldNodeId)
+        {
+            withNodeIdParams.nodeId = newNodeId;
+        }
+        if ('parentId' in params && (withParentIdParams).parentId === oldNodeId)
+        {
+            withParentIdParams.parentId = newNodeId;
+        }
+        if ('nodeSchema' in params && (withNodeSchemaParams).nodeSchema.id === oldNodeId)
+        {
+            withNodeSchemaParams.nodeSchema.id = newNodeId;
+        }
+        if ('nodeSchema' in params && (withNodeSchemaParams).nodeSchema.parent === oldNodeId)
+        {
+            withNodeSchemaParams.nodeSchema.parent = newNodeId;
+        }
+    }
+
     public redo()
     {
-        return this.exec();
+        return this.apply();
     }
 
     public get app()

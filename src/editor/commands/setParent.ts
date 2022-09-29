@@ -24,7 +24,7 @@ export class SetParentCommand
 {
     public static commandName = 'SetParent';
 
-    public exec(): SetParentCommandReturn
+    public apply(): SetParentCommandReturn
     {
         const { datastore, params: { parentId, nodeId } } = this;
 
@@ -54,7 +54,7 @@ export class SetParentCommand
 
         if (prevParentId)
         {
-            new SetParentCommand({ parentId: prevParentId, nodeId }).exec();
+            new SetParentCommand({ parentId: prevParentId, nodeId }).run();
         }
     }
 }
