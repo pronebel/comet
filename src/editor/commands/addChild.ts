@@ -4,8 +4,8 @@ import { CloneMode } from '../../core/nodes/cloneInfo';
 import { getInstance } from '../../core/nodes/instances';
 import type { NodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
-import { type CloneCommandReturn, CloneCommand } from './clone';
-import { type CreateNodeCommandReturn, CreateNodeCommand } from './createNode';
+import { CloneCommand } from './clone';
+import { CreateNodeCommand } from './createNode';
 import { SetParentCommand } from './setParent';
 
 export interface AddChildCommandParams<M extends ModelBase>
@@ -25,34 +25,29 @@ export class AddChildCommand<
 {
     public static commandName = 'CreateChild';
 
-    public get isAtomic()
-    {
-        return false;
-    }
-
     public apply(): AddChildCommandReturn
     {
-        const { app, params: { parentId, nodeSchema } } = this;
+        const { params: { parentId, nodeSchema } } = this;
 
         const sourceNode = getInstance<ClonableNode>(parentId);
         const originalParentNode = sourceNode.getAddChildCloneTarget();
         const clonedParentNodes = originalParentNode.getAllCloned();
 
-        const { node } = app.execUndoRoot<CreateNodeCommandReturn>(new CreateNodeCommand({ nodeSchema, isNewNode: true }));
+        const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).run();
         const nodes: ClonableNode[] = [node];
         let lastCloneSource = node;
 
-        app.exec(new SetParentCommand({ parentId: originalParentNode.id, nodeId: node.id }));
+        new SetParentCommand({ parentId: originalParentNode.id, nodeId: node.id }).run();
 
         clonedParentNodes.forEach((clonedParent) =>
         {
             const cloneMode = clonedParent.getNewChildCloneMode();
 
-            const { clonedNode } = app.exec<CloneCommandReturn>(new CloneCommand({
+            const { clonedNode } = new CloneCommand({
                 nodeId: lastCloneSource.id,
                 cloneMode,
                 depth: 1,
-            }));
+            }).run();
 
             if (cloneMode === CloneMode.Variant)
             {
@@ -61,7 +56,7 @@ export class AddChildCommand<
 
             nodes.push(clonedNode);
 
-            app.exec(new SetParentCommand({ parentId: clonedParent.id, nodeId: clonedNode.id }));
+            new SetParentCommand({ parentId: clonedParent.id, nodeId: clonedNode.id }).run();
         });
 
         return { nodes };

@@ -166,14 +166,7 @@ export class TestApp extends Application
                 },
             });
 
-            const { nodes } = new AddChildCommand({ parentId, nodeSchema }).run();
-
-            nodes.forEach((node) =>
-            {
-                const asContainerNode = node.cast<ContainerNode>();
-
-                this.select(asContainerNode);
-            });
+            this.execUndoRoot(new AddChildCommand({ parentId, nodeSchema }));
         }
     }
 
@@ -194,14 +187,7 @@ export class TestApp extends Application
                 },
             });
 
-            const { nodes } = new AddChildCommand({ parentId, nodeSchema }).run();
-
-            nodes.forEach((node) =>
-            {
-                const asContainerNode = node.cast<ContainerNode>();
-
-                this.select(asContainerNode);
-            });
+            this.execUndoRoot(new AddChildCommand({ parentId, nodeSchema }));
         }
     }
 

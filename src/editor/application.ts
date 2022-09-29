@@ -108,12 +108,12 @@ export abstract class Application extends EventEmitter<AppEvents>
             throw new Error(`Command "${command.name}" is not atomic, execute outside of application undo stack`);
         }
 
+        console.log(`%c🔔 ${userName}:${command.name}: %c${JSON.stringify(command.params)}`, 'color:cyan', 'color:yellow');
+
         this.undoStack.push(command);
         this.writeUndoStack();
 
         const result = command.run();
-
-        this.onCommand(command, result);
 
         this.emit('commandExec', command, result);
 
@@ -125,13 +125,6 @@ export abstract class Application extends EventEmitter<AppEvents>
         command.isUndoRoot = true;
 
         return this.exec(command);
-    }
-
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onCommand(command: AbstractCommand, result: unknown)
-    {
-        console.log(`%c🔔 ${userName}:${command.name}: %c${JSON.stringify(command.params)}`, 'color:cyan', 'color:yellow');
     }
 
     public writeUndoStack()
