@@ -61,6 +61,9 @@ export class RemoveNodeCommand
         // unregister graph node
         unregisterInstance(node);
 
+        // dispose
+        node.dispose();
+
         return { node };
     }
 

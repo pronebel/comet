@@ -9,7 +9,7 @@ import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance, getLatestInstance } from '../../core/nodes/instances';
-import { registerNodeType } from '../../core/nodes/nodeFactory';
+import { onNodeCreated, onNodeDisposed, registerNodeType } from '../../core/nodes/nodeFactory';
 import { createNodeSchema } from '../../core/nodes/schema';
 import type { AbstractCommand } from '../abstractCommand';
 import { Action } from '../action';
@@ -60,6 +60,7 @@ export class TestApp extends Application
 
         this.stage.addChild(selection);
 
+        this.initNodeFactoryEvents();
         this.initDatastoreEvents();
         this.initKeyboardActions();
     }
@@ -74,6 +75,20 @@ export class TestApp extends Application
         this.selectLastNode();
     }
 
+    protected initNodeFactoryEvents()
+    {
+        onNodeCreated((node) =>
+        {
+            console.log(`%cCREATED: ${node.id}`, 'color:pink');
+            this.makeInteractive(node.cast<ContainerNode>());
+        });
+        onNodeDisposed((node) =>
+        {
+            console.log(`%cDISPOSED: ${node.id}`, 'color:pink');
+            this.unmakeInteractive(node.cast<ContainerNode>());
+        });
+    }
+
     protected initDatastoreEvents()
     {
         const { datastore } = this;
@@ -82,7 +97,7 @@ export class TestApp extends Application
         {
             const node = getInstance<ClonableNode>(e.nodeId).cast<ContainerNode>();
 
-            this.makeInteractive(node);
+            // this.makeInteractive(node);
             this.select(node);
         }).on('nodeRemoved', () =>
         {
@@ -134,10 +149,10 @@ export class TestApp extends Application
         {
             const { clonedNode } = result as CloneCommandReturn;
 
-            clonedNode.walk<ContainerNode>((node) =>
-            {
-                this.makeInteractive(node);
-            });
+            // clonedNode.walk<ContainerNode>((node) =>
+            // {
+            //     this.makeInteractive(node);
+            // });
 
             this.select(clonedNode.cast<ContainerNode>());
         }
@@ -203,7 +218,7 @@ export class TestApp extends Application
             {
                 const asContainerNode = node.cast<ContainerNode>();
 
-                this.makeInteractive(asContainerNode);
+                // this.makeInteractive(asContainerNode);
                 this.select(asContainerNode);
             });
         }
@@ -232,7 +247,7 @@ export class TestApp extends Application
             {
                 const asContainerNode = node.cast<ContainerNode>();
 
-                this.makeInteractive(asContainerNode);
+                // this.makeInteractive(asContainerNode);
                 this.select(asContainerNode);
             });
         }
@@ -436,22 +451,42 @@ export class TestApp extends Application
     {
         const sprite = component.getView<Container>();
 
+        (sprite as any).componentId = component.id;
+
         if (!sprite.interactive)
         {
             sprite.interactive = true;
 
-            sprite.on('mousedown', (e: InteractionEvent) =>
-            {
-                e.stopPropagation();
-
-                this.select(component);
-
-                const original = component.getModificationCloneTarget();
-
-                startDrag(original.cast());
-            });
+            console.log('make interactive', component.id);
+            sprite.on('mousedown', this.onSpriteClicked);
         }
     }
+
+    public unmakeInteractive<T extends ContainerNode>(component: T)
+    {
+        const sprite = component.getView<Container>();
+
+        if (sprite.interactive)
+        {
+            sprite.interactive = false;
+
+            console.log('unmake interactive', component.id);
+            sprite.off('mousedown', this.onSpriteClicked);
+        }
+    }
+
+    protected onSpriteClicked = (e: InteractionEvent) =>
+    {
+        e.stopPropagation();
+
+        const component = getInstance<ContainerNode>((e.target as any).componentId);
+
+        this.select(component);
+
+        const original = component.getModificationCloneTarget();
+
+        startDrag(original.cast());
+    };
 
     public select(component: ContainerNode)
     {

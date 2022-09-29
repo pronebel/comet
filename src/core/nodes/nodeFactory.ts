@@ -7,7 +7,7 @@ import { registerInstance } from './instances';
 export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
 
 export type NodeFactoryEvents = 'created' | 'disposed';
-export const emitter: EventEmitter<NodeFactoryEvents> = new EventEmitter<NodeFactoryEvents>();
+const emitter: EventEmitter<NodeFactoryEvents> = new EventEmitter<NodeFactoryEvents>();
 
 const userName = getUserName();
 
@@ -17,7 +17,6 @@ export function registerNodeType(nodeClass: ClonableNodeConstructor)
 
     if (nodeClasses.has(nodeType))
     {
-        // throw new Error(`Node type "${nodeType}" already registered.`);
         return;
     }
 
@@ -49,4 +48,14 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
     emitter.emit('created', node);
 
     return node as unknown as T;
+}
+
+export function onNodeCreated(fn: (node: ClonableNode) => void)
+{
+    emitter.on('created', fn);
+}
+
+export function onNodeDisposed(fn: (node: ClonableNode) => void)
+{
+    emitter.on('disposed', fn);
 }
