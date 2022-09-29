@@ -42,7 +42,7 @@ export class AddChildCommand<
         const nodes: ClonableNode[] = [node];
         let lastCloneSource = node;
 
-        app.exec(new SetParentCommand({ parentId: originalParentNode.id, childId: node.id }));
+        app.exec(new SetParentCommand({ parentId: originalParentNode.id, nodeId: node.id }));
 
         clonedParentNodes.forEach((clonedParent) =>
         {
@@ -61,7 +61,7 @@ export class AddChildCommand<
 
             nodes.push(clonedNode);
 
-            app.exec(new SetParentCommand({ parentId: clonedParent.id, childId: clonedNode.id }));
+            app.exec(new SetParentCommand({ parentId: clonedParent.id, nodeId: clonedNode.id }));
         });
 
         return { nodes };

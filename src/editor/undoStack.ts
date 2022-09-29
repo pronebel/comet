@@ -16,6 +16,16 @@ export default class UndoStack
         return this.stack.length;
     }
 
+    public indexOf(command: AbstractCommand)
+    {
+        return this.stack.indexOf(command);
+    }
+
+    public getCommandAt(index: number): AbstractCommand | undefined
+    {
+        return this.stack[index];
+    }
+
     public push(command: AbstractCommand)
     {
         const { stack, head } = this;
@@ -53,7 +63,7 @@ export default class UndoStack
         this.head = nextUndoRootIndex - 1;
     }
 
-    public redo()
+    public redo2()
     {
         const { stack, head, nextRedoRootIndex } = this;
 
@@ -77,6 +87,48 @@ export default class UndoStack
 
             cmd.redo();
         }
+    }
+
+    public redo()
+    {
+        const { commands } = this.nextRedoCommands;
+
+        for (const cmd of commands)
+        {
+            cmd.redo();
+            this.head++;
+        }
+    }
+
+    public get nextRedoCommands(): {head: number; commands: AbstractCommand[]}
+    {
+        const { stack, head, nextRedoRootIndex } = this;
+        const commands: AbstractCommand[] = [];
+
+        if (head === stack.length - 1 || stack.length === 0)
+        {
+            return { head: stack.length - 1, commands };
+        }
+
+        let newHead = head;
+
+        const headStart = nextRedoRootIndex;
+
+        for (let i = headStart; i < stack.length; i++)
+        {
+            const cmd = stack[i];
+
+            if (cmd.isUndoRoot && i > headStart)
+            {
+                break;
+            }
+
+            newHead = i;
+
+            commands.push(cmd);
+        }
+
+        return { head: newHead, commands };
     }
 
     public get nextUndoRootIndex()

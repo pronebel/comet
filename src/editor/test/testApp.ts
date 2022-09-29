@@ -98,6 +98,7 @@ export class TestApp extends Application
     protected initKeyboardActions()
     {
         Action.register('undo', this.undo, { hotkey: 'ctrl+z' });
+        Action.register('redo', this.redo, { hotkey: 'ctrl+shift+z' });
     }
 
     public async init()
@@ -250,7 +251,7 @@ export class TestApp extends Application
 
             if (parentNode)
             {
-                this.exec(new SetParentCommand({ parentId: parentNode.id, childId: clonedNode.id }));
+                this.exec(new SetParentCommand({ parentId: parentNode.id, nodeId: clonedNode.id }));
                 this.exec(new ModifyModelCommand({ nodeId: clonedNode.id, values: sourceNode.model.ownValues }));
 
                 this.select(clonedNode.cast());

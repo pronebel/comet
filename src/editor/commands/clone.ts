@@ -1,8 +1,10 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import { getInstance, registerInstance } from '../../core/nodes/instances';
 import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
-import { AbstractCommand } from '../abstractCommand';
+import { type NodeTargetCommand, AbstractCommand } from '../abstractCommand';
+import { RemoveNodeCommand } from './removeNode';
 
 export interface CloneCommandParams
 {
@@ -18,17 +20,25 @@ export interface CloneCommandReturn
     originalNode: ClonableNode;
 }
 
-export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneCommandReturn>
+export interface CloneCommandCache
+{
+    nodes: ClonableNode[];
+}
+
+export class CloneCommand
+    extends AbstractCommand<CloneCommandParams, CloneCommandReturn, CloneCommandCache>
 {
     public static commandName = 'Clone';
 
     public exec(): CloneCommandReturn
     {
-        const { datastore, params: { nodeId, cloneMode, depth } } = this;
+        const { app, datastore, params: { nodeId, cloneMode, depth }, cache } = this;
 
         const sourceNode = getInstance<ClonableNode>(nodeId);
         const originalNode = sourceNode.getCloneTarget();
         const cloneInfoSchema = getCloneInfoSchema(originalNode);
+
+        const clonedNodes: ClonableNode[] = [];
 
         // clone original
         const clonedNode = originalNode.clone(cloneMode, depth);
@@ -66,7 +76,30 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
 
                 datastore.updateNodeCloneInfo(clonerId, cloneInfoSchema);
             }
+
+            // track for cache
+            clonedNodes.push(node);
         });
+
+        if (cache.nodes)
+        {
+            // adjust next command for new clone id
+            const nextCommands = app.undoStack.nextRedoCommands.commands;
+
+            for (const command of nextCommands)
+            {
+                if (command === this)
+                {
+                    continue;
+                }
+
+                (command as unknown as NodeTargetCommand).params.nodeId = clonedNode.id;
+            }
+        }
+
+        // store cache
+        clonedNodes.sort(sortNodesByCreation).reverse();
+        cache.nodes = clonedNodes;
 
         return {
             sourceNode,
@@ -77,6 +110,11 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
 
     public undo(): void
     {
-        // throw new Error('Method not implemented.');
+        const { cache: { nodes } } = this;
+
+        for (const node of nodes)
+        {
+            new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).exec();
+        }
     }
 }

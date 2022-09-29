@@ -5,7 +5,7 @@ import { AbstractCommand } from '../abstractCommand';
 export interface SetParentCommandParams
 {
     parentId: string;
-    childId: string;
+    nodeId: string;
 }
 
 export interface SetParentCommandReturn
@@ -26,16 +26,16 @@ export class SetParentCommand
 
     public exec(): SetParentCommandReturn
     {
-        const { datastore, params: { parentId, childId } } = this;
+        const { datastore, params: { parentId, nodeId } } = this;
 
         const parentNode = getInstance<ClonableNode>(parentId);
-        const childNode = getInstance<ClonableNode>(childId);
+        const childNode = getInstance<ClonableNode>(nodeId);
 
         // cache previous parent
         this.cache.prevParentId = childNode.parent?.id;
 
         // update datastore
-        datastore.setNodeParent(childId, parentId);
+        datastore.setNodeParent(nodeId, parentId);
 
         // update graph node
         parentNode.addChild(childNode);
@@ -45,16 +45,16 @@ export class SetParentCommand
 
     public undo(): void
     {
-        const { cache: { prevParentId }, params: { parentId, childId } } = this;
+        const { cache: { prevParentId }, params: { parentId, nodeId } } = this;
 
         const parentNode = getInstance<ClonableNode>(parentId);
-        const childNode = getInstance<ClonableNode>(childId);
+        const childNode = getInstance<ClonableNode>(nodeId);
 
         parentNode.removeChild(childNode);
 
         if (prevParentId)
         {
-            new SetParentCommand({ parentId: prevParentId, childId }).exec();
+            new SetParentCommand({ parentId: prevParentId, nodeId }).exec();
         }
     }
 }

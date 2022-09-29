@@ -5,6 +5,8 @@ import type { CommandName } from './commandFactory';
 // 'full' = update both the graph nodes and the datastore (usually for local modifications)
 export type UpdateMode = 'graphOnly' | 'full';
 
+export type NodeTargetCommand = { params: { nodeId: string } };
+
 export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = void, CacheType extends {} = {}>
 {
     public cache: CacheType;
@@ -31,6 +33,11 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
         // whether or not this command ends up in undoStack (true),
         // or whether it just does something outside of the stack (false) such as orchestrating other commands
         return true;
+    }
+
+    public get index(): number
+    {
+        return this.app.undoStack.indexOf(this);
     }
 
     public redo()
