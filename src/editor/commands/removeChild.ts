@@ -100,10 +100,7 @@ export class RemoveChildCommand
 
         this.cache.nodes.forEach((nodeSchema) =>
         {
-            if (nodeSchema.parent === oldNodeId)
-            {
-                nodeSchema.parent = newNodeId;
-            }
+            this.updateNodeSchemaId(nodeSchema, oldNodeId, newNodeId);
         });
     }
 }

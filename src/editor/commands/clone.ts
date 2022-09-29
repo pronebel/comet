@@ -120,14 +120,7 @@ export class CloneCommand
 
         this.cache.nodes.forEach((nodeSchema) =>
         {
-            if (nodeSchema.id === oldNodeId)
-            {
-                nodeSchema.id = newNodeId;
-            }
-            if (nodeSchema.parent === oldNodeId)
-            {
-                nodeSchema.parent = newNodeId;
-            }
+            this.updateNodeSchemaId(nodeSchema, oldNodeId, newNodeId);
         });
     }
 }

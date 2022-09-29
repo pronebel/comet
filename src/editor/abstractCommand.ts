@@ -93,7 +93,6 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
 
         const withNodeIdParams = this.castParamsAs<{nodeId: string}>();
         const withParentIdParams = this.castParamsAs<{parentId: string}>();
-        const withNodeSchemaParams = this.castParamsAs<{nodeSchema: NodeSchema}>();
 
         if ('nodeId' in params && (withNodeIdParams).nodeId === oldNodeId)
         {
@@ -103,14 +102,28 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
         {
             withParentIdParams.parentId = newNodeId;
         }
-        if ('nodeSchema' in params && (withNodeSchemaParams).nodeSchema.id === oldNodeId)
+        if ('nodeSchema' in params)
         {
-            withNodeSchemaParams.nodeSchema.id = newNodeId;
+            this.updateNodeSchemaId((params as unknown as {nodeSchema: NodeSchema}).nodeSchema, oldNodeId, newNodeId);
         }
-        if ('nodeSchema' in params && (withNodeSchemaParams).nodeSchema.parent === oldNodeId)
+    }
+
+    public updateNodeSchemaId(nodeSchema: NodeSchema, oldNodeId: string, newNodeId: string): void
+    {
+        if (nodeSchema.id === oldNodeId)
         {
-            withNodeSchemaParams.nodeSchema.parent = newNodeId;
+            nodeSchema.id = newNodeId;
         }
+        if (nodeSchema.parent === oldNodeId)
+        {
+            nodeSchema.parent = newNodeId;
+        }
+        if (nodeSchema.cloneInfo.cloner === oldNodeId)
+        {
+            nodeSchema.cloneInfo.cloner = newNodeId;
+        }
+        nodeSchema.children = nodeSchema.children.map((id) => (id === oldNodeId ? newNodeId : id));
+        nodeSchema.cloneInfo.cloned = nodeSchema.cloneInfo.cloned.map((id) => (id === oldNodeId ? newNodeId : id));
     }
 
     public redo()
