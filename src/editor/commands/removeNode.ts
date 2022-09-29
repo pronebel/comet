@@ -12,7 +12,6 @@ export interface RemoveNodeCommandParams
 export interface RemoveNodeCommandReturn
 {
     node: ClonableNode;
-    // parentNode: ClonableNode;
 }
 
 export class RemoveNodeCommand

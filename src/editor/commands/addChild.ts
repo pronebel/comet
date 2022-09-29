@@ -82,10 +82,12 @@ export class AddChildCommand<
     {
         const { cache: { nodes } } = this;
 
-        nodes.forEach((id) =>
+        for (let i = nodes.length - 1; i >= 0; i--)
         {
+            const id = nodes[i];
+
             new RemoveNodeCommand({ nodeId: id, updateMode: 'full' }).run();
-        });
+        }
     }
 
     public updateNodeId(oldNodeId: string, newNodeId: string): void
