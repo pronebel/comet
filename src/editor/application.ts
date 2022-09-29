@@ -69,6 +69,28 @@ export abstract class Application extends EventEmitter<AppEvents>
         return this.pixiApp.stage;
     }
 
+    public undo = () =>
+    {
+        this.undoStack.undo();
+        this.onUndo();
+    };
+
+    public redo = () =>
+    {
+        this.undoStack.redo();
+        this.onRedo();
+    };
+
+    protected onUndo()
+    {
+        //
+    }
+
+    protected onRedo()
+    {
+        //
+    }
+
     public connect()
     {
         return this.datastore.connect();
@@ -81,13 +103,13 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public exec<R = unknown>(command: AbstractCommand): R
     {
-        const shouldTrack = !command.isTracked;
-
-        if (shouldTrack)
+        if (!command.isAtomic)
         {
-            this.undoStack.push(command);
-            this.writeUndoStack();
+            throw new Error(`Command "${command.name}" is not atomic, execute outside of application undo stack`);
         }
+
+        this.undoStack.push(command);
+        this.writeUndoStack();
 
         const result = command.exec();
 
@@ -96,6 +118,13 @@ export abstract class Application extends EventEmitter<AppEvents>
         this.emit('commandExec', command, result);
 
         return result as unknown as R;
+    }
+
+    public execUndoRoot<R = unknown>(command: AbstractCommand): R
+    {
+        command.isUndoRoot = true;
+
+        return this.exec(command);
     }
 
     // @ts-ignore

@@ -6,6 +6,7 @@ import type { NodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 import type { Datastore } from '../sync/datastore';
 import { AssignCustomPropCommand } from './assignCustomProp';
+import { RemoveNodeCommand } from './removeNode';
 import { SetCustomPropCommand } from './setCustomProp';
 
 export interface CreateNodeCommandParams<M extends ModelBase>
@@ -82,6 +83,11 @@ export class CreateNodeCommand<
 
     public undo(): void
     {
-        throw new Error('Method not implemented.');
+        const { params: { nodeSchema } } = this;
+        const nodeId = nodeSchema.id;
+
+        console.log('CreateNode');
+
+        new RemoveNodeCommand({ nodeId, updateMode: 'full' }).exec();
     }
 }

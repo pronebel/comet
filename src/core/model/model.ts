@@ -153,6 +153,7 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
     public setValues(values: Partial<M>)
     {
         const keys = Object.getOwnPropertyNames(values) as (keyof M)[];
+        const prevValues: Partial<M> = {};
 
         keys.forEach((key) =>
         {
@@ -160,9 +161,12 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
 
             if (value !== this.schema.defaults[key])
             {
+                prevValues[key] = this.ownValues[key];
                 this.setValue(key, value);
             }
         });
+
+        return prevValues;
     }
 
     public clearValue(key: keyof M)

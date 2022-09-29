@@ -1,7 +1,9 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { disposeGraphNode, getGraphNode } from '../../core/nodes/nodeFactory';
-import { getCloneInfoSchema } from '../../core/nodes/schema';
+import { type NodeSchema, getCloneInfoSchema } from '../../core/nodes/schema';
 import { type UpdateMode, AbstractCommand } from '../abstractCommand';
+import { CreateNodeCommand } from './createNode';
+import { SetParentCommand } from './setParent';
 
 export interface RemoveNodeCommandParams
 {
@@ -15,7 +17,12 @@ export interface RemoveNodeCommandReturn
     parentNode: ClonableNode;
 }
 
-export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, RemoveNodeCommandReturn>
+export interface RemoveNodeCommandCache
+{
+    nodeSchema: NodeSchema;
+    parentId: string;
+}
+export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, RemoveNodeCommandReturn, RemoveNodeCommandCache>
 {
     public static commandName = 'RemoveNode';
 
@@ -64,6 +71,9 @@ export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, 
 
     public undo(): void
     {
-        throw new Error('Method not implemented.');
+        const { cache: { nodeSchema, parentId } } = this;
+
+        const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).exec();
+        // new SetParentCommand()
     }
 }

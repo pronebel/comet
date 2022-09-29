@@ -44,12 +44,11 @@ export class SetParentCommand extends AbstractCommand<SetParentCommandParams, Se
 
     public undo(): void
     {
-        const { cache: { prevParentId } } = this;
+        const { cache: { prevParentId }, params: { childId } } = this;
 
-        debugger;
         if (prevParentId)
         {
-
+            new SetParentCommand({ parentId: prevParentId, childId }).exec();
         }
     }
 }

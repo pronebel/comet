@@ -25,9 +25,9 @@ export class AddChildCommand<
 {
     public static commandName = 'CreateChild';
 
-    public get isTracked()
+    public get isAtomic()
     {
-        return true;
+        return false;
     }
 
     public exec(): AddChildCommandReturn
@@ -38,7 +38,7 @@ export class AddChildCommand<
         const originalParentNode = sourceNode.getAddChildCloneTarget();
         const clonedParentNodes = originalParentNode.getAllCloned();
 
-        const { node } = app.exec<CreateNodeCommandReturn>(new CreateNodeCommand({ nodeSchema, isNewNode: true }));
+        const { node } = app.execUndoRoot<CreateNodeCommandReturn>(new CreateNodeCommand({ nodeSchema, isNewNode: true }));
         const nodes: ClonableNode[] = [node];
         let lastCloneSource = node;
 

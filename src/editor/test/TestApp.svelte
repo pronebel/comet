@@ -101,6 +101,14 @@
     app.inspect();
   };
 
+  const onUndo = () => {
+    app.undo();
+  };
+
+  const onRedo = () => {
+    app.redo();
+  };
+
   const onInspectDatastore = () => {
     app.inspectDatastore();
   };
@@ -187,6 +195,8 @@
     <button on:click={onDuplicate}>+ Duplicate</button>
     <button on:click={onUnlink}>Unlink</button>
     <button on:click={onInspect}>Inspect</button>
+    <button on:click={onUndo}>Undo</button>
+    <button on:click={onRedo}>Redo</button>
     <hr />
     <button on:click={onReload}>Reload</button>
     <button on:click={onReOpen}>ReOpen</button>
@@ -221,6 +231,7 @@
   {/if}
   <marker />
   <user>{userName}</user>
+  <div id="undo" />
 </buttons>
 
 <style>
@@ -308,5 +319,14 @@
     padding: 5px;
     line-height: 16px;
     margin: 0;
+  }
+
+  #undo {
+    position: fixed;
+    bottom: 8px;
+    left: 10px;
+    width: calc(100% - 95px);
+    line-height: 14px;
+    color: lightskyblue;
   }
 </style>

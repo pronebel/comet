@@ -25,29 +25,78 @@ export default class UndoStack
 
         stack.push(command);
         this.head++;
-        this.debugPrint();
     }
 
     public undo()
     {
-        const peek = this.peek();
+        const { stack, head, nextUndoRootIndex } = this;
 
-        if (peek === null || !peek.canUndo)
+        if (stack.length === 0 || head === -1)
         {
-            console.log(`Cannot undo. Stack length = ${this.stack.length}`);
-
             return;
         }
 
-        this.head--;
-        peek.undo();
+        const headStart = head;
 
-        this.debugPrint();
+        for (let i = headStart; i >= nextUndoRootIndex; i--)
+        {
+            const cmd = stack[i];
+
+            cmd.undo();
+        }
+
+        this.head = nextUndoRootIndex - 1;
     }
 
     public redo()
     {
-        this.head++;
+        const { stack, head, nextRedoRootIndex } = this;
+
+        if (head === stack.length - 1)
+        {
+            return;
+        }
+
+        const headStart = Math.max(0, head);
+
+        for (let i = headStart; i <= nextRedoRootIndex; i++)
+        {
+            const cmd = stack[i];
+
+            cmd.redo();
+        }
+
+        this.head = nextRedoRootIndex;
+    }
+
+    public get nextUndoRootIndex()
+    {
+        const { head, stack } = this;
+
+        for (let i = head; i >= 0; i--)
+        {
+            if (stack[i].isUndoRoot)
+            {
+                return i;
+            }
+        }
+
+        return head;
+    }
+
+    public get nextRedoRootIndex()
+    {
+        const { head, stack } = this;
+
+        for (let i = head + 1; i < stack.length; i++)
+        {
+            if (stack[i].isUndoRoot)
+            {
+                return i;
+            }
+        }
+
+        return head + 1;
     }
 
     public get hasCommands()
@@ -61,7 +110,7 @@ export default class UndoStack
         this.head = -1;
     }
 
-    protected peek(): AbstractCommand | null
+    protected get peek(): AbstractCommand | null
     {
         const { stack } = this;
 
@@ -76,16 +125,20 @@ export default class UndoStack
     public debugPrint()
     {
         const { head, stack } = this;
+
         const array = stack.map((command, i) =>
         {
+            const cmdName = `[${i}]:${command.name}`;
+            const cmd = command.isUndoRoot ? [`✅${cmdName}`] : [cmdName];
+
             if (i === head)
             {
-                return ['--->', command];
+                return [`<b style="color:white">${cmd}</b>`];
             }
 
-            return [command];
-        }).flat();
+            return cmd;
+        }).flat(5);
 
-        console.log(`head: ${head}`, array);
+        return `@${head}~${array.join(' / ')}`;
     }
 }

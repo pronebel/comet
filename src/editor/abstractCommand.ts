@@ -8,10 +8,12 @@ export type UpdateMode = 'graphOnly' | 'full';
 export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = void, CacheType extends {} = {}>
 {
     public cache: CacheType;
+    public isUndoRoot: boolean;
 
     constructor(public readonly params: ParamsType)
     {
         this.cache = {} as CacheType;
+        this.isUndoRoot = false;
     }
 
     public static commandName = 'Untitled';
@@ -24,15 +26,11 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
         return (Object.getPrototypeOf(this).constructor as {commandName: string}).commandName as CommandName;
     }
 
-    public get canUndo()
+    public get isAtomic()
     {
+        // whether or not this command ends up in undoStack (true),
+        // or whether it just does something outside of the stack (false) such as orchestrating other commands
         return true;
-    }
-
-    public get isTracked()
-    {
-        // whether or not this command ends up in undoStack, or whether it just does something outside of the stack
-        return false;
     }
 
     public redo()

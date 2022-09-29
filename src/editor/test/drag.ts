@@ -60,10 +60,13 @@ window.addEventListener('mouseup', () =>
 
             const nodeId = state.component.id;
 
-            app.exec(new ModifyModelCommand({ nodeId, values: {
+            const command = new ModifyModelCommand({ nodeId, values: {
                 x: state.newX,
                 y: state.newY,
-            } }));
+            } });
+
+            app.execUndoRoot(command);
+            command.cache.prevValues = { x: state.startX, y: state.startY };
         }
 
         delete state.component;

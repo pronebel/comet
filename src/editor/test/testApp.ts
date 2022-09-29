@@ -62,6 +62,16 @@ export class TestApp extends Application
         this.initKeyboardActions();
     }
 
+    protected onUndo(): void
+    {
+        this.selectLastNode();
+    }
+
+    protected onRedo(): void
+    {
+        this.selectLastNode();
+    }
+
     protected initDatastoreEvents()
     {
         const { datastore } = this;
@@ -87,16 +97,6 @@ export class TestApp extends Application
     {
         Action.register('undo', this.undo, { hotkey: 'ctrl+z' });
     }
-
-    public undo = () =>
-    {
-        this.undoStack.undo();
-    };
-
-    public redo = () =>
-    {
-        this.undoStack.redo();
-    };
 
     public async init()
     {
@@ -146,7 +146,12 @@ export class TestApp extends Application
 
     protected selectLastNode()
     {
-        const node = getLatestNode();
+        let node = getLatestNode();
+
+        if (node && node.nodeType() === 'Project')
+        {
+            node = getGraphNode('Scene:1');
+        }
 
         if (node)
         {
@@ -258,12 +263,13 @@ export class TestApp extends Application
             const {
                 sourceNode,
                 clonedNode,
-            } = this.exec<CloneCommandReturn>(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
+            } = this.execUndoRoot<CloneCommandReturn>(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
 
             if (parentNode)
             {
                 this.exec(new SetParentCommand({ parentId: parentNode.id, childId: clonedNode.id }));
                 this.exec(new ModifyModelCommand({ nodeId: clonedNode.id, values: sourceNode.model.ownValues }));
+
                 this.select(clonedNode.cast());
             }
         }
@@ -338,7 +344,7 @@ export class TestApp extends Application
     {
         if (this.selected && this.selected instanceof DebugNode)
         {
-            this.exec(new ModifyModelCommand<SpriteModel>({
+            this.execUndoRoot(new ModifyModelCommand<SpriteModel>({
                 nodeId: this.selected.getModificationCloneTarget().id,
                 values: {
                     tint: Math.round(Math.random() * 100000),
@@ -350,7 +356,7 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            this.exec(new ModifyModelCommand<SpriteModel>({
+            this.execUndoRoot(new ModifyModelCommand<SpriteModel>({
                 nodeId: this.selected.getModificationCloneTarget().id,
                 values: {
                     width: Math.round(Math.random() * 50),
@@ -586,7 +592,10 @@ export class TestApp extends Application
                 includeSelf: true,
             });
 
-            element.innerHTML = html;
+            element.innerHTML = `${html}`;
+
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+            document.getElementById('undo')!.innerHTML = this.undoStack.debugPrint();
         }
     }
 }

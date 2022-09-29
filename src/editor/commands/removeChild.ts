@@ -18,9 +18,9 @@ export class RemoveChildCommand extends AbstractCommand<RemoveChildCommandParams
 {
     public static commandName = 'RemoveChild';
 
-    public get isTracked()
+    public get isAtomic()
     {
-        return true;
+        return false;
     }
 
     public exec(): RemoveChildCommandReturn
@@ -46,7 +46,7 @@ export class RemoveChildCommand extends AbstractCommand<RemoveChildCommandParams
             {
                 const cloner = node.cloneInfo.cloner;
 
-                app.exec(new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }));
+                app.execUndoRoot(new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }));
 
                 if (cloner)
                 {

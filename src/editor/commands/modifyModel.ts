@@ -8,24 +8,41 @@ export interface ModifyModelCommandParams<M>
     values: Partial<M>;
 }
 
-export class ModifyModelCommand<M extends ModelBase> extends AbstractCommand<ModifyModelCommandParams<M>>
+export interface ModifyModelCommandCache<M>
+{
+    prevValues?: Partial<M>;
+}
+
+export class ModifyModelCommand<M extends ModelBase>
+    extends AbstractCommand<ModifyModelCommandParams<M>, void, ModifyModelCommandCache<M>>
 {
     public static commandName = 'ModifyModel';
 
     public exec(): void
     {
-        const { datastore, params: { nodeId, values } } = this;
+        const { datastore, params: { nodeId, values }, cache } = this;
         const node = getGraphNode(nodeId);
 
         // update datastore
         datastore.modifyNodeModel(nodeId, values);
 
         // update graph node
-        node.model.setValues(values);
+        const prevValues = node.model.setValues(values) as Partial<M>;
+
+        if (!cache.prevValues)
+        {
+            // don't update if values already cached
+            this.cache.prevValues = prevValues;
+        }
     }
 
     public undo(): void
     {
-        throw new Error('Method not implemented.');
+        const { cache: { prevValues }, params: { nodeId } } = this;
+
+        if (prevValues)
+        {
+            new ModifyModelCommand({ nodeId, values: prevValues }).exec();
+        }
     }
 }
