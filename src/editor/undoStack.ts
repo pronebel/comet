@@ -100,12 +100,22 @@ export default class UndoStack
         }
     }
 
+    public get isHeadAtEnd()
+    {
+        return this.head === this.stack.length - 1;
+    }
+
+    public get isEmpty()
+    {
+        return this.stack.length === 0;
+    }
+
     public get nextRedoCommands(): {head: number; commands: AbstractCommand[]}
     {
-        const { stack, head, nextRedoRootIndex } = this;
+        const { stack, head, isHeadAtEnd, isEmpty, nextRedoRootIndex } = this;
         const commands: AbstractCommand[] = [];
 
-        if (head === stack.length - 1 || stack.length === 0)
+        if (isHeadAtEnd || isEmpty)
         {
             return { head: stack.length - 1, commands };
         }

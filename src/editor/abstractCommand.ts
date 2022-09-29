@@ -52,26 +52,26 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
         return result as unknown as ReturnType;
     }
 
-    // protected updateNextRedoCommandsWithNodeId(nodeId: string)
-    // {
-    //     const nextCommands = this.app.undoStack.nextRedoCommands.commands;
-
-    //     for (const command of nextCommands)
-    //     {
-    //         if (command === this)
-    //         {
-    //             continue;
-    //         }
-
-    //         (command as unknown as NodeTargetCommand).params.nodeId = nodeId;
-    //     }
-    // }
-
     protected updateAllFollowingCommands(updateFn: (command: AbstractCommand) => void)
     {
         const { index, app } = this;
 
         for (let i = index; i < app.undoStack.length; i++)
+        {
+            const command = app.undoStack.getCommandAt(i);
+
+            if (command)
+            {
+                updateFn(command);
+            }
+        }
+    }
+
+    protected updateAllCommands(updateFn: (command: AbstractCommand) => void)
+    {
+        const { app } = this;
+
+        for (let i = 0; i < app.undoStack.length; i++)
         {
             const command = app.undoStack.getCommandAt(i);
 
