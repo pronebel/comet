@@ -1,8 +1,11 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
-import { getInstance } from '../../core/nodes/instances';
+import { getInstance, newId } from '../../core/nodes/instances';
+import { type NodeSchema, getNodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
+import { CreateNodeCommand } from './createNode';
 import { RemoveNodeCommand } from './removeNode';
+import { SetParentCommand } from './setParent';
 
 export interface RemoveChildCommandParams
 {
@@ -14,13 +17,19 @@ export interface RemoveChildCommandReturn
     nodes: ClonableNode[];
 }
 
-export class RemoveChildCommand extends AbstractCommand<RemoveChildCommandParams, RemoveChildCommandReturn>
+export interface RemoveChildCommandCache
+{
+    nodes: NodeSchema[];
+}
+
+export class RemoveChildCommand
+    extends AbstractCommand<RemoveChildCommandParams, RemoveChildCommandReturn, RemoveChildCommandCache>
 {
     public static commandName = 'RemoveChild';
 
     public apply(): RemoveChildCommandReturn
     {
-        const { datastore, params: { nodeId } } = this;
+        const { cache, datastore, params: { nodeId }, hasRun } = this;
 
         const sourceNode = getInstance<ClonableNode>(nodeId);
         const originalNode = sourceNode.getModificationCloneTarget();
@@ -28,18 +37,28 @@ export class RemoveChildCommand extends AbstractCommand<RemoveChildCommandParams
 
         const nodes: ClonableNode[] = [originalNode, ...clonedNodes];
 
+        cache.nodes = [];
+
         nodes.forEach((rootNode) =>
         {
             rootNode.walk<ClonableNode>((node) => nodes.push(node), { includeSelf: false });
         });
 
-        nodes.sort(sortNodesByCreation).reverse();
+        nodes.sort(sortNodesByCreation);
+
+        if (!hasRun)
+        {
+            nodes.reverse();
+        }
 
         datastore.batch(() =>
         {
             nodes.forEach((node) =>
             {
                 const cloner = node.cloneInfo.cloner;
+
+                // track in cache
+                cache.nodes.push(getNodeSchema(node));
 
                 new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).run();
 
@@ -50,11 +69,41 @@ export class RemoveChildCommand extends AbstractCommand<RemoveChildCommandParams
             });
         });
 
+        cache.nodes.reverse();
+
         return { nodes };
     }
 
     public undo(): void
     {
-        throw new Error('Method not implemented.');
+        const { cache: { nodes } } = this;
+
+        nodes.forEach((nodeSchema) =>
+        {
+            const newNodeId = newId(nodeSchema.type);
+            const oldNodeId = nodeSchema.id;
+            const parentId = nodeSchema.parent as string;
+
+            nodeSchema.id = newNodeId;
+
+            const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).run();
+
+            new SetParentCommand({ nodeId: node.id, parentId }).run();
+
+            this.updateAllCommands((command) => command.updateNodeId(oldNodeId, newNodeId));
+        });
+    }
+
+    public updateNodeId(oldNodeId: string, newNodeId: string): void
+    {
+        super.updateNodeId(oldNodeId, newNodeId);
+
+        this.cache.nodes.forEach((nodeSchema) =>
+        {
+            if (nodeSchema.parent === oldNodeId)
+            {
+                nodeSchema.parent = newNodeId;
+            }
+        });
     }
 }

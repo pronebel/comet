@@ -1,12 +1,11 @@
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneInfo } from '../../core/nodes/cloneInfo';
-import { getInstance, newId } from '../../core/nodes/instances';
+import { getInstance } from '../../core/nodes/instances';
 import { createNode } from '../../core/nodes/nodeFactory';
 import type { NodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 import { AssignCustomPropCommand } from './assignCustomProp';
-import { RemoveNodeCommand } from './removeNode';
 import { SetCustomPropCommand } from './setCustomProp';
 
 export interface CreateNodeCommandParams<M extends ModelBase>
@@ -28,17 +27,9 @@ export class CreateNodeCommand<
 
     public apply(): CreateNodeCommandReturn
     {
-        const { datastore, params: { nodeSchema, isNewNode }, hasRun } = this;
+        const { datastore, params: { nodeSchema, isNewNode } } = this;
 
         const { type, model, cloneInfo: { cloneMode, cloner }, customProperties } = nodeSchema;
-
-        if (hasRun)
-        {
-            const newNodeId = newId(type);
-            const oldNodeId = nodeSchema.id;
-
-            this.updateAllFollowingCommands((command) => command.updateNodeId(oldNodeId, newNodeId));
-        }
 
         if (isNewNode)
         {
@@ -86,9 +77,6 @@ export class CreateNodeCommand<
 
     public undo(): void
     {
-        const { params: { nodeSchema } } = this;
-        const nodeId = nodeSchema.id;
-
-        new RemoveNodeCommand({ nodeId, updateMode: 'full' }).run();
+        throw new Error('Unimplemented');
     }
 }

@@ -63,32 +63,6 @@ export default class UndoStack
         this.head = nextUndoRootIndex - 1;
     }
 
-    public redo2()
-    {
-        const { stack, head, nextRedoRootIndex } = this;
-
-        if (head === stack.length - 1 || stack.length === 0)
-        {
-            return;
-        }
-
-        const headStart = nextRedoRootIndex;
-
-        for (let i = headStart; i < stack.length; i++)
-        {
-            const cmd = stack[i];
-
-            if (cmd.isUndoRoot && i > headStart)
-            {
-                break;
-            }
-
-            this.head = i;
-
-            cmd.redo();
-        }
-    }
-
     public redo()
     {
         const { commands } = this.nextRedoCommands;

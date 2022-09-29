@@ -1,11 +1,12 @@
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneMode } from '../../core/nodes/cloneInfo';
-import { getInstance } from '../../core/nodes/instances';
+import { getInstance, newId } from '../../core/nodes/instances';
 import type { NodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 import { CloneCommand } from './clone';
 import { CreateNodeCommand } from './createNode';
+import { RemoveNodeCommand } from './removeNode';
 import { SetParentCommand } from './setParent';
 
 export interface AddChildCommandParams<M extends ModelBase>
@@ -19,15 +20,28 @@ export interface AddChildCommandReturn
     nodes: ClonableNode[];
 }
 
+export interface AddChildCommandCache
+{
+    nodes: string[];
+}
+
 export class AddChildCommand<
     M extends ModelBase = ModelBase,
-> extends AbstractCommand<AddChildCommandParams<M>, AddChildCommandReturn>
+> extends AbstractCommand<AddChildCommandParams<M>, AddChildCommandReturn, AddChildCommandCache>
 {
     public static commandName = 'CreateChild';
 
     public apply(): AddChildCommandReturn
     {
-        const { params: { parentId, nodeSchema } } = this;
+        const { cache, params: { parentId, nodeSchema }, hasRun } = this;
+
+        if (hasRun)
+        {
+            const newNodeId = newId(nodeSchema.type);
+            const oldNodeId = nodeSchema.id;
+
+            this.updateAllFollowingCommands((command) => command.updateNodeId(oldNodeId, newNodeId));
+        }
 
         const sourceNode = getInstance<ClonableNode>(parentId);
         const originalParentNode = sourceNode.getAddChildCloneTarget();
@@ -59,11 +73,27 @@ export class AddChildCommand<
             new SetParentCommand({ parentId: clonedParent.id, nodeId: clonedNode.id }).run();
         });
 
+        cache.nodes = nodes.map((node) => node.id);
+
         return { nodes };
     }
 
     public undo(): void
     {
-        throw new Error('Method not implemented.');
+        const { cache: { nodes } } = this;
+
+        nodes.forEach((id) =>
+        {
+            new RemoveNodeCommand({ nodeId: id, updateMode: 'full' }).run();
+        });
+    }
+
+    public updateNodeId(oldNodeId: string, newNodeId: string): void
+    {
+        super.updateNodeId(oldNodeId, newNodeId);
+
+        const { cache } = this;
+
+        cache.nodes = cache.nodes.map((nodeId) => (nodeId === oldNodeId ? newNodeId : nodeId));
     }
 }

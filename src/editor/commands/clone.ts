@@ -1,7 +1,7 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import { getInstance, registerInstance } from '../../core/nodes/instances';
-import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
+import { type NodeSchema, getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 import { RemoveNodeCommand } from './removeNode';
 
@@ -21,7 +21,7 @@ export interface CloneCommandReturn
 
 export interface CloneCommandCache
 {
-    nodes: ClonableNode[];
+    nodes: NodeSchema[];
 }
 
 export class CloneCommand
@@ -31,7 +31,7 @@ export class CloneCommand
 
     public apply(): CloneCommandReturn
     {
-        const { datastore, params: { nodeId, cloneMode, depth }, cache } = this;
+        const { datastore, params: { nodeId, cloneMode, depth }, cache, hasRun } = this;
 
         const sourceNode = getInstance<ClonableNode>(nodeId);
         const originalNode = sourceNode.getCloneTarget();
@@ -80,20 +80,20 @@ export class CloneCommand
             clonedNodes.push(node);
         });
 
-        if (cache.nodes)
+        if (hasRun)
         {
-            // adjust next command for new clone id
+            // adjust next command for new clone ids
             for (let i = 0; i < clonedNodes.length; i++)
             {
                 const oldNodeId = cache.nodes[i].id;
                 const newNodeId = clonedNodes[i].id;
 
-                this.updateAllFollowingCommands((command) => command.updateNodeId(oldNodeId, newNodeId));
+                this.updateAllCommands((command) => command.updateNodeId(oldNodeId, newNodeId));
             }
         }
 
         // store cache
-        cache.nodes = clonedNodes;
+        cache.nodes = clonedNodes.map((node) => getNodeSchema(node));
 
         return {
             sourceNode,
@@ -106,9 +106,28 @@ export class CloneCommand
     {
         const { cache: { nodes } } = this;
 
-        for (const node of nodes)
+        for (let i = nodes.length - 1; i >= 0; i--)
         {
+            const node = nodes[i];
+
             new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).run();
         }
+    }
+
+    public updateNodeId(oldNodeId: string, newNodeId: string): void
+    {
+        super.updateNodeId(oldNodeId, newNodeId);
+
+        this.cache.nodes.forEach((nodeSchema) =>
+        {
+            if (nodeSchema.id === oldNodeId)
+            {
+                nodeSchema.id = newNodeId;
+            }
+            if (nodeSchema.parent === oldNodeId)
+            {
+                nodeSchema.parent = newNodeId;
+            }
+        });
     }
 }

@@ -1,9 +1,7 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getInstance, newId, unregisterInstance } from '../../core/nodes/instances';
-import { type NodeSchema, getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
+import { getInstance, unregisterInstance } from '../../core/nodes/instances';
+import { getCloneInfoSchema } from '../../core/nodes/schema';
 import { type UpdateMode, AbstractCommand } from '../abstractCommand';
-import { CreateNodeCommand } from './createNode';
-import { SetParentCommand } from './setParent';
 
 export interface RemoveNodeCommandParams
 {
@@ -17,28 +15,17 @@ export interface RemoveNodeCommandReturn
     // parentNode: ClonableNode;
 }
 
-export interface RemoveNodeCommandCache
-{
-    nodeSchema: NodeSchema;
-    parentId: string;
-    oldNodeId: string;
-}
-
 export class RemoveNodeCommand
-    extends AbstractCommand<RemoveNodeCommandParams, RemoveNodeCommandReturn, RemoveNodeCommandCache>
+    extends AbstractCommand<RemoveNodeCommandParams, RemoveNodeCommandReturn>
 {
     public static commandName = 'RemoveNode';
 
     public apply(): RemoveNodeCommandReturn
     {
-        const { cache, datastore, params: { nodeId, updateMode } } = this;
+        const { datastore, params: { nodeId, updateMode } } = this;
 
         const node = getInstance<ClonableNode>(nodeId);
         const parentNode = node.parent;
-
-        // track nodeSchema for cache
-        cache.nodeSchema = getNodeSchema(node);
-        cache.oldNodeId = node.id;
 
         if (updateMode === 'graphOnly')
         {
@@ -58,9 +45,6 @@ export class RemoveNodeCommand
         if (parentNode)
         {
             parentNode.removeChild(node);
-
-            // track for cache
-            cache.parentId = parentNode.id;
         }
 
         // update node cloneInfo
@@ -80,16 +64,6 @@ export class RemoveNodeCommand
 
     public undo(): void
     {
-        const { cache: { nodeSchema, parentId, oldNodeId }, params } = this;
-
-        const newNodeId = newId(nodeSchema.type);
-
-        nodeSchema.id = newNodeId;
-        params.nodeId = newNodeId;
-        const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).run();
-
-        new SetParentCommand({ nodeId: node.id, parentId }).run();
-
-        this.updateAllCommands((command) => command.updateNodeId(oldNodeId, newNodeId));
+        throw new Error('Unimplemented');
     }
 }

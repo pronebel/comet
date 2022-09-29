@@ -458,12 +458,16 @@ export class TestApp extends Application
             component.updateRecursive();
 
             const sprite = component.getView<Sprite>();
-            const bounds = sprite.getBounds();
 
-            this.selection.x = bounds.left;
-            this.selection.y = bounds.top;
-            this.selection.width = bounds.width;
-            this.selection.height = bounds.height;
+            setTimeout(() =>
+            {
+                const bounds = sprite.getBounds();
+
+                this.selection.x = bounds.left;
+                this.selection.y = bounds.top;
+                this.selection.width = bounds.width;
+                this.selection.height = bounds.height;
+            }, 0);
         }
     }
 
