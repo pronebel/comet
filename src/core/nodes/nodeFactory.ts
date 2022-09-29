@@ -28,7 +28,7 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
         throw new Error(`Node type "${nodeType}" is unregistered.`);
     }
 
-    console.log(`${userName}:createGraphNode "${options.id}"`);
+    console.log(`${userName}:createNode "${options.id}"`);
 
     const node = new NodeClass(options);
 

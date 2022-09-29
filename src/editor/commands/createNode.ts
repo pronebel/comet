@@ -39,7 +39,7 @@ export class CreateNodeCommand<
         else
         {
             // just register the model, we are loading existing nodes
-            datastore.registerExistingNode(nodeSchema.id);
+            datastore.trackExistingNodeElement(nodeSchema.id);
         }
 
         // build clone info

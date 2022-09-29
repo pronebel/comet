@@ -122,11 +122,6 @@
     app.restoreDatastore();
   };
 
-  const onClearDatastore = () => {
-    app.clearDatastore();
-    console.log("Datastore cleared");
-  };
-
   const onPeekUndoStack = () => {
     const commands = app.readUndoStack();
     console.log(`head: ${app.undoStack.head}`, commands);
@@ -204,7 +199,6 @@
     <button on:click={onRestoreDatastore}>Restore DStore</button>
     <button on:click={onSaveDatastore}>Save DStore</button>
     <button on:click={onInspectDatastore}>Inspect DStore</button>
-    <button on:click={onClearDatastore}>Clear DStore</button>
     <hr />
     <input bind:value={undoStackEnd} />
     <button on:click={onPeekUndoStack}>Peek Cmds</button>

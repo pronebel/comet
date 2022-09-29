@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
-import { newGraphNodeId } from '../nodeFactory';
+import { newId } from '../instances';
 
 export type GraphNodeEvents = 'childAdded' | 'childRemoved' | 'disposed';
 
@@ -39,7 +39,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
     {
         super();
 
-        this.id = id ?? newGraphNodeId(this.nodeType());
+        this.id = id ?? newId(this.nodeType());
         this.children = [];
         this.created = Date.now();
     }

@@ -9,8 +9,8 @@ import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance, getLatestInstance } from '../../core/nodes/instances';
-import {  registerNodeType } from '../../core/nodes/nodeFactory';
-import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
+import { registerNodeType } from '../../core/nodes/nodeFactory';
+import { createNodeSchema } from '../../core/nodes/schema';
 import type { AbstractCommand } from '../abstractCommand';
 import { Action } from '../action';
 import { type AppOptions, Application } from '../application';
@@ -163,7 +163,7 @@ export class TestApp extends Application
 
     public saveDatastore()
     {
-        const nodes = this.datastore.nodes.toJSON();
+        const nodes = this.datastore.toJSON().nodes;
 
         localStorage['comet'] = JSON.stringify(nodes);
         console.log('Datastore saved', nodes);
@@ -177,28 +177,9 @@ export class TestApp extends Application
         {
             const nodes = JSON.parse(json);
 
-            this.datastore.nodes.value(nodes);
+            this.datastore.setNodesData(nodes);
             reload && window.location.reload();
         }
-    }
-
-    public clearDatastore()
-    {
-        this.datastore.nodes.keys().forEach((id) =>
-        {
-            if (id === 'Scene:1')
-            {
-                const nodeElement = this.datastore.getNodeElement(id);
-
-                nodeElement.get('children').value([]);
-            }
-            else if (id !== 'Project:1' && id !== 'Scene:1')
-            {
-                this.datastore.nodes.remove(id);
-            }
-        });
-
-        window.location.reload();
     }
 
     public newContainer()
@@ -325,21 +306,10 @@ export class TestApp extends Application
 
     public inspectDatastore()
     {
-        const data: Record<string, NodeSchema<{}>> = this.datastore.nodes.toJSON();
-        const nodes = Object.keys(data).map((id) => data[id]);
+        const data = this.datastore.toJSON();
 
-        nodes.sort(sortNodesByCreation);
-
-        const info = nodes.map((node) =>
-            ({
-                id: node.id,
-                parent: node.parent,
-                children: node.children,
-                cloner: node.cloneInfo.cloner,
-                cloned: node.cloneInfo.cloned,
-            }));
-
-        console.log(JSON.stringify(info, null, 4));
+        console.log(JSON.stringify(data, null, 4));
+        console.dir(data);
     }
 
     public randColor()

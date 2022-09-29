@@ -47,7 +47,7 @@ export class NodeUpdater
     {
         this.log('onNodeCreated', event);
 
-        const nodeSchema = this.datastore.getNodeSchema(event.nodeId);
+        const nodeSchema = this.datastore.getNodeElementSchema(event.nodeId);
 
         new CreateNodeCommand({ nodeSchema, isNewNode: false }).exec();
     };

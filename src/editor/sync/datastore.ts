@@ -11,7 +11,7 @@ import { EventEmitter } from 'eventemitter3';
 import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { consolidateId, getInstance } from '../../core/nodes/instances';
-import { type CloneInfoSchema, type NodeSchema, createProjectSchema } from '../../core/nodes/schema';
+import { type CloneInfoSchema, type NodeSchema, type ProjectSchema, createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import { CreateNodeCommand } from '../commands/createNode';
 import type {
@@ -45,7 +45,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 {
     protected _domain?: ConvergenceDomain;
     protected _model?: RealTimeModel;
-    public nodeRealtimeObjects: Map<string, RealTimeObject>;
+    protected nodeRealtimeObjects: Map<string, RealTimeObject>;
 
     public static instance: Datastore;
 
@@ -58,12 +58,12 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.nodeRealtimeObjects = new Map();
     }
 
-    public get app()
+    protected get app()
     {
         return Application.instance;
     }
 
-    public get domain()
+    protected get domain()
     {
         if (!this._domain)
         {
@@ -73,7 +73,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return this._domain;
     }
 
-    get model()
+    protected get model()
     {
         if (!this._model)
         {
@@ -83,7 +83,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return this._model;
     }
 
-    get nodes()
+    protected get nodes()
     {
         return this.model.elementAt('nodes') as RealTimeObject;
     }
@@ -92,6 +92,23 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         this.nodeRealtimeObjects.clear();
         delete this._model;
+    }
+
+    public setNodesData(data: Record<string, NodeSchema>)
+    {
+        this.nodes.value(data);
+    }
+
+    public toJSON(): ProjectSchema
+    {
+        return this.model.root().toJSON() as ProjectSchema;
+    }
+
+    public getNodeElementSchema(nodeId: string)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+
+        return nodeElement.toJSON() as NodeSchema;
     }
 
     public connect(): Promise<ConvergenceDomain>
@@ -126,29 +143,22 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         });
     }
 
-    public registerExistingNode(nodeId: string)
+    public trackExistingNodeElement(nodeId: string)
     {
         const nodeElement = this.nodes.get(nodeId) as RealTimeObject;
 
         if (!nodeElement)
         {
-            throw new Error(`Existing Node "${nodeId}" RealTimeObject not found.`);
+            throw new Error(`Existing node "${nodeId}" RealTimeObject not found, cannot track.`);
         }
 
-        // store element, node is already tracked
+        // index element
         this.nodeRealtimeObjects.set(nodeId, nodeElement);
 
         // track remote changes
-        this.trackNodeRemoteEvents(nodeId);
+        this.trackNodeElementRemoteEvents(nodeId);
 
-        console.log(`${userName}:Registered Existing RealTimeObject "${nodeId}"`);
-    }
-
-    public getNodeSchema(nodeId: string)
-    {
-        const nodeElement = this.getNodeElement(nodeId);
-
-        return nodeElement.toJSON() as NodeSchema;
+        console.log(`${userName}:Tracking existing RealTimeObject "${nodeId}"`);
     }
 
     public async createProject(name: string, id?: string)
@@ -186,7 +196,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             console.log(`%c${userName}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
 
-            this.registerNode(nodeId, nodeElement);
+            this.registerNodeElement(nodeId, nodeElement);
 
             const e: DSNodeCreatedEvent = { nodeId };
 
@@ -209,7 +219,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return this.hydrate();
     }
 
-    public registerNode(nodeId: string, nodeElement: RealTimeObject)
+    public registerNodeElement(nodeId: string, nodeElement: RealTimeObject)
     {
         if (this.nodeRealtimeObjects.has(nodeId))
         {
@@ -220,12 +230,12 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.nodeRealtimeObjects.set(nodeId, nodeElement);
 
         // track remote events
-        this.trackNodeRemoteEvents(nodeId);
+        this.trackNodeElementRemoteEvents(nodeId);
 
         console.log(`${userName}:Registered New RealTimeObject "${nodeId}"`);
     }
 
-    protected trackNodeRemoteEvents(nodeId: string)
+    protected trackNodeElementRemoteEvents(nodeId: string)
     {
         const nodeElement = this.getNodeElement(nodeId);
 
@@ -403,7 +413,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
-        this.registerNode(nodeSchema.id, nodeElement);
+        this.registerNodeElement(nodeSchema.id, nodeElement);
     }
 
     public setNodeParent(childId: string, parentId: string, updateChildren = true)

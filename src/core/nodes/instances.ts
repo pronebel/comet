@@ -1,6 +1,10 @@
+import { getUserName } from '../../editor/sync/user';
+
 type Instance = {id: string};
 const instances: Map<string, Instance> = new Map();
 const idCounters: Map<string, number> = new Map();
+
+const userName = getUserName();
 
 export function peekNextIdCount(type: string)
 {
@@ -56,6 +60,8 @@ export function registerInstance(instance: Instance)
 
     instances.set(id, instance);
     consolidateId(id);
+
+    console.log(`${userName}:registered instance "${id}"`);
 }
 
 export function unregisterInstance(instance: Instance)
@@ -68,6 +74,8 @@ export function unregisterInstance(instance: Instance)
     }
 
     instances.delete(id);
+
+    console.log(`${userName}:unregistered instance "${id}"`);
 }
 
 export function getInstance<T>(id: string): T

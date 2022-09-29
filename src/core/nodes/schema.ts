@@ -4,7 +4,7 @@ import type { ModelBase } from '../model/model';
 import type { ClonableNode } from './abstract/clonableNode';
 import { CloneMode } from './cloneInfo';
 import type { CustomProperty } from './customProperties';
-import { newGraphNodeId } from './nodeFactory';
+import { newId } from './instances';
 
 export type id = string;
 
@@ -74,7 +74,7 @@ export function createNodeSchema<M extends ModelBase>(type: string, nodeOptions:
     const { id, model, cloneInfo: { cloner, cloneMode, cloned } = {}, parent } = nodeOptions;
 
     return {
-        id: id ?? newGraphNodeId(type),
+        id: id ?? newId(type),
         created: Date.now(),
         type,
         parent,
