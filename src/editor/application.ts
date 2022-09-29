@@ -3,9 +3,8 @@ import '../core/nodes/nodeRegister';
 import { EventEmitter } from 'eventemitter3';
 import { Application as PixiApplication } from 'pixi.js';
 
-import { resetModelIds } from '../core/model/model';
 import type { ProjectNode } from '../core/nodes/concrete/project';
-import { clearGraphNodeRegistrations } from '../core/nodes/nodeFactory';
+import { clearInstances } from '../core/nodes/instances';
 import type { AbstractCommand } from './abstractCommand';
 import { createCommand } from './commandFactory';
 import { Datastore } from './sync/datastore';
@@ -162,11 +161,13 @@ export abstract class Application extends EventEmitter<AppEvents>
     {
         if (this.project)
         {
+            clearInstances();
+
             this.undoStack.clear();
-            clearGraphNodeRegistrations();
-            resetModelIds();
             this.datastore.reset();
+
             this.stage.removeChild(this.project.view);
+
             delete this.project;
         }
     }

@@ -1,12 +1,6 @@
 import { type GraphNodeEvents, GraphNode } from '../nodes/abstract/graphNode';
+import { newId } from '../nodes/instances';
 import type { ModelSchema } from './schema';
-
-let id = 1;
-
-export function resetModelIds()
-{
-    id = 1;
-}
 
 export type ModelValue = string | number | boolean | object | null;
 export type ModelBase = Record<string, ModelValue>;
@@ -20,7 +14,7 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
 
     constructor(schema: ModelSchema<M>, data: Partial<M>)
     {
-        super(`Model:${id++}`);
+        super(newId('Model'));
 
         this.schema = schema;
         this.data = data;

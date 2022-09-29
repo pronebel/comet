@@ -2,7 +2,7 @@ import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
-import { getGraphNode } from '../../core/nodes/nodeFactory';
+import { getInstance } from '../../core/nodes/instances';
 import { type UpdateMode, AbstractCommand } from '../abstractCommand';
 import { AssignCustomPropCommand } from './assignCustomProp';
 
@@ -36,7 +36,7 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
         }
 
         // update graph node
-        const node = getGraphNode(nodeId);
+        const node = getInstance<ClonableNode>(nodeId);
 
         node.setCustomProperty(customKey, type, value);
 

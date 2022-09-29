@@ -70,18 +70,23 @@ export function unregisterInstance(instance: Instance)
     instances.delete(id);
 }
 
-export function getInstance(id: string)
+export function getInstance<T>(id: string): T
 {
     if (!instances.has(id))
     {
         throw new Error(`Cannot access unregistered instance "${id}"`);
     }
 
-    return instances.get(id);
+    return instances.get(id) as unknown as T;
 }
 
 export function clearInstances()
 {
     idCounters.clear();
     instances.clear();
+}
+
+export function getLatestInstance<T>(compareFn: (a: any, b: any) => number): T
+{
+    return Array.from(instances.values()).sort(compareFn).pop() as unknown as T;
 }

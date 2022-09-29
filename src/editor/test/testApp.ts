@@ -1,13 +1,15 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
-import {  getGraphNode, getLatestNode, registerGraphNodeType } from '../../core/nodes/nodeFactory';
+import { getInstance, getLatestInstance } from '../../core/nodes/instances';
+import {  registerNodeType } from '../../core/nodes/nodeFactory';
 import { type NodeSchema, createNodeSchema } from '../../core/nodes/schema';
 import type { AbstractCommand } from '../abstractCommand';
 import { Action } from '../action';
@@ -33,7 +35,7 @@ export let app: TestApp;
 const userName = getUserName();
 
 // must register any nodes outside of core explicitly
-registerGraphNodeType(DebugNode);
+registerNodeType(DebugNode);
 
 export class TestApp extends Application
 {
@@ -78,7 +80,7 @@ export class TestApp extends Application
 
         datastore.on('parentSet', (e: DSNodeCreatedEvent) =>
         {
-            const node = getGraphNode(e.nodeId).cast<ContainerNode>();
+            const node = getInstance<ClonableNode>(e.nodeId).cast<ContainerNode>();
 
             this.makeInteractive(node);
             this.select(node);
@@ -87,7 +89,7 @@ export class TestApp extends Application
             this.selectLastNode();
         }).on('modelModified', (e: DSModelModifiedEvent) =>
         {
-            const node = getGraphNode(e.nodeId);
+            const node = getInstance<ClonableNode>(e.nodeId);
 
             this.fitSelection(node.cast<ContainerNode>());
         });
@@ -146,16 +148,16 @@ export class TestApp extends Application
 
     protected selectLastNode()
     {
-        let node = getLatestNode();
+        let node = getLatestInstance<ContainerNode>(sortNodesByCreation);
 
         if (node && node.nodeType() === 'Project')
         {
-            node = getGraphNode('Scene:1');
+            node = getInstance<ContainerNode>('Scene:1');
         }
 
         if (node)
         {
-            this.select(node.cast<ContainerNode>());
+            this.select(node);
         }
     }
 

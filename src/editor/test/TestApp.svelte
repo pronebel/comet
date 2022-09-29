@@ -1,7 +1,8 @@
 <script lang="ts">
+  import type { ClonableNode } from "../../core/nodes/abstract/clonableNode";
   import { CloneMode } from "../../core/nodes/cloneInfo";
   import type { ContainerNode } from "../../core/nodes/concrete/container";
-  import { getGraphNode } from "../../core/nodes/nodeFactory";
+  import { getInstance } from "../../core/nodes/instances";
   import { getUserName } from "../sync/user";
   import { getUrlParam } from "../util";
 
@@ -43,7 +44,7 @@
     const selectedId = app.selected?.id;
     app.openProject("test").then(() => {
       if (selectedId) {
-        const node = getGraphNode(selectedId);
+        const node = getInstance<ClonableNode>(selectedId);
         app.select(node.cast());
       }
     });
@@ -162,7 +163,7 @@
     if (anchorNode) {
       const match = String(anchorNode.nodeValue).match(/<(.*)>/);
       if (match) {
-        const node = getGraphNode(match[1]);
+        const node = getInstance<ClonableNode>(match[1]);
         node && app.select(node as unknown as ContainerNode);
         const debug = document.getElementById("debug") as HTMLPreElement;
         app.debug(debug);

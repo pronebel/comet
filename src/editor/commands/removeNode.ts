@@ -1,9 +1,7 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { disposeGraphNode, getGraphNode } from '../../core/nodes/nodeFactory';
+import { getInstance, unregisterInstance } from '../../core/nodes/instances';
 import { type NodeSchema, getCloneInfoSchema } from '../../core/nodes/schema';
 import { type UpdateMode, AbstractCommand } from '../abstractCommand';
-import { CreateNodeCommand } from './createNode';
-import { SetParentCommand } from './setParent';
 
 export interface RemoveNodeCommandParams
 {
@@ -22,7 +20,8 @@ export interface RemoveNodeCommandCache
     nodeSchema: NodeSchema;
     parentId: string;
 }
-export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, RemoveNodeCommandReturn, RemoveNodeCommandCache>
+export class RemoveNodeCommand
+    extends AbstractCommand<RemoveNodeCommandParams, RemoveNodeCommandReturn, RemoveNodeCommandCache>
 {
     public static commandName = 'RemoveNode';
 
@@ -30,7 +29,7 @@ export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, 
     {
         const { datastore, params: { nodeId, updateMode } } = this;
 
-        const node = getGraphNode(nodeId);
+        const node = getInstance<ClonableNode>(nodeId);
         const parentNode = node.parent;
 
         if (!parentNode)
@@ -64,16 +63,16 @@ export class RemoveNodeCommand extends AbstractCommand<RemoveNodeCommandParams, 
         }
 
         // unregister graph node
-        disposeGraphNode(node);
+        unregisterInstance(node);
 
         return { node, parentNode: parentNode.cast<ClonableNode>() };
     }
 
     public undo(): void
     {
-        const { cache: { nodeSchema, parentId } } = this;
+        // const { cache: { nodeSchema, parentId } } = this;
 
-        const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).exec();
+        // const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).exec();
         // new SetParentCommand()
     }
 }

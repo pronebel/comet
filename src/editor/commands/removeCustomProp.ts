@@ -1,7 +1,7 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getGraphNode } from '../../core/nodes/nodeFactory';
+import { getInstance } from '../../core/nodes/instances';
 import { type UpdateMode, AbstractCommand } from '../abstractCommand';
 import { UnAssignCustomPropCommand } from './unassignCustomProp';
 
@@ -30,7 +30,7 @@ export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCom
         }
 
         // update graph node
-        const node = getGraphNode(nodeId);
+        const node = getInstance<ClonableNode>(nodeId);
 
         node.removeCustomProperty(customKey);
 

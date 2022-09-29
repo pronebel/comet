@@ -1,5 +1,6 @@
 import type { ModelBase } from '../../core/model/model';
-import { getGraphNode } from '../../core/nodes/nodeFactory';
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { getInstance } from '../../core/nodes/instances';
 import { AbstractCommand } from '../abstractCommand';
 
 export interface ModifyModelCommandParams<M>
@@ -21,7 +22,7 @@ export class ModifyModelCommand<M extends ModelBase>
     public exec(): void
     {
         const { datastore, params: { nodeId, values }, cache } = this;
-        const node = getGraphNode(nodeId);
+        const node = getInstance<ClonableNode>(nodeId);
 
         // update datastore
         datastore.modifyNodeModel(nodeId, values);

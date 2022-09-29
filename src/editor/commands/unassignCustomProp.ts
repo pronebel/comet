@@ -1,6 +1,7 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
-import { getGraphNode } from '../../core/nodes/nodeFactory';
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { getInstance } from '../../core/nodes/instances';
 import { type UpdateMode, AbstractCommand } from '../abstractCommand';
 
 export interface UnAssignCustomPropCommandParams
@@ -10,7 +11,8 @@ export interface UnAssignCustomPropCommandParams
     updateMode: UpdateMode;
 }
 
-export class UnAssignCustomPropCommand extends AbstractCommand<UnAssignCustomPropCommandParams>
+export class UnAssignCustomPropCommand
+    extends AbstractCommand<UnAssignCustomPropCommandParams>
 {
     public static commandName = 'UnAssignCustomProp';
 
@@ -19,7 +21,7 @@ export class UnAssignCustomPropCommand extends AbstractCommand<UnAssignCustomPro
         const { datastore, params: { nodeId, modelKey, updateMode } } = this;
 
         // update graph node
-        const node = getGraphNode(nodeId);
+        const node = getInstance<ClonableNode>(nodeId);
 
         const customKey = node.unAssignCustomProperty(modelKey);
 

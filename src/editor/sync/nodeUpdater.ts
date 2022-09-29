@@ -1,4 +1,5 @@
-import { getGraphNode } from '../../core/nodes/nodeFactory';
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { getInstance } from '../../core/nodes/instances';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { CreateNodeCommand } from '../commands/createNode';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
@@ -67,8 +68,8 @@ export class NodeUpdater
         const { nodeId, parentId } = event;
 
         // update graph node
-        const parentNode = getGraphNode(parentId);
-        const childNode = getGraphNode(nodeId);
+        const parentNode = getInstance<ClonableNode>(parentId);
+        const childNode = getInstance<ClonableNode>(nodeId);
 
         parentNode.addChild(childNode);
     };
@@ -115,7 +116,7 @@ export class NodeUpdater
 
         const { key, nodeId, value } = event;
 
-        const node = getGraphNode(nodeId);
+        const node = getInstance<ClonableNode>(nodeId);
 
         if (key === null)
         {
@@ -135,7 +136,7 @@ export class NodeUpdater
 
         const { nodeId, cloner, cloneMode, cloned } = event;
 
-        const node = getGraphNode(nodeId);
+        const node = getInstance<ClonableNode>(nodeId);
         const cloneInfo = node.cloneInfo;
 
         // remove from existing cloners .cloned info
@@ -147,7 +148,7 @@ export class NodeUpdater
         // set new cloner
         if (cloner)
         {
-            const clonerNode = getGraphNode(cloner);
+            const clonerNode = getInstance<ClonableNode>(cloner);
 
             clonerNode.cloneInfo.cloned.push(node);
             cloneInfo.cloner = clonerNode;
@@ -159,6 +160,6 @@ export class NodeUpdater
 
         // overwrite cloneMode and cloners
         cloneInfo.cloneMode = cloneMode;
-        cloneInfo.cloned = cloned.map((clonedId) => getGraphNode(clonedId));
+        cloneInfo.cloned = cloned.map((clonedId) => getInstance<ClonableNode>(clonedId));
     };
 }

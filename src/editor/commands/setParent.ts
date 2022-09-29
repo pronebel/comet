@@ -1,5 +1,5 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getGraphNode } from '../../core/nodes/nodeFactory';
+import { getInstance } from '../../core/nodes/instances';
 import { AbstractCommand } from '../abstractCommand';
 
 export interface SetParentCommandParams
@@ -19,7 +19,8 @@ export interface SetParentCommandCache
     prevParentId?: string;
 }
 
-export class SetParentCommand extends AbstractCommand<SetParentCommandParams, SetParentCommandReturn, SetParentCommandCache>
+export class SetParentCommand
+    extends AbstractCommand<SetParentCommandParams, SetParentCommandReturn, SetParentCommandCache>
 {
     public static commandName = 'SetParent';
 
@@ -27,8 +28,8 @@ export class SetParentCommand extends AbstractCommand<SetParentCommandParams, Se
     {
         const { datastore, params: { parentId, childId } } = this;
 
-        const parentNode = getGraphNode(parentId);
-        const childNode = getGraphNode(childId);
+        const parentNode = getInstance<ClonableNode>(parentId);
+        const childNode = getInstance<ClonableNode>(childId);
 
         // cache previous parent
         this.cache.prevParentId = childNode.parent?.id;

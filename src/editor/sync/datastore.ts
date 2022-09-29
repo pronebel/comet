@@ -10,7 +10,7 @@ import { EventEmitter } from 'eventemitter3';
 
 import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { consolidateNodeId, getGraphNode } from '../../core/nodes/nodeFactory';
+import { consolidateId, getInstance } from '../../core/nodes/instances';
 import { type CloneInfoSchema, type NodeSchema, createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import { CreateNodeCommand } from '../commands/createNode';
@@ -182,7 +182,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const nodeElement = (event as ObjectSetEvent).value as RealTimeObject;
             const nodeId = nodeElement.get('id').value() as string;
 
-            consolidateNodeId(nodeId);
+            consolidateId(nodeId);
 
             console.log(`%c${userName}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
 
@@ -359,7 +359,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const id = nodeElement.get('id').value() as string;
 
             // ensure local ids don't clash with hydrating ids
-            consolidateNodeId(id);
+            consolidateId(id);
 
             // create the graph node
             const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
@@ -394,7 +394,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             throw new Error('Could not find project node');
         }
 
-        const rootNode = getGraphNode(rootId);
+        const rootNode = getInstance<ClonableNode>(rootId);
 
         return rootNode;
     }

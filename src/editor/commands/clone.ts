@@ -1,6 +1,6 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
-import { getGraphNode, registerGraphNode } from '../../core/nodes/nodeFactory';
+import { getInstance, registerInstance } from '../../core/nodes/instances';
 import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 
@@ -26,7 +26,7 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
     {
         const { datastore, params: { nodeId, cloneMode, depth } } = this;
 
-        const sourceNode = getGraphNode(nodeId);
+        const sourceNode = getInstance<ClonableNode>(nodeId);
         const originalNode = sourceNode.getCloneTarget();
         const cloneInfoSchema = getCloneInfoSchema(originalNode);
 
@@ -54,14 +54,14 @@ export class CloneCommand extends AbstractCommand<CloneCommandParams, CloneComma
             }
 
             // register the graph node
-            registerGraphNode(node);
+            registerInstance(node);
 
             // update the cloners cloneInfo in the datastore
             const clonerId = nodeSchema.cloneInfo.cloner;
 
             if (clonerId)
             {
-                const cloner = getGraphNode(clonerId);
+                const cloner = getInstance<ClonableNode>(clonerId);
                 const cloneInfoSchema = getCloneInfoSchema(cloner);
 
                 datastore.updateNodeCloneInfo(clonerId, cloneInfoSchema);

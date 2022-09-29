@@ -1,7 +1,8 @@
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneInfo } from '../../core/nodes/cloneInfo';
-import { createGraphNode, getGraphNode } from '../../core/nodes/nodeFactory';
+import { getInstance } from '../../core/nodes/instances';
+import { createNode } from '../../core/nodes/nodeFactory';
 import type { NodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 import type { Datastore } from '../sync/datastore';
@@ -42,17 +43,17 @@ export class CreateNodeCommand<
         }
 
         // build clone info
-        const cloneInfo = new CloneInfo(cloneMode, cloner ? getGraphNode(cloner) : undefined);
+        const cloneInfo = new CloneInfo(cloneMode, cloner ? getInstance<ClonableNode>(cloner) : undefined);
 
         // create and register graph node
-        const node = createGraphNode(type,
+        const node = createNode<ClonableNode>(type,
             { id, model, cloneInfo });
 
         node.created = nodeSchema.created;
 
         if (nodeSchema.parent && !isNewNode)
         {
-            const parentNode = getGraphNode(nodeSchema.parent);
+            const parentNode = getInstance<ClonableNode>(nodeSchema.parent);
 
             parentNode.addChild(node);
         }
@@ -71,7 +72,7 @@ export class CreateNodeCommand<
             new AssignCustomPropCommand({ nodeId: id, modelKey, customKey, updateMode: 'graphOnly' }).exec();
         }
 
-        return { node: node as ClonableNode };
+        return { node };
     }
 
     public exec(): CreateNodeCommandReturn

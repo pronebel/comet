@@ -1,6 +1,6 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
-import { getGraphNode } from '../../core/nodes/nodeFactory';
+import { getInstance } from '../../core/nodes/instances';
 import { AbstractCommand } from '../abstractCommand';
 import { RemoveNodeCommand } from './removeNode';
 
@@ -27,7 +27,7 @@ export class RemoveChildCommand extends AbstractCommand<RemoveChildCommandParams
     {
         const { app, datastore, params: { nodeId } } = this;
 
-        const sourceNode = getGraphNode(nodeId);
+        const sourceNode = getInstance<ClonableNode>(nodeId);
         const originalNode = sourceNode.getModificationCloneTarget();
         const clonedNodes = originalNode.getAllCloned();
 

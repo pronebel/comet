@@ -1,5 +1,5 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getGraphNode } from '../../core/nodes/nodeFactory';
+import { getInstance } from '../../core/nodes/instances';
 import { getCloneInfoSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 
@@ -8,7 +8,8 @@ export interface UnlinkCommandParams
     nodeId: string;
 }
 
-export class UnlinkCommand extends AbstractCommand<UnlinkCommandParams>
+export class UnlinkCommand
+    extends AbstractCommand<UnlinkCommandParams>
 {
     public static commandName = 'Unlink';
 
@@ -16,7 +17,7 @@ export class UnlinkCommand extends AbstractCommand<UnlinkCommandParams>
     {
         const { datastore, params: { nodeId } } = this;
 
-        const node = getGraphNode(nodeId);
+        const node = getInstance<ClonableNode>(nodeId);
 
         node.walk<ClonableNode>((node) =>
         {
