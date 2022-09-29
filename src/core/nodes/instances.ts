@@ -88,6 +88,11 @@ export function getInstance<T>(id: string): T
     return instances.get(id) as unknown as T;
 }
 
+export function hasInstance(id: string): boolean
+{
+    return instances.has(id);
+}
+
 export function clearInstances()
 {
     idCounters.clear();

@@ -1,17 +1,15 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
-import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
-import { getInstance, getLatestInstance } from '../../core/nodes/instances';
+import { getInstance, getLatestInstance, hasInstance } from '../../core/nodes/instances';
 import { onNodeCreated, onNodeDisposed, registerNodeType } from '../../core/nodes/nodeFactory';
 import { createNodeSchema } from '../../core/nodes/schema';
-import type { AbstractCommand } from '../abstractCommand';
 import { Action } from '../action';
 import { type AppOptions, Application } from '../application';
 import { AddChildCommand } from '../commands/addChild';
@@ -24,7 +22,6 @@ import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { SetParentCommand } from '../commands/setParent';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { UnlinkCommand } from '../commands/unlink';
-import type { DSModelModifiedEvent, DSNodeCreatedEvent } from '../sync/datastoreEvents';
 import { getUserName } from '../sync/user';
 import { getUrlParam } from '../util';
 import { DebugNode } from './debug';
@@ -61,18 +58,17 @@ export class TestApp extends Application
         this.stage.addChild(selection);
 
         this.initNodeFactoryEvents();
-        this.initDatastoreEvents();
         this.initKeyboardActions();
     }
 
     protected onUndo(): void
     {
-        this.selectLastNode();
+        this.fitSelection();
     }
 
     protected onRedo(): void
     {
-        this.selectLastNode();
+        this.fitSelection();
     }
 
     protected initNodeFactoryEvents()
@@ -81,32 +77,13 @@ export class TestApp extends Application
         {
             console.log(`%cCREATED: ${node.id}`, 'color:pink');
             this.makeInteractive(node.cast<ContainerNode>());
+            this.selectLastNode();
         });
         onNodeDisposed((node) =>
         {
             console.log(`%cDISPOSED: ${node.id}`, 'color:pink');
             this.unmakeInteractive(node.cast<ContainerNode>());
-        });
-    }
-
-    protected initDatastoreEvents()
-    {
-        const { datastore } = this;
-
-        datastore.on('parentSet', (e: DSNodeCreatedEvent) =>
-        {
-            const node = getInstance<ClonableNode>(e.nodeId).cast<ContainerNode>();
-
-            // this.makeInteractive(node);
-            this.select(node);
-        }).on('nodeRemoved', () =>
-        {
             this.selectLastNode();
-        }).on('modelModified', (e: DSModelModifiedEvent) =>
-        {
-            const node = getInstance<ClonableNode>(e.nodeId);
-
-            this.fitSelection(node.cast<ContainerNode>());
         });
     }
 
@@ -139,34 +116,11 @@ export class TestApp extends Application
         this.makeInteractiveDeep(project.cast<ContainerNode>());
     }
 
-    protected onCommand(command: AbstractCommand<{}, void>, result: unknown): void
-    {
-        super.onCommand(command, result);
-
-        const commandName = command.name;
-
-        if (commandName === 'Clone')
-        {
-            const { clonedNode } = result as CloneCommandReturn;
-
-            // clonedNode.walk<ContainerNode>((node) =>
-            // {
-            //     this.makeInteractive(node);
-            // });
-
-            this.select(clonedNode.cast<ContainerNode>());
-        }
-        else if (commandName === 'RemoveNode')
-        {
-            this.selectLastNode();
-        }
-    }
-
     protected selectLastNode()
     {
         let node = getLatestInstance<ContainerNode>(sortNodesByCreation);
 
-        if (node && node.nodeType() === 'Project')
+        if (node && node.nodeType() === 'Project' && hasInstance('Scene:1'))
         {
             node = getInstance<ContainerNode>('Scene:1');
         }
@@ -218,7 +172,6 @@ export class TestApp extends Application
             {
                 const asContainerNode = node.cast<ContainerNode>();
 
-                // this.makeInteractive(asContainerNode);
                 this.select(asContainerNode);
             });
         }
@@ -247,7 +200,6 @@ export class TestApp extends Application
             {
                 const asContainerNode = node.cast<ContainerNode>();
 
-                // this.makeInteractive(asContainerNode);
                 this.select(asContainerNode);
             });
         }
@@ -278,7 +230,7 @@ export class TestApp extends Application
     {
         if (this.selected && (this.selected.nodeType() !== 'Scene' || this.selected?.nodeType() !== 'Project'))
         {
-            new RemoveChildCommand({ nodeId: this.selected.id }).run();
+            this.execUndoRoot(new RemoveChildCommand({ nodeId: this.selected.id }));
         }
     }
 
