@@ -13,7 +13,7 @@ export function getUrlParam<T = string>(key: string): T | null
         }
         catch (e)
         {
-            return val as T;
+            return val as unknown as T;
         }
     }
 
