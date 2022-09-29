@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3';
 
 import { newId } from '../instances';
 
-export type GraphNodeEvents = 'childAdded' | 'childRemoved' | 'disposed';
+export type GraphNodeEvents = 'created' | 'childAdded' | 'childRemoved' | 'disposed';
 
 export type WalkReturnData = Record<string, any>;
 
@@ -51,10 +51,8 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return this as unknown as T;
     }
 
-    public dispose()
-    {
-        // subclass
-    }
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
+    public dispose() { }
 
     public deleteSelf()
     {
@@ -146,7 +144,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
             delete component.parent;
 
-            this.emit('childRemoved', component);
+            this.emit('childRemoved', this, component);
 
             component.onRemovedFromParent(this);
         }

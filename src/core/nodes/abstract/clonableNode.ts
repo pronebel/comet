@@ -38,6 +38,8 @@ export abstract class ClonableNode<
     public defineCustomProperties: Map<string, CustomProperty>;
     public assignedCustomProperties: Map<keyof M, string>;
 
+    // public static emitter: EventEmitter<ClonableNodeEvent> = new EventEmitter<ClonableNodeEvent>();
+
     constructor(
         options: NodeOptions<M> = {},
     )
@@ -72,6 +74,8 @@ export abstract class ClonableNode<
         this.initCloning();
         this.init();
         this.update();
+
+        this.emit('created', this);
     }
 
     protected initModel()

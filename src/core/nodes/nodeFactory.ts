@@ -1,8 +1,13 @@
+import EventEmitter from 'eventemitter3';
+
 import { getUserName } from '../../editor/sync/user';
-import type { ClonableNodeConstructor, NodeOptions } from './abstract/clonableNode';
+import type { ClonableNode, ClonableNodeConstructor, NodeOptions } from './abstract/clonableNode';
 import { registerInstance } from './instances';
 
 export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
+
+export type NodeFactoryEvents = 'created' | 'disposed';
+export const emitter: EventEmitter<NodeFactoryEvents> = new EventEmitter<NodeFactoryEvents>();
 
 const userName = getUserName();
 
@@ -30,9 +35,18 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
 
     console.log(`${userName}:createNode "${options.id}"`);
 
-    const node = new NodeClass(options);
+    const node = new NodeClass(options) as ClonableNode;
 
     registerInstance(node);
+
+    const onDisposed = () =>
+    {
+        node.off('disposed', onDisposed);
+        emitter.emit('disposed', node);
+    };
+
+    node.on('disposed', onDisposed);
+    emitter.emit('created', node);
 
     return node as unknown as T;
 }
