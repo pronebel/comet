@@ -37,7 +37,14 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
     const node = new NodeClass(options) as ClonableNode;
 
     registerInstance(node);
+    registerNewNode(node);
 
+    return node as unknown as T;
+}
+
+export function registerNewNode(node: ClonableNode)
+{
+    console.log(`Registering new node "${node.id}"`);
     const onDisposed = () =>
     {
         node.off('disposed', onDisposed);
@@ -46,8 +53,6 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
 
     node.on('disposed', onDisposed);
     emitter.emit('created', node);
-
-    return node as unknown as T;
 }
 
 export function onNodeCreated(fn: (node: ClonableNode) => void)

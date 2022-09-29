@@ -6,6 +6,7 @@ import type {
     CustomPropertyType,
     CustomPropertyValueType,
 } from '../customProperties';
+import { registerNewNode } from '../nodeFactory';
 import { type GraphNodeEvents, GraphNode, sortNodesByCreation } from './graphNode';
 
 export type ClonableNodeEvents = GraphNodeEvents | 'modelChanged' | 'unlinked';
@@ -107,6 +108,8 @@ export abstract class ClonableNode<
                     this.model.isReference = true;
                 }
             }
+
+            registerNewNode(this.cast<ClonableNode>());
         }
     }
 

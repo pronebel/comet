@@ -40,13 +40,24 @@ export class RemoveChildCommand extends AbstractCommand<RemoveChildCommandParams
 
         nodes.sort(sortNodesByCreation).reverse();
 
+        let nodeCount = 0;
+
         datastore.batch(() =>
         {
             nodes.forEach((node) =>
             {
                 const cloner = node.cloneInfo.cloner;
 
-                app.execUndoRoot(new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }));
+                nodeCount++;
+
+                if (nodeCount === 1)
+                {
+                    app.execUndoRoot(new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }));
+                }
+                else
+                {
+                    app.exec(new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }));
+                }
 
                 if (cloner)
                 {
