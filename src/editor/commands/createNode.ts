@@ -34,7 +34,7 @@ export class CreateNodeCommand<
         if (isNewNode)
         {
             // create datastore entry
-            datastore.createNodeSchema(nodeSchema);
+            datastore.createNode(nodeSchema);
         }
         else
         {

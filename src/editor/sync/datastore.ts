@@ -409,7 +409,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return rootNode;
     }
 
-    public createNodeSchema(nodeSchema: NodeSchema)
+    public createNode(nodeSchema: NodeSchema)
     {
         const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 

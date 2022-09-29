@@ -1,6 +1,7 @@
 import { Sprite, Texture } from 'pixi.js';
 
 import { ModelSchema } from '../../model/schema';
+import { registerNodeType } from '../nodeFactory';
 import { type ContainerModel, ContainerNode, containerSchema } from './container';
 
 export interface SpriteModel extends ContainerModel
@@ -49,3 +50,5 @@ export class SpriteNode<M extends SpriteModel, V extends Sprite> extends Contain
         view.tint = tint;
     }
 }
+
+registerNodeType(SpriteNode);

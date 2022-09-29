@@ -1,5 +1,6 @@
 import type { Container } from 'pixi.js';
 
+import { registerNodeType } from '../nodeFactory';
 import { type ContainerModel, ContainerNode } from './container';
 
 export class SceneNode extends ContainerNode<ContainerModel, Container>
@@ -10,3 +11,4 @@ export class SceneNode extends ContainerNode<ContainerModel, Container>
     }
 }
 
+registerNodeType(SceneNode);

@@ -4,6 +4,7 @@ import { ModelSchema } from '../../model/schema';
 import type { DisplayObjectEvents, DisplayObjectModel } from '../abstract/displayObject';
 import { DisplayObjectNode, displayObjectSchema } from '../abstract/displayObject';
 import type { GraphNode } from '../abstract/graphNode';
+import { registerNodeType } from '../nodeFactory';
 
 export type ContainerEvents = DisplayObjectEvents;
 
@@ -79,3 +80,5 @@ export class ContainerNode<
         parentView.removeChild(thisView);
     }
 }
+
+registerNodeType(ContainerNode);
