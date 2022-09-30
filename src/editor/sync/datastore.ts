@@ -117,7 +117,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                     new SetParentCommand({ nodeId: nodeSchema.id, parentId: nodeSchema.parent }).run();
                 }
 
-                return node as T;
+                return node as unknown as T;
             }
         }
 
