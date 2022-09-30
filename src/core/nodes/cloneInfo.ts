@@ -1,3 +1,4 @@
+import { getInstance } from './instances';
 import type { CloneInfoSchema } from './schema';
 
 export enum CloneMode
@@ -21,6 +22,11 @@ export class CloneInfo
     public cloneMode: CloneMode;
     public cloner?: Clonable;
     public cloned: Clonable[];
+
+    public static fromSchema(cloneInfo: CloneInfoSchema)
+    {
+        return new CloneInfo(cloneInfo.cloneMode, cloneInfo.cloner ? getInstance(cloneInfo.cloner) : undefined);
+    }
 
     constructor(cloneMode: CloneMode = CloneMode.Original, cloner?: Clonable)
     {
@@ -72,6 +78,11 @@ export class CloneInfo
     public get isVariantOrRoot()
     {
         return this.cloneMode === CloneMode.Variant || this.cloneMode === CloneMode.VariantRoot;
+    }
+
+    public get isVariantLike()
+    {
+        return this.isVariantOrRoot || this.isReferenceRoot;
     }
 
     public get isRoot()

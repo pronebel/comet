@@ -27,6 +27,7 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
     public link(sourceModel: Model<M>)
     {
         this.parent = sourceModel;
+
         sourceModel.children.push(this);
     }
 

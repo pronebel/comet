@@ -131,6 +131,7 @@
   const onPeekUndoStack = () => {
     //const commands = app.readUndoStack();
     const commands = app.undoStack.stack;
+    console.clear();
     console.log(`head: ${app.undoStack.head}`, commands);
   };
 

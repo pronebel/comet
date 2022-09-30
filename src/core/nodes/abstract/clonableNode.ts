@@ -175,14 +175,22 @@ export abstract class ClonableNode<
         }
     }
 
-    public unlink(unlinkChildren = true)
+    public unlink()
     {
         const { model, cloneInfo } = this;
         const cloner = cloneInfo.getCloner<ClonableNode>();
 
         if (cloner)
         {
-            model.flatten();
+            if (cloneInfo.isReference)
+            {
+                this.model = cloner.model.clone() as unknown as Model<M> & M;
+                this.initModel();
+            }
+            else
+            {
+                model.flatten();
+            }
 
             cloner.cloneInfo.removeCloned(this);
             this.cloneInfo.unlink(this);
@@ -190,11 +198,6 @@ export abstract class ClonableNode<
             this.emit('unlinked');
 
             this.update();
-        }
-
-        if (unlinkChildren)
-        {
-            this.forEach<ClonableNode>((child) => child.unlink());
         }
     }
 
@@ -211,14 +214,6 @@ export abstract class ClonableNode<
         }
 
         this.emit('disposed');
-
-        // todo: ...and this, might need a rework to ensure its done reflecting new changes
-        this.cloneInfo.forEachCloned<ClonableNode>((node) => node.unlink());
-
-        this.children.forEach((child) =>
-        {
-            child.dispose();
-        });
 
         this.removeAllListeners();
     }

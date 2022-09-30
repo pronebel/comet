@@ -1,6 +1,8 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
+import { CloneInfo } from '../../core/nodes/cloneInfo';
 import { getInstance } from '../../core/nodes/instances';
-import { getCloneInfoSchema } from '../../core/nodes/schema';
+import { type NodeSchema, getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { AbstractCommand } from '../abstractCommand';
 
 export interface UnlinkCommandParams
@@ -8,17 +10,27 @@ export interface UnlinkCommandParams
     nodeId: string;
 }
 
+export interface UnlinkCommandCache
+{
+    nodes: NodeSchema[];
+}
+
 export class UnlinkCommand
-    extends AbstractCommand<UnlinkCommandParams>
+    extends AbstractCommand<UnlinkCommandParams, void, UnlinkCommandCache>
 {
     public static commandName = 'Unlink';
 
     public apply(): void
     {
-        const { datastore, params: { nodeId } } = this;
+        const { datastore, params: { nodeId }, cache } = this;
 
         const node = getInstance<ClonableNode>(nodeId);
 
+        // write cache first
+        cache.nodes = [];
+        node.walk<ClonableNode>((node) => cache.nodes.push(getNodeSchema(node)));
+
+        // unlink node sub tree
         node.walk<ClonableNode>((node) =>
         {
             const nodeId = node.id;
@@ -29,14 +41,53 @@ export class UnlinkCommand
             // update datastore with new cloneInfo and model values
             datastore.updateNodeCloneInfo(nodeId, getCloneInfoSchema(node));
             datastore.modifyNodeModel(nodeId, node.model.ownValues);
-
-            // call this command on all cloned nodes from this node
-            node.cloneInfo.forEachCloned<ClonableNode>((clone) => { new UnlinkCommand({ nodeId: clone.id }).run(); });
         });
     }
 
     public undo(): void
     {
-        throw new Error('Method not implemented.');
+        const { datastore, cache: { nodes } } = this;
+
+        for (const nodeSchema of nodes)
+        {
+            const node = getInstance<ClonableNode>(nodeSchema.id);
+            const cloner = nodeSchema.cloneInfo.cloner ? getInstance<ClonableNode>(nodeSchema.cloneInfo.cloner) : undefined;
+            const nodeSchemaCloneInfo = CloneInfo.fromSchema(nodeSchema.cloneInfo);
+
+            // update cloners cloned info
+            if (cloner)
+            {
+                cloner.cloneInfo.cloned.push(node);
+                (cloner.cloneInfo.cloned as ClonableNode[]).sort(sortNodesByCreation);
+
+                // references need to use the cloners exact model
+                if (nodeSchemaCloneInfo.isReference)
+                {
+                    node.model = cloner.model;
+                }
+                else if (nodeSchemaCloneInfo.isVariantLike)
+                {
+                    node.model.link(cloner.model);
+                }
+            }
+
+            // update nodes cloneInfo
+            node.cloneInfo.cloner = cloner;
+            node.cloneInfo.cloneMode = nodeSchema.cloneInfo.cloneMode;
+            node.cloneInfo.cloned = nodeSchema.cloneInfo.cloned.map((id) => getInstance<ClonableNode>(id));
+
+            // update datastore
+            datastore.updateNodeCloneInfo(nodeSchema.id, getCloneInfoSchema(node));
+        }
+    }
+
+    public updateNodeId(oldNodeId: string, newNodeId: string): void
+    {
+        super.updateNodeId(oldNodeId, newNodeId);
+
+        this.cache.nodes.forEach((nodeSchema) =>
+        {
+            this.updateNodeSchemaId(nodeSchema, oldNodeId, newNodeId);
+        });
     }
 }
