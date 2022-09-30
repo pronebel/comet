@@ -1,6 +1,7 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
@@ -8,7 +9,7 @@ import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance, getLatestInstance, hasInstance } from '../../core/nodes/instances';
-import { onNodeCreated, onNodeDisposed, registerNodeType } from '../../core/nodes/nodeFactory';
+import { onNodeCreated, onNodeDisposed, onNodeModelModified, registerNodeType } from '../../core/nodes/nodeFactory';
 import { createNodeSchema } from '../../core/nodes/schema';
 import { Action } from '../action';
 import { type AppOptions, Application } from '../application';
@@ -85,12 +86,19 @@ export class TestApp extends Application
             this.unmakeInteractive(node.cast<ContainerNode>());
             this.selectLastNode();
         });
+        onNodeModelModified(() =>
+        {
+            this.fitSelection();
+        });
     }
 
     protected initKeyboardActions()
     {
-        Action.register('undo', this.undo, { hotkey: 'ctrl+z' });
-        Action.register('redo', this.redo, { hotkey: 'ctrl+shift+z' });
+        Action.register('undo', this.undo, { hotkey: 'command+z,ctrl+z' });
+        Action.register('redo', this.redo, { hotkey: 'command+shift+z,ctrl+shift+z' });
+        Action.register('delete', () => this.deleteSelected(), { hotkey: 'delete,backspace' });
+        Action.register('newChild', () => this.newChild(), { hotkey: 'command+n,ctrl+n' });
+        Action.register('newEmpty', () => this.newContainer(), { hotkey: 'command+shift+n,ctrl+shift+n' });
     }
 
     public async init()

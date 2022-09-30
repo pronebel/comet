@@ -6,7 +6,8 @@ import { registerInstance } from './instances';
 
 export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
 
-export type NodeFactoryEvents = 'created' | 'disposed';
+export type NodeFactoryEvents = 'created' | 'disposed' | 'modelModified';
+
 const emitter: EventEmitter<NodeFactoryEvents> = new EventEmitter<NodeFactoryEvents>();
 
 const userName = getUserName();
@@ -44,14 +45,23 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
 
 export function registerNewNode(node: ClonableNode)
 {
-    console.log(`Registering new node "${node.id}"`);
+    console.log(`%cRegistering new node "${node.id}"`, 'color:lime');
+
+    const onModelModified = () =>
+    {
+        emitter.emit('modelModified', node);
+    };
+
     const onDisposed = () =>
     {
         node.off('disposed', onDisposed);
+        node.off('modelChanged', onModelModified);
         emitter.emit('disposed', node);
     };
 
     node.on('disposed', onDisposed);
+    node.on('modelChanged', onModelModified);
+
     emitter.emit('created', node);
 }
 
@@ -63,4 +73,9 @@ export function onNodeCreated(fn: (node: ClonableNode) => void)
 export function onNodeDisposed(fn: (node: ClonableNode) => void)
 {
     emitter.on('disposed', fn);
+}
+
+export function onNodeModelModified(fn: (node: ClonableNode) => void)
+{
+    emitter.on('modelModified', fn);
 }
