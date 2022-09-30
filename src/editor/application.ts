@@ -104,7 +104,9 @@ export abstract class Application extends EventEmitter<AppEvents>
         console.log(`%c🔔 ${userName}:${command.name}: %c${JSON.stringify(command.params)}`, 'color:cyan', 'color:yellow');
 
         command.isUndoRoot = isUndoRoot;
+
         this.undoStack.push(command);
+
         this.writeUndoStack();
 
         const result = command.run();
@@ -127,15 +129,18 @@ export abstract class Application extends EventEmitter<AppEvents>
 
         if (data)
         {
-            let json = JSON.parse(data) as any[];
+            const { undoStack } = this;
+            let commandArray = JSON.parse(data) as any[];
 
-            json = json.slice(0, endIndex);
+            commandArray = commandArray.slice(0, endIndex === 0 ? undefined : endIndex);
 
-            return json.map((params) =>
-                createCommand(params.$, params));
+            const commands = commandArray.map((commandJSON) =>
+                createCommand(commandJSON));
+
+            undoStack.stack.length = 0;
+            undoStack.stack.push(...commands);
+            undoStack.head = -1;
         }
-
-        return [];
     }
 
     protected resetState()

@@ -100,6 +100,13 @@ export function getNodeSchema(node: ClonableNode, includeParent = true, includeC
         cloneInfo: getCloneInfoSchema(node),
     });
 
+    nodeSchema.created = node.created;
+
+    if (!nodeSchema.cloneInfo.cloner)
+    {
+        delete nodeSchema.cloneInfo.cloner;
+    }
+
     if (includeParent && node.parent)
     {
         nodeSchema.parent = node.parent.id;

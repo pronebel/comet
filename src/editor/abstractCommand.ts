@@ -121,31 +121,6 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
 
     public isReferencingNode(nodeId: string)
     {
-        // const { params } = this;
-
-        // const withNodeIdParams = this.castParamsAs<{nodeId: string}>();
-        // const withParentIdParams = this.castParamsAs<{parentId: string}>();
-
-        // if ('nodeId' in params && (withNodeIdParams).nodeId === nodeId)
-        // {
-        //     return true;
-        // }
-        // if ('parentId' in params && (withParentIdParams).parentId === nodeId)
-        // {
-        //     return true;
-        // }
-        // if ('nodeSchema' in params)
-        // {
-        //     const nodeSchema = (this.params as unknown as {nodeSchema: NodeSchema}).nodeSchema;
-
-        //     if (this.isNodeSchemaReferencingNode(nodeSchema, nodeId))
-        //     {
-        //         return true;
-        //     }
-        // }
-
-        // return false;
-
         const json = JSON.stringify(this.toJSON());
 
         if (json.match(new RegExp(`"${nodeId}"`, 'g')))
@@ -155,28 +130,6 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
 
         return false;
     }
-
-    // public isNodeSchemaReferencingNode(nodeSchema: NodeSchema, nodeId: string)
-    // {
-    //     if (nodeSchema.id === nodeId)
-    //     {
-    //         return true;
-    //     }
-    //     if (nodeSchema.parent === nodeId)
-    //     {
-    //         return true;
-    //     }
-    //     if (nodeSchema.cloneInfo.cloner === nodeId)
-    //     {
-    //         return true;
-    //     }
-    //     if (nodeSchema.cloneInfo.cloned.indexOf(nodeId) > -1)
-    //     {
-    //         return true;
-    //     }
-
-    //     return false;
-    // }
 
     public redo()
     {
@@ -196,8 +149,9 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
     public toJSON()
     {
         return {
-            $: this.name,
-            ...this.params,
+            name: this.name,
+            isUndoRoot: this.isUndoRoot,
+            params: this.params,
             cache: this.cache,
         };
     }

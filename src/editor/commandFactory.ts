@@ -61,11 +61,19 @@ export interface CommandParams
 
 export function createCommand<
     K extends keyof typeof Commands, P extends CommandParams[K],
->(commandName: K, params: P)
+>(commandJSON: any)
 {
+    const commandName = commandJSON.name as K;
+    const params = commandJSON.params as P;
+
     const CommandClass = Commands[commandName] as {
         new (params: P): AbstractCommand;
     };
 
-    return new CommandClass(params);
+    const command = new CommandClass(params);
+
+    command.cache = commandJSON.cache;
+    command.isUndoRoot = commandJSON.isUndoRoot;
+
+    return command;
 }

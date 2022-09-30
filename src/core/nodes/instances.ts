@@ -1,6 +1,6 @@
 import { getUserName } from '../../editor/sync/user';
 
-type Instance = {id: string};
+type Instance = { id: string };
 
 const instances: Map<string, Instance> = new Map();
 const idCounters: Map<string, number> = new Map();
@@ -103,4 +103,23 @@ export function clearInstances()
 export function getLatestInstance<T>(compareFn: (a: any, b: any) => number): T
 {
     return Array.from(instances.values()).sort(compareFn).pop() as unknown as T;
+}
+
+export function getInstancesByType()
+{
+    const types: Record<string, string[]> = {};
+
+    for (const [id, instance] of instances.entries())
+    {
+        const { type } = parseId(id);
+
+        if (!types[type])
+        {
+            types[type] = [];
+        }
+
+        types[type].push(instance.id);
+    }
+
+    return types;
 }

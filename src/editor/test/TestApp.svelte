@@ -3,6 +3,7 @@
   import { CloneMode } from "../../core/nodes/cloneInfo";
   import type { ContainerNode } from "../../core/nodes/concrete/container";
   import { getInstance } from "../../core/nodes/instances";
+  import { Auditor } from "../auditor";
   import { getUserName } from "../sync/user";
   import { getUrlParam } from "../util";
 
@@ -13,7 +14,7 @@
   let customPropName: string = "name";
   let customPropValue: string = "foo1";
   let assignModelKey: string = "label";
-  let undoStackEnd: number = -1;
+  let undoStackEnd: number = 0;
 
   let isInit = false;
   let isInitialising = false;
@@ -114,6 +115,13 @@
     app.inspectDatastore();
   };
 
+  const onAudit = () => {
+    const auditor = new Auditor();
+    const audit = auditor.audit();
+    console.clear();
+    console.log(JSON.stringify(audit, null, 4));
+  };
+
   const onSaveDatastore = () => {
     app.saveDatastore();
   };
@@ -136,8 +144,7 @@
   };
 
   const onReadUndoStack = () => {
-    const commands = app.readUndoStack(undoStackEnd);
-    commands.forEach((command) => app.exec(command));
+    app.readUndoStack(undoStackEnd);
   };
 
   const onSetCustomProp = () => {
@@ -207,6 +214,7 @@
     <button on:click={onRestoreDatastore}>Restore DStore</button>
     <button on:click={onSaveDatastore}>Save DStore</button>
     <button on:click={onInspectDatastore}>Inspect DStore</button>
+    <button on:click={onAudit}>Audit</button>
     <hr />
     <input bind:value={undoStackEnd} />
     <button on:click={onClearUndoStack}>Clear Undo</button>
