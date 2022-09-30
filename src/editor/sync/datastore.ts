@@ -219,22 +219,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return this.hydrate();
     }
 
-    public registerNodeElement(nodeId: string, nodeElement: RealTimeObject)
-    {
-        if (this.nodeRealtimeObjects.has(nodeId))
-        {
-            throw new Error(`Node "${nodeId}" RealTimeObject already registered.`);
-        }
-
-        // store element
-        this.nodeRealtimeObjects.set(nodeId, nodeElement);
-
-        // track remote events
-        this.trackNodeElementRemoteEvents(nodeId);
-
-        console.log(`${userName}:Registered New RealTimeObject "${nodeId}"`);
-    }
-
     protected trackNodeElementRemoteEvents(nodeId: string)
     {
         const nodeElement = this.getNodeElement(nodeId);
@@ -349,64 +333,76 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         const { nodes } = this;
 
-        const nodeElements: Map<string, RealTimeObject> = new Map();
+        const allNodeElements: Map<string, RealTimeObject> = new Map();
 
-        // prepare all nodeElements
-
+        // index all nodeElements
         nodes.keys().forEach((id) =>
         {
             const nodeElement = nodes.get(id) as RealTimeObject;
 
-            nodeElements.set(id, nodeElement);
+            allNodeElements.set(id, nodeElement);
         });
 
         // get the root
         const rootId = this.model.root().get('root').value() as string;
-        const projectNode = nodeElements.get(rootId);
-
-        const hydrate = (nodeElement: RealTimeObject) =>
-        {
-            const id = nodeElement.get('id').value() as string;
-
-            // ensure local ids don't clash with hydrating ids
-            consolidateId(id);
-
-            // create the graph node
-            const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
-
-            new CreateNodeCommand({ nodeSchema, isNewNode: false }).run();
-
-            // recursively create children
-            (nodeElement.get('children').value() as RealTimeArray).forEach((id) =>
-            {
-                const childId = String(id);
-                const childNodeElement = nodeElements.get(childId);
-
-                if (childNodeElement)
-                {
-                    hydrate(childNodeElement);
-                }
-                else
-                {
-                    throw new Error(`Could not find childElement "${childId}"`);
-                }
-            });
-        };
+        const projectNode = allNodeElements.get(rootId);
 
         if (projectNode)
         {
-            // start from the root node (Project)
-
-            hydrate(projectNode);
+            // start hydrating from the root node (Project)
+            this.hydrateElement(projectNode, allNodeElements);
         }
         else
         {
             throw new Error('Could not find project node');
         }
 
-        const rootNode = getInstance<ClonableNode>(rootId);
+        return getInstance<ClonableNode>(rootId);
+    }
 
-        return rootNode;
+    protected hydrateElement(nodeElement: RealTimeObject, allNodeElements: Map<string, RealTimeObject>)
+    {
+        const id = nodeElement.get('id').value() as string;
+
+        // ensure local ids don't clash with hydrating ids
+        consolidateId(id);
+
+        // create the graph node
+        const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
+
+        new CreateNodeCommand({ nodeSchema, isNewNode: false }).run();
+
+        // recursively create children
+        (nodeElement.get('children').value() as RealTimeArray).forEach((id) =>
+        {
+            const childId = String(id);
+            const childNodeElement = allNodeElements.get(childId);
+
+            if (childNodeElement)
+            {
+                this.hydrateElement(childNodeElement, allNodeElements);
+            }
+            else
+            {
+                throw new Error(`Could not find childElement "${childId}"`);
+            }
+        });
+    }
+
+    public registerNodeElement(nodeId: string, nodeElement: RealTimeObject)
+    {
+        if (this.nodeRealtimeObjects.has(nodeId))
+        {
+            throw new Error(`Node "${nodeId}" RealTimeObject already registered.`);
+        }
+
+        // store element
+        this.nodeRealtimeObjects.set(nodeId, nodeElement);
+
+        // track remote events
+        this.trackNodeElementRemoteEvents(nodeId);
+
+        console.log(`${userName}:Registered New RealTimeObject "${nodeId}"`);
     }
 
     public createNode(nodeSchema: NodeSchema)
