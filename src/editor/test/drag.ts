@@ -65,7 +65,7 @@ window.addEventListener('mouseup', () =>
                 y: state.newY,
             } });
 
-            app.execUndoRoot(command);
+            app.exec(command);
             command.cache.prevValues = { x: state.startX, y: state.startY };
         }
 

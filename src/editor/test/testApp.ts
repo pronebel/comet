@@ -173,7 +173,7 @@ export class TestApp extends Application
                 },
             });
 
-            this.execUndoRoot(new AddChildCommand({ parentId, nodeSchema }));
+            this.exec(new AddChildCommand({ parentId, nodeSchema }));
         }
     }
 
@@ -194,7 +194,7 @@ export class TestApp extends Application
                 },
             });
 
-            this.execUndoRoot(new AddChildCommand({ parentId, nodeSchema }));
+            this.exec(new AddChildCommand({ parentId, nodeSchema }));
         }
     }
 
@@ -207,12 +207,12 @@ export class TestApp extends Application
             const {
                 sourceNode,
                 clonedNode,
-            } = this.execUndoRoot<CloneCommandReturn>(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
+            } = this.exec<CloneCommandReturn>(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
 
             if (parentNode)
             {
-                this.exec(new SetParentCommand({ parentId: parentNode.id, nodeId: clonedNode.id }));
-                this.exec(new ModifyModelCommand({ nodeId: clonedNode.id, values: sourceNode.model.ownValues }));
+                this.exec(new SetParentCommand({ parentId: parentNode.id, nodeId: clonedNode.id }), false);
+                this.exec(new ModifyModelCommand({ nodeId: clonedNode.id, values: sourceNode.model.ownValues }), false);
 
                 this.select(clonedNode.cast());
             }
@@ -223,7 +223,7 @@ export class TestApp extends Application
     {
         if (this.selected && (this.selected.nodeType() !== 'Scene' || this.selected?.nodeType() !== 'Project'))
         {
-            this.execUndoRoot(new RemoveChildCommand({ nodeId: this.selected.id }));
+            this.exec(new RemoveChildCommand({ nodeId: this.selected.id }));
         }
     }
 
@@ -277,7 +277,7 @@ export class TestApp extends Application
     {
         if (this.selected && this.selected instanceof DebugNode)
         {
-            this.execUndoRoot(new ModifyModelCommand<SpriteModel>({
+            this.exec(new ModifyModelCommand<SpriteModel>({
                 nodeId: this.selected.getModificationCloneTarget().id,
                 values: {
                     tint: Math.round(Math.random() * 100000),
@@ -289,7 +289,7 @@ export class TestApp extends Application
     {
         if (this.selected)
         {
-            this.execUndoRoot(new ModifyModelCommand<SpriteModel>({
+            this.exec(new ModifyModelCommand<SpriteModel>({
                 nodeId: this.selected.getModificationCloneTarget().id,
                 values: {
                     width: Math.round(Math.random() * 50),
@@ -331,7 +331,7 @@ export class TestApp extends Application
             const propType = isNaN(value) ? 'string' : 'number';
             const propValue = propType === 'string' ? value : parseFloat(value);
 
-            this.execUndoRoot(new SetCustomPropCommand({
+            this.exec(new SetCustomPropCommand({
                 nodeId: selected.id,
                 customKey: name,
                 type: propType,
@@ -347,7 +347,7 @@ export class TestApp extends Application
 
         if (selected)
         {
-            this.execUndoRoot(new RemoveCustomPropCommand({
+            this.exec(new RemoveCustomPropCommand({
                 nodeId: selected.id,
                 customKey: name,
                 updateMode: 'full',
@@ -361,7 +361,7 @@ export class TestApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.execUndoRoot(new AssignCustomPropCommand({
+            this.exec(new AssignCustomPropCommand({
                 nodeId: selected.id,
                 modelKey,
                 customKey,
@@ -376,7 +376,7 @@ export class TestApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.execUndoRoot(new UnAssignCustomPropCommand({
+            this.exec(new UnAssignCustomPropCommand({
                 nodeId: selected.id,
                 modelKey,
                 updateMode: 'full',

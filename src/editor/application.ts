@@ -101,7 +101,7 @@ export abstract class Application extends EventEmitter<AppEvents>
         // subclasses
     }
 
-    public exec<R = unknown>(command: AbstractCommand): R
+    public exec<R = unknown>(command: AbstractCommand, isUndoRoot = true): R
     {
         if (!command.isAtomic)
         {
@@ -110,6 +110,7 @@ export abstract class Application extends EventEmitter<AppEvents>
 
         console.log(`%c🔔 ${userName}:${command.name}: %c${JSON.stringify(command.params)}`, 'color:cyan', 'color:yellow');
 
+        command.isUndoRoot = isUndoRoot;
         this.undoStack.push(command);
         this.writeUndoStack();
 
@@ -118,13 +119,6 @@ export abstract class Application extends EventEmitter<AppEvents>
         this.emit('commandExec', command, result);
 
         return result as unknown as R;
-    }
-
-    public execUndoRoot<R = unknown>(command: AbstractCommand): R
-    {
-        command.isUndoRoot = true;
-
-        return this.exec(command);
     }
 
     public writeUndoStack()
