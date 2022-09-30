@@ -1,15 +1,44 @@
+import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
+import { getInstance } from '../core/nodes/instances';
+import { getNodeSchema } from '../core/nodes/schema';
 import type { AbstractCommand } from './abstractCommand';
+import { RestoreNodeCommand } from './commands/restoreNode';
+import type { Datastore } from './sync/datastore';
+import type { DSNodeRemovedEvent } from './sync/datastoreEvents';
 
 export default class UndoStack
 {
     public stack: AbstractCommand[];
     public head: number;
 
-    constructor()
+    constructor(public readonly datastore: Datastore)
     {
         this.stack = [];
         this.head = -1;
+
+        datastore.on('nodeRemoved', this.onNodeRemoved);
     }
+
+    protected onNodeRemoved = (e: DSNodeRemovedEvent) =>
+    {
+        const node = getInstance<ClonableNode>(e.nodeId);
+
+        const commands = this.findCommandsReferencing(node.id);
+
+        if (commands.length)
+        {
+            const { stack } = this;
+            const lastCommand = commands[commands.length - 1];
+            const index = lastCommand.index + 1;
+            const nodeSchema = getNodeSchema(node);
+
+            this.datastore.cacheRemovedNodeSchema(nodeSchema);
+            const cmd = new RestoreNodeCommand({ nodeSchema });
+
+            stack.splice(index, 0, cmd);
+            this.head = index;
+        }
+    };
 
     public get length()
     {
@@ -24,6 +53,11 @@ export default class UndoStack
     public getCommandAt(index: number): AbstractCommand | undefined
     {
         return this.stack[index];
+    }
+
+    protected findCommandsReferencing(nodeId: string)
+    {
+        return this.stack.filter((command) => command.isReferencingNode(nodeId));
     }
 
     public push(command: AbstractCommand)

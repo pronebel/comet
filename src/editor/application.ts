@@ -47,11 +47,9 @@ export abstract class Application extends EventEmitter<AppEvents>
             backgroundColor: 0x333333,
         });
 
-        this.undoStack = new UndoStack();
-
-        const datastore = this.datastore = new Datastore();
-
-        this.nodeUpdater = new NodeUpdater(datastore);
+        this.datastore = new Datastore();
+        this.undoStack = new UndoStack(this.datastore);
+        this.nodeUpdater = new NodeUpdater(this.datastore);
     }
 
     public static get instance()
@@ -103,11 +101,6 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public exec<R = unknown>(command: AbstractCommand, isUndoRoot = true): R
     {
-        if (!command.isAtomic)
-        {
-            throw new Error(`Command "${command.name}" is not atomic, execute outside of application undo stack`);
-        }
-
         console.log(`%c🔔 ${userName}:${command.name}: %c${JSON.stringify(command.params)}`, 'color:cyan', 'color:yellow');
 
         command.isUndoRoot = isUndoRoot;

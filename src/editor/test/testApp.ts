@@ -75,13 +75,13 @@ export class TestApp extends Application
     {
         onNodeCreated((node) =>
         {
-            console.log(`%cCREATED: ${node.id}`, 'color:pink');
+            console.log(`%c${userName}:CREATED: ${node.id}`, 'color:pink');
             this.makeInteractive(node.cast<ContainerNode>());
             this.selectLastNode();
         });
         onNodeDisposed((node) =>
         {
-            console.log(`%cDISPOSED: ${node.id}`, 'color:pink');
+            console.log(`%c${userName}:DISPOSED: ${node.id}`, 'color:pink');
             this.unmakeInteractive(node.cast<ContainerNode>());
             this.selectLastNode();
         });
@@ -402,7 +402,7 @@ export class TestApp extends Application
         {
             sprite.interactive = true;
 
-            console.log('make interactive', component.id);
+            console.log(`${userName}:make interactive "${component.id}"`);
             sprite.on('mousedown', this.onSpriteClicked);
         }
     }
@@ -415,7 +415,7 @@ export class TestApp extends Application
         {
             sprite.interactive = false;
 
-            console.log('unmake interactive', component.id);
+            console.log(`${userName}:unmake interactive "${component.id}"`);
             sprite.off('mousedown', this.onSpriteClicked);
         }
     }

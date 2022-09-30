@@ -14,6 +14,7 @@ import { consolidateId, getInstance } from '../../core/nodes/instances';
 import { type CloneInfoSchema, type NodeSchema, type ProjectSchema, createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import { CreateNodeCommand } from '../commands/createNode';
+import { SetParentCommand } from '../commands/setParent';
 import type {
     DatastoreEvents,
     DSCloneInfoModifiedEvent,
@@ -46,6 +47,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     protected _domain?: ConvergenceDomain;
     protected _model?: RealTimeModel;
     protected nodeRealtimeObjects: Map<string, RealTimeObject>;
+    protected removedNodeSchemaCache: Map<string, NodeSchema>;
 
     public static instance: Datastore;
 
@@ -56,6 +58,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         Datastore.instance = this;
 
         this.nodeRealtimeObjects = new Map();
+        this.removedNodeSchemaCache = new Map();
     }
 
     protected get app()
@@ -92,6 +95,39 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         this.nodeRealtimeObjects.clear();
         delete this._model;
+    }
+
+    public restoreRemovedNode<T = ClonableNode>(nodeId: string): T
+    {
+        try
+        {
+            return getInstance<T>(nodeId);
+        }
+        catch (e)
+        {
+            const { removedNodeSchemaCache } = this;
+            const nodeSchema = removedNodeSchemaCache.get(nodeId);
+
+            if (nodeSchema)
+            {
+                const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).run();
+
+                if (nodeSchema.parent)
+                {
+                    new SetParentCommand({ nodeId: nodeSchema.id, parentId: nodeSchema.parent }).run();
+                }
+
+                return node as T;
+            }
+        }
+
+        throw new Error(`Cannot access unregistered instance "${nodeId}"`);
+    }
+
+    public cacheRemovedNodeSchema(nodeSchema: NodeSchema)
+    {
+        console.log(`%c${userName}:cached removed nodeSchema "${JSON.stringify(nodeSchema)}"`, 'color:orange');
+        this.removedNodeSchemaCache.set(nodeSchema.id, nodeSchema);
     }
 
     public setNodesData(data: Record<string, NodeSchema>)
@@ -210,10 +246,9 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             console.log(`%c${userName}:nodes.remove: ${nodeId}`, logStyle);
 
-            if (parentId)
-            {
-                this.emit('nodeRemoved', { nodeId, parentId } as DSNodeRemovedEvent);
-            }
+            const e: DSNodeRemovedEvent = { nodeId, parentId };
+
+            this.emit('nodeRemoved', e);
         });
 
         return this.hydrate();
@@ -368,7 +403,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         consolidateId(id);
 
         // create the graph node
-        const nodeSchema = nodeElement.toJSON() as NodeSchema<{}>;
+        const nodeSchema = nodeElement.toJSON() as NodeSchema;
 
         new CreateNodeCommand({ nodeSchema, isNewNode: false }).run();
 

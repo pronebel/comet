@@ -29,7 +29,7 @@ export class AddChildCommand<
     M extends ModelBase = ModelBase,
 > extends AbstractCommand<AddChildCommandParams<M>, AddChildCommandReturn, AddChildCommandCache>
 {
-    public static commandName = 'CreateChild';
+    public static commandName = 'AddChild';
 
     public apply(): AddChildCommandReturn
     {

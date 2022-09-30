@@ -22,7 +22,7 @@ export type DSNodeCreatedEvent = DSNodeEvent;
 
 export interface DSNodeRemovedEvent extends DSNodeEvent
 {
-    parentId: string;
+    parentId?: string;
 }
 
 export interface DSParentSetEvent extends DSNodeEvent

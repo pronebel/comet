@@ -1,6 +1,7 @@
 import { getUserName } from '../../editor/sync/user';
 
 type Instance = {id: string};
+
 const instances: Map<string, Instance> = new Map();
 const idCounters: Map<string, number> = new Map();
 

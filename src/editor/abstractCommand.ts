@@ -31,13 +31,6 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
         return (Object.getPrototypeOf(this).constructor as {commandName: string}).commandName as CommandName;
     }
 
-    public get isAtomic()
-    {
-        // whether or not this command ends up in undoStack (true),
-        // or whether it just does something outside of the stack (false) such as orchestrating other commands
-        return true;
-    }
-
     public get index(): number
     {
         return this.app.undoStack.indexOf(this);
@@ -126,6 +119,65 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
         nodeSchema.cloneInfo.cloned = nodeSchema.cloneInfo.cloned.map((id) => (id === oldNodeId ? newNodeId : id));
     }
 
+    public isReferencingNode(nodeId: string)
+    {
+        // const { params } = this;
+
+        // const withNodeIdParams = this.castParamsAs<{nodeId: string}>();
+        // const withParentIdParams = this.castParamsAs<{parentId: string}>();
+
+        // if ('nodeId' in params && (withNodeIdParams).nodeId === nodeId)
+        // {
+        //     return true;
+        // }
+        // if ('parentId' in params && (withParentIdParams).parentId === nodeId)
+        // {
+        //     return true;
+        // }
+        // if ('nodeSchema' in params)
+        // {
+        //     const nodeSchema = (this.params as unknown as {nodeSchema: NodeSchema}).nodeSchema;
+
+        //     if (this.isNodeSchemaReferencingNode(nodeSchema, nodeId))
+        //     {
+        //         return true;
+        //     }
+        // }
+
+        // return false;
+
+        const json = JSON.stringify(this.toJSON());
+
+        if (json.match(new RegExp(`"${nodeId}"`, 'g')))
+        {
+            return true;
+        }
+
+        return false;
+    }
+
+    // public isNodeSchemaReferencingNode(nodeSchema: NodeSchema, nodeId: string)
+    // {
+    //     if (nodeSchema.id === nodeId)
+    //     {
+    //         return true;
+    //     }
+    //     if (nodeSchema.parent === nodeId)
+    //     {
+    //         return true;
+    //     }
+    //     if (nodeSchema.cloneInfo.cloner === nodeId)
+    //     {
+    //         return true;
+    //     }
+    //     if (nodeSchema.cloneInfo.cloned.indexOf(nodeId) > -1)
+    //     {
+    //         return true;
+    //     }
+
+    //     return false;
+    // }
+
     public redo()
     {
         return this.apply();
@@ -146,6 +198,7 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
         return {
             $: this.name,
             ...this.params,
+            cache: this.cache,
         };
     }
 }
