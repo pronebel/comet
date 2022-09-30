@@ -1,10 +1,11 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
+import type { CustomProperty, CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import { getInstance } from '../../core/nodes/instances';
 import { type UpdateMode, AbstractCommand } from '../abstractCommand';
 import { AssignCustomPropCommand } from './assignCustomProp';
+import { RemoveCustomPropCommand } from './removeCustomProp';
 
 export interface SetCustomPropCommandParams
 {
@@ -15,13 +16,19 @@ export interface SetCustomPropCommandParams
     updateMode: UpdateMode;
 }
 
-export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandParams>
+export interface SetCustomPropCommandCache
+{
+    prop?: CustomProperty;
+}
+
+export class SetCustomPropCommand
+    extends AbstractCommand<SetCustomPropCommandParams, void, SetCustomPropCommandCache>
 {
     public static commandName = 'SetCustomProp';
 
     public apply(): void
     {
-        const { datastore, params: { nodeId, customKey, type, value, updateMode } } = this;
+        const { datastore, params: { nodeId, customKey, type, value, updateMode }, cache } = this;
 
         const nodeElement = datastore.getNodeElement(nodeId);
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
@@ -35,9 +42,17 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
             });
         }
 
-        // update graph node
         const node = getInstance<ClonableNode>(nodeId);
 
+        // update cache
+        const prevProp = node.getCustomProperty(customKey);
+
+        if (prevProp)
+        {
+            cache.prop = { ...prevProp };
+        }
+
+        // update graph node
         node.setCustomProperty(customKey, type, value);
 
         // update node tree
@@ -57,6 +72,15 @@ export class SetCustomPropCommand extends AbstractCommand<SetCustomPropCommandPa
 
     public undo(): void
     {
-        throw new Error('Method not implemented.');
+        const { params: { nodeId, customKey, updateMode }, cache: { prop } } = this;
+
+        if (prop)
+        {
+            new SetCustomPropCommand({ nodeId, customKey, type: prop.type, value: prop.value, updateMode }).run();
+        }
+        else
+        {
+            new RemoveCustomPropCommand({ nodeId, customKey, updateMode }).run();
+        }
     }
 }

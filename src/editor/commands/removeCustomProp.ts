@@ -1,8 +1,10 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance } from '../../core/nodes/instances';
 import { type UpdateMode, AbstractCommand } from '../abstractCommand';
+import { SetCustomPropCommand } from './setCustomProp';
 import { UnAssignCustomPropCommand } from './unassignCustomProp';
 
 export interface RemoveCustomPropCommandParams
@@ -12,13 +14,19 @@ export interface RemoveCustomPropCommandParams
     updateMode: UpdateMode;
 }
 
-export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCommandParams>
+export interface RemoveCustomPropCommandCache
+{
+    prop?: CustomProperty;
+}
+
+export class RemoveCustomPropCommand
+    extends AbstractCommand<RemoveCustomPropCommandParams, void, RemoveCustomPropCommandCache>
 {
     public static commandName = 'RemoveCustomProp';
 
     public apply(): void
     {
-        const { datastore, params: { nodeId, customKey, updateMode } } = this;
+        const { datastore, params: { nodeId, customKey, updateMode }, cache } = this;
 
         if (updateMode === 'full')
         {
@@ -29,9 +37,12 @@ export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCom
             definedCustomProps.remove(customKey);
         }
 
-        // update graph node
         const node = getInstance<ClonableNode>(nodeId);
 
+        // update cache
+        cache.prop = node.getCustomProperty(customKey);
+
+        // update graph node
         node.removeCustomProperty(customKey);
 
         // update node tree
@@ -50,6 +61,15 @@ export class RemoveCustomPropCommand extends AbstractCommand<RemoveCustomPropCom
 
     public undo(): void
     {
-        throw new Error('Method not implemented.');
+        const { params: { nodeId, customKey, updateMode }, cache: { prop } } = this;
+
+        if (prop)
+        {
+            new SetCustomPropCommand({ nodeId, customKey, type: prop.type, value: prop.value, updateMode }).run();
+        }
+        else
+        {
+            new RemoveCustomPropCommand({ nodeId, customKey, updateMode }).run();
+        }
     }
 }

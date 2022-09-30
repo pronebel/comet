@@ -435,6 +435,11 @@ export abstract class ClonableNode<
         return array;
     }
 
+    public getCustomProperty(customKey: string)
+    {
+        return this.defineCustomProperties.get(customKey);
+    }
+
     public setCustomProperty(customKey: string, type: CustomPropertyType, value?: CustomPropertyValueType)
     {
         const { defineCustomProperties } = this;
@@ -452,6 +457,7 @@ export abstract class ClonableNode<
                 type,
                 value,
             };
+
             defineCustomProperties.set(customKey, prop);
         }
 
@@ -472,7 +478,10 @@ export abstract class ClonableNode<
         // note: updating all nodes is done by action
     }
 
-    public assignCustomProperty(modelKey: keyof M, customKey: string): CustomProperty | undefined
+    public assignCustomProperty(modelKey: keyof M, customKey: string): {
+        prop?: CustomProperty;
+        oldCustomKey?: string;
+    }
     {
         const definedProps = this.getDefinedCustomProps();
         const propArray = definedProps.get(customKey);
@@ -481,13 +490,15 @@ export abstract class ClonableNode<
         {
             const prop = propArray[0];
 
+            const oldCustomKey = this.assignedCustomProperties.get(modelKey);
+
             this.assignedCustomProperties.set(modelKey, customKey);
 
             // note: we don't change the model value, that is done by the calling AssignCustomProp command
-            return prop;
+            return { prop, oldCustomKey };
         }
 
-        return undefined;
+        return {};
     }
 
     public unAssignCustomProperty(modelKey: keyof M): string | undefined

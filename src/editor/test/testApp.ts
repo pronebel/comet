@@ -1,7 +1,6 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
-import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
@@ -332,7 +331,7 @@ export class TestApp extends Application
             const propType = isNaN(value) ? 'string' : 'number';
             const propValue = propType === 'string' ? value : parseFloat(value);
 
-            this.exec(new SetCustomPropCommand({
+            this.execUndoRoot(new SetCustomPropCommand({
                 nodeId: selected.id,
                 customKey: name,
                 type: propType,
@@ -348,7 +347,7 @@ export class TestApp extends Application
 
         if (selected)
         {
-            this.exec(new RemoveCustomPropCommand({
+            this.execUndoRoot(new RemoveCustomPropCommand({
                 nodeId: selected.id,
                 customKey: name,
                 updateMode: 'full',
@@ -362,7 +361,7 @@ export class TestApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.exec(new AssignCustomPropCommand({
+            this.execUndoRoot(new AssignCustomPropCommand({
                 nodeId: selected.id,
                 modelKey,
                 customKey,
@@ -377,7 +376,7 @@ export class TestApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.exec(new UnAssignCustomPropCommand({
+            this.execUndoRoot(new UnAssignCustomPropCommand({
                 nodeId: selected.id,
                 modelKey,
                 updateMode: 'full',
