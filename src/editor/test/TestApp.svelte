@@ -244,11 +244,11 @@
     <button on:click={onAudit}>Audit</button>
     <hr />
     <input bind:value={undoStackEnd} />
-    <button on:click={onClearUndoStack}>Clear Undo</button>
-    <button on:click={onPeekUndoStack}>Peek Undo</button>
-    <button on:click={onWriteUndoStack}>Save Undo</button>
     <button on:click={onReadUndoStack}>Load Undo</button>
     <button on:click={onReplay}>Replay</button>
+    <button on:click={onPeekUndoStack}>Peek Undo</button>
+    <button on:click={onWriteUndoStack}>Save Undo</button>
+    <button on:click={onClearUndoStack}>Clear Undo</button>
     <hr />
     <button on:click={onDeselect}>Deselect</button>
     <button on:click={onRandColor}>Rand Color</button>
