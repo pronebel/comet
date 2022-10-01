@@ -156,6 +156,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return this.model.root().toJSON() as ProjectSchema;
     }
 
+    public hasNodeElement(nodeId: string)
+    {
+        return this.nodeRealtimeObjects.has(nodeId);
+    }
+
     public getNodeElementSchema(nodeId: string)
     {
         const nodeElement = this.getNodeElement(nodeId);

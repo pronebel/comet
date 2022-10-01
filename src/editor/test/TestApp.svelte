@@ -154,7 +154,10 @@
   };
 
   const onWriteUndoStack = () => {
+    const temp = localStorage["saveUndo"];
+    localStorage["saveUndo"] = "1";
     app.writeUndoStack();
+    localStorage["saveUndo"] = temp;
   };
 
   const onReadUndoStack = () => {

@@ -22,4 +22,26 @@ export class RestoreNodeCommand
 
         datastore.restoreRemovedNode(nodeSchema.id);
     }
+
+    public isReferencingNode(nodeId: string): boolean
+    {
+        if (super.isReferencingNode(nodeId))
+        {
+            return true;
+        }
+
+        if (!this.datastore.hasNodeElement(nodeId))
+        {
+            return false;
+        }
+
+        const nodeSchema = this.datastore.getNodeElementSchema(nodeId);
+
+        if (nodeSchema.prevId)
+        {
+            return super.isReferencingNode(nodeSchema.prevId);
+        }
+
+        return false;
+    }
 }

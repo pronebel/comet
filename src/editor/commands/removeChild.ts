@@ -85,6 +85,7 @@ export class RemoveChildCommand
             const parentId = nodeSchema.parent as string;
 
             nodeSchema.id = newNodeId;
+            nodeSchema.prevId = oldNodeId;
 
             const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).run();
 

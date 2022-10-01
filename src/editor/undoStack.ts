@@ -4,7 +4,7 @@ import { getNodeSchema } from '../core/nodes/schema';
 import type { Command } from './command';
 import { RestoreNodeCommand } from './commands/restoreNode';
 import type { Datastore } from './sync/datastore';
-import type { DSNodeRemovedEvent } from './sync/datastoreEvents';
+import type { DSNodeCreatedEvent, DSNodeRemovedEvent } from './sync/datastoreEvents';
 
 export default class UndoStack
 {
@@ -16,10 +16,10 @@ export default class UndoStack
         this.stack = [];
         this.head = -1;
 
-        datastore.on('nodeRemoved', this.onNodeRemoved);
+        // datastore.on('nodeRemoved', this.onNodeRemoved);
     }
 
-    protected onNodeRemoved = (e: DSNodeRemovedEvent) =>
+    public onNodeRemoved = (e: DSNodeRemovedEvent) =>
     {
         const node = getInstance<ClonableNode>(e.nodeId);
 
@@ -37,6 +37,21 @@ export default class UndoStack
 
             stack.splice(index, 0, cmd);
             this.head = index;
+        }
+    };
+
+    public onNodeCreated = (e: DSNodeCreatedEvent) =>
+    {
+        const { nodeId } = e;
+
+        const nodeSchema = this.datastore.getNodeElementSchema(nodeId);
+        const prevId = nodeSchema.prevId;
+
+        if (prevId)
+        {
+            const commands = this.findCommandsReferencing(prevId);
+
+            commands.forEach((command) => command.updateNodeId(prevId, nodeId));
         }
     };
 

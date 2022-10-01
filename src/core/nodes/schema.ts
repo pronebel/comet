@@ -24,6 +24,7 @@ export interface CloneInfoSchema
 export interface NodeSchema<M extends ModelBase = {}>
 {
     id: string;
+    prevId?: string;
     created: number;
     type: string;
     parent?: string;

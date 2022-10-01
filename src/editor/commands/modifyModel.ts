@@ -58,16 +58,16 @@ export class ModifyModelCommand<M extends ModelBase>
         }
     }
 
-    public isReferencingNode(nodeId: string): boolean
-    {
-        if (super.isReferencingNode(nodeId))
-        {
-            return true;
-        }
+    // public isReferencingNode(nodeId: string): boolean
+    // {
+    //     if (super.isReferencingNode(nodeId))
+    //     {
+    //         return true;
+    //     }
 
-        const myNode = getInstance<ClonableNode>(this.params.nodeId);
-        const refNode = getInstance<ClonableNode>(nodeId);
+    //     const myNode = getInstance<ClonableNode>(this.params.nodeId);
+    //     const refNode = getInstance<ClonableNode>(nodeId);
 
-        return myNode.isReferencingNode(refNode);
-    }
+    //     return myNode.isReferencingNode(refNode);
+    // }
 }

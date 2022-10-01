@@ -111,7 +111,7 @@ export abstract class Application extends EventEmitter<AppEvents>
     {
         if (userName === 'ali')
         {
-            if (localStorage['saveCommands'] === '1')
+            if (localStorage['saveUndo'] === '1')
             {
                 localStorage[localStorageCommandsKey] = '[]';
             }
@@ -141,7 +141,7 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public writeUndoStack()
     {
-        if (localStorage['saveCommands'] !== '1')
+        if (localStorage['saveUndo'] !== '1')
         {
             return;
         }
