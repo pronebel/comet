@@ -6,6 +6,7 @@
   import { Auditor } from "../auditor";
   import { getUserName } from "../sync/user";
   import { getUrlParam } from "../util";
+  import Replay from "./Replay.svelte";
 
   import { TestApp } from "./testApp";
 
@@ -15,6 +16,7 @@
   let customPropValue: string = "foo1";
   let assignModelKey: string = "label";
   let undoStackEnd: number = 0;
+  let showReplay = true;
 
   let isInit = false;
   let isInitialising = false;
@@ -108,10 +110,12 @@
   };
 
   const onUndo = () => {
+    app.writeCommandList("undo");
     app.undo();
   };
 
   const onRedo = () => {
+    app.writeCommandList("redo");
     app.redo();
   };
 
@@ -144,14 +148,23 @@
   };
 
   const onPeekUndoStack = () => {
-    //const commands = app.readUndoStack();
     const commands = app.undoStack.stack;
     console.clear();
     console.log(`head: ${app.undoStack.head}`, commands);
   };
 
+  const onWriteUndoStack = () => {
+    app.writeUndoStack();
+  };
+
   const onReadUndoStack = () => {
     app.readUndoStack(undoStackEnd);
+  };
+
+  const onReplay = () => {
+    localStorage["replay"] = "1";
+    onReadUndoStack();
+    showReplay = true;
   };
 
   const onSetCustomProp = () => {
@@ -193,6 +206,9 @@
     if (debug && shouldUpdateDebug) {
       app && app.debug(debug);
     }
+    if (localStorage.getItem("replay") !== null && !showReplay) {
+      onReplay();
+    }
   }, 500);
 </script>
 
@@ -204,6 +220,9 @@
     on:mouseover={() => (shouldUpdateDebug = false)}
     on:mouseout={() => (shouldUpdateDebug = true)}>
   <span /></pre>
+  {#if showReplay}
+    <Replay />
+  {/if}
   {#if isInit}
     <button on:click={onNewContainer}>New Empty</button>
     <button on:click={onNewChild}>New Child</button>
@@ -227,7 +246,9 @@
     <input bind:value={undoStackEnd} />
     <button on:click={onClearUndoStack}>Clear Undo</button>
     <button on:click={onPeekUndoStack}>Peek Undo</button>
+    <button on:click={onWriteUndoStack}>Save Undo</button>
     <button on:click={onReadUndoStack}>Load Undo</button>
+    <button on:click={onReplay}>Replay</button>
     <hr />
     <button on:click={onDeselect}>Deselect</button>
     <button on:click={onRandColor}>Rand Color</button>
@@ -350,5 +371,11 @@
     color: lightskyblue;
     background-color: rgba(0, 0, 0, 0.7);
     padding: 2px;
+  }
+
+  #replay {
+    position: absolute;
+    width: 100px;
+    background-color: white;
   }
 </style>

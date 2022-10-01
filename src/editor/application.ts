@@ -16,7 +16,8 @@ import UndoStack from './undoStack';
 const userName = getUserName();
 
 const localStorageUndoStackKey = `${userName}:undo`;
-const localStorageCommandsKey = `commandList`;
+
+export const localStorageCommandsKey = `commandList`;
 
 export interface AppOptions
 {
@@ -104,8 +105,21 @@ export abstract class Application extends EventEmitter<AppEvents>
     }
 
     public async init()
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
     {
+        if (userName === 'ali')
+        {
+            const commandList = localStorage[localStorageCommandsKey];
+
+            if (commandList !== '[]' && commandList !== undefined)
+            {
+                localStorage[`${localStorageCommandsKey}:bak`] = localStorage[localStorageCommandsKey];
+            }
+
+            localStorage[localStorageCommandsKey] = '[]';
+        }
+
+        localStorage.removeItem('replay');
+        localStorage.setItem('replay', '0');
     }
 
     public exec<R = unknown>(command: Command, isUndoRoot = true): R
@@ -114,10 +128,10 @@ export abstract class Application extends EventEmitter<AppEvents>
 
         command.isUndoRoot = isUndoRoot;
 
-        const isEmpty = this.undoStack.isEmpty;
+        this.writeCommandList(command.name);
 
         this.undoStack.push(command);
-        this.writeUndoStack(command, isEmpty);
+        this.writeUndoStack();
 
         const result = command.run();
 
@@ -126,24 +140,19 @@ export abstract class Application extends EventEmitter<AppEvents>
         return result as unknown as R;
     }
 
-    public writeUndoStack(command?: Command, isEmpty?: boolean)
+    public writeUndoStack()
     {
         const data = JSON.stringify(this.undoStack.toJSON(), null, 4);
 
         localStorage[localStorageUndoStackKey] = data;
+    }
 
-        if (userName === 'ali' && isEmpty)
-        {
-            localStorage[localStorageCommandsKey] = '[]';
-        }
+    public writeCommandList(commandName: string)
+    {
+        const commandList = JSON.parse(localStorage[localStorageCommandsKey] || '[]') as string[];
 
-        if (command)
-        {
-            const commandList = JSON.parse(localStorage[localStorageCommandsKey] || '[]') as string[];
-
-            commandList.push(`${userName}:${command.name}`);
-            localStorage[localStorageCommandsKey] = JSON.stringify(commandList);
-        }
+        commandList.push(`${userName}:${commandName}`);
+        localStorage[localStorageCommandsKey] = JSON.stringify(commandList);
     }
 
     public readUndoStack(endIndex: number | undefined = undefined)

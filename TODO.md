@@ -1,24 +1,11 @@
-* ⚪ Todo
-* 🟠 In Progress
-* 🟢 Done
+[ Replicable Issues ]
 
-[ Weekend + Monday ]
+    "ali:AddChild",
+    "ali:AddChild",
+    "mat:ModifyModel",
+    "ali:RemoveChild",
+    "ali:undo",
+    "mat:undo",
 
-* 🟢 Undo stack needs: [cmd, cmd, [cmd, cmd, cmd], cmd] - to facilitate multi-select operations
-* 🟠 Create, delete, custom props, cloning, unlink - finish core actions
-* 🟠 Deep delete - children need to be removed from datastore
-* 🟠 Test hydration from complete example, clones, custom props, etc
-* ⚪ Basic hotkeys for undo/redo
-* ⚪ Undo / Redo
-* ⚪ Consolidation, Refactors, Code Clean up - hide datastore internals in case backend replaced
-
-[ Tuesday + Next Week ]
-
-* ⚪ Begin selection references (multi-select aware tools?)
-* ⚪ Begin transform operations
-* ⚪ Begin parenting
-* ⚪ Begin UI
-
-[ General ]
-* ⚪ Proper app startup flow
-* ⚪ Detect connection/disconnection to backend
+    * Problem: Debug:1 & Debug:2 get undone by ali and get recreated as Debug:3 & Debug:4, but mat has cached references to 1&2
+    * Hypotheses: Need to update cached refs with new instances, but keep them cached for restore when needed (and check that are already restored to avoid duplicate)
