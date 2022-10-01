@@ -6,7 +6,7 @@
   const userName = getUserName();
 
   const commandList = JSON.parse(
-    localStorage[`${localStorageCommandsKey}:bak`] || "[]"
+    localStorage[localStorageCommandsKey] || "[]"
   ) as string[];
 
   const myCommandIndexes: number[] = [];
@@ -23,6 +23,9 @@
   }
 
   function isCurrentUser(index: number) {
+    if (commandList.length === 0) {
+      return false;
+    }
     return getCommandInfo(index)[0] === userName;
   }
 
@@ -32,7 +35,7 @@
 
   function onClick(index: number) {
     selectedIndex = index;
-    localStorage.setItem("replay", String(selectedIndex));
+    localStorage.setItem("replayIndex", String(selectedIndex));
   }
 
   function exec(isRedo: boolean) {
@@ -70,17 +73,17 @@
   function onUndo() {
     exec(false);
     selectedIndex = Math.max(0, selectedIndex - 1);
-    localStorage.setItem("replay", String(selectedIndex));
+    localStorage.setItem("replayIndex", String(selectedIndex));
   }
 
   function onRedo() {
     exec(true);
     selectedIndex = Math.min(commandList.length - 1, selectedIndex + 1);
-    localStorage.setItem("replay", String(selectedIndex));
+    localStorage.setItem("replayIndex", String(selectedIndex));
   }
 
   setInterval(() => {
-    const replayIndex = localStorage.getItem("replay");
+    const replayIndex = localStorage.getItem("replayIndex");
     if (replayIndex) {
       const index = parseInt(replayIndex as string);
       if (index !== selectedIndex) {

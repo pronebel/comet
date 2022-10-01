@@ -53,6 +53,9 @@
   {#if windowError}
     <div class="windowError">
       <!-- svelte-ignore a11y-invalid-attribute -->
+      <a href="javascript:void(0)" on:click={() => (windowError = undefined)}
+        >Close</a
+      >
       <a href="javascript:window.location.reload()">Reload</a>
       <pre>{windowError.stack?.replace(/ at /g, "\nat ")}</pre>
     </div>

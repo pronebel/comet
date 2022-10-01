@@ -162,7 +162,7 @@
   };
 
   const onReplay = () => {
-    localStorage["replay"] = "1";
+    localStorage["replayIndex"] = "1";
     onReadUndoStack();
     showReplay = true;
   };
@@ -206,7 +206,7 @@
     if (debug && shouldUpdateDebug) {
       app && app.debug(debug);
     }
-    if (localStorage.getItem("replay") !== null && !showReplay) {
+    if (localStorage.getItem("replayIndex") !== null && !showReplay) {
       onReplay();
     }
   }, 500);
@@ -235,6 +235,13 @@
     <button on:click={onUndo}>Undo</button>
     <button on:click={onRedo}>Redo</button>
     <hr />
+    <input bind:value={undoStackEnd} />
+    <button on:click={onReadUndoStack}>Load Undo</button>
+    <button on:click={onReplay}>Replay</button>
+    <button on:click={onPeekUndoStack}>Peek Undo</button>
+    <button on:click={onWriteUndoStack}>Save Undo</button>
+    <button on:click={onClearUndoStack}>Clear Undo</button>
+    <hr />
     <button on:click={onReload}>Refresh</button>
     <button on:click={onNew}>New</button>
     <button on:click={onReOpen}>ReOpen</button>
@@ -242,13 +249,6 @@
     <button on:click={onSaveDatastore}>Save DStore</button>
     <button on:click={onInspectDatastore}>Inspect DStore</button>
     <button on:click={onAudit}>Audit</button>
-    <hr />
-    <input bind:value={undoStackEnd} />
-    <button on:click={onReadUndoStack}>Load Undo</button>
-    <button on:click={onReplay}>Replay</button>
-    <button on:click={onPeekUndoStack}>Peek Undo</button>
-    <button on:click={onWriteUndoStack}>Save Undo</button>
-    <button on:click={onClearUndoStack}>Clear Undo</button>
     <hr />
     <button on:click={onDeselect}>Deselect</button>
     <button on:click={onRandColor}>Rand Color</button>

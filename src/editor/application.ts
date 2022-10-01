@@ -50,9 +50,12 @@ export abstract class Application extends EventEmitter<AppEvents>
             backgroundColor: 0x333333,
         });
 
-        this.datastore = new Datastore();
-        this.undoStack = new UndoStack(this.datastore);
+        const datastore = this.datastore = new Datastore();
+        const undoStack = this.undoStack = new UndoStack(datastore);
+
+        datastore.on('nodeRemoved', undoStack.onNodeRemoved);
         this.nodeUpdater = new NodeUpdater(this.datastore);
+        datastore.on('nodeCreated', undoStack.onNodeCreated);
 
         this.initDatastoreEvents();
     }
@@ -108,18 +111,14 @@ export abstract class Application extends EventEmitter<AppEvents>
     {
         if (userName === 'ali')
         {
-            const commandList = localStorage[localStorageCommandsKey];
-
-            if (commandList !== '[]' && commandList !== undefined)
+            if (localStorage['saveCommands'] === '1')
             {
-                localStorage[`${localStorageCommandsKey}:bak`] = localStorage[localStorageCommandsKey];
+                localStorage[localStorageCommandsKey] = '[]';
             }
-
-            localStorage[localStorageCommandsKey] = '[]';
         }
 
-        localStorage.removeItem('replay');
-        localStorage.setItem('replay', '0');
+        localStorage.removeItem('replayIndex');
+        localStorage.setItem('replayIndex', '0');
     }
 
     public exec<R = unknown>(command: Command, isUndoRoot = true): R
@@ -142,6 +141,11 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public writeUndoStack()
     {
+        if (localStorage['saveCommands'] !== '1')
+        {
+            return;
+        }
+
         const data = JSON.stringify(this.undoStack.toJSON(), null, 4);
 
         localStorage[localStorageUndoStackKey] = data;
