@@ -51,8 +51,10 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return this as unknown as T;
     }
 
-    // eslint-disable-next-line @typescript-eslint/no-empty-function
-    public dispose() { }
+    public dispose()
+    {
+        this.removeAllListeners();
+    }
 
     public deleteSelf()
     {
@@ -117,9 +119,9 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
         parent.children.push(this);
 
-        parent.emit('childAdded', this);
-
         this.onAddedToParent();
+
+        parent.emit('childAdded', this);
     }
 
     public addChild(component: GraphNode<string>)
@@ -144,9 +146,9 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
             delete component.parent;
 
-            this.emit('childRemoved', this, component);
-
             component.onRemovedFromParent(this);
+
+            this.emit('childRemoved', this, component);
         }
         else
         {

@@ -6,9 +6,9 @@ import { registerInstance } from './instances';
 
 export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
 
-export type NodeFactoryEvents = 'created' | 'disposed' | 'modelModified';
+export type NodeFactoryEvents = 'created' | 'disposed' | 'modelModified' | 'childAdded' | 'childRemoved';
 
-const emitter: EventEmitter<NodeFactoryEvents> = new EventEmitter<NodeFactoryEvents>();
+export const nodeFactoryEmitter: EventEmitter<NodeFactoryEvents> = new EventEmitter<NodeFactoryEvents>();
 
 const userName = getUserName();
 
@@ -49,33 +49,57 @@ export function registerNewNode(node: ClonableNode)
 
     const onModelModified = () =>
     {
-        emitter.emit('modelModified', node);
+        nodeFactoryEmitter.emit('modelModified', node);
+    };
+
+    const onChildAdded = (node: ClonableNode) =>
+    {
+        nodeFactoryEmitter.emit('childAdded', node);
+    };
+
+    const onChildRemoved = (node: ClonableNode) =>
+    {
+        nodeFactoryEmitter.emit('childRemoved', node);
     };
 
     const onDisposed = () =>
     {
         node.off('disposed', onDisposed);
         node.off('modelChanged', onModelModified);
-        emitter.emit('disposed', node);
+        node.off('childAdded', onChildAdded);
+        node.off('childRemoved', onChildRemoved);
+        nodeFactoryEmitter.emit('disposed', node);
     };
 
     node.on('disposed', onDisposed);
     node.on('modelChanged', onModelModified);
+    node.on('childAdded', onChildAdded);
+    node.on('childRemoved', onChildRemoved);
 
-    emitter.emit('created', node);
+    nodeFactoryEmitter.emit('created', node);
 }
 
-export function onNodeCreated(fn: (node: ClonableNode) => void)
-{
-    emitter.on('created', fn);
-}
+// export function onNodeCreated(fn: (node: ClonableNode) => void)
+// {
+//     emitter.on('created', fn);
+// }
 
-export function onNodeDisposed(fn: (node: ClonableNode) => void)
-{
-    emitter.on('disposed', fn);
-}
+// export function onNodeDisposed(fn: (node: ClonableNode) => void)
+// {
+//     emitter.on('disposed', fn);
+// }
 
-export function onNodeModelModified(fn: (node: ClonableNode) => void)
-{
-    emitter.on('modelModified', fn);
-}
+// export function onNodeModelModified(fn: (node: ClonableNode) => void)
+// {
+//     emitter.on('modelModified', fn);
+// }
+
+// export function onNodeChildAdded(fn: (node: ClonableNode) => void)
+// {
+//     emitter.on('childAdded', fn);
+// }
+
+// export function onNodeChildRemoved(fn: (node: ClonableNode) => void)
+// {
+//     emitter.on('childRemoved', fn);
+// }

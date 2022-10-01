@@ -1,6 +1,7 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
@@ -8,7 +9,7 @@ import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance, getLatestInstance, hasInstance } from '../../core/nodes/instances';
-import { onNodeCreated, onNodeDisposed, onNodeModelModified, registerNodeType } from '../../core/nodes/nodeFactory';
+import { nodeFactoryEmitter, registerNodeType } from '../../core/nodes/nodeFactory';
 import { createNodeSchema } from '../../core/nodes/schema';
 import { Action } from '../action';
 import { type AppOptions, Application } from '../application';
@@ -73,22 +74,27 @@ export class TestApp extends Application
 
     protected initNodeFactoryEvents()
     {
-        onNodeCreated((node) =>
+        nodeFactoryEmitter.on('created', (node: ClonableNode) =>
         {
             console.log(`%c${userName}:CREATED: ${node.id}`, 'color:pink');
             this.makeInteractive(node.cast<ContainerNode>());
             this.selectLastNode();
-        });
-        onNodeDisposed((node) =>
+        }).on('disposed', (node: ClonableNode) =>
         {
             console.log(`%c${userName}:DISPOSED: ${node.id}`, 'color:pink');
             this.unmakeInteractive(node.cast<ContainerNode>());
             this.selectLastNode();
-        });
-        onNodeModelModified(() =>
+        }).on('modelModified', (node: ClonableNode) =>
         {
-            this.fitSelection();
-        });
+            this.fitSelection(node.cast<ContainerNode>());
+        }).on('childAdded', (node: ClonableNode) =>
+        {
+            this.fitSelection(node.cast<ContainerNode>());
+        })
+            .on('childRemoved', (node: ClonableNode) =>
+            {
+                this.fitSelection(node.cast<ContainerNode>());
+            });
     }
 
     protected initKeyboardActions()

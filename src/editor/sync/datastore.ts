@@ -94,6 +94,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public reset()
     {
         this.nodeRealtimeObjects.clear();
+
         delete this._model;
     }
 

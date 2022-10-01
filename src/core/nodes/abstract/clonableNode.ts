@@ -212,13 +212,10 @@ export abstract class ClonableNode<
 
         if (this.cloneInfo.isClone)
         {
-            // todo: check if this is done beforehand (via remove node or set parent?)
             this.unlink();
         }
 
         this.emit('disposed');
-
-        this.removeAllListeners();
     }
 
     // @ts-ignore

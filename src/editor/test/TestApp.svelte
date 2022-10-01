@@ -51,6 +51,10 @@
     });
   };
 
+  const onNew = () => {
+    app.createProject("Test", "test");
+  };
+
   const onNewContainer = () => {
     app.newContainer();
   };
@@ -209,7 +213,8 @@
     <button on:click={onUndo}>Undo</button>
     <button on:click={onRedo}>Redo</button>
     <hr />
-    <button on:click={onReload}>Reload</button>
+    <button on:click={onReload}>Refresh</button>
+    <button on:click={onNew}>New</button>
     <button on:click={onReOpen}>ReOpen</button>
     <button on:click={onRestoreDatastore}>Restore DStore</button>
     <button on:click={onSaveDatastore}>Save DStore</button>
