@@ -123,7 +123,10 @@
     const auditor = new Auditor();
     const audit = auditor.audit();
     console.clear();
-    console.log(JSON.stringify(audit, null, 4));
+    console.log("%c\nGraph Nodes:", "font-weight:bold;color:cyan");
+    console.table(audit.nodes);
+    console.log("%c\nDatastore:", "font-weight:bold;color:cyan");
+    console.table(audit.datastore);
   };
 
   const onSaveDatastore = () => {

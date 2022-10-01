@@ -102,9 +102,14 @@ export function getNodeSchema(node: ClonableNode, includeParent = true, includeC
 
     nodeSchema.created = node.created;
 
+    // delete unused properties
     if (!nodeSchema.cloneInfo.cloner)
     {
         delete nodeSchema.cloneInfo.cloner;
+    }
+    if (!nodeSchema.parent)
+    {
+        delete nodeSchema.parent;
     }
 
     if (includeParent && node.parent)

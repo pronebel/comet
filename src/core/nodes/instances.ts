@@ -123,3 +123,5 @@ export function getInstancesByType()
 
     return types;
 }
+
+(window as any).getInstance = getInstance;

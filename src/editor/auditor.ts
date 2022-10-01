@@ -1,21 +1,42 @@
 import { deepEqual } from 'fast-equals';
 
-import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
+import { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { GraphNode } from '../core/nodes/abstract/graphNode';
 import { CloneMode } from '../core/nodes/cloneInfo';
 import type { ProjectNode } from '../core/nodes/concrete/project';
 import { getInstance, getInstancesByType } from '../core/nodes/instances';
-import { type NodeSchema, getNodeSchema } from '../core/nodes/schema';
+import { getNodeSchema } from '../core/nodes/schema';
 import { Application } from './application';
 
-const tick = '✅';
-const cross = '❌';
+enum Result
+    {
+    Tick = '✅',
+    Cross = '❌',
+    Dot = '🟢',
+    NA = '',
+}
+
+const asResult = (value: boolean) => (value ? Result.Tick : Result.Cross);
+
+export interface GraphNodeAudit
+{
+    isInGraph: Result;
+    isInDatastore: Result;
+    isSchemaValid: Result;
+    isCloneInfoValid: string;
+}
+
+export interface DSNodeAudit
+{
+    isRegistered: Result;
+    isRestoreCached: Result;
+    isAttached: Result;
+}
 
 export interface Audit
 {
-    instancesByType: Record<string, string[]>;
-    datastoreRegisteredIds: string[];
-    datastoreRemovedCacheIds: string[];
+    nodes: Record<string, GraphNodeAudit>;
+    datastore: Record<string, DSNodeAudit>;
 }
 
 export class Auditor
@@ -37,98 +58,103 @@ export class Auditor
 
     public audit(): Audit
     {
-        const { app, datastore } = this;
-
+        const { datastore } = this;
+        const audit: Audit = {
+            nodes: {},
+            datastore: {},
+        };
         const instancesByType = getInstancesByType();
-        const project = app.project;
-
-        if (!project)
-        {
-            throw Error('No project defined');
-        }
-
-        // verify all Empty nodes
-        if (instancesByType['Empty'])
-        {
-            instancesByType['Empty'] = this.verifyNodes(project, instancesByType['Empty']);
-        }
-
-        // verify all Debug nodes
-        if (instancesByType['Debug'])
-        {
-            instancesByType['Debug'] = this.verifyNodes(project, instancesByType['Debug']);
-        }
-
-        // verify datastore
-        // const data = datastore.toJSON();
         const datastoreRegisteredIds = datastore.getRegisteredIds();
         const datastoreRemovedCacheIds = datastore.getRemovedCacheIds();
 
-        return {
-            instancesByType,
-            datastoreRegisteredIds,
-            datastoreRemovedCacheIds,
-        };
-    }
-
-    protected verifyNodes(root: ProjectNode, nodeIds: string[])
-    {
-        const { datastore } = this;
-
-        return nodeIds.map((id) =>
+        // nodes
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        for (const [_type, ids] of Object.entries(instancesByType))
         {
-            const errors: string[] = [];
-
-            const node = getInstance<ClonableNode>(id);
-
-            // verify project contains node
-            if (!root.contains(node))
+            ids.forEach((id) =>
             {
-                errors.push('Not in graph');
-            }
+                const instance = getInstance(id);
 
-            // verify all clone references are in project tree
-            const { cloneInfo, cloneInfo: { cloner, cloneMode } } = node;
+                if (instance instanceof ClonableNode)
+                {
+                    const node = instance as unknown as ClonableNode;
 
-            if (cloner)
-            {
-                if (!root.contains(cloner as unknown as GraphNode))
-                {
-                    errors.push(`Cloner "${cloner.id}" not in graph`);
-                }
-                if (cloneMode === CloneMode.Original)
-                {
-                    errors.push('Original still has cloner');
-                }
-            }
-
-            cloneInfo.forEachCloned<GraphNode>((node) =>
-            {
-                if (!root.contains(node as unknown as GraphNode))
-                {
-                    errors.push(`Cloned "${node.id}" not in graph`);
+                    audit.nodes[node.id] = this.auditNode(node);
                 }
             });
+        }
 
-            // verify datastore has RealTimeObject
-            let dsNodeSchema: NodeSchema | undefined;
+        // datastore
+        datastoreRegisteredIds.forEach((id) => (audit.datastore[id] = {
+            isRegistered: Result.Dot,
+            isRestoreCached: Result.NA,
+            isAttached: asResult(datastore.getNodeElement(id).isAttached()),
+        }));
 
-            try
+        datastoreRemovedCacheIds.forEach((id) => (audit.datastore[id] = {
+            isRegistered: Result.NA,
+            isRestoreCached: Result.Dot,
+            isAttached: asResult(datastore.getNodeElement(id).isAttached()),
+        }));
+
+        return audit;
+    }
+
+    protected auditNode(node: ClonableNode): GraphNodeAudit
+    {
+        const { app, datastore } = this;
+
+        const project = app.project as ProjectNode;
+        const datastoreRegisteredIds = datastore.getRegisteredIds();
+
+        const isInGraph = asResult(node === project ? true : project.contains(node));
+        const isInDatastore = asResult(datastoreRegisteredIds.indexOf(node.id) > -1);
+
+        const { cloneInfo, cloneInfo: { cloner, cloneMode } } = node;
+        let isCloneInfoValid = '';
+
+        if (cloner)
+        {
+            if (!project.contains(cloner as unknown as GraphNode))
             {
-                dsNodeSchema = datastore.getNodeElementSchema(id);
+                isCloneInfoValid = 'CRNIG'; // cloner not in graph
             }
-            catch (e)
+            if (cloneMode === CloneMode.Original)
             {
-                errors.push('Could not get datastore schema');
+                isCloneInfoValid = 'OHC'; // original has cloner
             }
+        }
+
+        cloneInfo.forEachCloned<GraphNode>((node) =>
+        {
+            if (!project.contains(node as unknown as GraphNode))
+            {
+                isCloneInfoValid = 'CNNIG'; // cloned not in graph
+            }
+        });
+
+        let isSchemaValid = true;
+
+        try
+        {
+            const dsNodeSchema = datastore.getNodeElementSchema(node.id);
             const nodeSchema = getNodeSchema(node);
 
             if (!deepEqual(dsNodeSchema, nodeSchema))
             {
-                errors.push('DS schema !== node schema');
+                throw new Error();
             }
+        }
+        catch (e)
+        {
+            isSchemaValid = false;
+        }
 
-            return errors.length === 0 ? `${id}${tick}` : `${id}${cross}${errors.join(`,${cross}`)}`;
-        });
+        return {
+            isInGraph,
+            isInDatastore,
+            isSchemaValid: asResult(isSchemaValid),
+            isCloneInfoValid: asResult(isCloneInfoValid.length === 0) + isCloneInfoValid,
+        };
     }
 }
