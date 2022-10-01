@@ -184,7 +184,10 @@ export abstract class ClonableNode<
         {
             if (cloneInfo.isReference)
             {
+                const values = this.model.values;
+
                 this.model = cloner.model.clone() as unknown as Model<M> & M;
+                this.model.setValues(values);
                 this.initModel();
             }
             else

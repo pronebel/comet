@@ -466,15 +466,12 @@ export class TestApp extends Application
 
             const sprite = component.getView<Sprite>();
 
-            setTimeout(() =>
-            {
-                const bounds = sprite.getBounds();
+            const bounds = sprite.getBounds();
 
-                this.selection.x = bounds.left;
-                this.selection.y = bounds.top;
-                this.selection.width = bounds.width;
-                this.selection.height = bounds.height;
-            }, 0);
+            this.selection.x = bounds.left;
+            this.selection.y = bounds.top;
+            this.selection.width = bounds.width;
+            this.selection.height = bounds.height;
         }
     }
 
