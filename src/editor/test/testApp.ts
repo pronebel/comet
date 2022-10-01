@@ -91,9 +91,11 @@ export class TestApp extends Application
         {
             this.fitSelection(node.cast<ContainerNode>());
         })
+        // @ts-ignore
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .on('childRemoved', (node: ClonableNode) =>
             {
-                this.fitSelection(node.cast<ContainerNode>());
+                this.selectLastNode();
             });
     }
 

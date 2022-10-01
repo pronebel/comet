@@ -148,7 +148,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
             component.onRemovedFromParent(this);
 
-            this.emit('childRemoved', this, component);
+            this.emit('childRemoved', component);
         }
         else
         {

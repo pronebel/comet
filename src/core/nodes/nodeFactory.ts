@@ -78,28 +78,3 @@ export function registerNewNode(node: ClonableNode)
 
     nodeFactoryEmitter.emit('created', node);
 }
-
-// export function onNodeCreated(fn: (node: ClonableNode) => void)
-// {
-//     emitter.on('created', fn);
-// }
-
-// export function onNodeDisposed(fn: (node: ClonableNode) => void)
-// {
-//     emitter.on('disposed', fn);
-// }
-
-// export function onNodeModelModified(fn: (node: ClonableNode) => void)
-// {
-//     emitter.on('modelModified', fn);
-// }
-
-// export function onNodeChildAdded(fn: (node: ClonableNode) => void)
-// {
-//     emitter.on('childAdded', fn);
-// }
-
-// export function onNodeChildRemoved(fn: (node: ClonableNode) => void)
-// {
-//     emitter.on('childRemoved', fn);
-// }

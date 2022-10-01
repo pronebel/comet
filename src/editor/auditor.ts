@@ -3,7 +3,7 @@ import { deepEqual } from 'fast-equals';
 import { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { GraphNode } from '../core/nodes/abstract/graphNode';
 import { CloneMode } from '../core/nodes/cloneInfo';
-import type { ProjectNode } from '../core/nodes/concrete/project';
+import { ProjectNode } from '../core/nodes/concrete/project';
 import { getInstance, getInstancesByType } from '../core/nodes/instances';
 import { getNodeSchema } from '../core/nodes/schema';
 import { Application } from './application';
@@ -107,7 +107,7 @@ export class Auditor
         const project = app.project as ProjectNode;
         const datastoreRegisteredIds = datastore.getRegisteredIds();
 
-        const isInGraph = asResult(node === project ? true : project.contains(node));
+        const isInGraph = asResult(node instanceof ProjectNode ? true : project.contains(node));
         const isInDatastore = asResult(datastoreRegisteredIds.indexOf(node.id) > -1);
 
         const { cloneInfo, cloneInfo: { cloner, cloneMode } } = node;

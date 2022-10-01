@@ -180,7 +180,7 @@ describe('Component', () =>
             const child = new TestComponent();
 
             parent1.addChild(child);
-            parent1.on('childRemoved', (_parent, child) =>
+            parent1.on('childRemoved', (child) =>
             {
                 expect(child).toBe(child);
                 done();
