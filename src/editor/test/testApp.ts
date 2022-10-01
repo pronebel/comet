@@ -120,6 +120,14 @@ export class TestApp extends Application
         this.deselect();
     }
 
+    protected resetState(): void
+    {
+        super.resetState();
+
+        delete this.selected;
+        this.selection.visible = false;
+    }
+
     protected initProject(project: ProjectNode): void
     {
         super.initProject(project);

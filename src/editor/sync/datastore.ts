@@ -98,6 +98,16 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         delete this._model;
     }
 
+    public getRegisteredIds()
+    {
+        return Array.from(this.nodeRealtimeObjects.keys());
+    }
+
+    public getRemovedCacheIds()
+    {
+        return Array.from(this.removedNodeSchemaCache.keys());
+    }
+
     public restoreRemovedNode<T = ClonableNode>(nodeId: string): T
     {
         try

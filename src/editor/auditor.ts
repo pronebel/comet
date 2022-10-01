@@ -14,6 +14,8 @@ const cross = '❌';
 export interface Audit
 {
     instancesByType: Record<string, string[]>;
+    datastoreRegisteredIds: string[];
+    datastoreRemovedCacheIds: string[];
 }
 
 export class Auditor
@@ -35,7 +37,8 @@ export class Auditor
 
     public audit(): Audit
     {
-        const { app } = this;
+        const { app, datastore } = this;
+
         const instancesByType = getInstancesByType();
         const project = app.project;
 
@@ -56,8 +59,15 @@ export class Auditor
             instancesByType['Debug'] = this.verifyNodes(project, instancesByType['Debug']);
         }
 
+        // verify datastore
+        // const data = datastore.toJSON();
+        const datastoreRegisteredIds = datastore.getRegisteredIds();
+        const datastoreRemovedCacheIds = datastore.getRemovedCacheIds();
+
         return {
             instancesByType,
+            datastoreRegisteredIds,
+            datastoreRemovedCacheIds,
         };
     }
 
