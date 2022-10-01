@@ -12,8 +12,8 @@ enum Result
     {
     Tick = '✅',
     Cross = '❌',
-    Dot = '🟢',
-    NA = '',
+    Dot = '⚪',
+    NA = '〰️',
 }
 
 const asResult = (value: boolean) => (value ? Result.Tick : Result.Cross);
@@ -91,11 +91,14 @@ export class Auditor
             isAttached: asResult(datastore.getNodeElement(id).isAttached()),
         }));
 
-        datastoreRemovedCacheIds.forEach((id) => (audit.datastore[id] = {
-            isRegistered: Result.NA,
-            isRestoreCached: Result.Dot,
-            isAttached: asResult(datastore.getNodeElement(id).isAttached()),
-        }));
+        datastoreRemovedCacheIds.forEach((id) =>
+        {
+            audit.datastore[id] = {
+                isRegistered: Result.NA,
+                isRestoreCached: Result.Dot,
+                isAttached: Result.NA,
+            };
+        });
 
         return audit;
     }
@@ -117,11 +120,11 @@ export class Auditor
         {
             if (!project.contains(cloner as unknown as GraphNode))
             {
-                isCloneInfoValid = 'CRNIG'; // cloner not in graph
+                isCloneInfoValid = `ClonerMissing(${cloner.id})`; // cloner not in graph
             }
             if (cloneMode === CloneMode.Original)
             {
-                isCloneInfoValid = 'OHC'; // original has cloner
+                isCloneInfoValid = `OriginalHasCloner(${cloner.id})`; // original has cloner
             }
         }
 
@@ -129,7 +132,7 @@ export class Auditor
         {
             if (!project.contains(node as unknown as GraphNode))
             {
-                isCloneInfoValid = 'CNNIG'; // cloned not in graph
+                isCloneInfoValid = `ClonedMissing(${node.id})`; // cloned not in graph
             }
         });
 

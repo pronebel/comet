@@ -3,7 +3,7 @@ import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneMode } from '../../core/nodes/cloneInfo';
 import { getInstance, newId } from '../../core/nodes/instances';
 import type { NodeSchema } from '../../core/nodes/schema';
-import { AbstractCommand } from '../abstractCommand';
+import { Command } from '../command';
 import { CloneCommand } from './clone';
 import { CreateNodeCommand } from './createNode';
 import { RemoveNodeCommand } from './removeNode';
@@ -27,7 +27,7 @@ export interface AddChildCommandCache
 
 export class AddChildCommand<
     M extends ModelBase = ModelBase,
-> extends AbstractCommand<AddChildCommandParams<M>, AddChildCommandReturn, AddChildCommandCache>
+> extends Command<AddChildCommandParams<M>, AddChildCommandReturn, AddChildCommandCache>
 {
     public static commandName = 'AddChild';
 
@@ -45,7 +45,7 @@ export class AddChildCommand<
 
         const sourceNode = getInstance<ClonableNode>(parentId);
         const originalParentNode = sourceNode.getAddChildCloneTarget();
-        const clonedParentNodes = originalParentNode.getAllCloned();
+        const clonedParentNodes = originalParentNode.getClonedDescendants();
 
         const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).run();
         const nodes: ClonableNode[] = [node];

@@ -4,7 +4,7 @@ import { CloneInfo } from '../../core/nodes/cloneInfo';
 import { getInstance } from '../../core/nodes/instances';
 import { createNode } from '../../core/nodes/nodeFactory';
 import type { NodeSchema } from '../../core/nodes/schema';
-import { AbstractCommand } from '../abstractCommand';
+import { Command } from '../command';
 import { AssignCustomPropCommand } from './assignCustomProp';
 import { SetCustomPropCommand } from './setCustomProp';
 
@@ -21,7 +21,7 @@ export interface CreateNodeCommandReturn
 
 export class CreateNodeCommand<
     M extends ModelBase = ModelBase,
-> extends AbstractCommand<CreateNodeCommandParams<M>, CreateNodeCommandReturn>
+> extends Command<CreateNodeCommandParams<M>, CreateNodeCommandReturn>
 {
     public static commandName = 'CreateNode';
 

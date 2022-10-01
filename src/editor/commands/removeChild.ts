@@ -2,7 +2,7 @@ import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import { getInstance, newId } from '../../core/nodes/instances';
 import { type NodeSchema, getNodeSchema } from '../../core/nodes/schema';
-import { AbstractCommand } from '../abstractCommand';
+import { Command } from '../command';
 import { CreateNodeCommand } from './createNode';
 import { RemoveNodeCommand } from './removeNode';
 import { SetParentCommand } from './setParent';
@@ -23,7 +23,7 @@ export interface RemoveChildCommandCache
 }
 
 export class RemoveChildCommand
-    extends AbstractCommand<RemoveChildCommandParams, RemoveChildCommandReturn, RemoveChildCommandCache>
+    extends Command<RemoveChildCommandParams, RemoveChildCommandReturn, RemoveChildCommandCache>
 {
     public static commandName = 'RemoveChild';
 
@@ -33,7 +33,7 @@ export class RemoveChildCommand
 
         const sourceNode = getInstance<ClonableNode>(nodeId);
         const originalNode = sourceNode.getModificationCloneTarget();
-        const clonedNodes = originalNode.getAllCloned();
+        const clonedNodes = originalNode.getClonedDescendants();
 
         const nodes: ClonableNode[] = [originalNode, ...clonedNodes];
 

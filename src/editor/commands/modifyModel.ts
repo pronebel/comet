@@ -1,7 +1,7 @@
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance } from '../../core/nodes/instances';
-import { AbstractCommand } from '../abstractCommand';
+import { Command } from '../command';
 
 export interface ModifyModelCommandParams<M>
 {
@@ -15,7 +15,7 @@ export interface ModifyModelCommandCache<M>
 }
 
 export class ModifyModelCommand<M extends ModelBase>
-    extends AbstractCommand<ModifyModelCommandParams<M>, void, ModifyModelCommandCache<M>>
+    extends Command<ModifyModelCommandParams<M>, void, ModifyModelCommandCache<M>>
 {
     public static commandName = 'ModifyModel';
 
@@ -56,5 +56,18 @@ export class ModifyModelCommand<M extends ModelBase>
         {
             new ModifyModelCommand({ nodeId, values: prevValues }).run();
         }
+    }
+
+    public isReferencingNode(nodeId: string): boolean
+    {
+        if (super.isReferencingNode(nodeId))
+        {
+            return true;
+        }
+
+        const myNode = getInstance<ClonableNode>(this.params.nodeId);
+        const refNode = getInstance<ClonableNode>(nodeId);
+
+        return myNode.isReferencingNode(refNode);
     }
 }

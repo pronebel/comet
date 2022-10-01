@@ -2,7 +2,7 @@ import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import { getInstance, registerInstance } from '../../core/nodes/instances';
 import { type NodeSchema, getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
-import { AbstractCommand } from '../abstractCommand';
+import { Command } from '../command';
 import { RemoveNodeCommand } from './removeNode';
 
 export interface CloneCommandParams
@@ -25,7 +25,7 @@ export interface CloneCommandCache
 }
 
 export class CloneCommand
-    extends AbstractCommand<CloneCommandParams, CloneCommandReturn, CloneCommandCache>
+    extends Command<CloneCommandParams, CloneCommandReturn, CloneCommandCache>
 {
     public static commandName = 'Clone';
 

@@ -1,14 +1,14 @@
 import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import { getInstance } from '../core/nodes/instances';
 import { getNodeSchema } from '../core/nodes/schema';
-import type { AbstractCommand } from './abstractCommand';
+import type { Command } from './command';
 import { RestoreNodeCommand } from './commands/restoreNode';
 import type { Datastore } from './sync/datastore';
 import type { DSNodeRemovedEvent } from './sync/datastoreEvents';
 
 export default class UndoStack
 {
-    public stack: AbstractCommand[];
+    public stack: Command[];
     public head: number;
 
     constructor(public readonly datastore: Datastore)
@@ -45,22 +45,22 @@ export default class UndoStack
         return this.stack.length;
     }
 
-    public indexOf(command: AbstractCommand)
+    public indexOf(command: Command)
     {
         return this.stack.indexOf(command);
     }
 
-    public getCommandAt(index: number): AbstractCommand | undefined
+    public getCommandAt(index: number): Command | undefined
     {
         return this.stack[index];
     }
 
     protected findCommandsReferencing(nodeId: string)
     {
-        return this.stack.filter((command) => command.isReferencingNode(nodeId));
+        return this.stack.filter((command) => (command.isReferencingNode(nodeId)));
     }
 
-    public push(command: AbstractCommand)
+    public push(command: Command)
     {
         const { stack, head } = this;
 
@@ -118,10 +118,10 @@ export default class UndoStack
         return this.stack.length === 0;
     }
 
-    public get nextRedoCommands(): {head: number; commands: AbstractCommand[]}
+    public get nextRedoCommands(): {head: number; commands: Command[]}
     {
         const { stack, head, isHeadAtEnd, isEmpty, nextRedoRootIndex } = this;
-        const commands: AbstractCommand[] = [];
+        const commands: Command[] = [];
 
         if (isHeadAtEnd || isEmpty)
         {
@@ -190,7 +190,7 @@ export default class UndoStack
         this.head = -1;
     }
 
-    protected get peek(): AbstractCommand | null
+    protected get peek(): Command | null
     {
         const { stack } = this;
 

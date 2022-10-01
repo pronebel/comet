@@ -1,5 +1,5 @@
 import type { NodeSchema } from '../../core/nodes/schema';
-import { AbstractCommand } from '../abstractCommand';
+import { Command } from '../command';
 
 export interface RestoreNodeCommandParams
 {
@@ -7,7 +7,7 @@ export interface RestoreNodeCommandParams
 }
 
 export class RestoreNodeCommand
-    extends AbstractCommand<RestoreNodeCommandParams>
+    extends Command<RestoreNodeCommandParams>
 {
     public static commandName = 'RestoreNode';
 

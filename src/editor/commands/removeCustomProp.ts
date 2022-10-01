@@ -3,7 +3,7 @@ import type { RealTimeObject } from '@convergence/convergence';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance } from '../../core/nodes/instances';
-import { type UpdateMode, AbstractCommand } from '../abstractCommand';
+import { type UpdateMode, Command } from '../command';
 import { SetCustomPropCommand } from './setCustomProp';
 import { UnAssignCustomPropCommand } from './unassignCustomProp';
 
@@ -20,7 +20,7 @@ export interface RemoveCustomPropCommandCache
 }
 
 export class RemoveCustomPropCommand
-    extends AbstractCommand<RemoveCustomPropCommandParams, void, RemoveCustomPropCommandCache>
+    extends Command<RemoveCustomPropCommandParams, void, RemoveCustomPropCommandCache>
 {
     public static commandName = 'RemoveCustomProp';
 

@@ -1,7 +1,7 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance, unregisterInstance } from '../../core/nodes/instances';
 import { getCloneInfoSchema } from '../../core/nodes/schema';
-import { type UpdateMode, AbstractCommand } from '../abstractCommand';
+import { type UpdateMode, Command } from '../command';
 
 export interface RemoveNodeCommandParams
 {
@@ -15,7 +15,7 @@ export interface RemoveNodeCommandReturn
 }
 
 export class RemoveNodeCommand
-    extends AbstractCommand<RemoveNodeCommandParams, RemoveNodeCommandReturn>
+    extends Command<RemoveNodeCommandParams, RemoveNodeCommandReturn>
 {
     public static commandName = 'RemoveNode';
 
@@ -37,6 +37,9 @@ export class RemoveNodeCommand
             datastore.removeNode(nodeId);
         }
 
+        // unregister graph node
+        unregisterInstance(node);
+
         // track cloner before removeChild
         const cloner = node.cloneInfo.getCloner<ClonableNode>();
 
@@ -51,9 +54,6 @@ export class RemoveNodeCommand
         {
             datastore.updateNodeCloneInfo(cloner.id, getCloneInfoSchema(cloner));
         }
-
-        // unregister graph node
-        unregisterInstance(node);
 
         // dispose
         node.dispose();

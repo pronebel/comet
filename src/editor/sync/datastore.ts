@@ -141,6 +141,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.removedNodeSchemaCache.set(nodeSchema.id, nodeSchema);
     }
 
+    public getCachedRemovedNodeSchema(nodeId: string)
+    {
+        return this.removedNodeSchemaCache.get(nodeId);
+    }
+
     public setNodesData(data: Record<string, NodeSchema>)
     {
         this.nodes.value(data);

@@ -110,6 +110,8 @@ export class TestApp extends Application
 
     public async init()
     {
+        super.init();
+
         if (userName === 'ali' && getUrlParam<number>('open') !== 1)
         {
             await this.createProject('Test', 'test');
@@ -269,8 +271,8 @@ export class TestApp extends Application
                 cloneRoot: cloneRoot ? cloneRoot.id : undefined,
                 modifyCloneTarget: selected.getModificationCloneTarget().id,
                 addChildCloneTarget: selected.getAddChildCloneTarget().id,
-                cloned: selected.getAllCloned().map((node) => node.id),
-                ancestors: selected.getCloneAncestors().map((node) => node.id),
+                cloned: selected.getClonedDescendants().map((node) => (node.id)),
+                ancestors: selected.getCloneAncestors().map((node) => (node.id)),
                 definedProps,
             };
 

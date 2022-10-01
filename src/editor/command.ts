@@ -8,7 +8,7 @@ export type UpdateMode = 'graphOnly' | 'full';
 
 export type NodeTargetCommand = { params: { nodeId: string } };
 
-export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = void, CacheType extends {} = {}>
+export abstract class Command<ParamsType extends {} = {}, ReturnType = void, CacheType extends {} = {}>
 {
     public cache: CacheType;
     public isUndoRoot: boolean;
@@ -45,7 +45,7 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
         return result as unknown as ReturnType;
     }
 
-    protected updateAllFollowingCommands(updateFn: (command: AbstractCommand) => void)
+    protected updateAllFollowingCommands(updateFn: (command: Command) => void)
     {
         const { index, app } = this;
 
@@ -60,7 +60,7 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
         }
     }
 
-    protected updateAllCommands(updateFn: (command: AbstractCommand) => void)
+    protected updateAllCommands(updateFn: (command: Command) => void)
     {
         const { app } = this;
 
@@ -119,7 +119,7 @@ export abstract class AbstractCommand<ParamsType extends {} = {}, ReturnType = v
         nodeSchema.cloneInfo.cloned = nodeSchema.cloneInfo.cloned.map((id) => (id === oldNodeId ? newNodeId : id));
     }
 
-    public isReferencingNode(nodeId: string)
+    public isReferencingNode(nodeId: string): boolean
     {
         const json = JSON.stringify(this.toJSON());
 

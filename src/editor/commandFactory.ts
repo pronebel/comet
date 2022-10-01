@@ -1,5 +1,5 @@
 import type { ModelBase } from '../core/model/model';
-import type { AbstractCommand } from './abstractCommand';
+import type { Command } from './command';
 import { type AddChildCommandParams, AddChildCommand } from './commands/addChild';
 import { type AssignCustomPropCommandParams, AssignCustomPropCommand } from './commands/assignCustomProp';
 import { type CloneCommandParams, CloneCommand } from './commands/clone';
@@ -8,6 +8,7 @@ import { type ModifyModelCommandParams, ModifyModelCommand } from './commands/mo
 import { type RemoveChildCommandParams, RemoveChildCommand } from './commands/removeChild';
 import { type RemoveCustomPropCommandParams, RemoveCustomPropCommand } from './commands/removeCustomProp';
 import { type RemoveNodeCommandParams, RemoveNodeCommand } from './commands/removeNode';
+import { type RestoreNodeCommandParams, RestoreNodeCommand } from './commands/restoreNode';
 import { type SetCustomPropCommandParams, SetCustomPropCommand } from './commands/setCustomProp';
 import { type SetParentCommandParams, SetParentCommand } from './commands/setParent';
 import { type UnAssignCustomPropCommandParams, UnAssignCustomPropCommand } from './commands/unassignCustomProp';
@@ -22,6 +23,7 @@ export type CommandName =
     'RemoveChild' |
     'RemoveCustomProp' |
     'RemoveNode' |
+    'RestoreNode' |
     'SetCustomProp' |
     'SetParent' |
     'UnAssignCustomProp' |
@@ -37,6 +39,7 @@ export const Commands
     RemoveChild: RemoveChildCommand,
     RemoveCustomProp: RemoveCustomPropCommand,
     RemoveNode: RemoveNodeCommand,
+    RestoreNode: RestoreNodeCommand,
     SetCustomProp: SetCustomPropCommand,
     SetParent: SetParentCommand,
     UnAssignCustomProp: UnAssignCustomPropCommand,
@@ -53,6 +56,7 @@ export interface CommandParams
     RemoveChild: RemoveChildCommandParams;
     RemoveCustomProp: RemoveCustomPropCommandParams;
     RemoveNode: RemoveNodeCommandParams;
+    RestoreNode: RestoreNodeCommandParams;
     SetCustomProp: SetCustomPropCommandParams;
     SetParent: SetParentCommandParams;
     UnAssignCustomProp: UnAssignCustomPropCommandParams;
@@ -67,7 +71,7 @@ export function createCommand<
     const params = commandJSON.params as P;
 
     const CommandClass = Commands[commandName] as {
-        new (params: P): AbstractCommand;
+        new (params: P): Command;
     };
 
     const command = new CommandClass(params);

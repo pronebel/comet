@@ -6,7 +6,7 @@ import { Application as PixiApplication } from 'pixi.js';
 
 import type { ProjectNode } from '../core/nodes/concrete/project';
 import { clearInstances } from '../core/nodes/instances';
-import type { AbstractCommand } from './abstractCommand';
+import type { Command } from './command';
 import { createCommand } from './commandFactory';
 import { Datastore } from './sync/datastore';
 import { NodeUpdater } from './sync/nodeUpdater';
@@ -14,7 +14,9 @@ import { getUserName } from './sync/user';
 import UndoStack from './undoStack';
 
 const userName = getUserName();
-const localStorageCommandsKey = `${userName}:commands`;
+
+const localStorageUndoStackKey = `${userName}:undo`;
+const localStorageCommandsKey = `commandList`;
 
 export interface AppOptions
 {
@@ -50,6 +52,8 @@ export abstract class Application extends EventEmitter<AppEvents>
         this.datastore = new Datastore();
         this.undoStack = new UndoStack(this.datastore);
         this.nodeUpdater = new NodeUpdater(this.datastore);
+
+        this.initDatastoreEvents();
     }
 
     public static get instance()
@@ -65,6 +69,11 @@ export abstract class Application extends EventEmitter<AppEvents>
     public get stage()
     {
         return this.pixiApp.stage;
+    }
+
+    protected initDatastoreEvents()
+    {
+        this.datastore.on('nodeRemoved', () => { this.writeUndoStack(); });
     }
 
     public undo = () =>
@@ -95,19 +104,20 @@ export abstract class Application extends EventEmitter<AppEvents>
     }
 
     public async init()
+    // eslint-disable-next-line @typescript-eslint/no-empty-function
     {
-        // subclasses
     }
 
-    public exec<R = unknown>(command: AbstractCommand, isUndoRoot = true): R
+    public exec<R = unknown>(command: Command, isUndoRoot = true): R
     {
         console.log(`%c🔔 ${userName}:${command.name}: %c${JSON.stringify(command.params)}`, 'color:cyan', 'color:yellow');
 
         command.isUndoRoot = isUndoRoot;
 
-        this.undoStack.push(command);
+        const isEmpty = this.undoStack.isEmpty;
 
-        this.writeUndoStack();
+        this.undoStack.push(command);
+        this.writeUndoStack(command, isEmpty);
 
         const result = command.run();
 
@@ -116,16 +126,29 @@ export abstract class Application extends EventEmitter<AppEvents>
         return result as unknown as R;
     }
 
-    public writeUndoStack()
+    public writeUndoStack(command?: Command, isEmpty?: boolean)
     {
         const data = JSON.stringify(this.undoStack.toJSON(), null, 4);
 
-        localStorage[localStorageCommandsKey] = data;
+        localStorage[localStorageUndoStackKey] = data;
+
+        if (userName === 'ali' && isEmpty)
+        {
+            localStorage[localStorageCommandsKey] = '[]';
+        }
+
+        if (command)
+        {
+            const commandList = JSON.parse(localStorage[localStorageCommandsKey] || '[]') as string[];
+
+            commandList.push(`${userName}:${command.name}`);
+            localStorage[localStorageCommandsKey] = JSON.stringify(commandList);
+        }
     }
 
     public readUndoStack(endIndex: number | undefined = undefined)
     {
-        const data = localStorage[localStorageCommandsKey];
+        const data = localStorage[localStorageUndoStackKey];
 
         if (data)
         {

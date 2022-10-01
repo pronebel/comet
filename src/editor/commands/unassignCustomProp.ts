@@ -2,7 +2,7 @@ import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance } from '../../core/nodes/instances';
-import { type UpdateMode, AbstractCommand } from '../abstractCommand';
+import { type UpdateMode, Command } from '../command';
 
 export interface UnAssignCustomPropCommandParams
 {
@@ -12,7 +12,7 @@ export interface UnAssignCustomPropCommandParams
 }
 
 export class UnAssignCustomPropCommand
-    extends AbstractCommand<UnAssignCustomPropCommandParams>
+    extends Command<UnAssignCustomPropCommandParams>
 {
     public static commandName = 'UnAssignCustomProp';
 

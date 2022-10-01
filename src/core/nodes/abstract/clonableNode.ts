@@ -218,6 +218,42 @@ export abstract class ClonableNode<
         this.emit('disposed');
     }
 
+    public isReferencingNode<T extends GraphNode<string>>(refNode: T): boolean
+    {
+        if (super.isReferencingNode(refNode))
+        {
+            return true;
+        }
+
+        const node = refNode.cast<ClonableNode>();
+
+        // check original
+        if (this.getOriginal() === node)
+        {
+            return true;
+        }
+
+        // check clone ancestors
+        for (const ancestor of node.getCloneAncestors())
+        {
+            if (ancestor === node)
+            {
+                return true;
+            }
+        }
+
+        // check cloned descendants
+        for (const descendant of node.getClonedDescendants())
+        {
+            if (descendant === node)
+            {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onRemovedFromParent(oldParent: GraphNode<string>): void
@@ -251,7 +287,7 @@ export abstract class ClonableNode<
     public updateRecursiveWithClones()
     {
         this.update(true);
-        this.getAllCloned().forEach((node) => node.update());
+        this.getClonedDescendants().forEach((node) => node.update());
     }
 
     protected onModelModified = <T>(key: string, value: T, oldValue: T) =>
@@ -283,7 +319,7 @@ export abstract class ClonableNode<
         this.model.setValue(modelKey, value);
     }
 
-    public getAllCloned()
+    public getClonedDescendants()
     {
         const { isVariant } = this.cloneInfo;
 
@@ -292,12 +328,12 @@ export abstract class ClonableNode<
         if (isVariant)
         {
             const original = this.getOriginal();
-            const originalCloned = original.getAllCloned();
+            const originalCloned = original.getClonedDescendants();
             const cloneRoot = this.getCloneRoot();
 
             if (cloneRoot)
             {
-                const cloneRootCloned = cloneRoot.getAllCloned();
+                const cloneRootCloned = cloneRoot.getClonedDescendants();
 
                 originalCloned.forEach((originalClone) =>
                 {

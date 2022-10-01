@@ -1,6 +1,6 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance } from '../../core/nodes/instances';
-import { AbstractCommand } from '../abstractCommand';
+import { Command } from '../command';
 
 export interface SetParentCommandParams
 {
@@ -20,7 +20,7 @@ export interface SetParentCommandCache
 }
 
 export class SetParentCommand
-    extends AbstractCommand<SetParentCommandParams, SetParentCommandReturn, SetParentCommandCache>
+    extends Command<SetParentCommandParams, SetParentCommandReturn, SetParentCommandCache>
 {
     public static commandName = 'SetParent';
 

@@ -3,7 +3,7 @@ import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import { CloneInfo } from '../../core/nodes/cloneInfo';
 import { getInstance } from '../../core/nodes/instances';
 import { type NodeSchema, getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
-import { AbstractCommand } from '../abstractCommand';
+import { Command } from '../command';
 
 export interface UnlinkCommandParams
 {
@@ -16,7 +16,7 @@ export interface UnlinkCommandCache
 }
 
 export class UnlinkCommand
-    extends AbstractCommand<UnlinkCommandParams, void, UnlinkCommandCache>
+    extends Command<UnlinkCommandParams, void, UnlinkCommandCache>
 {
     public static commandName = 'Unlink';
 

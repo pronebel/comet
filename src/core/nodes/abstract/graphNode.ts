@@ -87,25 +87,14 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return ref as unknown as T;
     }
 
-    public sortChildren()
+    public isReferencingNode<T extends GraphNode>(refNode: T)
     {
-        // sort by created timestamp
-        this.children.sort((a: GraphNode, b: GraphNode) =>
+        if (refNode.contains(this) || this.contains(refNode))
         {
-            const aCreated = a.created;
-            const bCreated = b.created;
+            return true;
+        }
 
-            if (aCreated <= bCreated)
-            {
-                return -1;
-            }
-            else if (aCreated > bCreated)
-            {
-                return 1;
-            }
-
-            return -1;
-        });
+        return false;
     }
 
     public setParent(parent: GraphNode)
