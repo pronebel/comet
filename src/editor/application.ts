@@ -130,7 +130,11 @@ export abstract class Application extends EventEmitter<AppEvents>
         this.writeCommandList(command.name);
 
         this.undoStack.push(command);
-        this.writeUndoStack();
+
+        if (localStorage['saveUndo'] === '1')
+        {
+            this.writeUndoStack();
+        }
 
         const result = command.run();
 
@@ -141,11 +145,6 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public writeUndoStack()
     {
-        if (localStorage['saveUndo'] !== '1')
-        {
-            return;
-        }
-
         const data = JSON.stringify(this.undoStack.toJSON(), null, 4);
 
         localStorage[localStorageUndoStackKey] = data;
