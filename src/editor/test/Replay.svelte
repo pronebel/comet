@@ -38,46 +38,28 @@
     localStorage.setItem("replayIndex", String(selectedIndex));
   }
 
-  function exec(isRedo: boolean) {
+  function exec() {
     const command = commandList[selectedIndex];
     const commandName = command.split(":")[1];
     const myIndex = getMyCommandIndex(selectedIndex);
 
     if (commandName === "undo") {
-      if (isRedo) {
-        app.undo();
-      } else {
-        app.redo();
-      }
+      app.undo();
       return;
     }
 
     if (commandName === "redo") {
-      if (isRedo) {
-        app.redo();
-      } else {
-        app.undo();
-      }
+      app.redo();
       return;
     }
 
     app.undoStack.head = myIndex - 1;
 
-    if (isRedo) {
-      app.redo();
-    } else {
-      app.undo();
-    }
-  }
-
-  function onUndo() {
-    exec(false);
-    selectedIndex = Math.max(0, selectedIndex - 1);
-    localStorage.setItem("replayIndex", String(selectedIndex));
+    app.redo();
   }
 
   function onRedo() {
-    exec(true);
+    exec();
     selectedIndex = Math.min(commandList.length - 1, selectedIndex + 1);
     localStorage.setItem("replayIndex", String(selectedIndex));
   }
@@ -95,9 +77,6 @@
 
 <div class={isCurrentUser(selectedIndex) ? "active" : ""}>
   {#if commandList.length > 0}
-    <button on:click={onUndo} disabled={!isCurrentUser(selectedIndex)}
-      >Undo</button
-    >
     <ul>
       {#each commandList as _command, i}
         <li
@@ -111,7 +90,7 @@
       {/each}
     </ul>
     <button on:click={onRedo} disabled={!isCurrentUser(selectedIndex)}
-      >Redo</button
+      >Replay</button
     >
   {/if}
 </div>
@@ -156,5 +135,15 @@
   button {
     flex-grow: 0;
     font-size: 10px;
+    background-color: #21b2fe;
+    border: none;
+    color: #252525;
+    font-weight: bold;
+    height: 20px;
+    cursor: pointer;
+  }
+
+  button[disabled] {
+    background-color: #666;
   }
 </style>

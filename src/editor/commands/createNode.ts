@@ -50,6 +50,7 @@ export class CreateNodeCommand<
             { id: nodeSchema.id, model, cloneInfo });
 
         node.created = nodeSchema.created;
+        node.prevId = nodeSchema.prevId;
 
         if (nodeSchema.parent && !isNewNode)
         {

@@ -114,17 +114,17 @@ export class Auditor
         const isInDatastore = asResult(datastoreRegisteredIds.indexOf(node.id) > -1);
 
         const { cloneInfo, cloneInfo: { cloner, cloneMode } } = node;
-        let isCloneInfoValid = '';
+        const isCloneInfoValid: string[] = [];
 
         if (cloner)
         {
             if (!project.contains(cloner as unknown as GraphNode))
             {
-                isCloneInfoValid = `ClonerMissing(${cloner.id})`; // cloner not in graph
+                isCloneInfoValid.push(`ClonerMissing(${cloner.id})`); // cloner not in graph
             }
             if (cloneMode === CloneMode.Original)
             {
-                isCloneInfoValid = `OriginalHasCloner(${cloner.id})`; // original has cloner
+                isCloneInfoValid.push(`OriginalHasCloner(${cloner.id})`); // original has cloner
             }
         }
 
@@ -132,7 +132,7 @@ export class Auditor
         {
             if (!project.contains(node as unknown as GraphNode))
             {
-                isCloneInfoValid = `ClonedMissing(${node.id})`; // cloned not in graph
+                isCloneInfoValid.push(`ClonedMissing(${node.id})`); // cloned not in graph
             }
         });
 
@@ -157,7 +157,7 @@ export class Auditor
             isInGraph,
             isInDatastore,
             isSchemaValid: asResult(isSchemaValid),
-            isCloneInfoValid: asResult(isCloneInfoValid.length === 0) + isCloneInfoValid,
+            isCloneInfoValid: asResult(isCloneInfoValid.length === 0) + isCloneInfoValid.join(','),
         };
     }
 }

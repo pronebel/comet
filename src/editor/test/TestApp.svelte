@@ -295,6 +295,7 @@
     z-index: 100;
     opacity: 0.7;
     font-size: inherit;
+    cursor: pointer;
   }
 
   marker {

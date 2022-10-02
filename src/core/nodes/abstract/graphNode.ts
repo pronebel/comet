@@ -31,6 +31,7 @@ export type GraphNodeConstructor = {
 export abstract class GraphNode<E extends string = string> extends EventEmitter<GraphNodeEvents | E>
 {
     public id: string;
+    public prevId?: string;
     public parent?: GraphNode;
     public children: GraphNode[];
     public created: number;

@@ -153,6 +153,11 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public writeCommandList(commandName: string)
     {
+        if (localStorage['saveUndo'] !== '1')
+        {
+            return;
+        }
+
         const commandList = JSON.parse(localStorage[localStorageCommandsKey] || '[]') as string[];
 
         commandList.push(`${userName}:${commandName}`);

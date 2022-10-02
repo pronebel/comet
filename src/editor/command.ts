@@ -107,6 +107,10 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
         {
             nodeSchema.id = newNodeId;
         }
+        if (nodeSchema.prevId === oldNodeId)
+        {
+            nodeSchema.prevId = newNodeId;
+        }
         if (nodeSchema.parent === oldNodeId)
         {
             nodeSchema.parent = newNodeId;

@@ -26,6 +26,7 @@ import type {
     DSNodeCreatedEvent,
     DSNodeRemovedEvent,
     DSParentSetEvent,
+    DSPrevIDSetEvent,
 } from './datastoreEvents';
 import { getUserName } from './user';
 
@@ -296,6 +297,14 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
                 this.emit('parentSet', e);
             }
+            if (key === 'prevId')
+            {
+                const prevId = (event as ObjectSetEvent).value.value() as string;
+                const nodeId = nodeElement.get('id').value();
+                const e: DSPrevIDSetEvent = { nodeId, prevId };
+
+                this.emit('prevIdSet', e);
+            }
         });
 
         // catch events on nodeElement custom prop defined changes (as a remote user)
@@ -521,7 +530,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public modifyNodeModel(nodeId: string, values: object)
     {
-        // todo: optimise into single call
         const nodeElement = this.getNodeElement(nodeId);
         const modelElement = nodeElement.get('model') as RealTimeObject;
 
@@ -537,6 +545,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 }
             });
         }
+    }
+
+    public setNodePrevId(nodeId: string, prevId: string)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+
+        nodeElement.set('prevId', prevId);
     }
 
     public disconnect(): void

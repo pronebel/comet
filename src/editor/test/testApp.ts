@@ -10,7 +10,7 @@ import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance, getLatestInstance, hasInstance } from '../../core/nodes/instances';
 import { nodeFactoryEmitter, registerNodeType } from '../../core/nodes/nodeFactory';
-import { createNodeSchema } from '../../core/nodes/schema';
+import { createNodeSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Action } from '../action';
 import { type AppOptions, Application } from '../application';
 import { AddChildCommand } from '../commands/addChild';
@@ -122,6 +122,11 @@ export class TestApp extends Application
         }
 
         this.deselect();
+
+        if (localStorage['saveUndo'] === '0')
+        {
+            this.readUndoStack();
+        }
     }
 
     protected resetState(): void
@@ -274,6 +279,8 @@ export class TestApp extends Application
                 cloned: selected.getClonedDescendants().map((node) => (node.id)),
                 ancestors: selected.getCloneAncestors().map((node) => (node.id)),
                 definedProps,
+                nodeGraphSchema: getNodeSchema(selected.cast<ClonableNode>()),
+                dsNodeSchema: this.datastore.getNodeElementSchema(selected.id),
             };
 
             console.log(selected);

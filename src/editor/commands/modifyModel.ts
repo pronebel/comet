@@ -57,17 +57,4 @@ export class ModifyModelCommand<M extends ModelBase>
             new ModifyModelCommand({ nodeId, values: prevValues }).run();
         }
     }
-
-    // public isReferencingNode(nodeId: string): boolean
-    // {
-    //     if (super.isReferencingNode(nodeId))
-    //     {
-    //         return true;
-    //     }
-
-    //     const myNode = getInstance<ClonableNode>(this.params.nodeId);
-    //     const refNode = getInstance<ClonableNode>(nodeId);
-
-    //     return myNode.isReferencingNode(refNode);
-    // }
 }
