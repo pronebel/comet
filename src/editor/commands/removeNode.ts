@@ -56,7 +56,7 @@ export class RemoveNodeCommand
         }
 
         // dispose
-        node.dispose();
+        // node.dispose();
 
         return { node };
     }

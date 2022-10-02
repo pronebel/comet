@@ -1,11 +1,8 @@
-import { deepEqual } from 'fast-equals';
-
 import { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { GraphNode } from '../core/nodes/abstract/graphNode';
 import { CloneMode } from '../core/nodes/cloneInfo';
 import { ProjectNode } from '../core/nodes/concrete/project';
 import { getInstance, getInstancesByType, getTrashInstance, getTrashInstancesByType } from '../core/nodes/instances';
-import { getNodeSchema } from '../core/nodes/schema';
 import { Application } from './application';
 
 enum Result
@@ -20,9 +17,13 @@ const asResult = (value: boolean) => (value ? Result.Tick : Result.Cross);
 
 export interface GraphNodeAudit
 {
+    parent: string;
+    children: string;
+    cloner: string;
+    cloneMode: string;
+    cloned: string;
     isInGraph: Result;
     isInDatastore: Result;
-    isSchemaValid: Result;
     isCloneInfoValid: string;
 }
 
@@ -97,7 +98,7 @@ export class Auditor
                 {
                     const node = instance as unknown as ClonableNode;
 
-                    audit.nodes[node.id] = this.auditNode(node);
+                    audit.trash[node.id] = this.auditNode(node);
                 }
             });
         }
@@ -144,27 +145,14 @@ export class Auditor
             }
         });
 
-        let isSchemaValid = true;
-
-        try
-        {
-            const dsNodeSchema = datastore.getNodeElementSchema(node.id);
-            const nodeSchema = getNodeSchema(node);
-
-            if (!deepEqual(dsNodeSchema, nodeSchema))
-            {
-                throw new Error();
-            }
-        }
-        catch (e)
-        {
-            isSchemaValid = false;
-        }
-
         return {
+            parent: node.parent ? node.parent.id : '',
+            children: node.children.map((node) => node.id).join(','),
+            cloner: node.cloneInfo.cloner ? node.cloneInfo.cloner.id : '',
+            cloned: node.cloneInfo.cloned.map((node) => node.id).join(','),
+            cloneMode: node.cloneInfo.cloneMode,
             isInGraph,
             isInDatastore,
-            isSchemaValid: asResult(isSchemaValid),
             isCloneInfoValid: asResult(isCloneInfoValid.length === 0) + isCloneInfoValid.join(','),
         };
     }

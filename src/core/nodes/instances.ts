@@ -197,3 +197,4 @@ export function getTrashInstancesByType()
 }
 
 (window as any).getInstance = getInstance;
+(window as any).getTrashInstance = getTrashInstance;

@@ -44,7 +44,7 @@ export class RemoveChildCommand
             rootNode.walk<ClonableNode>((node) => nodes.push(node), { includeSelf: false });
         });
 
-        nodes.sort(sortNodesByCreation);
+        nodes.sort(sortNodesByCreation).reverse();
 
         datastore.batch(() =>
         {
