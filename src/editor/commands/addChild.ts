@@ -1,7 +1,7 @@
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneMode } from '../../core/nodes/cloneInfo';
-import { getInstance, newId } from '../../core/nodes/instances';
+import { getInstance } from '../../core/nodes/instances';
 import type { NodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
 import { CloneCommand } from './clone';
@@ -33,15 +33,7 @@ export class AddChildCommand<
 
     public apply(): AddChildCommandReturn
     {
-        const { cache, params: { parentId, nodeSchema }, hasRun } = this;
-
-        if (hasRun)
-        {
-            const newNodeId = newId(nodeSchema.type);
-            const oldNodeId = nodeSchema.id;
-
-            this.updateAllFollowingCommands((command) => command.updateNodeId(oldNodeId, newNodeId));
-        }
+        const { cache, params: { parentId, nodeSchema } } = this;
 
         const sourceNode = getInstance<ClonableNode>(parentId);
         const originalParentNode = sourceNode.getAddChildCloneTarget();
@@ -88,14 +80,5 @@ export class AddChildCommand<
 
             new RemoveNodeCommand({ nodeId: id, updateMode: 'full' }).run();
         }
-    }
-
-    public updateNodeId(oldNodeId: string, newNodeId: string): void
-    {
-        super.updateNodeId(oldNodeId, newNodeId);
-
-        const { cache } = this;
-
-        cache.nodes = cache.nodes.map((nodeId) => (nodeId === oldNodeId ? newNodeId : nodeId));
     }
 }

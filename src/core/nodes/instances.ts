@@ -3,6 +3,7 @@ import { getUserName } from '../../editor/sync/user';
 type Instance = { id: string };
 
 const instances: Map<string, Instance> = new Map();
+const trash: Map<string, Instance> = new Map();
 const idCounters: Map<string, number> = new Map();
 
 const userName = getUserName();
@@ -79,6 +80,48 @@ export function unregisterInstance(instance: Instance)
     console.log(`${userName}:unregistered instance "${id}"`);
 }
 
+export function moveToTrash(instance: Instance)
+{
+    const { id } = instance;
+
+    if (trash.has(id))
+    {
+        throw new Error(`Trash already contains instance "${id}"`);
+    }
+
+    console.log(`${userName}:moving to trash "${id}"`);
+
+    instances.delete(id);
+    trash.set(id, instance);
+}
+
+export function isInstanceInTrash(id: string)
+{
+    return trash.has(id);
+}
+
+export function restoreInstance<T>(id: string): T
+{
+    if (!trash.has(id))
+    {
+        throw new Error(`Trash does not contain instance "${id}"`);
+    }
+
+    if (instances.has(id))
+    {
+        throw new Error(`Instance "${id}" already out of trash`);
+    }
+
+    const instance = trash.get(id) as Instance;
+
+    console.log(`${userName}:restoring instance "${id}"`);
+
+    trash.delete(id);
+    instances.set(id, instance);
+
+    return instance as unknown as T;
+}
+
 export function getInstance<T>(id: string): T
 {
     if (!instances.has(id))
@@ -87,6 +130,16 @@ export function getInstance<T>(id: string): T
     }
 
     return instances.get(id) as unknown as T;
+}
+
+export function getTrashInstance<T>(id: string): T
+{
+    if (!trash.has(id))
+    {
+        throw new Error(`Trash does not contains instance "${id}"`);
+    }
+
+    return trash.get(id) as unknown as T;
 }
 
 export function hasInstance(id: string): boolean
@@ -110,6 +163,25 @@ export function getInstancesByType()
     const types: Record<string, string[]> = {};
 
     for (const [id, instance] of instances.entries())
+    {
+        const { type } = parseId(id);
+
+        if (!types[type])
+        {
+            types[type] = [];
+        }
+
+        types[type].push(instance.id);
+    }
+
+    return types;
+}
+
+export function getTrashInstancesByType()
+{
+    const types: Record<string, string[]> = {};
+
+    for (const [id, instance] of trash.entries())
     {
         const { type } = parseId(id);
 

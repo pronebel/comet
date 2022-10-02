@@ -51,11 +51,9 @@ export abstract class Application extends EventEmitter<AppEvents>
         });
 
         const datastore = this.datastore = new Datastore();
-        const undoStack = this.undoStack = new UndoStack(datastore);
 
-        datastore.on('nodeRemoved', undoStack.onNodeRemoved);
-        this.nodeUpdater = new NodeUpdater(this.datastore);
-        datastore.on('nodeCreated', undoStack.onNodeCreated);
+        this.undoStack = new UndoStack(datastore);
+        this.nodeUpdater = new NodeUpdater(datastore);
 
         this.initDatastoreEvents();
     }
@@ -111,7 +109,7 @@ export abstract class Application extends EventEmitter<AppEvents>
     {
         if (userName === 'ali')
         {
-            if (localStorage['saveUndo'] === '1')
+            if (localStorage['saveUndo'] !== '0')
             {
                 localStorage[localStorageCommandsKey] = '[]';
             }
@@ -131,7 +129,7 @@ export abstract class Application extends EventEmitter<AppEvents>
 
         this.undoStack.push(command);
 
-        if (localStorage['saveUndo'] === '1')
+        if (localStorage['saveUndo'] !== '0')
         {
             this.writeUndoStack();
         }
@@ -152,7 +150,7 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public writeCommandList(commandName: string)
     {
-        if (localStorage['saveUndo'] !== '1')
+        if (localStorage['saveUndo'] === '0')
         {
             return;
         }

@@ -1,20 +1,21 @@
-import type {
-    ConvergenceDomain,
-    IConvergenceEvent,
-    ObjectSetEvent,
-    RealTimeArray,
-    RealTimeModel,
+import Convergence, {
+    type ConvergenceDomain,
+    type IConvergenceEvent,
+    type ObjectSetEvent,
+    type RealTimeArray,
+    type RealTimeModel,
+    RealTimeObject,
+    RealTimeUndefined,
 } from '@convergence/convergence';
-import Convergence, { RealTimeObject } from '@convergence/convergence';
 import { EventEmitter } from 'eventemitter3';
 
 import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { consolidateId, getInstance } from '../../core/nodes/instances';
-import { type CloneInfoSchema, type NodeSchema, type ProjectSchema, createProjectSchema } from '../../core/nodes/schema';
+import type { CloneInfoSchema, NodeSchema, ProjectSchema } from '../../core/nodes/schema';
+import { createProjectSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import { CreateNodeCommand } from '../commands/createNode';
-import { SetParentCommand } from '../commands/setParent';
 import type {
     DatastoreEvents,
     DSCloneInfoModifiedEvent,
@@ -26,7 +27,6 @@ import type {
     DSNodeCreatedEvent,
     DSNodeRemovedEvent,
     DSParentSetEvent,
-    DSPrevIDSetEvent,
 } from './datastoreEvents';
 import { getUserName } from './user';
 
@@ -48,7 +48,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     protected _domain?: ConvergenceDomain;
     protected _model?: RealTimeModel;
     protected nodeRealtimeObjects: Map<string, RealTimeObject>;
-    protected removedNodeSchemaCache: Map<string, NodeSchema>;
 
     public static instance: Datastore;
 
@@ -59,7 +58,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         Datastore.instance = this;
 
         this.nodeRealtimeObjects = new Map();
-        this.removedNodeSchemaCache = new Map();
     }
 
     protected get app()
@@ -92,6 +90,24 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         return this.model.elementAt('nodes') as RealTimeObject;
     }
 
+    public restoreNodeElement(id: string)
+    {
+        const nodeElement = this.model.root().elementAt('nodes', id) as RealTimeObject;
+
+        if (nodeElement instanceof RealTimeUndefined)
+        {
+            const node = getInstance<ClonableNode>(id);
+            const nodeSchema = getNodeSchema(node);
+
+            this.createNode(nodeSchema);
+        }
+        else
+        {
+            this.nodeRealtimeObjects.set(id, nodeElement);
+            this.trackExistingNodeElement(id);
+        }
+    }
+
     public reset()
     {
         this.nodeRealtimeObjects.clear();
@@ -102,49 +118,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public getRegisteredIds()
     {
         return Array.from(this.nodeRealtimeObjects.keys());
-    }
-
-    public getRemovedCacheIds()
-    {
-        return Array.from(this.removedNodeSchemaCache.keys());
-    }
-
-    public restoreRemovedNode<T = ClonableNode>(nodeId: string): T
-    {
-        try
-        {
-            return getInstance<T>(nodeId);
-        }
-        catch (e)
-        {
-            const { removedNodeSchemaCache } = this;
-            const nodeSchema = removedNodeSchemaCache.get(nodeId);
-
-            if (nodeSchema)
-            {
-                const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).run();
-
-                if (nodeSchema.parent)
-                {
-                    new SetParentCommand({ nodeId: nodeSchema.id, parentId: nodeSchema.parent }).run();
-                }
-
-                return node as unknown as T;
-            }
-        }
-
-        throw new Error(`Cannot access unregistered instance "${nodeId}"`);
-    }
-
-    public cacheRemovedNodeSchema(nodeSchema: NodeSchema)
-    {
-        console.log(`%c${userName}:cached removed nodeSchema "${JSON.stringify(nodeSchema)}"`, 'color:orange');
-        this.removedNodeSchemaCache.set(nodeSchema.id, nodeSchema);
-    }
-
-    public getCachedRemovedNodeSchema(nodeId: string)
-    {
-        return this.removedNodeSchemaCache.get(nodeId);
     }
 
     public setNodesData(data: Record<string, NodeSchema>)
@@ -296,14 +269,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 const e: DSParentSetEvent = { parentId, nodeId: childId };
 
                 this.emit('parentSet', e);
-            }
-            if (key === 'prevId')
-            {
-                const prevId = (event as ObjectSetEvent).value.value() as string;
-                const nodeId = nodeElement.get('id').value();
-                const e: DSPrevIDSetEvent = { nodeId, prevId };
-
-                this.emit('prevIdSet', e);
             }
         });
 
@@ -545,13 +510,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 }
             });
         }
-    }
-
-    public setNodePrevId(nodeId: string, prevId: string)
-    {
-        const nodeElement = this.getNodeElement(nodeId);
-
-        nodeElement.set('prevId', prevId);
     }
 
     public disconnect(): void

@@ -1,5 +1,5 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getInstance } from '../../core/nodes/instances';
+import { getOrRestoreInstance } from '../../core/nodes/nodeFactory';
 import { Command } from '../command';
 
 export interface SetParentCommandParams
@@ -28,8 +28,8 @@ export class SetParentCommand
     {
         const { datastore, params: { parentId, nodeId } } = this;
 
-        const parentNode = getInstance<ClonableNode>(parentId);
-        const childNode = getInstance<ClonableNode>(nodeId);
+        const parentNode = getOrRestoreInstance<ClonableNode>(parentId);
+        const childNode = getOrRestoreInstance<ClonableNode>(nodeId);
 
         // cache previous parent
         this.cache.prevParentId = childNode.parent?.id;
@@ -47,8 +47,8 @@ export class SetParentCommand
     {
         const { cache: { prevParentId }, params: { parentId, nodeId } } = this;
 
-        const parentNode = getInstance<ClonableNode>(parentId);
-        const childNode = getInstance<ClonableNode>(nodeId);
+        const parentNode = getOrRestoreInstance<ClonableNode>(parentId);
+        const childNode = getOrRestoreInstance<ClonableNode>(nodeId);
 
         parentNode.removeChild(childNode);
 

@@ -17,7 +17,6 @@ import type {
     DSNodeCreatedEvent,
     DSNodeRemovedEvent,
     DSParentSetEvent,
-    DSPrevIDSetEvent,
 } from './datastoreEvents';
 import { getUserName } from './user';
 
@@ -36,8 +35,7 @@ export class NodeUpdater
             .on('customPropAssigned', this.onCustomPropAssigned)
             .on('customPropUnassigned', this.onCustomPropUnassigned)
             .on('modelModified', this.onModelModified)
-            .on('cloneInfoModified', this.onCloneInfoModified)
-            .on('prevIdSet', this.onPrevIdSet);
+            .on('cloneInfoModified', this.onCloneInfoModified);
     }
 
     protected log(eventName: string, event: any)
@@ -163,15 +161,5 @@ export class NodeUpdater
         // overwrite cloneMode and cloners
         cloneInfo.cloneMode = cloneMode;
         cloneInfo.cloned = cloned.map((clonedId) => getInstance<ClonableNode>(clonedId));
-    };
-
-    protected onPrevIdSet = (event: DSPrevIDSetEvent) =>
-    {
-        this.log('onPrevIdSet', event);
-
-        const { nodeId, prevId } = event;
-        const node = getInstance<ClonableNode>(nodeId);
-
-        node.prevId = prevId;
     };
 }

@@ -4,7 +4,7 @@ import { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { GraphNode } from '../core/nodes/abstract/graphNode';
 import { CloneMode } from '../core/nodes/cloneInfo';
 import { ProjectNode } from '../core/nodes/concrete/project';
-import { getInstance, getInstancesByType } from '../core/nodes/instances';
+import { getInstance, getInstancesByType, getTrashInstance, getTrashInstancesByType } from '../core/nodes/instances';
 import { getNodeSchema } from '../core/nodes/schema';
 import { Application } from './application';
 
@@ -29,13 +29,13 @@ export interface GraphNodeAudit
 export interface DSNodeAudit
 {
     isRegistered: Result;
-    isRestoreCached: Result;
     isAttached: Result;
 }
 
 export interface Audit
 {
     nodes: Record<string, GraphNodeAudit>;
+    trash: Record<string, GraphNodeAudit>;
     datastore: Record<string, DSNodeAudit>;
 }
 
@@ -61,11 +61,12 @@ export class Auditor
         const { datastore } = this;
         const audit: Audit = {
             nodes: {},
+            trash: {},
             datastore: {},
         };
         const instancesByType = getInstancesByType();
+        const trashInstancesByType = getTrashInstancesByType();
         const datastoreRegisteredIds = datastore.getRegisteredIds();
-        const datastoreRemovedCacheIds = datastore.getRemovedCacheIds();
 
         // nodes
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -84,21 +85,28 @@ export class Auditor
             });
         }
 
+        // trash
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        for (const [_type, ids] of Object.entries(trashInstancesByType))
+        {
+            ids.forEach((id) =>
+            {
+                const instance = getTrashInstance(id);
+
+                if (instance instanceof ClonableNode)
+                {
+                    const node = instance as unknown as ClonableNode;
+
+                    audit.nodes[node.id] = this.auditNode(node);
+                }
+            });
+        }
+
         // datastore
         datastoreRegisteredIds.forEach((id) => (audit.datastore[id] = {
             isRegistered: Result.Dot,
-            isRestoreCached: Result.NA,
             isAttached: asResult(datastore.getNodeElement(id).isAttached()),
         }));
-
-        datastoreRemovedCacheIds.forEach((id) =>
-        {
-            audit.datastore[id] = {
-                isRegistered: Result.NA,
-                isRestoreCached: Result.Dot,
-                isAttached: Result.NA,
-            };
-        });
 
         return audit;
     }

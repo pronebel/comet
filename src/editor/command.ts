@@ -1,4 +1,3 @@
-import type { NodeSchema } from '../core/nodes/schema';
 import { Application } from './application';
 import type { CommandName } from './commandFactory';
 
@@ -78,61 +77,6 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
     protected castParamsAs<T>()
     {
         return this.params as unknown as T;
-    }
-
-    public updateNodeId(oldNodeId: string, newNodeId: string)
-    {
-        const { params } = this;
-
-        const withNodeIdParams = this.castParamsAs<{nodeId: string}>();
-        const withParentIdParams = this.castParamsAs<{parentId: string}>();
-
-        if ('nodeId' in params && (withNodeIdParams).nodeId === oldNodeId)
-        {
-            withNodeIdParams.nodeId = newNodeId;
-        }
-        if ('parentId' in params && (withParentIdParams).parentId === oldNodeId)
-        {
-            withParentIdParams.parentId = newNodeId;
-        }
-        if ('nodeSchema' in params)
-        {
-            this.updateNodeSchemaId((params as unknown as {nodeSchema: NodeSchema}).nodeSchema, oldNodeId, newNodeId);
-        }
-    }
-
-    public updateNodeSchemaId(nodeSchema: NodeSchema, oldNodeId: string, newNodeId: string): void
-    {
-        if (nodeSchema.id === oldNodeId)
-        {
-            nodeSchema.id = newNodeId;
-        }
-        if (nodeSchema.prevId === oldNodeId)
-        {
-            nodeSchema.prevId = newNodeId;
-        }
-        if (nodeSchema.parent === oldNodeId)
-        {
-            nodeSchema.parent = newNodeId;
-        }
-        if (nodeSchema.cloneInfo.cloner === oldNodeId)
-        {
-            nodeSchema.cloneInfo.cloner = newNodeId;
-        }
-        nodeSchema.children = nodeSchema.children.map((id) => (id === oldNodeId ? newNodeId : id));
-        nodeSchema.cloneInfo.cloned = nodeSchema.cloneInfo.cloned.map((id) => (id === oldNodeId ? newNodeId : id));
-    }
-
-    public isReferencingNode(nodeId: string): boolean
-    {
-        const json = JSON.stringify(this.toJSON());
-
-        if (json.match(new RegExp(`"${nodeId}"`, 'g')))
-        {
-            return true;
-        }
-
-        return false;
     }
 
     public redo()

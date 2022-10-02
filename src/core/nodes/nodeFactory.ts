@@ -2,11 +2,11 @@ import EventEmitter from 'eventemitter3';
 
 import { getUserName } from '../../editor/sync/user';
 import type { ClonableNode, ClonableNodeConstructor, NodeOptions } from './abstract/clonableNode';
-import { registerInstance } from './instances';
+import { getInstance, isInstanceInTrash, registerInstance, restoreInstance } from './instances';
 
 export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
 
-export type NodeFactoryEvents = 'created' | 'disposed' | 'modelModified' | 'childAdded' | 'childRemoved';
+export type NodeFactoryEvents = 'created' | 'restored' | 'disposed' | 'modelModified' | 'childAdded' | 'childRemoved';
 
 export const nodeFactoryEmitter: EventEmitter<NodeFactoryEvents> = new EventEmitter<NodeFactoryEvents>();
 
@@ -33,7 +33,20 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
         throw new Error(`Node type "${nodeType}" is unregistered.`);
     }
 
-    console.log(`${userName}:createNode "${options.id}"`);
+    const { id } = options;
+
+    if (id && isInstanceInTrash(id))
+    {
+        console.log(`${userName}:restoreNode "${id}"`);
+
+        const node = restoreInstance<T>(id);
+
+        nodeFactoryEmitter.emit('restored', node);
+
+        return node;
+    }
+
+    console.log(`${userName}:createNode "${id}"`);
 
     const node = new NodeClass(options) as ClonableNode;
 
@@ -41,6 +54,20 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
     registerNewNode(node);
 
     return node as unknown as T;
+}
+
+export function getOrRestoreInstance<T>(id: string): T
+{
+    if (isInstanceInTrash(id))
+    {
+        const node = restoreInstance<T>(id);
+
+        nodeFactoryEmitter.emit('restored', node);
+
+        return node;
+    }
+
+    return getInstance<T>(id);
 }
 
 export function registerNewNode(node: ClonableNode)

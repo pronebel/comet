@@ -79,22 +79,32 @@ export class TestApp extends Application
             console.log(`%c${userName}:CREATED: ${node.id}`, 'color:pink');
             this.makeInteractive(node.cast<ContainerNode>());
             this.selectLastNode();
+        }).on('restored', (node: ClonableNode) =>
+        {
+            console.log(`%c${userName}:RESTORED: ${node.id}`, 'color:pink');
+            this.datastore.restoreNodeElement(node.id);
+            this.selectLastNode();
         }).on('disposed', (node: ClonableNode) =>
         {
             console.log(`%c${userName}:DISPOSED: ${node.id}`, 'color:pink');
-            this.unmakeInteractive(node.cast<ContainerNode>());
-            this.selectLastNode();
+            // this.unmakeInteractive(node.cast<ContainerNode>());
+            // this.selectLastNode();
+            throw new Error('disposed?');
         }).on('modelModified', (node: ClonableNode) =>
         {
-            this.fitSelection(node.cast<ContainerNode>());
-        }).on('childAdded', (node: ClonableNode) =>
-        {
+            console.log(`%c${userName}:MODIFIED: ${node.id}`, 'color:pink');
             this.fitSelection(node.cast<ContainerNode>());
         })
+            .on('childAdded', (node: ClonableNode) =>
+            {
+                console.log(`%c${userName}:ADDED: ${node.id}`, 'color:pink');
+                this.fitSelection(node.cast<ContainerNode>());
+            })
         // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .on('childRemoved', (node: ClonableNode) =>
             {
+                console.log(`%c${userName}:REMOVED: ${node.id}`, 'color:pink');
                 this.selectLastNode();
             });
     }

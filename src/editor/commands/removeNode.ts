@@ -1,5 +1,5 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getInstance, unregisterInstance } from '../../core/nodes/instances';
+import { getInstance, moveToTrash } from '../../core/nodes/instances';
 import { getCloneInfoSchema } from '../../core/nodes/schema';
 import { type UpdateMode, Command } from '../command';
 
@@ -26,6 +26,9 @@ export class RemoveNodeCommand
         const node = getInstance<ClonableNode>(nodeId);
         const parentNode = node.parent;
 
+        // move to trash
+        node.walk<ClonableNode>((node) => moveToTrash(node));
+
         if (updateMode === 'graphOnly')
         {
             // just unregister it, already removed from data
@@ -36,9 +39,6 @@ export class RemoveNodeCommand
             // delete data from datastore
             datastore.removeNode(nodeId);
         }
-
-        // unregister graph node
-        unregisterInstance(node);
 
         // track cloner before removeChild
         const cloner = node.cloneInfo.getCloner<ClonableNode>();

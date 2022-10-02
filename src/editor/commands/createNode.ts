@@ -29,7 +29,7 @@ export class CreateNodeCommand<
     {
         const { datastore, params: { nodeSchema, isNewNode } } = this;
 
-        const { type, model, cloneInfo: { cloneMode, cloner }, customProperties } = nodeSchema;
+        const { id, type, model, cloneInfo: { cloneMode, cloner }, customProperties } = nodeSchema;
 
         if (isNewNode)
         {
@@ -39,18 +39,16 @@ export class CreateNodeCommand<
         else
         {
             // just register the model, we are loading existing nodes
-            datastore.trackExistingNodeElement(nodeSchema.id);
+            datastore.trackExistingNodeElement(id);
         }
 
         // build clone info
         const cloneInfo = new CloneInfo(cloneMode, cloner ? getInstance<ClonableNode>(cloner) : undefined);
 
-        // create and register graph node
-        const node = createNode<ClonableNode>(type,
-            { id: nodeSchema.id, model, cloneInfo });
+        // re-use or create and register graph node
+        const node = createNode<ClonableNode>(type, { id, model, cloneInfo });
 
         node.created = nodeSchema.created;
-        node.prevId = nodeSchema.prevId;
 
         if (nodeSchema.parent && !isNewNode)
         {

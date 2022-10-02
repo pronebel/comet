@@ -80,14 +80,4 @@ export class UnlinkCommand
             datastore.updateNodeCloneInfo(nodeSchema.id, getCloneInfoSchema(node));
         }
     }
-
-    public updateNodeId(oldNodeId: string, newNodeId: string): void
-    {
-        super.updateNodeId(oldNodeId, newNodeId);
-
-        this.cache.nodes.forEach((nodeSchema) =>
-        {
-            this.updateNodeSchemaId(nodeSchema, oldNodeId, newNodeId);
-        });
-    }
 }

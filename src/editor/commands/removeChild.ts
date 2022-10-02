@@ -1,6 +1,6 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
-import { getInstance, newId } from '../../core/nodes/instances';
+import { getInstance } from '../../core/nodes/instances';
 import { type NodeSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
 import { CreateNodeCommand } from './createNode';
@@ -29,7 +29,7 @@ export class RemoveChildCommand
 
     public apply(): RemoveChildCommandReturn
     {
-        const { cache, datastore, params: { nodeId }, hasRun } = this;
+        const { cache, datastore, params: { nodeId } } = this;
 
         const sourceNode = getInstance<ClonableNode>(nodeId);
         const originalNode = sourceNode.getModificationCloneTarget();
@@ -45,11 +45,6 @@ export class RemoveChildCommand
         });
 
         nodes.sort(sortNodesByCreation);
-
-        if (!hasRun)
-        {
-            nodes.reverse();
-        }
 
         datastore.batch(() =>
         {
@@ -80,28 +75,11 @@ export class RemoveChildCommand
 
         nodes.forEach((nodeSchema) =>
         {
-            const newNodeId = newId(nodeSchema.type);
-            const oldNodeId = nodeSchema.id;
             const parentId = nodeSchema.parent as string;
-
-            nodeSchema.id = newNodeId;
-            nodeSchema.prevId = oldNodeId;
 
             const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).run();
 
             new SetParentCommand({ nodeId: node.id, parentId }).run();
-
-            this.updateAllCommands((command) => command.updateNodeId(oldNodeId, newNodeId));
-        });
-    }
-
-    public updateNodeId(oldNodeId: string, newNodeId: string): void
-    {
-        super.updateNodeId(oldNodeId, newNodeId);
-
-        this.cache.nodes.forEach((nodeSchema) =>
-        {
-            this.updateNodeSchemaId(nodeSchema, oldNodeId, newNodeId);
         });
     }
 }

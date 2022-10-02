@@ -24,7 +24,6 @@ export interface CloneInfoSchema
 export interface NodeSchema<M extends ModelBase = {}>
 {
     id: string;
-    prevId?: string;
     created: number;
     type: string;
     parent?: string;
@@ -102,12 +101,10 @@ export function getNodeSchema(node: ClonableNode, includeParent = true, includeC
     });
 
     nodeSchema.created = node.created;
-    nodeSchema.prevId = node.prevId;
 
     // delete unused properties
     !nodeSchema.cloneInfo.cloner && delete nodeSchema.cloneInfo.cloner;
     !nodeSchema.parent && delete nodeSchema.parent;
-    !nodeSchema.prevId && delete nodeSchema.prevId;
 
     if (includeParent && node.parent)
     {

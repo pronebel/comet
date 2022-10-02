@@ -1,6 +1,7 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
-import { getInstance, registerInstance } from '../../core/nodes/instances';
+import { registerInstance } from '../../core/nodes/instances';
+import { getOrRestoreInstance } from '../../core/nodes/nodeFactory';
 import { type NodeSchema, getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
 import { RemoveNodeCommand } from './removeNode';
@@ -31,9 +32,9 @@ export class CloneCommand
 
     public apply(): CloneCommandReturn
     {
-        const { datastore, params: { nodeId, cloneMode, depth }, cache, hasRun } = this;
+        const { datastore, params: { nodeId, cloneMode, depth }, cache } = this;
 
-        const sourceNode = getInstance<ClonableNode>(nodeId);
+        const sourceNode = getOrRestoreInstance<ClonableNode>(nodeId);
         const originalNode = sourceNode.getCloneTarget();
         const cloneInfoSchema = getCloneInfoSchema(originalNode);
 
@@ -70,7 +71,7 @@ export class CloneCommand
 
             if (clonerId)
             {
-                const cloner = getInstance<ClonableNode>(clonerId);
+                const cloner = getOrRestoreInstance<ClonableNode>(clonerId);
                 const cloneInfoSchema = getCloneInfoSchema(cloner);
 
                 datastore.updateNodeCloneInfo(clonerId, cloneInfoSchema);
@@ -79,18 +80,6 @@ export class CloneCommand
             // track for cache
             clonedNodes.push(node);
         });
-
-        if (hasRun)
-        {
-            // adjust next command for new clone ids
-            for (let i = 0; i < clonedNodes.length; i++)
-            {
-                const oldNodeId = cache.nodes[i].id;
-                const newNodeId = clonedNodes[i].id;
-
-                this.updateAllCommands((command) => command.updateNodeId(oldNodeId, newNodeId));
-            }
-        }
 
         // store cache
         cache.nodes = clonedNodes.map((node) => getNodeSchema(node));
@@ -112,15 +101,5 @@ export class CloneCommand
 
             new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).run();
         }
-    }
-
-    public updateNodeId(oldNodeId: string, newNodeId: string): void
-    {
-        super.updateNodeId(oldNodeId, newNodeId);
-
-        this.cache.nodes.forEach((nodeSchema) =>
-        {
-            this.updateNodeSchemaId(nodeSchema, oldNodeId, newNodeId);
-        });
     }
 }
