@@ -58,6 +58,7 @@ export default class UndoStack
         {
             const cmd = stack[i];
 
+            cmd.assert();
             cmd.undo();
         }
 
@@ -70,7 +71,20 @@ export default class UndoStack
 
         for (const cmd of commands)
         {
+            cmd.assert();
             cmd.redo();
+            this.head++;
+        }
+    }
+
+    public apply()
+    {
+        const { commands } = this.nextRedoCommands;
+
+        for (const cmd of commands)
+        {
+            cmd.assert();
+            cmd.apply();
             this.head++;
         }
     }

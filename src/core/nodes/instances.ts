@@ -57,7 +57,7 @@ export function registerInstance(instance: Instance)
 
     if (instances.has(id))
     {
-        throw new Error(`Instance "${id}" already registered`);
+        throw new Error(`${userName}:Instance "${id}" already registered`);
     }
 
     instances.set(id, instance);
@@ -72,7 +72,7 @@ export function unregisterInstance(instance: Instance)
 
     if (!instances.has(id))
     {
-        throw new Error(`Instance "${id}" was already unregistered`);
+        throw new Error(`${userName}:Instance "${id}" was already unregistered`);
     }
 
     instances.delete(id);
@@ -86,7 +86,7 @@ export function moveToTrash(instance: Instance)
 
     if (trash.has(id))
     {
-        throw new Error(`Trash already contains instance "${id}"`);
+        throw new Error(`${userName}:Trash already contains instance "${id}"`);
     }
 
     console.log(`${userName}:moving to trash "${id}"`);
@@ -104,12 +104,12 @@ export function restoreInstance<T>(id: string): T
 {
     if (!trash.has(id))
     {
-        throw new Error(`Trash does not contain instance "${id}"`);
+        throw new Error(`${userName}:Trash does not contain instance "${id}"`);
     }
 
     if (instances.has(id))
     {
-        throw new Error(`Instance "${id}" already out of trash`);
+        throw new Error(`${userName}:Instance "${id}" already out of trash`);
     }
 
     const instance = trash.get(id) as Instance;
@@ -126,7 +126,7 @@ export function getInstance<T>(id: string): T
 {
     if (!instances.has(id))
     {
-        throw new Error(`Cannot access unregistered instance "${id}"`);
+        throw new Error(`${userName}:Cannot access unregistered instance "${id}"`);
     }
 
     return instances.get(id) as unknown as T;
@@ -136,7 +136,7 @@ export function getTrashInstance<T>(id: string): T
 {
     if (!trash.has(id))
     {
-        throw new Error(`Trash does not contains instance "${id}"`);
+        throw new Error(`${userName}:Trash does not contains instance "${id}"`);
     }
 
     return trash.get(id) as unknown as T;

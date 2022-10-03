@@ -31,7 +31,7 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
 
     if (!NodeClass)
     {
-        throw new Error(`Node type "${nodeType}" is unregistered.`);
+        throw new Error(`${userName}:Node type "${nodeType}" is unregistered.`);
     }
 
     const { id } = options;
@@ -48,7 +48,7 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
 
 export function registerNewNode(node: ClonableNode)
 {
-    console.log(`%cRegistering new node "${node.id}"`, 'color:lime');
+    console.log(`%c${userName}:Registering new node "${node.id}"`, 'color:lime');
 
     const onModelModified = (key: string, value: ModelValue, oldValue: ModelValue) =>
     {

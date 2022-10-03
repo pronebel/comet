@@ -13,19 +13,15 @@ export interface RemoveNodeCommandReturn
 {
     node: ClonableNode;
 }
-export interface RemoveNodeCommandCache
-{
-    parentId?: string;
-}
 
 export class RemoveNodeCommand
-    extends Command<RemoveNodeCommandParams, RemoveNodeCommandReturn, RemoveNodeCommandCache>
+    extends Command<RemoveNodeCommandParams, RemoveNodeCommandReturn>
 {
     public static commandName = 'RemoveNode';
 
     public apply(): RemoveNodeCommandReturn
     {
-        const { datastore, params: { nodeId, updateMode }, cache } = this;
+        const { datastore, params: { nodeId, updateMode } } = this;
 
         const node = getInstance<ClonableNode>(nodeId);
         const parentNode = node.parent;
@@ -48,7 +44,9 @@ export class RemoveNodeCommand
         if (parentNode)
         {
             parentNode.removeChild(node);
-            cache.parentId = parentNode.id;
+
+            // keep reference to parent in case of restore required
+            node.parent = parentNode;
         }
 
         // update node cloneInfo
@@ -65,7 +63,7 @@ export class RemoveNodeCommand
 
     public undo(): void
     {
-        const { datastore, params: { nodeId }, cache } = this;
+        const { datastore, params: { nodeId } } = this;
 
         // restore node from trash
         const node = restoreInstance<ClonableNode>(nodeId);
@@ -75,12 +73,13 @@ export class RemoveNodeCommand
 
         datastore.createNode(nodeSchema);
 
-        // add from parent graph node
-        if (cache.parentId)
-        {
-            const parentNode = getInstance<ClonableNode>(cache.parentId);
+        const parentNode = node.parent;
 
+        if (parentNode)
+        {
+            delete node.parent;
             parentNode.addChild(node);
+            datastore.setNodeParent(node.id, parentNode.id, true);
         }
 
         // update node cloneInfo

@@ -55,7 +55,7 @@
 
     app.undoStack.head = myIndex - 1;
 
-    app.redo();
+    app.undoStack.apply();
   }
 
   function onRedo() {

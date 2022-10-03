@@ -44,41 +44,6 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
         return result as unknown as ReturnType;
     }
 
-    protected updateAllFollowingCommands(updateFn: (command: Command) => void)
-    {
-        const { index, app } = this;
-
-        for (let i = index; i < app.undoStack.length; i++)
-        {
-            const command = app.undoStack.getCommandAt(i);
-
-            if (command)
-            {
-                updateFn(command);
-            }
-        }
-    }
-
-    protected updateAllCommands(updateFn: (command: Command) => void)
-    {
-        const { app } = this;
-
-        for (let i = 0; i < app.undoStack.length; i++)
-        {
-            const command = app.undoStack.getCommandAt(i);
-
-            if (command)
-            {
-                updateFn(command);
-            }
-        }
-    }
-
-    protected castParamsAs<T>()
-    {
-        return this.params as unknown as T;
-    }
-
     public redo()
     {
         this.apply();
@@ -92,6 +57,11 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
     public get datastore()
     {
         return this.app.datastore;
+    }
+
+    public assert()
+    {
+        //
     }
 
     public toJSON()

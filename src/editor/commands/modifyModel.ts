@@ -1,7 +1,8 @@
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getInstance } from '../../core/nodes/instances';
+import { getInstance, isInstanceInTrash } from '../../core/nodes/instances';
 import { Command } from '../command';
+import { RemoveNodeCommand } from './removeNode';
 
 export interface ModifyModelCommandParams<M>
 {
@@ -55,6 +56,16 @@ export class ModifyModelCommand<M extends ModelBase>
         if (prevValues && Object.values(prevValues).length > 0)
         {
             new ModifyModelCommand({ nodeId, values: prevValues }).run();
+        }
+    }
+
+    public assert(): void
+    {
+        const { params: { nodeId } } = this;
+
+        if (isInstanceInTrash(nodeId))
+        {
+            new RemoveNodeCommand({ nodeId, updateMode: 'full' }).undo();
         }
     }
 }
