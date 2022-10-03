@@ -96,6 +96,7 @@ export class TestApp extends Application
             .on('childAdded', (node: ClonableNode) =>
             {
                 console.log(`%c${userName}:ADDED: "${node.id}"`, 'color:pink');
+                this.select(node.cast<ContainerNode>());
                 this.fitSelection(node.cast<ContainerNode>());
             })
         // @ts-ignore

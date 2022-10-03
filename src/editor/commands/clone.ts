@@ -23,7 +23,7 @@ export interface CloneCommandReturn
 
 export interface CloneCommandCache
 {
-    nodes: ClonableNode[];
+    commands: RemoveNodeCommand[];
 }
 
 export class CloneCommand
@@ -46,6 +46,9 @@ export class CloneCommand
 
         // update originals new cloneInfo
         datastore.updateNodeCloneInfo(originalNode.id, cloneInfoSchema);
+
+        // prepare cache
+        cache.commands = [];
 
         // for each cloned node (including primary cloned node)...
         clonedNode.walk<ClonableNode>((node) =>
@@ -78,12 +81,12 @@ export class CloneCommand
                 datastore.updateNodeCloneInfo(clonerId, cloneInfoSchema);
             }
 
-            // track for cache
+            // track for return
             clonedNodes.push(node);
-        });
 
-        // store cache
-        cache.nodes = clonedNodes;
+            // track for cache
+            cache.commands.push(new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }));
+        });
 
         // set parent if provided
         if (parentId)
@@ -100,25 +103,21 @@ export class CloneCommand
 
     public undo(): void
     {
-        const { cache: { nodes } } = this;
+        const { cache: { commands } } = this;
 
-        for (let i = nodes.length - 1; i >= 0; i--)
+        for (let i = commands.length - 1; i >= 0; i--)
         {
-            const node = nodes[i];
-
-            new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).run();
+            commands[i].apply();
         }
     }
 
     public redo()
     {
-        const { cache: { nodes }, datastore } = this;
+        const { cache: { commands } } = this;
 
-        for (let i = 0; i < nodes.length; i++)
+        for (let i = 0; i < commands.length; i++)
         {
-            const node = nodes[i];
-
-            datastore.restoreNode(node.id);
+            commands[i].undo();
         }
     }
 }

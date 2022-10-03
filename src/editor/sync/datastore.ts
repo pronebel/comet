@@ -10,9 +10,9 @@ import { EventEmitter } from 'eventemitter3';
 
 import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { consolidateId, getInstance, getTrashInstance } from '../../core/nodes/instances';
+import { consolidateId, getInstance } from '../../core/nodes/instances';
 import type { CloneInfoSchema, NodeSchema, ProjectSchema } from '../../core/nodes/schema';
-import { createProjectSchema, getNodeSchema } from '../../core/nodes/schema';
+import { createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import { CreateNodeCommand } from '../commands/createNode';
 import type {
@@ -26,7 +26,7 @@ import type {
     DSNodeCreatedEvent,
     DSNodeRemovedEvent,
     DSParentSetEvent,
-    DSRestoreNodeEvent,
+    // DSRestoreNodeEvent,
 } from './datastoreEvents';
 import { getUserName } from './user';
 
@@ -468,17 +468,17 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         }
     }
 
-    public restoreNode(nodeId: string)
-    {
-        const e: DSRestoreNodeEvent = { nodeId };
+    // public restoreNode(nodeId: string)
+    // {
+    //     const e: DSRestoreNodeEvent = { nodeId };
 
-        const node = getTrashInstance<ClonableNode>(nodeId);
-        const nodeSchema = getNodeSchema(node);
+    //     const node = getTrashInstance<ClonableNode>(nodeId);
+    //     const nodeSchema = getNodeSchema(node);
 
-        this.createNode(nodeSchema);
+    //     this.createNode(nodeSchema);
 
-        this.emit('restoreNode', e);
-    }
+    //     this.emit('restoreNode', e);
+    // }
 
     public updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema)
     {

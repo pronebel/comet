@@ -22,7 +22,7 @@ export interface AddChildCommandReturn
 
 export interface AddChildCommandCache
 {
-    nodes: string[];
+    commands: RemoveNodeCommand[];
 }
 
 export class AddChildCommand<
@@ -65,20 +65,29 @@ export class AddChildCommand<
             nodes.push(clonedNode);
         });
 
-        cache.nodes = nodes.map((node) => node.id);
+        // prepare cache
+        cache.commands = nodes.map((node) => new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }));
 
         return { nodes };
     }
 
     public undo(): void
     {
-        const { cache: { nodes } } = this;
+        const { cache: { commands } } = this;
 
-        for (let i = nodes.length - 1; i >= 0; i--)
+        for (let i = commands.length - 1; i >= 0; i--)
         {
-            const id = nodes[i];
+            commands[i].run();
+        }
+    }
 
-            new RemoveNodeCommand({ nodeId: id, updateMode: 'full' }).run();
+    public redo(): void
+    {
+        const { cache: { commands } } = this;
+
+        for (let i = 0; i < commands.length; i++)
+        {
+            commands[i].undo();
         }
     }
 }

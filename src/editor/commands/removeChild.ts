@@ -1,11 +1,8 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import { getInstance } from '../../core/nodes/instances';
-import { type NodeSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
-import { CreateNodeCommand } from './createNode';
 import { RemoveNodeCommand } from './removeNode';
-import { SetParentCommand } from './setParent';
 
 export interface RemoveChildCommandParams
 {
@@ -19,7 +16,7 @@ export interface RemoveChildCommandReturn
 
 export interface RemoveChildCommandCache
 {
-    nodes: NodeSchema[];
+    commands: RemoveNodeCommand[];
 }
 
 export class RemoveChildCommand
@@ -37,7 +34,8 @@ export class RemoveChildCommand
 
         const nodes: ClonableNode[] = [originalNode, ...clonedNodes];
 
-        cache.nodes = [];
+        // prepare cache
+        cache.commands = [];
 
         nodes.forEach((rootNode) =>
         {
@@ -51,28 +49,23 @@ export class RemoveChildCommand
             nodes.forEach((node) =>
             {
                 // track in cache
-                cache.nodes.push(getNodeSchema(node));
+                const command = new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' });
 
-                new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).run();
+                cache.commands.push(command);
+                command.run();
             });
         });
-
-        cache.nodes.reverse();
 
         return { nodes };
     }
 
     public undo(): void
     {
-        const { cache: { nodes } } = this;
+        const { cache: { commands } } = this;
 
-        nodes.forEach((nodeSchema) =>
+        for (let i = commands.length - 1; i >= 0; i--)
         {
-            const parentId = nodeSchema.parent as string;
-
-            const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).run();
-
-            new SetParentCommand({ nodeId: node.id, parentId }).run();
-        });
+            commands[i].undo();
+        }
     }
 }

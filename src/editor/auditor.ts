@@ -27,7 +27,7 @@ export interface GraphNodeAudit
     isCloneInfoValid: string;
 }
 
-export interface DSNodeAudit
+export interface DSNodeAudit extends Omit<GraphNodeAudit, 'isInGraph' | 'isInDatastore' | 'isCloneInfoValid'>
 {
     isRegistered: Result;
     isAttached: Result;
@@ -104,10 +104,20 @@ export class Auditor
         }
 
         // datastore
-        datastoreRegisteredIds.forEach((id) => (audit.datastore[id] = {
-            isRegistered: Result.Dot,
-            isAttached: asResult(datastore.getNodeElement(id).isAttached()),
-        }));
+        datastoreRegisteredIds.forEach((id) =>
+        {
+            const schema = datastore.getNodeElementSchema(id);
+
+            audit.datastore[id] = {
+                parent: schema.parent ? schema.parent : '',
+                children: schema.children.join(','),
+                cloner: schema.cloneInfo.cloner ? schema.cloneInfo.cloner : '',
+                cloned: schema.cloneInfo.cloned.join(','),
+                cloneMode: schema.cloneInfo.cloneMode,
+                isRegistered: Result.Dot,
+                isAttached: asResult(datastore.getNodeElement(id).isAttached()),
+            };
+        });
 
         return audit;
     }

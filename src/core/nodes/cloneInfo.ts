@@ -120,6 +120,11 @@ export class CloneInfo
         this.cloneMode = CloneMode.Original;
     }
 
+    public addCloned(cloned: Clonable)
+    {
+        this.cloned.push(cloned);
+    }
+
     public removeCloned(cloned: Clonable)
     {
         const index = this.cloned.indexOf(cloned);

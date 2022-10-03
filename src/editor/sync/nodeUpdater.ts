@@ -1,5 +1,5 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getInstance, restoreInstance } from '../../core/nodes/instances';
+import { getInstance } from '../../core/nodes/instances';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { CreateNodeCommand } from '../commands/createNode';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
@@ -17,7 +17,7 @@ import type {
     DSNodeCreatedEvent,
     DSNodeRemovedEvent,
     DSParentSetEvent,
-    DSRestoreNodeEvent,
+    // DSRestoreNodeEvent,
 } from './datastoreEvents';
 import { getUserName } from './user';
 
@@ -36,8 +36,8 @@ export class NodeUpdater
             .on('customPropAssigned', this.onCustomPropAssigned)
             .on('customPropUnassigned', this.onCustomPropUnassigned)
             .on('modelModified', this.onModelModified)
-            .on('cloneInfoModified', this.onCloneInfoModified)
-            .on('restoreNode', this.onRestoreNode);
+            .on('cloneInfoModified', this.onCloneInfoModified);
+        // .on('restoreNode', this.onRestoreNode);
     }
 
     protected log(eventName: string, event: any)
@@ -165,12 +165,12 @@ export class NodeUpdater
         cloneInfo.cloned = cloned.map((clonedId) => getInstance<ClonableNode>(clonedId));
     };
 
-    protected onRestoreNode = (event: DSRestoreNodeEvent) =>
-    {
-        const { nodeId } = event;
+    // protected onRestoreNode = (event: DSRestoreNodeEvent) =>
+    // {
+    //     const { nodeId } = event;
 
-        const instance = restoreInstance(nodeId);
+    //     restoreInstance(nodeId);
 
-        // restore cloner cloned relationship
-    };
+    //     // restore cloner cloned relationship
+    // };
 }

@@ -248,8 +248,8 @@
     <button on:click={onWriteUndoStack}>Save Undo</button>
     <button on:click={onClearUndoStack}>Clear Undo</button>
     <hr />
-    <button on:click={onReload}>Refresh</button>
     <button on:click={onNew}>New</button>
+    <button on:click={onReload}>Refresh</button>
     <button on:click={onReOpen}>ReOpen</button>
     <button on:click={onRestoreDatastore}>Restore DStore</button>
     <button on:click={onSaveDatastore}>Save DStore</button>
