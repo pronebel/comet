@@ -27,7 +27,7 @@ export class RemoveNodeCommand
         const parentNode = node.parent;
 
         // move to trash
-        node.walk<ClonableNode>((node) => moveToTrash(node));
+        moveToTrash(node);
 
         if (updateMode === 'graphOnly')
         {
@@ -40,9 +40,6 @@ export class RemoveNodeCommand
             datastore.removeNode(nodeId);
         }
 
-        // track cloner before removeChild
-        const cloner = node.cloneInfo.getCloner<ClonableNode>();
-
         // remove from parent graph node
         if (parentNode)
         {
@@ -50,13 +47,13 @@ export class RemoveNodeCommand
         }
 
         // update node cloneInfo
+        const cloner = node.cloneInfo.getCloner<ClonableNode>();
+
         if (cloner)
         {
+            cloner.cloneInfo.removeCloned(node);
             datastore.updateNodeCloneInfo(cloner.id, getCloneInfoSchema(cloner));
         }
-
-        // dispose
-        // node.dispose();
 
         return { node };
     }

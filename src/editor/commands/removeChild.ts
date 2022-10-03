@@ -50,17 +50,10 @@ export class RemoveChildCommand
         {
             nodes.forEach((node) =>
             {
-                const cloner = node.cloneInfo.cloner;
-
                 // track in cache
                 cache.nodes.push(getNodeSchema(node));
 
                 new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).run();
-
-                if (cloner)
-                {
-                    cloner.cloneInfo.removeCloned(node);
-                }
             });
         });
 
