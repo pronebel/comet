@@ -1,5 +1,5 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getInstance, moveToTrash, restoreInstance } from '../../core/nodes/instances';
+import { getInstance, hasInstance, isInstanceInTrash, moveToTrash, restoreInstance } from '../../core/nodes/instances';
 import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { type UpdateMode, Command } from '../command';
 
@@ -66,6 +66,12 @@ export class RemoveNodeCommand
         const { datastore, params: { nodeId } } = this;
 
         // restore node from trash
+        if (!isInstanceInTrash(nodeId) && hasInstance(nodeId))
+        {
+            // node has already been restored by remote user action, abort
+            return;
+        }
+
         const node = restoreInstance<ClonableNode>(nodeId);
 
         // restore datastore data

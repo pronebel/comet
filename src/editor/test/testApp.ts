@@ -12,6 +12,7 @@ import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance, getLatestInstance, hasInstance } from '../../core/nodes/instances';
 import { nodeFactoryEmitter, registerNodeType } from '../../core/nodes/nodeFactory';
 import { createNodeSchema, getNodeSchema } from '../../core/nodes/schema';
+import { delay } from '../../core/util';
 import { Action } from '../action';
 import { type AppOptions, Application } from '../application';
 import { AddChildCommand } from '../commands/addChild';
@@ -127,6 +128,7 @@ export class TestApp extends Application
         }
         else
         {
+            await delay(1000);
             await this.openProject('test');
         }
 

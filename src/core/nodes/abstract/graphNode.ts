@@ -99,11 +99,6 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
     public setParent(parent: GraphNode)
     {
-        if (this.parent)
-        {
-            this.parent.removeChild(this);
-        }
-
         this.parent = parent;
 
         parent.children.push(this);
