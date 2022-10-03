@@ -79,11 +79,6 @@ export class TestApp extends Application
             console.log(`%c${userName}:CREATED: "${node.id}"`, 'color:pink');
             this.makeInteractive(node.cast<ContainerNode>());
             this.selectLastNode();
-        }).on('restored', (node: ClonableNode) =>
-        {
-            console.log(`%c${userName}:RESTORED: "${node.id}"`, 'color:pink');
-            this.datastore.restoreNodeElement(node.id);
-            this.selectLastNode();
         }).on('disposed', (node: ClonableNode) =>
         {
             console.log(`%c${userName}:DISPOSED: "${node.id}"`, 'color:pink');

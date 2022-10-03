@@ -1,8 +1,7 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
-import { registerInstance } from '../../core/nodes/instances';
-import { getOrRestoreInstance } from '../../core/nodes/nodeFactory';
-import { type NodeSchema, getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
+import { getInstance, registerInstance } from '../../core/nodes/instances';
+import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
 import { RemoveNodeCommand } from './removeNode';
 import { SetParentCommand } from './setParent';
@@ -24,7 +23,7 @@ export interface CloneCommandReturn
 
 export interface CloneCommandCache
 {
-    nodes: NodeSchema[];
+    nodes: ClonableNode[];
 }
 
 export class CloneCommand
@@ -36,7 +35,7 @@ export class CloneCommand
     {
         const { datastore, params: { nodeId, cloneMode, depth, parentId }, cache } = this;
 
-        const sourceNode = getOrRestoreInstance<ClonableNode>(nodeId);
+        const sourceNode = getInstance<ClonableNode>(nodeId);
         const originalNode = sourceNode.getCloneTarget();
         const cloneInfoSchema = getCloneInfoSchema(originalNode);
 
@@ -73,7 +72,7 @@ export class CloneCommand
 
             if (clonerId)
             {
-                const cloner = getOrRestoreInstance<ClonableNode>(clonerId);
+                const cloner = getInstance<ClonableNode>(clonerId);
                 const cloneInfoSchema = getCloneInfoSchema(cloner);
 
                 datastore.updateNodeCloneInfo(clonerId, cloneInfoSchema);
@@ -84,7 +83,7 @@ export class CloneCommand
         });
 
         // store cache
-        cache.nodes = clonedNodes.map((node) => getNodeSchema(node));
+        cache.nodes = clonedNodes;
 
         // set parent if provided
         if (parentId)
@@ -108,6 +107,18 @@ export class CloneCommand
             const node = nodes[i];
 
             new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).run();
+        }
+    }
+
+    public redo()
+    {
+        const { cache: { nodes }, datastore } = this;
+
+        for (let i = 0; i < nodes.length; i++)
+        {
+            const node = nodes[i];
+
+            datastore.restoreNode(node.id);
         }
     }
 }

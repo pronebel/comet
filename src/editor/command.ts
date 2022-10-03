@@ -81,7 +81,7 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
 
     public redo()
     {
-        return this.apply();
+        this.apply();
     }
 
     public get app()
