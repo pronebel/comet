@@ -54,6 +54,7 @@
   };
 
   const onNew = () => {
+    console.clear();
     app.createProject("Test", "test");
   };
 

@@ -41,6 +41,7 @@ export class AddChildCommand<
 
         const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).run();
         const nodes: ClonableNode[] = [node];
+
         let lastCloneSource = node;
 
         new SetParentCommand({ parentId: originalParentNode.id, nodeId: node.id }).run();
@@ -50,6 +51,7 @@ export class AddChildCommand<
             const cloneMode = clonedParent.getNewChildCloneMode();
 
             const { clonedNode } = new CloneCommand({
+                parentId: clonedParent.id,
                 nodeId: lastCloneSource.id,
                 cloneMode,
                 depth: 1,
@@ -61,8 +63,6 @@ export class AddChildCommand<
             }
 
             nodes.push(clonedNode);
-
-            new SetParentCommand({ parentId: clonedParent.id, nodeId: clonedNode.id }).run();
         });
 
         cache.nodes = nodes.map((node) => node.id);

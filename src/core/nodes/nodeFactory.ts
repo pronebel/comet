@@ -1,6 +1,7 @@
 import EventEmitter from 'eventemitter3';
 
 import { getUserName } from '../../editor/sync/user';
+import type { ModelValue } from '../model/model';
 import type { ClonableNode, ClonableNodeConstructor, NodeOptions } from './abstract/clonableNode';
 import { getInstance, isInstanceInTrash, registerInstance, restoreInstance } from './instances';
 
@@ -74,9 +75,9 @@ export function registerNewNode(node: ClonableNode)
 {
     console.log(`%cRegistering new node "${node.id}"`, 'color:lime');
 
-    const onModelModified = () =>
+    const onModelModified = (key: string, value: ModelValue, oldValue: ModelValue) =>
     {
-        nodeFactoryEmitter.emit('modelModified', node);
+        nodeFactoryEmitter.emit('modelModified', node, key, value, oldValue);
     };
 
     const onChildAdded = (node: ClonableNode) =>

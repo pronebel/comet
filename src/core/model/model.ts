@@ -87,18 +87,18 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
         return value;
     }
 
-    public setValue<K extends keyof M>(key: K, newValue: M[K])
+    public setValue<K extends keyof M>(key: K, newValue: M[K]): boolean
     {
         const { data, schema, schema: { keys } } = this;
 
-        let oldValue = Reflect.get(data, key);
-
-        if (oldValue === undefined)
-        {
-            oldValue = this.getValue(key);
-        }
+        const oldValue = Reflect.get(data, key);
 
         let value = newValue === undefined ? data[key] : newValue;
+
+        if (value === oldValue)
+        {
+            return false;
+        }
 
         const constraints = schema.getConstraints(key);
 
@@ -147,6 +147,7 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
 
     public setValues(values: Partial<M>)
     {
+        const { ownValues } = this;
         const keys = Object.getOwnPropertyNames(values) as (keyof M)[];
         const prevValues: Partial<M> = {};
 
@@ -154,7 +155,7 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
         {
             const value = values[key] as M[keyof M];
 
-            if (value !== this.schema.defaults[key])
+            if (value !== this.schema.defaults[key] && value !== ownValues[key])
             {
                 prevValues[key] = this.ownValues[key];
                 this.setValue(key, value);

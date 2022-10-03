@@ -5,9 +5,11 @@ import { getOrRestoreInstance } from '../../core/nodes/nodeFactory';
 import { type NodeSchema, getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
 import { RemoveNodeCommand } from './removeNode';
+import { SetParentCommand } from './setParent';
 
 export interface CloneCommandParams
 {
+    parentId?: string;
     nodeId: string;
     cloneMode: CloneMode;
     depth?: number;
@@ -32,7 +34,7 @@ export class CloneCommand
 
     public apply(): CloneCommandReturn
     {
-        const { datastore, params: { nodeId, cloneMode, depth }, cache } = this;
+        const { datastore, params: { nodeId, cloneMode, depth, parentId }, cache } = this;
 
         const sourceNode = getOrRestoreInstance<ClonableNode>(nodeId);
         const originalNode = sourceNode.getCloneTarget();
@@ -83,6 +85,12 @@ export class CloneCommand
 
         // store cache
         cache.nodes = clonedNodes.map((node) => getNodeSchema(node));
+
+        // set parent if provided
+        if (parentId)
+        {
+            new SetParentCommand({ parentId, nodeId: clonedNode.id }).run();
+        }
 
         return {
             sourceNode,

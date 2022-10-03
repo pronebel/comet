@@ -86,7 +86,7 @@ export abstract class ClonableNode<
 
     protected initCloning()
     {
-        const { cloneInfo, cloneInfo: { isVariant, isReferenceRoot } } = this;
+        const { cloneInfo, cloneInfo: { isVariantLike, isReferenceRoot } } = this;
 
         const cloner = cloneInfo.getCloner<ClonableNode>();
 
@@ -98,7 +98,7 @@ export abstract class ClonableNode<
 
             // note: Reference case is handled immediately in Node constructor as model is shared
 
-            if (isVariant || isReferenceRoot)
+            if (isVariantLike)
             {
                 this.model.link(sourceModel);
 
@@ -118,7 +118,7 @@ export abstract class ClonableNode<
         // for subclasses...
     }
 
-    public clone<T extends ClonableNode>(cloneMode: CloneMode = CloneMode.Variant, depth = 0): T
+    public clone<T extends ClonableNode>(cloneMode: CloneMode = CloneMode.ReferenceRoot, depth = 0): T
     {
         const Ctor = Object.getPrototypeOf(this).constructor as ClonableNodeConstructor;
 
@@ -254,18 +254,6 @@ export abstract class ClonableNode<
         return false;
     }
 
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    // protected onRemovedFromParent(oldParent: GraphNode<string>): void
-    // {
-    //     const cloner = this.cloneInfo.getCloner<ClonableNode>();
-
-    //     if (cloner)
-    //     {
-    //         cloner.cloneInfo.removeCloned(this);
-    //     }
-    // }
-
     public update(recursive = false)
     {
         if (this.view)
@@ -399,9 +387,9 @@ export abstract class ClonableNode<
 
     public getModificationCloneTarget(): ClonableNode
     {
-        const { isVariant, isRoot, isOriginal } = this.cloneInfo;
+        const { isVariantLike, isOriginal } = this.cloneInfo;
 
-        return (isVariant || isRoot || isOriginal) ? this as unknown as ClonableNode : this.cloneInfo.getCloner();
+        return (isVariantLike || isOriginal) ? this as unknown as ClonableNode : this.cloneInfo.getCloner();
     }
 
     public getAddChildCloneTarget(): ClonableNode
@@ -418,7 +406,7 @@ export abstract class ClonableNode<
 
     public getCloneTarget(): ClonableNode
     {
-        const { isVariant, isVariantRoot, isReferenceRoot, cloner } = this.cloneInfo;
+        const { isVariantOrRoot, isReferenceRoot, cloner } = this.cloneInfo;
 
         if (cloner)
         {
@@ -426,7 +414,7 @@ export abstract class ClonableNode<
             {
                 return cloner as ClonableNode;
             }
-            else if (isVariant || isVariantRoot)
+            else if (isVariantOrRoot)
             {
                 return this as unknown as ClonableNode;
             }

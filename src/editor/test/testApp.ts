@@ -1,6 +1,7 @@
 import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
+import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
@@ -20,7 +21,6 @@ import { ModifyModelCommand } from '../commands/modifyModel';
 import { RemoveChildCommand } from '../commands/removeChild';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
-import { SetParentCommand } from '../commands/setParent';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { UnlinkCommand } from '../commands/unlink';
 import { getUserName } from '../sync/user';
@@ -76,35 +76,38 @@ export class TestApp extends Application
     {
         nodeFactoryEmitter.on('created', (node: ClonableNode) =>
         {
-            console.log(`%c${userName}:CREATED: ${node.id}`, 'color:pink');
+            console.log(`%c${userName}:CREATED: "${node.id}"`, 'color:pink');
             this.makeInteractive(node.cast<ContainerNode>());
             this.selectLastNode();
         }).on('restored', (node: ClonableNode) =>
         {
-            console.log(`%c${userName}:RESTORED: ${node.id}`, 'color:pink');
+            console.log(`%c${userName}:RESTORED: "${node.id}"`, 'color:pink');
             this.datastore.restoreNodeElement(node.id);
             this.selectLastNode();
         }).on('disposed', (node: ClonableNode) =>
         {
-            console.log(`%c${userName}:DISPOSED: ${node.id}`, 'color:pink');
+            console.log(`%c${userName}:DISPOSED: "${node.id}"`, 'color:pink');
             // this.unmakeInteractive(node.cast<ContainerNode>());
             // this.selectLastNode();
             throw new Error('disposed?');
-        }).on('modelModified', (node: ClonableNode) =>
+        }).on('modelModified', (node: ClonableNode, key: string, value: ModelValue, oldValue: ModelValue) =>
         {
-            console.log(`%c${userName}:MODIFIED: ${node.id}`, 'color:pink');
+            const val = JSON.stringify(value);
+            const oldVal = JSON.stringify(oldValue);
+
+            console.log(`%c${userName}:MODIFIED: "${node.id}" [${key}]=${val} (${oldVal})`, 'color:pink');
             this.fitSelection(node.cast<ContainerNode>());
         })
             .on('childAdded', (node: ClonableNode) =>
             {
-                console.log(`%c${userName}:ADDED: ${node.id}`, 'color:pink');
+                console.log(`%c${userName}:ADDED: "${node.id}"`, 'color:pink');
                 this.fitSelection(node.cast<ContainerNode>());
             })
         // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .on('childRemoved', (node: ClonableNode) =>
             {
-                console.log(`%c${userName}:REMOVED: ${node.id}`, 'color:pink');
+                console.log(`%c${userName}:REMOVED: "${node.id}"`, 'color:pink');
                 this.selectLastNode();
             });
     }
@@ -238,17 +241,14 @@ export class TestApp extends Application
         {
             const parentNode = this.selected.parent;
             const {
-                sourceNode,
                 clonedNode,
-            } = this.exec<CloneCommandReturn>(new CloneCommand({ nodeId: this.selected.id, cloneMode }));
+            } = this.exec<CloneCommandReturn>(new CloneCommand({
+                parentId: parentNode ? parentNode.id : undefined,
+                nodeId: this.selected.id,
+                cloneMode,
+            }));
 
-            if (parentNode)
-            {
-                this.exec(new SetParentCommand({ parentId: parentNode.id, nodeId: clonedNode.id }), false);
-                this.exec(new ModifyModelCommand({ nodeId: clonedNode.id, values: sourceNode.model.ownValues }), false);
-
-                this.select(clonedNode.cast());
-            }
+            this.select(clonedNode.cast());
         }
     }
 
