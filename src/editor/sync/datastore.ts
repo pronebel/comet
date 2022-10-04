@@ -31,7 +31,7 @@ import { getUserName } from './user';
 
 const userName = getUserName();
 const logStyle = 'color:LawnGreen';
-const logId = `${userName}:DAST`;
+const logId = `${userName}:DATS`;
 
 export const defaultProjectSettings = {
     collection: 'projects',

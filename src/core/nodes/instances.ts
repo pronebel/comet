@@ -7,7 +7,7 @@ const trash: Map<string, Instance> = new Map();
 const idCounters: Map<string, number> = new Map();
 
 const userName = getUserName();
-const logStyle = 'color:PaleTurquoise';
+const logStyle = 'color:SteelBlue';
 const logId = `${userName}:INSTS`;
 
 export function peekNextIdCount(type: string)

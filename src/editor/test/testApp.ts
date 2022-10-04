@@ -32,7 +32,7 @@ import { startDrag } from './drag';
 export let app: TestApp;
 
 const userName = getUserName();
-const logStyle = `color:PeachPuff`;
+const logStyle = `color:PaleTurquoise`;
 const logId = `${userName}:TAPP`;
 
 // must register any nodes outside of core explicitly
@@ -85,15 +85,14 @@ export class TestApp extends Application
         }).on('disposed', (node: ClonableNode) =>
         {
             console.log(`%c${logId}:DISPOSED: "${node.id}"`, logStyle);
-            // this.unmakeInteractive(node.cast<ContainerNode>());
-            // this.selectLastNode();
             throw new Error('disposed?');
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
         }).on('modelModified', (node: ClonableNode, key: string, value: ModelValue, oldValue: ModelValue) =>
         {
-            const val = JSON.stringify(value);
-            const oldVal = JSON.stringify(oldValue);
+            // const val = JSON.stringify(value);
+            // const oldVal = JSON.stringify(oldValue);
 
-            console.log(`%c${logId}:MODIFIED: "${node.id}" [${key}]=${val} (${oldVal})`, logStyle);
+            // console.log(`%c${logId}:MODIFIED: "${node.id}" [${key}]=${val} (${oldVal})`, logStyle);
             this.fitSelection(node.cast<ContainerNode>());
         })
             .on('childAdded', (node: ClonableNode) =>
