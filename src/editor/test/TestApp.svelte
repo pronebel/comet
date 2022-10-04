@@ -35,8 +35,9 @@
   };
 
   // if (getUrlParam<number>("connect") === 1) {
-  onConnect();
+  //   onConnect();
   // }
+  onConnect();
 
   const onReload = () => {
     window.location.reload();

@@ -61,7 +61,7 @@ export class RemoveNodeCommand
         return { node };
     }
 
-    public undo(): void
+    public undo()
     {
         const { datastore, params: { nodeId } } = this;
 

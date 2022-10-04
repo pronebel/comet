@@ -31,6 +31,7 @@ import type {
 import { getUserName } from './user';
 
 const userName = getUserName();
+const logStyle = 'color:cyan';
 
 export const defaultProjectSettings = {
     collection: 'projects',
@@ -40,8 +41,6 @@ export const defaultProjectSettings = {
 };
 
 export const connectionTimeout = 2500;
-
-const logStyle = 'color:cyan';
 
 export class Datastore extends EventEmitter<DatastoreEvents>
 {
@@ -165,13 +164,14 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             throw new Error(`Existing node "${nodeId}" RealTimeObject not found, cannot track.`);
         }
 
+        if (!this.nodeRealtimeObjects.has(nodeId))
+        {
         // index element
-        this.nodeRealtimeObjects.set(nodeId, nodeElement);
+            this.nodeRealtimeObjects.set(nodeId, nodeElement);
 
-        // track remote changes
-        this.trackNodeElementRemoteEvents(nodeId);
-
-        console.log(`${userName}:Tracking existing RealTimeObject "${nodeId}"`);
+            // track remote changes
+            this.trackNodeElementRemoteEvents(nodeId);
+        }
     }
 
     public async createProject(name: string, id?: string)
@@ -233,6 +233,8 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     protected trackNodeElementRemoteEvents(nodeId: string)
     {
+        console.log(`%c${userName}:track nodeElement: ${nodeId}`, logStyle);
+
         const nodeElement = this.getNodeElement(nodeId);
 
         // track remote events on node changes
@@ -244,9 +246,14 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             if (key === 'parent')
             {
                 const parentId = (event as ObjectSetEvent).value.value();
+                const oldParentId = (event as ObjectSetEvent).oldValue.value();
                 const childId = nodeElement.get('id').value();
 
-                console.log(`%c${userName}:${nodeId}:parent.set: ${parentId} ${childId}`, logStyle);
+                console.log(
+                    `%c${userName}:${nodeId}:parent.set! parentId: ${parentId} 
+                    childId: ${childId} oldParentId: ${oldParentId}`,
+                    logStyle,
+                );
 
                 const e: DSParentSetEvent = { parentId, nodeId: childId };
 
@@ -414,11 +421,16 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         // track remote events
         this.trackNodeElementRemoteEvents(nodeId);
 
-        console.log(`${userName}:Registered New RealTimeObject "${nodeId}"`);
+        console.log(`%c${userName}:Registered New RealTimeObject "${nodeId}"`, logStyle);
     }
 
     public createNode(nodeSchema: NodeSchema)
     {
+        console.log(
+            `%c${userName}:DS.createNode! childId: ${JSON.stringify(nodeSchema)}`,
+            logStyle,
+        );
+
         const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
         this.registerNodeElement(nodeSchema.id, nodeElement);
@@ -426,6 +438,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public removeNode(nodeId: string)
     {
+        console.log(
+            `%c${userName}:DS.removeNode! nodeId: ${nodeId}`,
+            logStyle,
+        );
+
         const nodeElement = this.getNodeElement(nodeId);
         const parentId = nodeElement.get('parent').value() as string | undefined;
 
@@ -453,6 +470,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public setNodeParent(childId: string, parentId: string, updateChildren = true)
     {
+        console.log(
+            `%c${userName}:DS.setNodeParent! childId: ${childId} parentId: ${parentId} updateChildren: ${updateChildren}`,
+            logStyle,
+        );
+
         const parentElement = this.getNodeElement(parentId);
         const childElement = this.getNodeElement(childId);
 
@@ -482,6 +504,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema)
     {
+        console.log(
+            `%c${userName}:DS.updateNodeCloneInfo! nodeId: ${nodeId} cloneInfoSchema: ${JSON.stringify(cloneInfoSchema)}`,
+            logStyle,
+        );
+
         const nodeElement = this.getNodeElement(nodeId);
 
         nodeElement.get('cloneInfo').value(cloneInfoSchema);
@@ -489,6 +516,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     public modifyNodeModel(nodeId: string, values: object)
     {
+        console.log(
+            `%c${userName}:DS.modifyNodeModel! nodeId: ${nodeId} values: ${JSON.stringify(values)}`,
+            logStyle,
+        );
+
         const nodeElement = this.getNodeElement(nodeId);
         const modelElement = nodeElement.get('model') as RealTimeObject;
 
@@ -572,7 +604,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         this.nodeRealtimeObjects.delete(id);
 
-        console.log(`${userName}:Unregistered RealTimeObject "${id}"`);
+        console.log(`%c${userName}:Unregistered RealTimeObject "${id}"`, logStyle);
     }
 
     public getNodeElement(id: string)

@@ -7,6 +7,7 @@ const trash: Map<string, Instance> = new Map();
 const idCounters: Map<string, number> = new Map();
 
 const userName = getUserName();
+const logStyle = 'color:yellow';
 
 export function peekNextIdCount(type: string)
 {
@@ -63,7 +64,7 @@ export function registerInstance(instance: Instance)
     instances.set(id, instance);
     consolidateId(id);
 
-    console.log(`${userName}:registered instance "${id}"`);
+    console.log(`%c${userName}:registered instance "${id}"`, logStyle);
 }
 
 export function unregisterInstance(instance: Instance)
@@ -77,7 +78,7 @@ export function unregisterInstance(instance: Instance)
 
     instances.delete(id);
 
-    console.log(`${userName}:unregistered instance "${id}"`);
+    console.log(`%c${userName}:unregistered instance "${id}"`, logStyle);
 }
 
 export function moveToTrash(instance: Instance)
@@ -89,7 +90,7 @@ export function moveToTrash(instance: Instance)
         throw new Error(`${userName}:Trash already contains instance "${id}"`);
     }
 
-    console.log(`${userName}:moving to trash "${id}"`);
+    console.log(`%c${userName}:moving to trash "${id}"`, logStyle);
 
     instances.delete(id);
     trash.set(id, instance);
@@ -114,7 +115,7 @@ export function restoreInstance<T>(id: string): T
 
     const instance = trash.get(id) as Instance;
 
-    console.log(`${userName}:restoring instance "${id}"`);
+    console.log(`%c${userName}:restoring instance "${id}"`, logStyle);
 
     trash.delete(id);
     instances.set(id, instance);

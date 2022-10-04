@@ -97,10 +97,39 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return false;
     }
 
+    public getParents<T extends GraphNode>(breakType: string, includeBreak = false): T[]
+    {
+        const nodes: T[] = [];
+
+        let node = this.parent;
+
+        while (node)
+        {
+            if (node.nodeType() === breakType)
+            {
+                if (includeBreak)
+                {
+                    nodes.push(node as unknown as T);
+                }
+                break;
+            }
+            nodes.push(node as unknown as T);
+            node = node.parent;
+        }
+
+        nodes.reverse();
+
+        return nodes;
+    }
+
     public setParent(parent: GraphNode)
     {
         this.parent = parent;
 
+        if (parent.children.indexOf(this) > -1)
+        {
+            throw new Error(`"${parent.id}" already contains child "${this.id}"`);
+        }
         parent.children.push(this);
 
         this.onAddedToParent();

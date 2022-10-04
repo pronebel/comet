@@ -121,8 +121,6 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public exec<R = unknown>(command: Command, isUndoRoot = true): R
     {
-        console.log(`%c🔔 ${userName}:${command.name}: %c${JSON.stringify(command.params)}`, 'color:cyan', 'color:yellow');
-
         command.isUndoRoot = isUndoRoot;
 
         this.writeCommandList(command.name);
@@ -134,7 +132,12 @@ export abstract class Application extends EventEmitter<AppEvents>
             this.writeUndoStack();
         }
 
+        console.group(`${userName}:${command.name}.run()`);
+        console.log(`%c🔔${JSON.stringify(command.params)}`, 'color:white');
+
         const result = command.run();
+
+        console.groupEnd();
 
         this.emit('commandExec', command, result);
 

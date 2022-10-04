@@ -73,7 +73,10 @@ export class NodeUpdater
         const parentNode = getInstance<ClonableNode>(parentId);
         const childNode = getInstance<ClonableNode>(nodeId);
 
-        parentNode.addChild(childNode);
+        if (parentNode.children.indexOf(childNode) === -1)
+        {
+            parentNode.addChild(childNode);
+        }
     };
 
     protected onCustomPropDefined = (event: DSCustomPropDefinedEvent) =>

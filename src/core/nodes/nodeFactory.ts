@@ -11,6 +11,7 @@ export type NodeFactoryEvents = 'created' | 'disposed' | 'modelModified' | 'chil
 
 export const nodeFactoryEmitter: EventEmitter<NodeFactoryEvents> = new EventEmitter<NodeFactoryEvents>();
 
+const logStyle = 'color:#8bc34a';
 const userName = getUserName();
 
 export function registerNodeType(nodeClass: ClonableNodeConstructor)
@@ -41,7 +42,7 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
         return restoreInstance<T>(id);
     }
 
-    console.log(`${userName}:createNode "${id}"`);
+    console.log(`%c${userName}:createNode "${id}"`, logStyle);
 
     const node = new NodeClass(options) as ClonableNode;
 
@@ -53,7 +54,7 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
 
 export function registerNewNode(node: ClonableNode)
 {
-    console.log(`%c${userName}:Registering new node "${node.id}"`, 'color:lime');
+    console.log(`%c${userName}:Registering node "${node.id}"`, logStyle);
 
     const onModelModified = (key: string, value: ModelValue, oldValue: ModelValue) =>
     {

@@ -1,8 +1,11 @@
+import { deepEqual } from 'fast-equals';
+
 import { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { GraphNode } from '../core/nodes/abstract/graphNode';
 import { CloneMode } from '../core/nodes/cloneInfo';
 import { ProjectNode } from '../core/nodes/concrete/project';
 import { getInstance, getInstancesByType, getTrashInstance, getTrashInstancesByType } from '../core/nodes/instances';
+import { getNodeSchema } from '../core/nodes/schema';
 import { Application } from './application';
 
 enum Result
@@ -31,6 +34,7 @@ export interface DSNodeAudit extends Omit<GraphNodeAudit, 'isInGraph' | 'isInDat
 {
     isRegistered: Result;
     isAttached: Result;
+    matchesGraphSchema: Result;
 }
 
 export interface Audit
@@ -107,6 +111,9 @@ export class Auditor
         datastoreRegisteredIds.forEach((id) =>
         {
             const schema = datastore.getNodeElementSchema(id);
+            const node = getInstance<ClonableNode>(schema.id);
+            const graphSchema = getNodeSchema(node);
+            const matchesGraphSchema = deepEqual(graphSchema, schema);
 
             audit.datastore[id] = {
                 parent: schema.parent ? schema.parent : '',
@@ -114,6 +121,7 @@ export class Auditor
                 cloner: schema.cloneInfo.cloner ? schema.cloneInfo.cloner : '',
                 cloned: schema.cloneInfo.cloned.join(','),
                 cloneMode: schema.cloneInfo.cloneMode,
+                matchesGraphSchema: asResult(matchesGraphSchema),
                 isRegistered: Result.Dot,
                 isAttached: asResult(datastore.getNodeElement(id).isAttached()),
             };
