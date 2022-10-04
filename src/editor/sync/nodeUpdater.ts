@@ -21,6 +21,8 @@ import type {
 import { getUserName } from './user';
 
 const userName = getUserName();
+const logId = `${userName}:NUPD`;
+const logStyle = 'color:cyan';
 
 export class NodeUpdater
 {
@@ -40,7 +42,7 @@ export class NodeUpdater
 
     protected log(eventName: string, event: any)
     {
-        console.log(`%c${userName}:${eventName} ${JSON.stringify(event)}`, 'color:yellow');
+        console.log(`%c${logId}:${eventName} ${JSON.stringify(event)}`, logStyle);
     }
 
     protected onNodeCreated = (event: DSNodeCreatedEvent) =>

@@ -30,7 +30,8 @@ import type {
 import { getUserName } from './user';
 
 const userName = getUserName();
-const logStyle = 'color:cyan';
+const logStyle = 'color:LawnGreen';
+const logId = `${userName}:DAST`;
 
 export const defaultProjectSettings = {
     collection: 'projects',
@@ -56,6 +57,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         Datastore.instance = this;
 
         this.nodeRealtimeObjects = new Map();
+
+        window.addEventListener('beforeunload', async (e) =>
+        {
+            await this.disconnect();
+            e.preventDefault();
+            e.returnValue = ' ';
+        });
     }
 
     protected get app()
@@ -147,7 +155,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             }).then((domain) =>
             {
                 clearTimeout(timeout);
-                console.log(`%cConnected as ${userName}!`, 'color:lime');
+                console.log(`%c${logId}:Connected as "${userName}"`, logStyle);
                 this._domain = domain;
                 resolve(domain);
             }).catch(reject);
@@ -183,7 +191,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             data,
         });
 
-        console.log(`%c${userName}:Created project "${model.modelId()}"`, logStyle);
+        console.log(`%c${logId}:Created project "${model.modelId()}"`, logStyle);
 
         return await this.openProject(model.modelId());
     }
@@ -192,7 +200,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         const model = await this.domain.models().open(id);
 
-        console.log(`%c${userName}:Opened project "${model.modelId()}"`, logStyle);
+        console.log(`%c${logId}:Opened project "${model.modelId()}"`, logStyle);
 
         this._model = model;
 
@@ -206,7 +214,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             consolidateId(nodeId);
 
-            console.log(`%c${userName}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
+            console.log(`%c${logId}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
 
             this.registerNodeElement(nodeId, nodeElement);
 
@@ -220,7 +228,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const nodeElement = (event as ObjectSetEvent).oldValue as RealTimeObject;
             const parentId = nodeElement.get('parent').value() as string | undefined;
 
-            console.log(`%c${userName}:nodes.remove: ${nodeId}`, logStyle);
+            console.log(`%c${logId}:nodes.remove: ${nodeId}`, logStyle);
 
             const e: DSNodeRemovedEvent = { nodeId, parentId };
 
@@ -232,7 +240,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     protected trackNodeElementRemoteEvents(nodeId: string)
     {
-        console.log(`%c${userName}:track nodeElement: ${nodeId}`, logStyle);
+        console.log(`%c${logId}:track nodeElement: ${nodeId}`, logStyle);
 
         const nodeElement = this.getNodeElement(nodeId);
 
@@ -249,7 +257,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 const childId = nodeElement.get('id').value();
 
                 console.log(
-                    `%c${userName}:${nodeId}:parent.set! parentId: ${parentId} 
+                    `%c${logId}:${nodeId}:parent.set! parentId: ${parentId} 
                     childId: ${childId} oldParentId: ${oldParentId}`,
                     logStyle,
                 );
@@ -270,7 +278,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 const { type, value } = element.toJSON();
                 const info = JSON.stringify(element.toJSON());
 
-                console.log(`%c${userName}:${nodeId}:customProperties.defined: ${info}`, logStyle);
+                console.log(`%c${logId}:${nodeId}:customProperties.defined: ${info}`, logStyle);
 
                 const e: DSCustomPropDefinedEvent = { nodeId, customKey, type, value };
 
@@ -279,7 +287,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             {
                 const customKey = (event as ObjectSetEvent).key;
 
-                console.log(`%c${userName}:${nodeId}:customProperties.undefined: "${customKey}"`, logStyle);
+                console.log(`%c${logId}:${nodeId}:customProperties.undefined: "${customKey}"`, logStyle);
 
                 const e: DSCustomPropUndefinedEvent = { nodeId, customKey };
 
@@ -293,7 +301,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 const modelKey = (event as ObjectSetEvent).key;
                 const customKey = (event as ObjectSetEvent).value.value() as string;
 
-                console.log(`%c${userName}:${nodeId}:customProperties.assign: "${modelKey}->${customKey}"`, logStyle);
+                console.log(`%c${logId}:${nodeId}:customProperties.assign: "${modelKey}->${customKey}"`, logStyle);
 
                 const e: DSCustomPropAssignedEvent = { nodeId, modelKey, customKey };
 
@@ -302,7 +310,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             {
                 const modelKey = (event as ObjectSetEvent).key;
 
-                console.log(`%c${userName}:${nodeId}:customProperties.unassigned: "${modelKey}"`, logStyle);
+                console.log(`%c${logId}:${nodeId}:customProperties.unassigned: "${modelKey}"`, logStyle);
 
                 const e: DSCustomPropUnassignedEvent = { nodeId, modelKey };
 
@@ -315,7 +323,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const key = (event as ObjectSetEvent).key;
             const value = (event as ObjectSetEvent).value.value() as ModelValue;
 
-            console.log(`%c${userName}:${nodeId}:model.set: ${key}->${value}`, logStyle);
+            console.log(`%c${logId}:${nodeId}:model.set: ${key}->${value}`, logStyle);
 
             const e: DSModelModifiedEvent = { nodeId, key, value };
 
@@ -324,7 +332,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         {
             const model = (event as ObjectSetEvent).element.value() as object;
 
-            console.log(`%c${userName}:${nodeId}:model.value: ${JSON.stringify(model)}`, logStyle);
+            console.log(`%c${logId}:${nodeId}:model.value: ${JSON.stringify(model)}`, logStyle);
 
             const e: DSModelModifiedEvent = { nodeId, key: null, value: model };
 
@@ -339,7 +347,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         {
             const cloneInfo = (event as ObjectSetEvent).element.value() as CloneInfoSchema;
 
-            console.log(`%c${userName}:${nodeId}:cloneInfo.set: ${JSON.stringify(cloneInfo)}`, logStyle);
+            console.log(`%c${logId}:${nodeId}:cloneInfo.set: ${JSON.stringify(cloneInfo)}`, logStyle);
 
             const e: DSCloneInfoModifiedEvent = { nodeId, ...cloneInfo };
 
@@ -420,13 +428,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         // track remote events
         this.trackNodeElementRemoteEvents(nodeId);
 
-        console.log(`%c${userName}:Registered New RealTimeObject "${nodeId}"`, logStyle);
+        console.log(`%c${logId}:Registered New RealTimeObject "${nodeId}"`, logStyle);
     }
 
     public createNode(nodeSchema: NodeSchema)
     {
         console.log(
-            `%c${userName}:DS.createNode! childId: ${JSON.stringify(nodeSchema)}`,
+            `%c${logId}:createNode! childId: ${JSON.stringify(nodeSchema)}`,
             logStyle,
         );
 
@@ -438,7 +446,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public removeNode(nodeId: string)
     {
         console.log(
-            `%c${userName}:DS.removeNode! nodeId: ${nodeId}`,
+            `%c${logId}:removeNode! nodeId: ${nodeId}`,
             logStyle,
         );
 
@@ -470,7 +478,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public setNodeParent(childId: string, parentId: string, updateChildren = true)
     {
         console.log(
-            `%c${userName}:DS.setNodeParent! childId: ${childId} parentId: ${parentId} updateChildren: ${updateChildren}`,
+            `%c${logId}:setNodeParent! childId: ${childId} parentId: ${parentId} updateChildren: ${updateChildren}`,
             logStyle,
         );
 
@@ -492,7 +500,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema)
     {
         console.log(
-            `%c${userName}:DS.updateNodeCloneInfo! nodeId: ${nodeId} cloneInfoSchema: ${JSON.stringify(cloneInfoSchema)}`,
+            `%c${logId}:updateNodeCloneInfo! nodeId: ${nodeId} cloneInfoSchema: ${JSON.stringify(cloneInfoSchema)}`,
             logStyle,
         );
 
@@ -504,7 +512,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public modifyNodeModel(nodeId: string, values: object)
     {
         console.log(
-            `%c${userName}:DS.modifyNodeModel! nodeId: ${nodeId} values: ${JSON.stringify(values)}`,
+            `%c${logId}:modifyNodeModel! nodeId: ${nodeId} values: ${JSON.stringify(values)}`,
             logStyle,
         );
 
@@ -525,12 +533,13 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         }
     }
 
-    public disconnect(): void
+    public async disconnect()
     {
         if (!this.domain.isDisposed())
         {
-            this.domain.dispose();
-            console.log('%c${userName}:Domain disposed', logStyle);
+            await this.domain.disconnect();
+            await this.domain.dispose();
+            console.log(`%c${logId}:Domain disposed`, logStyle);
         }
     }
 
@@ -550,7 +559,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             },
         });
 
-        console.log(`%c${userName}:Joined activity "${type}:${id}"`, logStyle);
+        console.log(`%c${logId}:Joined activity "${type}:${id}"`, logStyle);
     }
 
     public async hasProject(name: string)
@@ -579,7 +588,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         await this.domain.models().remove(id);
 
-        console.log(`%c${userName}:Delete project "${id}"`, logStyle);
+        console.log(`%c${logId}:Delete project "${id}"`, logStyle);
     }
 
     public unRegisterNode(id: string)
@@ -591,7 +600,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         this.nodeRealtimeObjects.delete(id);
 
-        console.log(`%c${userName}:Unregistered RealTimeObject "${id}"`, logStyle);
+        console.log(`%c${logId}:Unregistered RealTimeObject "${id}"`, logStyle);
     }
 
     public getNodeElement(id: string)

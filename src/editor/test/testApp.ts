@@ -32,7 +32,8 @@ import { startDrag } from './drag';
 export let app: TestApp;
 
 const userName = getUserName();
-const logStyle = `color:pink`;
+const logStyle = `color:PeachPuff`;
+const logId = `${userName}:TAPP`;
 
 // must register any nodes outside of core explicitly
 registerNodeType(DebugNode);
@@ -78,12 +79,12 @@ export class TestApp extends Application
     {
         nodeFactoryEmitter.on('created', (node: ClonableNode) =>
         {
-            console.log(`%c${userName}:CREATED: "${node.id}"`, logStyle);
+            console.log(`%c${logId}:CREATED: "${node.id}"`, logStyle);
             this.makeInteractive(node.cast<ContainerNode>());
             this.selectLastNode();
         }).on('disposed', (node: ClonableNode) =>
         {
-            console.log(`%c${userName}:DISPOSED: "${node.id}"`, logStyle);
+            console.log(`%c${logId}:DISPOSED: "${node.id}"`, logStyle);
             // this.unmakeInteractive(node.cast<ContainerNode>());
             // this.selectLastNode();
             throw new Error('disposed?');
@@ -92,12 +93,12 @@ export class TestApp extends Application
             const val = JSON.stringify(value);
             const oldVal = JSON.stringify(oldValue);
 
-            console.log(`%c${userName}:MODIFIED: "${node.id}" [${key}]=${val} (${oldVal})`, logStyle);
+            console.log(`%c${logId}:MODIFIED: "${node.id}" [${key}]=${val} (${oldVal})`, logStyle);
             this.fitSelection(node.cast<ContainerNode>());
         })
             .on('childAdded', (node: ClonableNode) =>
             {
-                console.log(`%c${userName}:ADDED: "${node.id}"`, logStyle);
+                console.log(`%c${logId}:ADDED: "${node.id}"`, logStyle);
                 this.select(node.cast<ContainerNode>());
                 this.fitSelection(node.cast<ContainerNode>());
             })
@@ -105,7 +106,7 @@ export class TestApp extends Application
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .on('childRemoved', (node: ClonableNode) =>
             {
-                console.log(`%c${userName}:REMOVED: "${node.id}"`, logStyle);
+                console.log(`%c${logId}:REMOVED: "${node.id}"`, logStyle);
                 this.selectLastNode();
             });
     }
@@ -178,7 +179,7 @@ export class TestApp extends Application
         const nodes = this.datastore.toJSON().nodes;
 
         localStorage['comet'] = JSON.stringify(nodes);
-        console.log(`%cDatastore saved`, logStyle);
+        console.log(`%c${logId}:Datastore saved`, logStyle);
     }
 
     public restoreDatastore(reload = true)
@@ -436,7 +437,7 @@ export class TestApp extends Application
         {
             sprite.interactive = true;
 
-            console.log(`%c${userName}:make interactive "${component.id}"`, logStyle);
+            console.log(`%c${logId}:make interactive "${component.id}"`, logStyle);
             sprite.on('mousedown', this.onSpriteClicked);
         }
     }
@@ -449,7 +450,7 @@ export class TestApp extends Application
         {
             sprite.interactive = false;
 
-            console.log(`%c${userName}:unmake interactive "${component.id}"`, logStyle);
+            console.log(`%c${logId}:unmake interactive "${component.id}"`, logStyle);
             sprite.off('mousedown', this.onSpriteClicked);
         }
     }

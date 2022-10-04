@@ -7,7 +7,8 @@ const trash: Map<string, Instance> = new Map();
 const idCounters: Map<string, number> = new Map();
 
 const userName = getUserName();
-const logStyle = 'color:yellow';
+const logStyle = 'color:PaleTurquoise';
+const logId = `${userName}:INSTS`;
 
 export function peekNextIdCount(type: string)
 {
@@ -64,7 +65,7 @@ export function registerInstance(instance: Instance)
     instances.set(id, instance);
     consolidateId(id);
 
-    console.log(`%c${userName}:registered instance "${id}"`, logStyle);
+    console.log(`%c${logId}:registered instance "${id}"`, logStyle);
 }
 
 export function unregisterInstance(instance: Instance)
@@ -78,7 +79,7 @@ export function unregisterInstance(instance: Instance)
 
     instances.delete(id);
 
-    console.log(`%c${userName}:unregistered instance "${id}"`, logStyle);
+    console.log(`%c${logId}:unregistered instance "${id}"`, logStyle);
 }
 
 export function moveToTrash(instance: Instance)
@@ -90,7 +91,7 @@ export function moveToTrash(instance: Instance)
         throw new Error(`${userName}:Trash already contains instance "${id}"`);
     }
 
-    console.log(`%c${userName}:moving to trash "${id}"`, logStyle);
+    console.log(`%c${logId}:moving to trash "${id}"`, logStyle);
 
     instances.delete(id);
     trash.set(id, instance);
@@ -105,17 +106,17 @@ export function restoreInstance<T>(id: string): T
 {
     if (!trash.has(id))
     {
-        throw new Error(`${userName}:Trash does not contain instance "${id}"`);
+        throw new Error(`${logId}:Trash does not contain instance "${id}"`);
     }
 
     if (instances.has(id))
     {
-        throw new Error(`${userName}:Instance "${id}" already out of trash`);
+        throw new Error(`${logId}:Instance "${id}" already out of trash`);
     }
 
     const instance = trash.get(id) as Instance;
 
-    console.log(`%c${userName}:restoring instance "${id}"`, logStyle);
+    console.log(`%c${logId}:restoring instance "${id}"`, logStyle);
 
     trash.delete(id);
     instances.set(id, instance);
@@ -127,7 +128,7 @@ export function getInstance<T>(id: string): T
 {
     if (!instances.has(id))
     {
-        throw new Error(`${userName}:Cannot access unregistered instance "${id}"`);
+        throw new Error(`${logId}:Cannot access unregistered instance "${id}"`);
     }
 
     return instances.get(id) as unknown as T;
@@ -137,7 +138,7 @@ export function getTrashInstance<T>(id: string): T
 {
     if (!trash.has(id))
     {
-        throw new Error(`${userName}:Trash does not contains instance "${id}"`);
+        throw new Error(`${logId}:Trash does not contains instance "${id}"`);
     }
 
     return trash.get(id) as unknown as T;

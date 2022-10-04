@@ -14,6 +14,8 @@ import { getUserName } from './sync/user';
 import UndoStack from './undoStack';
 
 const userName = getUserName();
+const logId = `${userName}:APPL`;
+const logStyle = 'color:LightCyan;';
 
 const localStorageUndoStackKey = `${userName}:undo`;
 
@@ -132,8 +134,8 @@ export abstract class Application extends EventEmitter<AppEvents>
             this.writeUndoStack();
         }
 
-        console.group(`${userName}:${command.name}.run()`);
-        console.log(`%c🔔${JSON.stringify(command.params)}`, 'color:white');
+        console.group(`%c${logId}:${command.name}.run()`, `font-weight:bold;${logStyle}`);
+        console.log(`%c🔔${JSON.stringify(command.params)}`, logStyle);
 
         const result = command.run();
 
