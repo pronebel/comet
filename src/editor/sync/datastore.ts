@@ -57,13 +57,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         Datastore.instance = this;
 
         this.nodeRealtimeObjects = new Map();
-
-        window.addEventListener('beforeunload', async (e) =>
-        {
-            await this.disconnect();
-            e.preventDefault();
-            e.returnValue = ' ';
-        });
     }
 
     protected get app()

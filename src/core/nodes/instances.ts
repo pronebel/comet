@@ -8,7 +8,7 @@ const idCounters: Map<string, number> = new Map();
 
 const userName = getUserName();
 const logStyle = 'color:SteelBlue';
-const logId = `${userName}:INSTS`;
+const logId = `${userName}:INST`;
 
 export function peekNextIdCount(type: string)
 {

@@ -1,7 +1,7 @@
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneMode } from '../../core/nodes/cloneInfo';
-import { getInstance, getTrashInstance, isInstanceInTrash } from '../../core/nodes/instances';
+import { getInstance } from '../../core/nodes/instances';
 import type { NodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
 import { CloneCommand } from './clone';
@@ -94,15 +94,6 @@ export class AddChildCommand<
 
     public assert(): void
     {
-        const { params: { nodeSchema } } = this;
-
-        if (isInstanceInTrash(nodeSchema.id))
-        {
-            const node = getTrashInstance<ClonableNode>(nodeSchema.id);
-            const nodes = node.getParents('Scene');
-
-            nodes.push(node);
-            nodes.forEach((node) => new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).undo());
-        }
+        this.app.assertNode(this.params.nodeSchema.id);
     }
 }

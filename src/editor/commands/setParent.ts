@@ -57,4 +57,12 @@ export class SetParentCommand
             new SetParentCommand({ parentId: prevParentId, nodeId }).run();
         }
     }
+
+    public assert(): void
+    {
+        const { app, params: { nodeId, parentId } } = this;
+
+        app.assertNode(nodeId);
+        app.assertNode(parentId);
+    }
 }

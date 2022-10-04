@@ -4,10 +4,12 @@ import '../core/nodes/concrete';
 import { EventEmitter } from 'eventemitter3';
 import { Application as PixiApplication } from 'pixi.js';
 
+import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { ProjectNode } from '../core/nodes/concrete/project';
-import { clearInstances } from '../core/nodes/instances';
+import { clearInstances, getTrashInstance, isInstanceInTrash } from '../core/nodes/instances';
 import type { Command } from './command';
 import { createCommand } from './commandFactory';
+import { RemoveNodeCommand } from './commands/removeNode';
 import { Datastore } from './sync/datastore';
 import { NodeUpdater } from './sync/nodeUpdater';
 import { getUserName } from './sync/user';
@@ -236,6 +238,17 @@ export abstract class Application extends EventEmitter<AppEvents>
         if (this.project)
         {
             this.project.updateRecursive();
+        }
+    }
+
+    public assertNode(nodeId: string)
+    {
+        if (isInstanceInTrash(nodeId))
+        {
+            const node = getTrashInstance<ClonableNode>(nodeId);
+            const nodes = node.getCloneTreeAncestors().reverse();
+
+            nodes.forEach((node) => new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).undo());
         }
     }
 }

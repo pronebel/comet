@@ -97,7 +97,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return false;
     }
 
-    public getParents<T extends GraphNode>(breakType: string, includeBreak = false): T[]
+    public getParents<T extends GraphNode>(breakType = 'Scene', includeBreak = false): T[]
     {
         const nodes: T[] = [];
 

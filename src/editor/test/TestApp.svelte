@@ -5,7 +5,7 @@
   import { getInstance } from "../../core/nodes/instances";
   import { Auditor } from "../auditor";
   import { getUserName } from "../sync/user";
-  // import { getUrlParam } from "../util";
+  import { getUrlParam } from "../util";
   import Replay from "./Replay.svelte";
 
   import { TestApp } from "./testApp";
@@ -34,10 +34,9 @@
     });
   };
 
-  // if (getUrlParam<number>("connect") === 1) {
-  //   onConnect();
-  // }
-  onConnect();
+  if (getUrlParam<number>("connect") === 1) {
+    onConnect();
+  }
 
   const onReload = () => {
     window.location.reload();

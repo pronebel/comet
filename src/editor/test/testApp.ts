@@ -12,7 +12,6 @@ import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance, getLatestInstance, hasInstance } from '../../core/nodes/instances';
 import { nodeFactoryEmitter, registerNodeType } from '../../core/nodes/nodeFactory';
 import { createNodeSchema, getNodeSchema } from '../../core/nodes/schema';
-import { delay } from '../../core/util';
 import { Action } from '../action';
 import { type AppOptions, Application } from '../application';
 import { AddChildCommand } from '../commands/addChild';
@@ -33,7 +32,7 @@ export let app: TestApp;
 
 const userName = getUserName();
 const logStyle = `color:PaleTurquoise`;
-const logId = `${userName}:TAPP`;
+const logId = `${userName}:APPT`;
 
 // must register any nodes outside of core explicitly
 registerNodeType(DebugNode);
@@ -129,7 +128,7 @@ export class TestApp extends Application
         }
         else
         {
-            await delay(250);
+            // await delay(1000);
             await this.openProject('test');
         }
 
@@ -280,6 +279,8 @@ export class TestApp extends Application
             selected.getDefinedCustomProps().forEach((props, key) => { definedProps[key] = props; });
 
             const info = {
+                id: selected.id,
+                parents: selected.getParents().map((node) => (node.id)),
                 original: selected.getOriginal().id,
                 cloneTarget: selected.getCloneTarget().id,
                 cloneRoot: cloneRoot ? cloneRoot.id : undefined,
@@ -287,6 +288,7 @@ export class TestApp extends Application
                 addChildCloneTarget: selected.getAddChildCloneTarget().id,
                 clonedDescendants: selected.getClonedDescendants().map((node) => (node.id)),
                 cloneAncestors: selected.getCloneAncestors().map((node) => (node.id)),
+                cloneTreeAncestors: selected.getCloneTreeAncestors().map((node) => (node.id)),
                 definedProps,
                 nodeGraphSchema: getNodeSchema(selected.cast<ClonableNode>()),
                 dsNodeSchema: this.datastore.getNodeElementSchema(selected.id),

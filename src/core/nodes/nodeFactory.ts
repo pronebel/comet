@@ -13,7 +13,7 @@ export const nodeFactoryEmitter: EventEmitter<NodeFactoryEvents> = new EventEmit
 
 const logStyle = 'color:MediumTurquoise';
 const userName = getUserName();
-const logId = `${userName}:NFACT`;
+const logId = `${userName}:NODEF`;
 
 export function registerNodeType(nodeClass: ClonableNodeConstructor)
 {

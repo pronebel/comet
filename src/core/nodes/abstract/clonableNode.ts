@@ -454,6 +454,25 @@ export abstract class ClonableNode<
         return array;
     }
 
+    public getCloneTreeAncestors(): ClonableNode[]
+    {
+        const nodes = this.getCloneAncestors();
+        const array: ClonableNode[] = [];
+
+        nodes.splice(0, 0, this.cast<ClonableNode>());
+        nodes.forEach((node) =>
+        {
+            const parents = node.getParents<ClonableNode>();
+
+            parents.push(node);
+            parents.reverse();
+
+            array.push(...parents);
+        });
+
+        return array;
+    }
+
     public getCustomProperty(customKey: string)
     {
         return this.defineCustomProperties.get(customKey);
