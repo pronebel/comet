@@ -17,7 +17,6 @@ import type {
     DSNodeCreatedEvent,
     DSNodeRemovedEvent,
     DSParentSetEvent,
-    // DSRestoreNodeEvent,
 } from './datastoreEvents';
 import { getUserName } from './user';
 
@@ -37,7 +36,6 @@ export class NodeUpdater
             .on('customPropUnassigned', this.onCustomPropUnassigned)
             .on('modelModified', this.onModelModified)
             .on('cloneInfoModified', this.onCloneInfoModified);
-        // .on('restoreNode', this.onRestoreNode);
     }
 
     protected log(eventName: string, event: any)
@@ -167,13 +165,4 @@ export class NodeUpdater
         cloneInfo.cloneMode = cloneMode;
         cloneInfo.cloned = cloned.map((clonedId) => getInstance<ClonableNode>(clonedId));
     };
-
-    // protected onRestoreNode = (event: DSRestoreNodeEvent) =>
-    // {
-    //     const { nodeId } = event;
-
-    //     restoreInstance(nodeId);
-
-    //     // restore cloner cloned relationship
-    // };
 }

@@ -26,7 +26,6 @@ import type {
     DSNodeCreatedEvent,
     DSNodeRemovedEvent,
     DSParentSetEvent,
-    // DSRestoreNodeEvent,
 } from './datastoreEvents';
 import { getUserName } from './user';
 
@@ -489,18 +488,6 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             childArray.push(childId);
         }
     }
-
-    // public restoreNode(nodeId: string)
-    // {
-    //     const e: DSRestoreNodeEvent = { nodeId };
-
-    //     const node = getTrashInstance<ClonableNode>(nodeId);
-    //     const nodeSchema = getNodeSchema(node);
-
-    //     this.createNode(nodeSchema);
-
-    //     this.emit('restoreNode', e);
-    // }
 
     public updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema)
     {

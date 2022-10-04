@@ -11,8 +11,7 @@ export type DatastoreEvents =
 | 'customPropAssigned'
 | 'customPropUnassigned'
 | 'modelModified'
-| 'cloneInfoModified'
-| 'restoreNode';
+| 'cloneInfoModified';
 
 export interface DSNodeEvent
 {
@@ -62,4 +61,3 @@ export interface DSModelModifiedEvent extends DSNodeEvent
 
 export type DSCloneInfoModifiedEvent = DSNodeEvent & CloneInfoSchema;
 
-export type DSRestoreNodeEvent = DSNodeEvent;
