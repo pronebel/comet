@@ -113,14 +113,14 @@ export abstract class Application extends EventEmitter<AppEvents>
     {
         if (userName === 'ali')
         {
-            if (localStorage['saveUndo'] !== '0')
+            if (localStorage['saveUndo'] === '0')
             {
-                localStorage[localStorageCommandsKey] = '[]';
-                localStorage.removeItem('replayIndex');
+                localStorage['replayIndex'] = '0';
             }
             else
             {
-                localStorage['replayIndex'] = '0';
+                localStorage[localStorageCommandsKey] = '[]';
+                localStorage.removeItem('replayIndex');
             }
         }
     }

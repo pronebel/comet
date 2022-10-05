@@ -160,8 +160,15 @@
     app.readUndoStack(undoStackEnd);
   };
 
-  const onReplay = () => {
-    localStorage["saveUndo"] = "0";
+  const onToggleReplay = () => {
+    const saveUndo = localStorage["saveUndo"];
+    if (saveUndo === "1") {
+      localStorage["saveUndo"] = "0";
+    } else if (saveUndo === "0") {
+      localStorage["saveUndo"] = "1";
+    } else {
+      localStorage["saveUndo"] = "1";
+    }
     window.location.reload();
   };
 
@@ -230,7 +237,9 @@
     <hr />
     <input bind:value={undoStackEnd} />
     <button on:click={onReadUndoStack}>Load Undo</button>
-    <button on:click={onReplay}>Replay</button>
+    <button on:click={onToggleReplay}
+      >{localStorage["saveUndo"] === "1" ? "Replay On" : "Replay Off"}</button
+    >
     <button on:click={onPeekUndoStack}>Peek Undo</button>
     <button on:click={onWriteUndoStack}>Save Undo</button>
     <button on:click={onClearUndoStack}>Clear Undo</button>

@@ -33,7 +33,7 @@
   }
 
   function isCurrentUser(index: number) {
-    if (selectedIndex === -1) {
+    if (selectedIndex === -1 || index >= commandList.length) {
       return false;
     }
     return getCommandInfo(index)[0] === userName;
@@ -87,7 +87,7 @@
   }, 250);
 </script>
 
-{#if selectedIndex > -1}
+{#if selectedIndex > -1 && commandList.length > 0}
   <div class={isCurrentUser(selectedIndex) ? "active" : ""}>
     <ul>
       {#each commandList as _command, i}
