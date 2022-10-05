@@ -128,7 +128,6 @@ export class TestApp extends Application
         }
         else
         {
-            // await delay(1000);
             await this.openProject('test');
         }
 

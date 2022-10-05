@@ -167,7 +167,8 @@
   };
 
   const onReplay = () => {
-    localStorage["replayIndex"] = "1";
+    localStorage["saveUndo"] = "0";
+    localStorage["replayIndex"] = "0";
     onReadUndoStack();
   };
 

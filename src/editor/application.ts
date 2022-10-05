@@ -120,7 +120,7 @@ export abstract class Application extends EventEmitter<AppEvents>
         }
 
         localStorage.removeItem('replayIndex');
-        localStorage.setItem('replayIndex', '0');
+        // localStorage.setItem('replayIndex', '0');
     }
 
     public exec<R = unknown>(command: Command, isUndoRoot = true): R

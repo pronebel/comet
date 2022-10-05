@@ -6,7 +6,7 @@ import type { NodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
 import { CloneCommand } from './clone';
 import { CreateNodeCommand } from './createNode';
-import { RemoveNodeCommand } from './removeNode';
+import { RemoveChildCommand } from './removeChild';
 import { SetParentCommand } from './setParent';
 
 export interface AddChildCommandParams<M extends ModelBase>
@@ -22,7 +22,7 @@ export interface AddChildCommandReturn
 
 export interface AddChildCommandCache
 {
-    commands: RemoveNodeCommand[];
+    commands: RemoveChildCommand[];
 }
 
 export class AddChildCommand<
@@ -67,7 +67,7 @@ export class AddChildCommand<
         });
 
         // prepare cache
-        cache.commands = nodes.map((node) => new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }));
+        cache.commands = nodes.map((node) => new RemoveChildCommand({ nodeId: node.id }));
 
         return { nodes };
     }

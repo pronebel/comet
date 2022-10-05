@@ -5,9 +5,18 @@
   const app = Application.instance;
   const userName = getUserName();
 
-  const commandList = JSON.parse(
-    localStorage[localStorageCommandsKey] || "[]"
-  ) as string[];
+  const commandList: string[] = [];
+
+  function parseCommandList() {
+    try {
+      const array = JSON.parse(localStorage[localStorageCommandsKey]);
+      commandList.length = 0;
+      commandList.push(...array);
+      selectedIndex = 0;
+    } catch (e) {}
+  }
+
+  parseCommandList();
 
   const myCommandIndexes: number[] = [];
   commandList.forEach((command, i) => {
@@ -16,14 +25,16 @@
     }
   });
 
-  let selectedIndex = 0;
+  let selectedIndex = !isNaN(parseInt(localStorage["replayIndex"]))
+    ? parseInt(localStorage["replayIndex"])
+    : -1;
 
   function getMyCommandIndex(index: number) {
     return myCommandIndexes.findIndex((i) => i === index);
   }
 
   function isCurrentUser(index: number) {
-    if (commandList.length === 0) {
+    if (selectedIndex === -1) {
       return false;
     }
     return getCommandInfo(index)[0] === userName;
@@ -66,16 +77,18 @@
 
   setInterval(() => {
     const replayIndex = localStorage.getItem("replayIndex");
+
     if (replayIndex) {
       const index = parseInt(replayIndex as string);
       if (index !== selectedIndex) {
         selectedIndex = index;
+        parseCommandList();
       }
     }
   }, 250);
 </script>
 
-{#if commandList.length > 0}
+{#if selectedIndex > -1}
   <div class={isCurrentUser(selectedIndex) ? "active" : ""}>
     <ul>
       {#each commandList as _command, i}
