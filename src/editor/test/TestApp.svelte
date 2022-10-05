@@ -16,7 +16,6 @@
   let customPropValue: string = "foo1";
   let assignModelKey: string = "label";
   let undoStackEnd: number = 0;
-  let showReplay = true;
 
   let isInit = false;
   let isInitialising = false;
@@ -170,7 +169,6 @@
   const onReplay = () => {
     localStorage["replayIndex"] = "1";
     onReadUndoStack();
-    showReplay = true;
   };
 
   const onSetCustomProp = () => {
@@ -212,9 +210,6 @@
     if (debug && shouldUpdateDebug) {
       app && app.debug(debug);
     }
-    if (localStorage.getItem("replayIndex") !== null && !showReplay) {
-      onReplay();
-    }
   }, 500);
 </script>
 
@@ -226,9 +221,7 @@
     on:mouseover={() => (shouldUpdateDebug = false)}
     on:mouseout={() => (shouldUpdateDebug = true)}>
   <span /></pre>
-  {#if showReplay}
-    <Replay />
-  {/if}
+  <Replay />
   {#if isInit}
     <button on:click={onNewContainer}>New Empty</button>
     <button on:click={onNewChild}>New Child</button>
@@ -380,11 +373,5 @@
     color: lightskyblue;
     background-color: rgba(0, 0, 0, 0.7);
     padding: 2px;
-  }
-
-  #replay {
-    position: absolute;
-    width: 100px;
-    background-color: white;
   }
 </style>

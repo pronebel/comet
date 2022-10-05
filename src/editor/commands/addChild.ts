@@ -78,7 +78,8 @@ export class AddChildCommand<
 
         for (let i = commands.length - 1; i >= 0; i--)
         {
-            commands[i].run();
+            commands[i].assert();
+            commands[i].apply();
         }
     }
 
@@ -88,6 +89,7 @@ export class AddChildCommand<
 
         for (let i = 0; i < commands.length; i++)
         {
+            commands[i].assert();
             commands[i].undo();
         }
     }

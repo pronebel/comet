@@ -97,4 +97,9 @@ export class RemoveNodeCommand
             datastore.updateNodeCloneInfo(cloner.id, getCloneInfoSchema(cloner));
         }
     }
+
+    public assert(): void
+    {
+        this.app.assertNode(this.params.nodeId);
+    }
 }

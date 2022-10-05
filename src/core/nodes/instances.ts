@@ -153,6 +153,7 @@ export function clearInstances()
 {
     idCounters.clear();
     instances.clear();
+    trash.clear();
 }
 
 export function getLatestInstance<T>(compareFn: (a: any, b: any) => number): T

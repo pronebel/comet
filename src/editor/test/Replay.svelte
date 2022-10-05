@@ -75,8 +75,8 @@
   }, 250);
 </script>
 
-<div class={isCurrentUser(selectedIndex) ? "active" : ""}>
-  {#if commandList.length > 0}
+{#if commandList.length > 0}
+  <div class={isCurrentUser(selectedIndex) ? "active" : ""}>
     <ul>
       {#each commandList as _command, i}
         <li
@@ -92,8 +92,8 @@
     <button on:click={onRedo} disabled={!isCurrentUser(selectedIndex)}
       >Replay</button
     >
-  {/if}
-</div>
+  </div>
+{/if}
 
 <style>
   div {

@@ -65,6 +65,7 @@ export class RemoveChildCommand
 
         for (let i = commands.length - 1; i >= 0; i--)
         {
+            commands[i].assert();
             commands[i].undo();
         }
     }
