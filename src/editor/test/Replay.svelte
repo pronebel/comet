@@ -115,6 +115,7 @@
     display: flex;
     flex-direction: column;
     border: 2px solid #666;
+    max-height: calc(100% - 50px);
   }
 
   .active {
@@ -126,6 +127,8 @@
     margin: 0;
     padding: 0;
     list-style: none;
+    max-height: 100%;
+    overflow-y: auto;
   }
 
   li {

@@ -104,12 +104,10 @@
   };
 
   const onUndo = () => {
-    app.writeCommandList("undo");
     app.undo();
   };
 
   const onRedo = () => {
-    app.writeCommandList("redo");
     app.redo();
   };
 

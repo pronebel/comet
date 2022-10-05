@@ -84,12 +84,14 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public undo = () =>
     {
+        this.writeCommandList('undo');
         this.undoStack.undo();
         this.onUndo();
     };
 
     public redo = () =>
     {
+        this.writeCommandList('redo');
         this.undoStack.redo();
         this.onRedo();
     };
