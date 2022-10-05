@@ -116,11 +116,13 @@ export abstract class Application extends EventEmitter<AppEvents>
             if (localStorage['saveUndo'] !== '0')
             {
                 localStorage[localStorageCommandsKey] = '[]';
+                localStorage.removeItem('replayIndex');
+            }
+            else
+            {
+                localStorage['replayIndex'] = '0';
             }
         }
-
-        localStorage.removeItem('replayIndex');
-        // localStorage.setItem('replayIndex', '0');
     }
 
     public exec<R = unknown>(command: Command, isUndoRoot = true): R
@@ -248,7 +250,13 @@ export abstract class Application extends EventEmitter<AppEvents>
             const node = getTrashInstance<ClonableNode>(nodeId);
             const nodes = node.getCloneTreeAncestors().reverse();
 
-            nodes.forEach((node) => new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }).undo());
+            nodes.forEach((node) =>
+            {
+                const command = new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' });
+
+                command.assert();
+                command.undo();
+            });
         }
     }
 }

@@ -12,7 +12,6 @@
       const array = JSON.parse(localStorage[localStorageCommandsKey]);
       commandList.length = 0;
       commandList.push(...array);
-      selectedIndex = 0;
     } catch (e) {}
   }
 
@@ -80,7 +79,7 @@
 
     if (replayIndex) {
       const index = parseInt(replayIndex as string);
-      if (index !== selectedIndex) {
+      if (!isNaN(index) && index !== selectedIndex) {
         selectedIndex = index;
         parseCommandList();
       }

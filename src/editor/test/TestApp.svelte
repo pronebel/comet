@@ -43,13 +43,7 @@
 
   const onReOpen = () => {
     console.clear();
-    const selectedId = app.selected?.id;
-    app.openProject("test").then(() => {
-      if (selectedId) {
-        const node = getInstance<ClonableNode>(selectedId);
-        app.select(node.cast());
-      }
-    });
+    app.openProject("test");
   };
 
   const onNew = () => {
@@ -168,8 +162,7 @@
 
   const onReplay = () => {
     localStorage["saveUndo"] = "0";
-    localStorage["replayIndex"] = "0";
-    onReadUndoStack();
+    window.location.reload();
   };
 
   const onSetCustomProp = () => {
