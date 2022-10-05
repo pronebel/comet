@@ -96,6 +96,7 @@ export class AddChildCommand<
 
     public assert(): void
     {
+        this.app.assertNode(this.params.parentId);
         this.app.assertNode(this.params.nodeSchema.id);
     }
 }

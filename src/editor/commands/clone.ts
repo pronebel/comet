@@ -75,6 +75,8 @@ export class CloneCommand
 
             if (clonerId)
             {
+                this.app.assertNode(clonerId);
+
                 const cloner = getInstance<ClonableNode>(clonerId);
                 const cloneInfoSchema = getCloneInfoSchema(cloner);
 
@@ -123,7 +125,9 @@ export class CloneCommand
 
     public assert(): void
     {
-        this.app.assertNode(this.params.nodeId);
-        this.params.parentId && this.app.assertNode(this.params.parentId);
+        const { app, params: { nodeId, parentId } } = this;
+
+        app.assertNode(nodeId);
+        parentId && app.assertNode(parentId);
     }
 }

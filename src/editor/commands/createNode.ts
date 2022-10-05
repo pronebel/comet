@@ -43,6 +43,8 @@ export class CreateNodeCommand<
         }
 
         // build clone info
+        cloner && this.app.assertNode(cloner);
+
         const cloneInfo = new CloneInfo(cloneMode, cloner ? getInstance<ClonableNode>(cloner) : undefined);
 
         // re-use or create and register graph node
@@ -52,6 +54,8 @@ export class CreateNodeCommand<
 
         if (nodeSchema.parent && !isNewNode)
         {
+            this.app.assertNode(nodeSchema.parent);
+
             const parentNode = getInstance<ClonableNode>(nodeSchema.parent);
 
             parentNode.addChild(node);

@@ -37,6 +37,8 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
 
     public run(): ReturnType
     {
+        this.assert();
+
         const result = this.apply();
 
         this.hasRun = true;
