@@ -282,6 +282,7 @@ export class TestApp extends Application
             const info = {
                 id: selected.id,
                 parents: selected.getParents().map((node) => (node.id)),
+                children: selected.children.map((node) => (node.id)),
                 original: selected.getOriginal().id,
                 cloneTarget: selected.getCloneTarget().id,
                 cloneRoot: cloneRoot ? cloneRoot.id : undefined,

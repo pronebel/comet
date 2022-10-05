@@ -63,7 +63,7 @@ export class RemoveNodeCommand
 
     public undo()
     {
-        const { datastore, params: { nodeId } } = this;
+        const { app, datastore, params: { nodeId } } = this;
 
         // restore node from trash
         if (!isInstanceInTrash(nodeId) && hasInstance(nodeId))
@@ -93,6 +93,10 @@ export class RemoveNodeCommand
 
         if (cloner)
         {
+            // assert node first
+            app.assertNode(cloner.id);
+
+            // update clone info
             cloner.cloneInfo.addCloned(node);
             datastore.updateNodeCloneInfo(cloner.id, getCloneInfoSchema(cloner));
         }
