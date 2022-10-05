@@ -72,4 +72,9 @@ export class RemoveCustomPropCommand
             new RemoveCustomPropCommand({ nodeId, customKey, updateMode }).run();
         }
     }
+
+    public assert(): void
+    {
+        this.app.assertNode(this.params.nodeId);
+    }
 }

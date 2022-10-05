@@ -333,6 +333,14 @@ export abstract class ClonableNode<
                         }
                     });
                 });
+
+                this.cloneInfo.forEachCloned<ClonableNode>((node) =>
+                {
+                    if (nodes.indexOf(node) === -1)
+                    {
+                        nodes.push(node);
+                    }
+                });
             }
         }
         else
@@ -514,6 +522,11 @@ export abstract class ClonableNode<
         }
 
         // note: updating all nodes is done by action
+    }
+
+    public getAssignedCustomProperty(modelKey: string)
+    {
+        return this.assignedCustomProperties.get(modelKey);
     }
 
     public assignCustomProperty(modelKey: keyof M, customKey: string): {

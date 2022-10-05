@@ -120,4 +120,10 @@ export class CloneCommand
             commands[i].undo();
         }
     }
+
+    public assert(): void
+    {
+        this.app.assertNode(this.params.nodeId);
+        this.params.parentId && this.app.assertNode(this.params.parentId);
+    }
 }

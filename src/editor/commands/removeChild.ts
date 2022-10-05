@@ -68,4 +68,9 @@ export class RemoveChildCommand
             commands[i].undo();
         }
     }
+
+    public assert(): void
+    {
+        this.app.assertNode(this.params.nodeId);
+    }
 }

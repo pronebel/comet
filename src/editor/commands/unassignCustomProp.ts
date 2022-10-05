@@ -3,6 +3,7 @@ import type { RealTimeObject } from '@convergence/convergence';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance } from '../../core/nodes/instances';
 import { type UpdateMode, Command } from '../command';
+import { AssignCustomPropCommand } from './assignCustomProp';
 
 export interface UnAssignCustomPropCommandParams
 {
@@ -11,17 +12,24 @@ export interface UnAssignCustomPropCommandParams
     updateMode: UpdateMode;
 }
 
+export interface UnAssignCustomPropCommandCache
+{
+    customKey?: string;
+}
+
 export class UnAssignCustomPropCommand
-    extends Command<UnAssignCustomPropCommandParams>
+    extends Command<UnAssignCustomPropCommandParams, void, UnAssignCustomPropCommandCache>
 {
     public static commandName = 'UnAssignCustomProp';
 
     public apply(): void
     {
-        const { datastore, params: { nodeId, modelKey, updateMode } } = this;
+        const { datastore, params: { nodeId, modelKey, updateMode }, cache } = this;
 
         // update graph node
         const node = getInstance<ClonableNode>(nodeId);
+
+        cache.customKey = node.getAssignedCustomProperty(modelKey);
 
         const customKey = node.unAssignCustomProperty(modelKey);
 
@@ -43,6 +51,16 @@ export class UnAssignCustomPropCommand
 
     public undo(): void
     {
-        throw new Error('Method not implemented.');
+        const { params: { nodeId, modelKey, updateMode }, cache: { customKey } } = this;
+
+        if (customKey)
+        {
+            new AssignCustomPropCommand({ nodeId, customKey, modelKey, updateMode }).run();
+        }
+    }
+
+    public assert(): void
+    {
+        this.app.assertNode(this.params.nodeId);
     }
 }

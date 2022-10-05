@@ -80,4 +80,9 @@ export class UnlinkCommand
             datastore.updateNodeCloneInfo(nodeSchema.id, getCloneInfoSchema(node));
         }
     }
+
+    public assert(): void
+    {
+        this.app.assertNode(this.params.nodeId);
+    }
 }

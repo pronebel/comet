@@ -64,4 +64,9 @@ export class AssignCustomPropCommand
             new UnAssignCustomPropCommand({ nodeId, modelKey, updateMode }).run();
         }
     }
+
+    public assert(): void
+    {
+        this.app.assertNode(this.params.nodeId);
+    }
 }

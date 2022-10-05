@@ -180,7 +180,7 @@ export class TestApp extends Application
         console.log(`%c${logId}:Datastore saved`, logStyle);
     }
 
-    public restoreDatastore(reload = true)
+    public restoreDatastore()
     {
         const json = localStorage.getItem('comet');
 
@@ -188,8 +188,10 @@ export class TestApp extends Application
         {
             const nodes = JSON.parse(json);
 
+            console.clear();
             this.datastore.setNodesData(nodes);
-            reload && window.location.reload();
+            this.resetState();
+            this.openProject('test');
         }
     }
 
@@ -294,6 +296,7 @@ export class TestApp extends Application
                 dsNodeSchema: this.datastore.getNodeElementSchema(selected.id),
             };
 
+            console.clear();
             console.dir(selected);
             console.log(JSON.stringify(info, null, 4));
 

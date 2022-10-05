@@ -294,11 +294,13 @@
 
   button {
     width: 100%;
-    margin-bottom: 5px;
+    margin-bottom: 2px;
     z-index: 100;
     opacity: 0.7;
     font-size: inherit;
     cursor: pointer;
+    height: 19px;
+    padding: 1px;
   }
 
   marker {
