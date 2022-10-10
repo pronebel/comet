@@ -6,7 +6,7 @@ import { Application as PixiApplication } from 'pixi.js';
 
 import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { ProjectNode } from '../core/nodes/concrete/project';
-import { clearInstances, getTrashInstance, isInstanceInTrash } from '../core/nodes/instances';
+import { clearInstances, getInstance } from '../core/nodes/instances';
 import type { Command } from './command';
 import { createCommand } from './commandFactory';
 import { RemoveNodeCommand } from './commands/removeNode';
@@ -245,20 +245,21 @@ export abstract class Application extends EventEmitter<AppEvents>
         }
     }
 
-    public assertNode(nodeId: string)
+    public restoreNode(nodeId: string)
     {
-        if (isInstanceInTrash(nodeId))
+        const node = getInstance<ClonableNode>(nodeId);
+        const nodes = node.getCloneTreeAncestors().reverse();
+
+        nodes.forEach((node) =>
         {
-            const node = getTrashInstance<ClonableNode>(nodeId);
-            const nodes = node.getCloneTreeAncestors().reverse();
+            const command = new RemoveNodeCommand({ nodeId: node.id });
 
-            nodes.forEach((node) =>
+            if (node.prevParent)
             {
-                const command = new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' });
+                command.cache.parentId = node.prevParent.id;
+            }
 
-                command.assert();
-                command.undo();
-            });
-        }
+            command.undo();
+        });
     }
 }

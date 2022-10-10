@@ -51,7 +51,7 @@ export class NodeUpdater
 
         const nodeSchema = this.datastore.getNodeElementSchema(event.nodeId);
 
-        new CreateNodeCommand({ nodeSchema, isNewNode: false }).run();
+        new CreateNodeCommand({ nodeSchema }).run();
     };
 
     protected onNodeRemoved = (event: DSNodeRemovedEvent) =>
@@ -60,7 +60,7 @@ export class NodeUpdater
 
         const nodeId = event.nodeId;
 
-        new RemoveNodeCommand({ nodeId, updateMode: 'graphOnly' }).run();
+        new RemoveNodeCommand({ nodeId }).run();
     };
 
     protected onParentSet = (event: DSParentSetEvent) =>

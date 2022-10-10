@@ -2,14 +2,14 @@ import type {  Container,  InteractionEvent } from 'pixi.js';
 import { filters, Sprite, Texture } from 'pixi.js';
 
 import type { ModelValue } from '../../core/model/model';
-import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
-import { getInstance, getLatestInstance, hasInstance } from '../../core/nodes/instances';
+import { getInstance, getInstances, hasInstance } from '../../core/nodes/instances';
 import { nodeFactoryEmitter, registerNodeType } from '../../core/nodes/nodeFactory';
 import { createNodeSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Action } from '../action';
@@ -85,6 +85,7 @@ export class TestApp extends Application
         {
             console.log(`%c${logId}:DISPOSED: "${node.id}"`, logStyle);
             throw new Error('disposed?');
+        // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         }).on('modelModified', (node: ClonableNode, key: string, value: ModelValue, oldValue: ModelValue) =>
         {
@@ -158,16 +159,22 @@ export class TestApp extends Application
 
     protected selectLastNode()
     {
-        let node = getLatestInstance<ContainerNode>(sortNodesByCreation);
-
-        if (node && node.nodeType() === 'Project' && hasInstance('Scene:1'))
+        if (this.project)
         {
-            node = getInstance<ContainerNode>('Scene:1');
-        }
+            const nodes = (getInstances()
+                .filter((inst) => inst instanceof ClonableNode && this.project?.contains(inst)) as ContainerNode[])
+                .sort(sortNodesByCreation);
+            let node = nodes[nodes.length - 1];
 
-        if (node)
-        {
-            this.select(node);
+            if (node && node.nodeType() === 'Project' && hasInstance('Scene:1'))
+            {
+                node = getInstance<ContainerNode>('Scene:1');
+            }
+
+            if (node)
+            {
+                this.select(node);
+            }
         }
     }
 

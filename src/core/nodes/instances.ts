@@ -3,7 +3,6 @@ import { getUserName } from '../../editor/sync/user';
 type Instance = { id: string };
 
 const instances: Map<string, Instance> = new Map();
-const trash: Map<string, Instance> = new Map();
 const idCounters: Map<string, number> = new Map();
 
 const userName = getUserName();
@@ -82,48 +81,6 @@ export function unregisterInstance(instance: Instance)
     console.log(`%c${logId}:unregistered instance "${id}"`, logStyle);
 }
 
-export function moveToTrash(instance: Instance)
-{
-    const { id } = instance;
-
-    if (trash.has(id))
-    {
-        throw new Error(`${userName}:Trash already contains instance "${id}"`);
-    }
-
-    console.log(`%c${logId}:moving to trash "${id}"`, logStyle);
-
-    instances.delete(id);
-    trash.set(id, instance);
-}
-
-export function isInstanceInTrash(id: string)
-{
-    return trash.has(id);
-}
-
-export function restoreInstance<T>(id: string): T
-{
-    if (!trash.has(id))
-    {
-        throw new Error(`${logId}:Trash does not contain instance "${id}"`);
-    }
-
-    if (instances.has(id))
-    {
-        throw new Error(`${logId}:Instance "${id}" already out of trash`);
-    }
-
-    const instance = trash.get(id) as Instance;
-
-    console.log(`%c${logId}:restoring instance "${id}"`, logStyle);
-
-    trash.delete(id);
-    instances.set(id, instance);
-
-    return instance as unknown as T;
-}
-
 export function getInstance<T>(id: string): T
 {
     if (!instances.has(id))
@@ -132,16 +89,6 @@ export function getInstance<T>(id: string): T
     }
 
     return instances.get(id) as unknown as T;
-}
-
-export function getTrashInstance<T>(id: string): T
-{
-    if (!trash.has(id))
-    {
-        throw new Error(`${logId}:Trash does not contains instance "${id}"`);
-    }
-
-    return trash.get(id) as unknown as T;
 }
 
 export function hasInstance(id: string): boolean
@@ -153,12 +100,11 @@ export function clearInstances()
 {
     idCounters.clear();
     instances.clear();
-    trash.clear();
 }
 
-export function getLatestInstance<T>(compareFn: (a: any, b: any) => number): T
+export function getInstances()
 {
-    return Array.from(instances.values()).sort(compareFn).pop() as unknown as T;
+    return Array.from(instances.values());
 }
 
 export function getInstancesByType()
@@ -180,24 +126,4 @@ export function getInstancesByType()
     return types;
 }
 
-export function getTrashInstancesByType()
-{
-    const types: Record<string, string[]> = {};
-
-    for (const [id, instance] of trash.entries())
-    {
-        const { type } = parseId(id);
-
-        if (!types[type])
-        {
-            types[type] = [];
-        }
-
-        types[type].push(instance.id);
-    }
-
-    return types;
-}
-
 (window as any).getInstance = getInstance;
-(window as any).getTrashInstance = getTrashInstance;

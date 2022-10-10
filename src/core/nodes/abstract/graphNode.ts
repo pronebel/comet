@@ -32,6 +32,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 {
     public id: string;
     public parent?: GraphNode;
+    public prevParent?: GraphNode;
     public children: GraphNode[];
     public created: number;
 
@@ -137,36 +138,47 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         parent.emit('childAdded', this);
     }
 
-    public addChild(component: GraphNode<string>)
+    public addChild(node: GraphNode<string>)
     {
-        if (component === this)
+        if (node === this)
         {
             throw new Error(`"Cannot add ${this.nodeType} to self"`);
         }
 
-        component.setParent(this);
+        node.setParent(this);
     }
 
-    public removeChild(component: GraphNode)
+    public removeChild(node: GraphNode)
     {
         const { children } = this;
 
-        const index = children.indexOf(component);
+        const index = children.indexOf(node);
 
         if (index > -1)
         {
             children.splice(index, 1);
 
-            delete component.parent;
+            delete node.parent;
+            node.prevParent = this;
 
-            component.onRemovedFromParent(this);
+            node.onRemovedFromParent(this);
 
-            this.emit('childRemoved', component);
+            this.emit('childRemoved', node);
         }
         else
         {
             throw new Error('"Cannot remove child which is not in parent"');
         }
+    }
+
+    public restorePrevParent()
+    {
+        if (this.parent || !this.prevParent)
+        {
+            throw new Error(`Node "${this.id}" cannot be restored to previous parent`);
+        }
+        this.prevParent.addChild(this);
+        delete this.prevParent;
     }
 
     public getChildAt<T extends GraphNode>(index: number): T
@@ -197,7 +209,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
     }
 
     public walk<T extends GraphNode, R extends WalkReturnData = {}>(
-        fn: (component: T, options: WalkOptions) => void,
+        fn: (node: T, options: WalkOptions) => void,
         options: Partial<WalkOptions> = {},
     ): R
     {
@@ -251,9 +263,9 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return currentOptions.data as R;
     }
 
-    public containsChild<T extends GraphNode>(component: T)
+    public containsChild<T extends GraphNode>(node: T)
     {
-        return this.children.indexOf(component) > -1;
+        return this.children.indexOf(node) > -1;
     }
 
     protected onAddedToParent(): void

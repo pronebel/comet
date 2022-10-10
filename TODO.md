@@ -1,6 +1,5 @@
 # Refactor
 
-* When removing nodes, keep node in memory (possibly actual node, not just schema)
-* Since new nodes will not collide its much easier to not need to do all the nodeUpdateId stuff (which may cause bugs eventually)
-* Keep restore node command as its still needed to bring back node, but try to consolidate any new restore commands into a single one with nodes[]
-* Keeping instances around should help
+* Delete trash, use single hash for instances
+* Just use auditor to check if things are in graph
+* Lazy create datastore data when accessed if graph node still hanging around

@@ -121,8 +121,6 @@
     console.clear();
     console.log("%c\nGraph Nodes:", "font-weight:bold;color:cyan");
     console.table(audit.nodes);
-    console.log("%cTrash Nodes:", "font-weight:bold;color:cyan");
-    console.table(audit.trash);
     console.log("%c\nDatastore:", "font-weight:bold;color:cyan");
     console.table(audit.datastore);
   };

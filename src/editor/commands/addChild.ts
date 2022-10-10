@@ -7,7 +7,6 @@ import { Command } from '../command';
 import { CloneCommand } from './clone';
 import { CreateNodeCommand } from './createNode';
 import { RemoveChildCommand } from './removeChild';
-import { SetParentCommand } from './setParent';
 
 export interface AddChildCommandParams<M extends ModelBase>
 {
@@ -33,19 +32,18 @@ export class AddChildCommand<
 
     public apply(): AddChildCommandReturn
     {
-        const { cache, params: { parentId, nodeSchema } } = this;
+        const { datastore, cache, params: { parentId, nodeSchema } } = this;
 
         const sourceNode = getInstance<ClonableNode>(parentId);
         const originalParentNode = sourceNode.getAddChildCloneTarget();
         const clonedParentNodes = originalParentNode.getClonedDescendants();
 
-        const { node } = new CreateNodeCommand({ nodeSchema, isNewNode: true }).run();
+        const { node } = new CreateNodeCommand({ nodeSchema }).run();
         const nodes: ClonableNode[] = [node];
 
-        let lastCloneSource = node;
+        datastore.setNodeParent(nodeSchema.id, parentId);
 
-        new SetParentCommand({ parentId: originalParentNode.id, nodeId: node.id }).run();
-        // originalParentNode.addChild(node);
+        let lastCloneSource = node;
 
         clonedParentNodes.forEach((clonedParent) =>
         {
@@ -78,7 +76,6 @@ export class AddChildCommand<
 
         for (let i = commands.length - 1; i >= 0; i--)
         {
-            commands[i].assert();
             commands[i].apply();
         }
     }
@@ -89,14 +86,7 @@ export class AddChildCommand<
 
         for (let i = 0; i < commands.length; i++)
         {
-            commands[i].assert();
             commands[i].undo();
         }
-    }
-
-    public assert(): void
-    {
-        this.app.assertNode(this.params.parentId);
-        this.app.assertNode(this.params.nodeSchema.id);
     }
 }

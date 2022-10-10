@@ -14,7 +14,6 @@ import { consolidateId, getInstance } from '../../core/nodes/instances';
 import type { CloneInfoSchema, NodeSchema, ProjectSchema } from '../../core/nodes/schema';
 import { createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
-import { CreateNodeCommand } from '../commands/createNode';
 import type {
     DatastoreEvents,
     DSCloneInfoModifiedEvent,
@@ -68,7 +67,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         if (!this._domain)
         {
-            throw new Error('Domain not found');
+            throw new Error(`${logId}:Domain not found`);
         }
 
         return this._domain;
@@ -78,7 +77,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         if (!this._model)
         {
-            throw new Error('Datastore model not initialised');
+            throw new Error(`${logId}:Datastore model not initialised`);
         }
 
         return this._model;
@@ -112,6 +111,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     }
 
     public hasNodeElement(nodeId: string)
+    {
+        return this.nodes.hasKey(nodeId);
+    }
+
+    public hasRegisteredNodeElement(nodeId: string)
     {
         return this.nodeRealtimeObjects.has(nodeId);
     }
@@ -161,7 +165,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         if (!nodeElement)
         {
-            throw new Error(`Existing node "${nodeId}" RealTimeObject not found, cannot track.`);
+            throw new Error(`${logId}:Existing node "${nodeId}" RealTimeObject not found, cannot track.`);
         }
 
         if (!this.nodeRealtimeObjects.has(nodeId))
@@ -223,6 +227,8 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             console.log(`%c${logId}:nodes.remove: ${nodeId}`, logStyle);
 
+            this.unRegisterNode(nodeId);
+
             const e: DSNodeRemovedEvent = { nodeId, parentId };
 
             this.emit('nodeRemoved', e);
@@ -233,7 +239,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
     protected trackNodeElementRemoteEvents(nodeId: string)
     {
-        console.log(`%c${logId}:track nodeElement: ${nodeId}`, logStyle);
+        console.log(`%c${logId}:track nodeElement: "${nodeId}"`, logStyle);
 
         const nodeElement = this.getNodeElement(nodeId);
 
@@ -250,8 +256,8 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 const childId = nodeElement.get('id').value();
 
                 console.log(
-                    `%c${logId}:${nodeId}:parent.set! parentId: ${parentId} 
-                    childId: ${childId} oldParentId: ${oldParentId}`,
+                    `%c${logId}:${nodeId}:parent.set! parentId: "${parentId}" 
+                    childId: "${childId}" oldParentId: "${oldParentId}"`,
                     logStyle,
                 );
 
@@ -332,7 +338,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             this.emit('modelModified', e);
         }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
         {
-            throw new Error(`Model REMOVED event not supported yet ${event.name}`);
+            throw new Error(`${logId}:Model REMOVED event not supported yet ${event.name}`);
         });
 
         // catch events from cloneInfo
@@ -352,34 +358,32 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         const { nodes } = this;
 
-        const allNodeElements: Map<string, RealTimeObject> = new Map();
-
         // index all nodeElements
         nodes.keys().forEach((id) =>
         {
             const nodeElement = nodes.get(id) as RealTimeObject;
 
-            allNodeElements.set(id, nodeElement);
+            this.registerNodeElement(id, nodeElement);
         });
 
         // get the root
         const rootId = this.model.root().get('root').value() as string;
-        const projectNode = allNodeElements.get(rootId);
+        const projectNode = nodes.get(rootId) as RealTimeObject;
 
         if (projectNode)
         {
             // start hydrating from the root node (Project)
-            this.hydrateElement(projectNode, allNodeElements);
+            this.hydrateElement(projectNode);
         }
         else
         {
-            throw new Error('Could not find project node');
+            throw new Error(`${logId}:Could not find project node`);
         }
 
         return getInstance<ClonableNode>(rootId);
     }
 
-    protected hydrateElement(nodeElement: RealTimeObject, allNodeElements: Map<string, RealTimeObject>)
+    protected hydrateElement(nodeElement: RealTimeObject)
     {
         const id = nodeElement.get('id').value() as string;
 
@@ -387,23 +391,23 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         consolidateId(id);
 
         // create the graph node
-        const nodeSchema = nodeElement.toJSON() as NodeSchema;
+        const e: DSNodeCreatedEvent = { nodeId: id };
 
-        new CreateNodeCommand({ nodeSchema, isNewNode: false }).run();
+        this.emit('nodeCreated', e);
 
         // recursively create children
         (nodeElement.get('children').value() as RealTimeArray).forEach((id) =>
         {
             const childId = String(id);
-            const childNodeElement = allNodeElements.get(childId);
+            const childNodeElement = this.nodes.get(childId) as RealTimeObject;
 
             if (childNodeElement)
             {
-                this.hydrateElement(childNodeElement, allNodeElements);
+                this.hydrateElement(childNodeElement);
             }
             else
             {
-                throw new Error(`Could not find childElement "${childId}"`);
+                throw new Error(`${logId}:Could not find childElement "${childId}"`);
             }
         });
     }
@@ -412,16 +416,16 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         if (this.nodeRealtimeObjects.has(nodeId))
         {
-            throw new Error(`Node "${nodeId}" RealTimeObject already registered.`);
+            throw new Error(`${logId}:Node "${nodeId}" RealTimeObject already registered.`);
         }
 
         // store element
         this.nodeRealtimeObjects.set(nodeId, nodeElement);
 
+        console.log(`%c${logId}:Registered New RealTimeObject "${nodeId}"`, logStyle);
+
         // track remote events
         this.trackNodeElementRemoteEvents(nodeId);
-
-        console.log(`%c${logId}:Registered New RealTimeObject "${nodeId}"`, logStyle);
     }
 
     public createNode(nodeSchema: NodeSchema)
@@ -430,6 +434,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             `%c${logId}:createNode! childId: ${JSON.stringify(nodeSchema)}`,
             logStyle,
         );
+
+        if (this.nodes.hasKey(nodeSchema.id))
+        {
+            throw new Error(`${logId}:Node "${nodeSchema.id}" node already registered.`);
+        }
 
         const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
@@ -458,7 +467,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
             if (index === -1)
             {
-                throw new Error(`Could not find child "${nodeId}" reference in parent "${parentId}"`);
+                throw new Error(`${logId}:Could not find child "${nodeId}" reference in parent "${parentId}"`);
             }
 
             childArray.remove(index);
@@ -588,7 +597,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     {
         if (!this.nodeRealtimeObjects.has(id))
         {
-            throw new Error(`Cannot remove Node "${id}" as RealTimeObject is not registered.`);
+            throw new Error(`${logId}:Cannot remove Node "${id}" as RealTimeObject is not registered.`);
         }
 
         this.nodeRealtimeObjects.delete(id);
@@ -602,7 +611,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         if (!nodeElement)
         {
-            throw new Error(`Node "${id}" RealTimeObject not registered.`);
+            throw new Error(`${logId}:Node "${id}" RealTimeObject not registered.`);
         }
 
         return nodeElement;

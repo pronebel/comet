@@ -49,7 +49,7 @@ export class RemoveChildCommand
             nodes.forEach((node) =>
             {
                 // track in cache
-                const command = new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' });
+                const command = new RemoveNodeCommand({ nodeId: node.id });
 
                 cache.commands.push(command);
                 command.run();
@@ -65,13 +65,7 @@ export class RemoveChildCommand
 
         for (let i = commands.length - 1; i >= 0; i--)
         {
-            commands[i].assert();
             commands[i].undo();
         }
-    }
-
-    public assert(): void
-    {
-        this.app.assertNode(this.params.nodeId);
     }
 }

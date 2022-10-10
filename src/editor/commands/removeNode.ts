@@ -1,12 +1,11 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getInstance, hasInstance, isInstanceInTrash, moveToTrash, restoreInstance } from '../../core/nodes/instances';
+import { getInstance } from '../../core/nodes/instances';
 import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
-import { type UpdateMode, Command } from '../command';
+import { Command } from '../command';
 
 export interface RemoveNodeCommandParams
 {
     nodeId: string;
-    updateMode: UpdateMode;
 }
 
 export interface RemoveNodeCommandReturn
@@ -14,39 +13,34 @@ export interface RemoveNodeCommandReturn
     node: ClonableNode;
 }
 
+export interface RemoveNodeCommandCache
+{
+    parentId: string;
+}
+
 export class RemoveNodeCommand
-    extends Command<RemoveNodeCommandParams, RemoveNodeCommandReturn>
+    extends Command<RemoveNodeCommandParams, RemoveNodeCommandReturn, RemoveNodeCommandCache>
 {
     public static commandName = 'RemoveNode';
 
     public apply(): RemoveNodeCommandReturn
     {
-        const { datastore, params: { nodeId, updateMode } } = this;
+        const { datastore, params: { nodeId }, cache } = this;
 
         const node = getInstance<ClonableNode>(nodeId);
         const parentNode = node.parent;
 
-        // move to trash
-        moveToTrash(node);
-
-        if (updateMode === 'graphOnly')
+        // delete data from datastore
+        if (datastore.hasNodeElement(nodeId))
         {
-            // just unregister it, already removed from data
-            datastore.unRegisterNode(nodeId);
-        }
-        else
-        {
-            // delete data from datastore
             datastore.removeNode(nodeId);
         }
 
         // remove from parent graph node
         if (parentNode)
         {
+            cache.parentId = parentNode.id;
             parentNode.removeChild(node);
-
-            // keep reference to parent in case of restore required
-            node.parent = parentNode;
         }
 
         // update node cloneInfo
@@ -63,27 +57,20 @@ export class RemoveNodeCommand
 
     public undo()
     {
-        const { app, datastore, params: { nodeId } } = this;
+        const { datastore, params: { nodeId }, cache: { parentId } } = this;
 
-        // restore node from trash
-        if (!isInstanceInTrash(nodeId) && hasInstance(nodeId))
-        {
-            // node has already been restored by remote user action, abort
-            return;
-        }
-
-        const node = restoreInstance<ClonableNode>(nodeId);
-
-        // restore datastore data
+        const node = getInstance<ClonableNode>(nodeId);
         const nodeSchema = getNodeSchema(node);
 
-        datastore.createNode(nodeSchema);
-
-        const parentNode = node.parent;
-
-        if (parentNode)
+        if (!datastore.hasNodeElement(nodeId))
         {
-            delete node.parent;
+            datastore.createNode(nodeSchema);
+        }
+
+        const parentNode = getInstance<ClonableNode>(parentId);
+
+        if (parentNode && node.parent !== parentNode)
+        {
             parentNode.addChild(node);
             datastore.setNodeParent(node.id, parentNode.id, true);
         }
@@ -93,9 +80,6 @@ export class RemoveNodeCommand
 
         if (cloner)
         {
-            // assert node first
-            app.assertNode(cloner.id);
-
             // update clone info
             cloner.cloneInfo.addCloned(node);
             datastore.updateNodeCloneInfo(cloner.id, getCloneInfoSchema(cloner));

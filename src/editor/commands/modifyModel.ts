@@ -1,6 +1,4 @@
 import type { ModelBase } from '../../core/model/model';
-import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getInstance } from '../../core/nodes/instances';
 import { Command } from '../command';
 
 export interface ModifyModelCommandParams<M>
@@ -22,7 +20,7 @@ export class ModifyModelCommand<M extends ModelBase>
     public apply(): void
     {
         const { datastore, params: { nodeId, values }, cache } = this;
-        const node = getInstance<ClonableNode>(nodeId);
+        const node = this.getInstance(nodeId);
 
         // update datastore
         datastore.modifyNodeModel(nodeId, values);
@@ -56,12 +54,5 @@ export class ModifyModelCommand<M extends ModelBase>
         {
             new ModifyModelCommand({ nodeId, values: prevValues }).run();
         }
-    }
-
-    public assert(): void
-    {
-        const { app, params: { nodeId } } = this;
-
-        app.assertNode(nodeId);
     }
 }

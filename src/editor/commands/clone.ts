@@ -75,7 +75,7 @@ export class CloneCommand
 
             if (clonerId)
             {
-                this.app.assertNode(clonerId);
+                // this.app.assertNode(clonerId);
 
                 const cloner = getInstance<ClonableNode>(clonerId);
                 const cloneInfoSchema = getCloneInfoSchema(cloner);
@@ -87,7 +87,7 @@ export class CloneCommand
             clonedNodes.push(node);
 
             // track for cache
-            cache.commands.push(new RemoveNodeCommand({ nodeId: node.id, updateMode: 'full' }));
+            cache.commands.push(new RemoveNodeCommand({ nodeId: node.id }));
         });
 
         // set parent if provided
@@ -121,13 +121,5 @@ export class CloneCommand
         {
             commands[i].undo();
         }
-    }
-
-    public assert(): void
-    {
-        const { app, params: { nodeId, parentId } } = this;
-
-        app.assertNode(nodeId);
-        parentId && app.assertNode(parentId);
     }
 }
