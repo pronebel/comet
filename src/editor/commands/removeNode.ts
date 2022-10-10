@@ -27,7 +27,7 @@ export class RemoveNodeCommand
     {
         const { datastore, params: { nodeId }, cache } = this;
 
-        const node = getInstance<ClonableNode>(nodeId);
+        const node = this.getInstance(nodeId);
         const parentNode = node.parent;
 
         // delete data from datastore
@@ -72,7 +72,8 @@ export class RemoveNodeCommand
         if (parentNode && node.parent !== parentNode)
         {
             parentNode.addChild(node);
-            datastore.setNodeParent(node.id, parentNode.id, true);
+            if (!datastore.hasNodeElement)
+            { datastore.setNodeParent(node.id, parentNode.id, true); }
         }
 
         // update node cloneInfo

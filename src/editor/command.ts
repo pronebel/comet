@@ -1,6 +1,5 @@
 import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import { getInstance } from '../core/nodes/instances';
-import { getNodeSchema } from '../core/nodes/schema';
 import { Application } from './application';
 import type { CommandName } from './commandFactory';
 
@@ -69,10 +68,6 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
 
         if (node.prevParent && !datastore.hasRegisteredNodeElement(nodeId))
         {
-            // node.restorePrevParent();
-            // const nodeSchema = getNodeSchema(node);
-
-            // datastore.createNode(nodeSchema);
             app.restoreNode(node.id);
         }
 
