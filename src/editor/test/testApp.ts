@@ -159,10 +159,13 @@ export class TestApp extends Application
 
     protected selectLastNode()
     {
-        if (this.project)
+        const { project } = this;
+
+        if (project)
         {
             const nodes = (getInstances()
                 .filter((inst) => inst instanceof ClonableNode && this.project?.contains(inst)) as ContainerNode[])
+                .filter((node) => project.contains(node))
                 .sort(sortNodesByCreation);
             let node = nodes[nodes.length - 1];
 

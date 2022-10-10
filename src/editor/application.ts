@@ -254,9 +254,9 @@ export abstract class Application extends EventEmitter<AppEvents>
         {
             const command = new RemoveNodeCommand({ nodeId: node.id });
 
-            if (node.prevParent)
+            if (node.parent)
             {
-                command.cache.parentId = node.prevParent.id;
+                command.cache.parentId = node.parent.id;
             }
 
             command.undo();

@@ -27,7 +27,7 @@ export class RemoveNodeCommand
     {
         const { datastore, params: { nodeId }, cache } = this;
 
-        const node = this.getInstance(nodeId);
+        const node = getInstance<ClonableNode>(nodeId);
         const parentNode = node.parent;
 
         // delete data from datastore
@@ -41,6 +41,9 @@ export class RemoveNodeCommand
         {
             cache.parentId = parentNode.id;
             parentNode.removeChild(node);
+
+            // preserve parent reference, though node has officially "unparented"
+            node.parent = parentNode;
         }
 
         // update node cloneInfo
@@ -62,18 +65,23 @@ export class RemoveNodeCommand
         const node = getInstance<ClonableNode>(nodeId);
         const nodeSchema = getNodeSchema(node);
 
-        if (!datastore.hasNodeElement(nodeId))
+        if (datastore.hasNodeElement(nodeId))
         {
-            datastore.createNode(nodeSchema);
+            // node is in both node graph and datastore
+            return;
         }
+
+        datastore.createNode(nodeSchema);
 
         const parentNode = getInstance<ClonableNode>(parentId);
 
-        if (parentNode && node.parent !== parentNode)
+        if (parentNode)
         {
+            // delete restore reference, add node "formally"
+            delete node.parent;
+
             parentNode.addChild(node);
-            if (!datastore.hasNodeElement)
-            { datastore.setNodeParent(node.id, parentNode.id, true); }
+            datastore.setNodeParent(node.id, parentNode.id, true);
         }
 
         // update node cloneInfo

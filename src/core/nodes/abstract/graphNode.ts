@@ -32,7 +32,6 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 {
     public id: string;
     public parent?: GraphNode;
-    public prevParent?: GraphNode;
     public children: GraphNode[];
     public created: number;
 
@@ -159,7 +158,6 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
             children.splice(index, 1);
 
             delete node.parent;
-            node.prevParent = this;
 
             node.onRemovedFromParent(this);
 
@@ -169,16 +167,6 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         {
             throw new Error('"Cannot remove child which is not in parent"');
         }
-    }
-
-    public restorePrevParent()
-    {
-        if (this.parent || !this.prevParent)
-        {
-            throw new Error(`Node "${this.id}" cannot be restored to previous parent`);
-        }
-        this.prevParent.addChild(this);
-        delete this.prevParent;
     }
 
     public getChildAt<T extends GraphNode>(index: number): T
@@ -193,7 +181,15 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
     public contains(node: GraphNode): boolean
     {
-        return node.hasParent(this);
+        // return node.hasParent(this);
+        return this.walk<GraphNode, { hasNode?: boolean }>((childNode, options) =>
+        {
+            if (childNode === node)
+            {
+                options.cancel = true;
+                options.data.hasNode = true;
+            }
+        }, { includeSelf: false }).hasNode === true;
     }
 
     public hasParent(node: GraphNode): boolean
