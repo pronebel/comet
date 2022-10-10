@@ -1,6 +1,5 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
-import { getInstance } from '../../core/nodes/instances';
 import { Command } from '../command';
 import { RemoveNodeCommand } from './removeNode';
 
@@ -28,7 +27,7 @@ export class RemoveChildCommand
     {
         const { cache, datastore, params: { nodeId } } = this;
 
-        const sourceNode = getInstance<ClonableNode>(nodeId);
+        const sourceNode = this.getInstance(nodeId);
         const originalNode = sourceNode.getModificationCloneTarget();
         const clonedNodes = originalNode.getClonedDescendants();
 

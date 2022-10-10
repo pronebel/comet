@@ -1,6 +1,6 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
-import { getInstance, registerInstance } from '../../core/nodes/instances';
+import { registerInstance } from '../../core/nodes/instances';
 import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
 import { RemoveNodeCommand } from './removeNode';
@@ -35,7 +35,7 @@ export class CloneCommand
     {
         const { datastore, params: { nodeId, cloneMode, depth, parentId }, cache } = this;
 
-        const sourceNode = getInstance<ClonableNode>(nodeId);
+        const sourceNode = this.getInstance(nodeId);
         const originalNode = sourceNode.getCloneTarget();
         const cloneInfoSchema = getCloneInfoSchema(originalNode);
 
@@ -77,7 +77,7 @@ export class CloneCommand
             {
                 // this.app.assertNode(clonerId);
 
-                const cloner = getInstance<ClonableNode>(clonerId);
+                const cloner = this.getInstance(clonerId);
                 const cloneInfoSchema = getCloneInfoSchema(cloner);
 
                 datastore.updateNodeCloneInfo(clonerId, cloneInfoSchema);

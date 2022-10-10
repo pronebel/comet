@@ -29,7 +29,7 @@ export class CreateNodeCommand<
         const { datastore, params: { nodeSchema } } = this;
 
         const { id, type, model, cloneInfo: { cloneMode, cloner }, customProperties } = nodeSchema;
-        const cloneInfo = new CloneInfo(cloneMode, cloner ? getInstance<ClonableNode>(cloner) : undefined);
+        const cloneInfo = new CloneInfo(cloneMode, cloner ? this.getInstance(cloner) : undefined);
 
         if (!datastore.hasNodeElement(id))
         {

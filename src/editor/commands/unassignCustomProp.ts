@@ -1,7 +1,5 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
-import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getInstance } from '../../core/nodes/instances';
 import { type UpdateMode, Command } from '../command';
 import { AssignCustomPropCommand } from './assignCustomProp';
 
@@ -27,7 +25,7 @@ export class UnAssignCustomPropCommand
         const { datastore, params: { nodeId, modelKey, updateMode }, cache } = this;
 
         // update graph node
-        const node = getInstance<ClonableNode>(nodeId);
+        const node = this.getInstance(nodeId);
 
         cache.customKey = node.getAssignedCustomProperty(modelKey);
 

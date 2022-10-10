@@ -2,7 +2,6 @@ import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomProperty, CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
-import { getInstance } from '../../core/nodes/instances';
 import { type UpdateMode, Command } from '../command';
 import { AssignCustomPropCommand } from './assignCustomProp';
 import { RemoveCustomPropCommand } from './removeCustomProp';
@@ -42,7 +41,7 @@ export class SetCustomPropCommand
             });
         }
 
-        const node = getInstance<ClonableNode>(nodeId);
+        const node = this.getInstance(nodeId);
 
         // update cache
         const prevProp = node.getCustomProperty(customKey);

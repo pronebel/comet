@@ -1,7 +1,6 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import { CloneInfo } from '../../core/nodes/cloneInfo';
-import { getInstance } from '../../core/nodes/instances';
 import { type NodeSchema, getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
 
@@ -24,7 +23,7 @@ export class UnlinkCommand
     {
         const { datastore, params: { nodeId }, cache } = this;
 
-        const node = getInstance<ClonableNode>(nodeId);
+        const node = this.getInstance(nodeId);
 
         // write cache first
         cache.nodes = [];
@@ -50,8 +49,8 @@ export class UnlinkCommand
 
         for (const nodeSchema of nodes)
         {
-            const node = getInstance<ClonableNode>(nodeSchema.id);
-            const cloner = nodeSchema.cloneInfo.cloner ? getInstance<ClonableNode>(nodeSchema.cloneInfo.cloner) : undefined;
+            const node = this.getInstance(nodeSchema.id);
+            const cloner = nodeSchema.cloneInfo.cloner ? this.getInstance(nodeSchema.cloneInfo.cloner) : undefined;
             const nodeSchemaCloneInfo = CloneInfo.fromSchema(nodeSchema.cloneInfo);
 
             // update cloners cloned info
@@ -74,7 +73,7 @@ export class UnlinkCommand
             // update nodes cloneInfo
             node.cloneInfo.cloner = cloner;
             node.cloneInfo.cloneMode = nodeSchema.cloneInfo.cloneMode;
-            node.cloneInfo.cloned = nodeSchema.cloneInfo.cloned.map((id) => getInstance<ClonableNode>(id));
+            node.cloneInfo.cloned = nodeSchema.cloneInfo.cloned.map((id) => this.getInstance(id));
 
             // update datastore
             datastore.updateNodeCloneInfo(nodeSchema.id, getCloneInfoSchema(node));

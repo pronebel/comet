@@ -1,7 +1,6 @@
 import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneMode } from '../../core/nodes/cloneInfo';
-import { getInstance } from '../../core/nodes/instances';
 import type { NodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
 import { CloneCommand } from './clone';
@@ -34,7 +33,7 @@ export class AddChildCommand<
     {
         const { datastore, cache, params: { parentId, nodeSchema } } = this;
 
-        const sourceNode = getInstance<ClonableNode>(parentId);
+        const sourceNode = this.getInstance(parentId);
         const originalParentNode = sourceNode.getAddChildCloneTarget();
         const clonedParentNodes = originalParentNode.getClonedDescendants();
 
