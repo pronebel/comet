@@ -481,6 +481,40 @@ export abstract class ClonableNode<
         return array;
     }
 
+    public getDependants(): ClonableNode[]
+    {
+        const array = getDependants(this.cast<ClonableNode>());
+
+        array.sort(sortNodesByCreation);
+
+        return array;
+    }
+
+    public getDependencies(): ClonableNode[]
+    {
+        // const nodes = this.getCloneAncestors();
+        // const array: ClonableNode[] = [];
+
+        // nodes.push(...this.getParents<ClonableNode>());
+        // nodes.forEach((node) =>
+        // {
+        //     const parents = node.getParents<ClonableNode>();
+
+        //     parents.push(node);
+        //     parents.reverse();
+
+        //     array.push(...parents);
+        // });
+
+        // return array.sort(sortNodesByCreation).reverse().filter((item, pos, ary) => !pos || item !== ary[pos - 1]);
+
+        const array = getDependencies(this.cast<ClonableNode>());
+
+        array.sort(sortNodesByCreation);
+
+        return array;
+    }
+
     public getCustomProperty(customKey: string)
     {
         return this.defineCustomProperties.get(customKey);
@@ -620,6 +654,41 @@ function getAllCloned(node: ClonableNode, array: ClonableNode[] = []): ClonableN
         array.push(cloned);
         getAllCloned(cloned, array);
     });
+
+    return array;
+}
+
+function getDependants(node: ClonableNode, includeSelf = false, array: ClonableNode[] = []): ClonableNode[]
+{
+    const { cloneInfo } = node;
+
+    if (includeSelf && array.indexOf(node) === -1)
+    {
+        array.push(node);
+    }
+
+    cloneInfo.forEachCloned<ClonableNode>((cloned) => getDependants(cloned, true, array));
+
+    node.forEach<ClonableNode>((child) => getDependants(child, true, array));
+
+    return array;
+}
+
+function getDependencies(node: ClonableNode, includeSelf = false, array: ClonableNode[] = []): ClonableNode[]
+{
+    const { cloneInfo } = node;
+
+    if (includeSelf && array.indexOf(node) === -1)
+    {
+        array.push(node);
+    }
+
+    if (cloneInfo.cloner)
+    {
+        getDependencies(cloneInfo.getCloner<ClonableNode>(), true, array);
+    }
+
+    node.getParents<ClonableNode>().forEach((parent) => getDependencies(parent, true, array));
 
     return array;
 }

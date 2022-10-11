@@ -291,8 +291,11 @@ export class TestApp extends Application
 
             const info = {
                 id: selected.id,
-                parents: selected.getParents().map((node) => (node.id)),
+                parent: selected.parent?.id,
                 children: selected.children.map((node) => (node.id)),
+                parents: selected.getParents().map((node) => (node.id)),
+                dependants: selected.getDependants().map((node) => (node.id)),
+                dependencies: selected.getDependencies().map((node) => (node.id)),
                 original: selected.getOriginal().id,
                 cloneTarget: selected.getCloneTarget().id,
                 cloneRoot: cloneRoot ? cloneRoot.id : undefined,
@@ -302,8 +305,8 @@ export class TestApp extends Application
                 cloneAncestors: selected.getCloneAncestors().map((node) => (node.id)),
                 cloneTreeAncestors: selected.getCloneTreeAncestors().map((node) => (node.id)),
                 definedProps,
-                nodeGraphSchema: getNodeSchema(selected.cast<ClonableNode>()),
-                dsNodeSchema: this.datastore.getNodeElementSchema(selected.id),
+                // nodeGraphSchema: getNodeSchema(selected.cast<ClonableNode>()),
+                // dsNodeSchema: this.datastore.getNodeElementSchema(selected.id),
             };
 
             console.clear();
