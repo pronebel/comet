@@ -29,17 +29,12 @@ export class RemoveChildCommand
 
         const sourceNode = this.getInstance(nodeId);
         const originalNode = sourceNode.getModificationCloneTarget();
-        const clonedNodes = originalNode.getClonedDescendants();
+        const clonedNodes = originalNode.getDependants();
 
         const nodes: ClonableNode[] = [originalNode, ...clonedNodes];
 
         // prepare cache
         cache.commands = [];
-
-        nodes.forEach((rootNode) =>
-        {
-            rootNode.walk<ClonableNode>((node) => nodes.push(node), { includeSelf: false });
-        });
 
         nodes.sort(sortNodesByCreation).reverse();
 

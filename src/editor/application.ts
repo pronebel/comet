@@ -247,8 +247,12 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public restoreNode(nodeId: string)
     {
+        console.log(`${logId}:Restore node "${nodeId}"`, logStyle);
+
         const node = getInstance<ClonableNode>(nodeId);
-        const nodes = node.getCloneTreeAncestors().reverse();
+        const nodes = node.getRestoreDependencies();
+
+        nodes.push(node);
 
         nodes.forEach((node) =>
         {
