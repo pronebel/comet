@@ -536,8 +536,7 @@ export abstract class ClonableNode<
      */
     public getRestoreDependencies(): ClonableNode[]
     {
-        const array = getRestoreDependencies(this.getCloneRoot())
-            .filter((node) => node.cast<ClonableNode>() !== this.cast<ClonableNode>() && !this.contains(node));
+        const array = getRestoreDependencies(this.getCloneRoot());
 
         array.sort(sortNodesByCreation);
 

@@ -252,8 +252,6 @@ export abstract class Application extends EventEmitter<AppEvents>
         const node = getInstance<ClonableNode>(nodeId);
         const nodes = node.getRestoreDependencies();
 
-        nodes.push(node);
-
         nodes.forEach((node) =>
         {
             const command = new RemoveNodeCommand({ nodeId: node.id });
