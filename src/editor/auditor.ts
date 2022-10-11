@@ -3,7 +3,7 @@ import { deepEqual } from 'fast-equals';
 import { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { GraphNode } from '../core/nodes/abstract/graphNode';
 import { CloneMode } from '../core/nodes/cloneInfo';
-import { ProjectNode } from '../core/nodes/concrete/project';
+import type { ProjectNode } from '../core/nodes/concrete/project';
 import { getInstance, getInstancesByType } from '../core/nodes/instances';
 import { getNodeSchema } from '../core/nodes/schema';
 import { Application } from './application';
@@ -14,6 +14,7 @@ enum Result
     Cross = '❌',
     Dot = '⚪',
     NA = '〰️',
+    Empty = '',
 }
 
 const asResult = (value: boolean) => (value ? Result.Tick : Result.Cross);
@@ -25,12 +26,12 @@ export interface GraphNodeAudit
     cloner: string;
     cloneMode: string;
     cloned: string;
-    isInGraph: Result;
+    isCloaked: Result;
     isInDatastore: Result;
     isCloneInfoValid: string;
 }
 
-export interface DSNodeAudit extends Omit<GraphNodeAudit, 'isInGraph' | 'isInDatastore' | 'isCloneInfoValid'>
+export interface DSNodeAudit extends Omit<GraphNodeAudit, 'isInGraph' | 'isCloaked' | 'isInDatastore' | 'isCloneInfoValid'>
 {
     isAttached: Result;
     matchesGraphSchema: Result;
@@ -116,7 +117,6 @@ export class Auditor
         const project = app.project as ProjectNode;
         const datastoreRegisteredIds = datastore.getRegisteredIds();
 
-        const isInGraph = asResult(node instanceof ProjectNode ? true : project.contains(node));
         const isInDatastore = asResult(datastoreRegisteredIds.indexOf(node.id) > -1);
 
         const { cloneInfo, cloneInfo: { cloner, cloneMode } } = node;
@@ -148,7 +148,7 @@ export class Auditor
             cloner: node.cloneInfo.cloner ? node.cloneInfo.cloner.id : '',
             cloned: node.cloneInfo.cloned.map((node) => node.id).join(','),
             cloneMode: node.cloneInfo.cloneMode,
-            isInGraph,
+            isCloaked: node.isCloaked ? Result.Tick : Result.Empty,
             isInDatastore,
             isCloneInfoValid: asResult(isCloneInfoValid.length === 0) + isCloneInfoValid.join(','),
         };

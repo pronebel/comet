@@ -56,6 +56,8 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         Datastore.instance = this;
 
         this.nodeRealtimeObjects = new Map();
+
+        (window as any).DS = this;
     }
 
     protected get app()
@@ -428,7 +430,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.trackNodeElementRemoteEvents(nodeId);
     }
 
-    public createNode(nodeSchema: NodeSchema)
+    public createNode(nodeSchema: NodeSchema, updateParentChildrenArray = false)
     {
         console.log(
             `%c${logId}:createNode! childId: ${JSON.stringify(nodeSchema)}`,
@@ -443,6 +445,11 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
         this.registerNodeElement(nodeSchema.id, nodeElement);
+
+        if (updateParentChildrenArray && nodeSchema.parent)
+        {
+            this.setNodeParent(nodeSchema.id, nodeSchema.parent);
+        }
     }
 
     public removeNode(nodeId: string)

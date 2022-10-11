@@ -11,7 +11,7 @@ import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance, getInstances, hasInstance } from '../../core/nodes/instances';
 import { nodeFactoryEmitter, registerNodeType } from '../../core/nodes/nodeFactory';
-import { createNodeSchema } from '../../core/nodes/schema';
+import { createNodeSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Action } from '../action';
 import { type AppOptions, Application } from '../application';
 import { AddChildCommand } from '../commands/addChild';
@@ -79,11 +79,13 @@ export class TestApp extends Application
         nodeFactoryEmitter.on('created', (node: ClonableNode) =>
         {
             console.log(`%c${logId}:CREATED: "${node.id}"`, logStyle);
+
             this.makeInteractive(node.cast<ContainerNode>());
             this.selectLastNode();
         }).on('disposed', (node: ClonableNode) =>
         {
             console.log(`%c${logId}:DISPOSED: "${node.id}"`, logStyle);
+
             throw new Error('disposed?');
         // @ts-ignore
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -98,6 +100,7 @@ export class TestApp extends Application
             .on('childAdded', (node: ClonableNode) =>
             {
                 console.log(`%c${logId}:ADDED: "${node.id}"`, logStyle);
+
                 this.select(node.cast<ContainerNode>());
                 this.fitSelection(node.cast<ContainerNode>());
             })
@@ -106,6 +109,19 @@ export class TestApp extends Application
             .on('childRemoved', (node: ClonableNode) =>
             {
                 console.log(`%c${logId}:REMOVED: "${node.id}"`, logStyle);
+
+                this.selectLastNode();
+            })
+            .on('cloaked', (node: ClonableNode) =>
+            {
+                console.log(`%c${logId}:CLOAKED: "${node.id}"`, logStyle);
+
+                this.selectLastNode();
+            })
+            .on('uncloaked', (node: ClonableNode) =>
+            {
+                console.log(`%c${logId}:UNCLOAKED: "${node.id}"`, logStyle);
+
                 this.selectLastNode();
             });
     }
@@ -170,7 +186,7 @@ export class TestApp extends Application
         {
             const nodes = (getInstances()
                 .filter((inst) => inst instanceof ClonableNode && this.project?.contains(inst)) as ContainerNode[])
-                .filter((node) => project.contains(node))
+                .filter((node) => project.contains(node) && !node.isCloaked)
                 .sort(sortNodesByCreation);
             let node = nodes[nodes.length - 1];
 
@@ -312,8 +328,8 @@ export class TestApp extends Application
                 cloneAncestors: selected.getCloneAncestors().map((node) => (node.id)),
                 cloneTreeAncestors: selected.getCloneTreeAncestors().map((node) => (node.id)),
                 definedProps,
-                // nodeGraphSchema: getNodeSchema(selected.cast<ClonableNode>()),
-                // dsNodeSchema: this.datastore.getNodeElementSchema(selected.id),
+                nodeGraphSchema: getNodeSchema(selected.cast<ClonableNode>()),
+                dsNodeSchema: this.datastore.getNodeElementSchema(selected.id),
             };
 
             console.clear();
@@ -487,9 +503,7 @@ export class TestApp extends Application
 
         this.select(component);
 
-        const original = component.getModificationCloneTarget();
-
-        startDrag(original.cast());
+        startDrag(component.cast());
     };
 
     public select(component: ContainerNode)
@@ -600,7 +614,11 @@ export class TestApp extends Application
 
                 const line = node === this.selected ? `<b style="background-color:#222">${output}</b>` : output;
 
-                html += isCloned ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
+                let final = isCloned ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
+
+                final = node.isCloaked ? `<span style="opacity:0.5">${line}</span>` : line;
+
+                html += final;
             }, {
                 includeSelf: true,
             });

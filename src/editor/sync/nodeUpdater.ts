@@ -1,5 +1,5 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { getInstance } from '../../core/nodes/instances';
+import { getInstance, hasInstance } from '../../core/nodes/instances';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { CreateNodeCommand } from '../commands/createNode';
 import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
@@ -47,11 +47,20 @@ export class NodeUpdater
 
     protected onNodeCreated = (event: DSNodeCreatedEvent) =>
     {
+        const { nodeId } = event;
+
         this.log('onNodeCreated', event);
 
-        const nodeSchema = this.datastore.getNodeElementSchema(event.nodeId);
+        if (hasInstance(nodeId) && getInstance<ClonableNode>(nodeId).isCloaked)
+        {
+            getInstance<ClonableNode>(nodeId).uncloak();
+        }
+        else
+        {
+            const nodeSchema = this.datastore.getNodeElementSchema(event.nodeId);
 
-        new CreateNodeCommand({ nodeSchema }).run();
+            new CreateNodeCommand({ nodeSchema }).run();
+        }
     };
 
     protected onNodeRemoved = (event: DSNodeRemovedEvent) =>

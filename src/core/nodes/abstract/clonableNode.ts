@@ -38,8 +38,7 @@ export abstract class ClonableNode<
     public cloneInfo: CloneInfo;
     public defineCustomProperties: Map<string, CustomProperty>;
     public assignedCustomProperties: Map<keyof M, string>;
-
-    // public static emitter: EventEmitter<ClonableNodeEvent> = new EventEmitter<ClonableNodeEvent>();
+    public isCloaked?: boolean;
 
     constructor(
         options: NodeOptions<M> = {},
@@ -285,6 +284,25 @@ export abstract class ClonableNode<
         this.emit('modelChanged', key, value, oldValue);
     };
 
+    protected onAddedToParent(): void
+    {
+        const { parent } = this;
+
+        if (parent)
+        {
+            this.addViewToParent(parent.cast<ClonableNode>());
+        }
+    }
+
+    protected abstract addViewToParent(parent: ClonableNode): void;
+
+    protected onRemovedFromParent(oldParent: GraphNode<string>): void
+    {
+        this.removeViewFromParent(oldParent.cast<ClonableNode>());
+    }
+
+    protected abstract removeViewFromParent(parent: ClonableNode): void;
+
     public getView<T = V>(): T
     {
         return this.view as unknown as T;
@@ -357,7 +375,7 @@ export abstract class ClonableNode<
     {
         return this.walk<ClonableNode, { node?: ClonableNode }>((node, options) =>
         {
-            const isParentMetaNode = node.parent ? node.parent.isMetaNode : false;
+            const isParentMetaNode = node.parent ? node.getParent<ClonableNode>().isMetaNode : false;
 
             if (node.cloneInfo.isRoot || isParentMetaNode)
             {
@@ -518,7 +536,8 @@ export abstract class ClonableNode<
      */
     public getRestoreDependencies(): ClonableNode[]
     {
-        const array = getRestoreDependencies(this.getCloneRoot());
+        const array = getRestoreDependencies(this.getCloneRoot())
+            .filter((node) => node.cast<ClonableNode>() !== this.cast<ClonableNode>() && !this.contains(node));
 
         array.sort(sortNodesByCreation);
 
@@ -648,6 +667,35 @@ export abstract class ClonableNode<
         });
 
         return modelKeys;
+    }
+
+    public cloak()
+    {
+        this.isCloaked = true;
+        this.onCloaked();
+        this.emit('cloaked', this);
+    }
+
+    public uncloak()
+    {
+        this.isCloaked = false;
+        this.onUncloaked();
+        this.emit('uncloaked', this);
+    }
+
+    protected onCloaked()
+    {
+        // subclasses
+    }
+
+    protected onUncloaked()
+    {
+        // subclasses
+    }
+
+    public get isMetaNode()
+    {
+        return false;
     }
 
     public abstract modelSchema(): ModelSchema<M>;

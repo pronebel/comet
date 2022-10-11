@@ -42,9 +42,7 @@ export class CreateNodeCommand<
             datastore.trackExistingNodeElement(id);
         }
 
-        const node = hasInstance(id)
-            ? getInstance<ClonableNode>(id)
-            : createNode<ClonableNode>(type, { id, model, cloneInfo });
+        const node = createNode<ClonableNode>(type, { id, model, cloneInfo });
 
         node.created = nodeSchema.created;
 

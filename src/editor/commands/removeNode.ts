@@ -13,38 +13,23 @@ export interface RemoveNodeCommandReturn
     node: ClonableNode;
 }
 
-export interface RemoveNodeCommandCache
-{
-    parentId: string;
-}
-
 export class RemoveNodeCommand
-    extends Command<RemoveNodeCommandParams, RemoveNodeCommandReturn, RemoveNodeCommandCache>
+    extends Command<RemoveNodeCommandParams, RemoveNodeCommandReturn>
 {
     public static commandName = 'RemoveNode';
 
     public apply(): RemoveNodeCommandReturn
     {
-        const { datastore, params: { nodeId }, cache } = this;
+        const { datastore, params: { nodeId } } = this;
 
         const node = getInstance<ClonableNode>(nodeId);
-        const parentNode = node.parent;
 
-        // delete data from datastore
         if (datastore.hasNodeElement(nodeId))
         {
             datastore.removeNode(nodeId);
         }
 
-        // remove from parent graph node
-        if (parentNode)
-        {
-            cache.parentId = parentNode.id;
-            parentNode.removeChild(node);
-
-            // preserve parent reference, though node has officially "unparented"
-            node.parent = parentNode;
-        }
+        node.cloak();
 
         // update node cloneInfo
         const cloner = node.cloneInfo.getCloner<ClonableNode>();
@@ -60,29 +45,17 @@ export class RemoveNodeCommand
 
     public undo()
     {
-        const { datastore, params: { nodeId }, cache: { parentId } } = this;
+        const { datastore, params: { nodeId } } = this;
 
         const node = getInstance<ClonableNode>(nodeId);
         const nodeSchema = getNodeSchema(node);
 
-        if (datastore.hasNodeElement(nodeId))
+        if (!datastore.hasNodeElement(nodeId))
         {
-            // node is in both node graph and datastore
-            return;
+            datastore.createNode(nodeSchema, true);
         }
 
-        datastore.createNode(nodeSchema);
-
-        const parentNode = getInstance<ClonableNode>(parentId);
-
-        if (parentNode)
-        {
-            // delete restore reference, add node "formally"
-            delete node.parent;
-
-            parentNode.addChild(node);
-            datastore.setNodeParent(node.id, parentNode.id, true);
-        }
+        node.uncloak();
 
         // update node cloneInfo
         const cloner = node.cloneInfo.getCloner<ClonableNode>();

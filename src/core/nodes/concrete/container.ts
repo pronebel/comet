@@ -1,9 +1,10 @@
 import { Container } from 'pixi.js';
 
+import type { ModelBase } from '../../model/model';
 import { ModelSchema } from '../../model/schema';
+import type { ClonableNode } from '../abstract/clonableNode';
 import type { DisplayObjectEvents, DisplayObjectModel } from '../abstract/displayObject';
 import { DisplayObjectNode, displayObjectSchema } from '../abstract/displayObject';
-import type { GraphNode } from '../abstract/graphNode';
 import { registerNodeType } from '../nodeFactory';
 
 export type ContainerEvents = DisplayObjectEvents;
@@ -53,31 +54,30 @@ export class ContainerNode<
     //     view.height = height;
     // }
 
-    protected onAddedToParent(): void
+    protected addViewToParent(parent: ClonableNode<ModelBase, object, string>): void
     {
-        super.onAddedToParent();
+        const thisView = this.view;
+        const parentView = parent.getView<Container>();
 
-        if (this.parent)
-        {
-            const thisView = this.view;
-            const parentView = this.getParent<ContainerNode>().getView<Container>();
-
-            parentView.addChild(thisView);
-        }
+        parentView.addChild(thisView);
     }
 
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onRemovedFromParent(oldParent: GraphNode): void
+    protected removeViewFromParent(parent: ClonableNode<ModelBase, object, string>): void
     {
-        super.onRemovedFromParent(oldParent);
-
-        const parent = oldParent as unknown as ContainerNode;
-
         const thisView = this.view;
         const parentView = parent.getView<Container>();
 
         parentView.removeChild(thisView);
+    }
+
+    protected onCloaked(): void
+    {
+        this.removeViewFromParent(this.getParent<ClonableNode>());
+    }
+
+    protected onUncloaked(): void
+    {
+        this.addViewToParent(this.getParent<ClonableNode>());
     }
 }
 

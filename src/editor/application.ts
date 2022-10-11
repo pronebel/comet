@@ -247,7 +247,7 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public restoreNode(nodeId: string)
     {
-        console.log(`${logId}:Restore node "${nodeId}"`, logStyle);
+        console.log(`%c${logId}:Restore node "${nodeId}"`, logStyle);
 
         const node = getInstance<ClonableNode>(nodeId);
         const nodes = node.getRestoreDependencies();
@@ -257,11 +257,6 @@ export abstract class Application extends EventEmitter<AppEvents>
         nodes.forEach((node) =>
         {
             const command = new RemoveNodeCommand({ nodeId: node.id });
-
-            if (node.parent)
-            {
-                command.cache.parentId = node.parent.id;
-            }
 
             command.undo();
         });

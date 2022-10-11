@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3';
 
 import { newId } from '../instances';
 
-export type GraphNodeEvents = 'created' | 'childAdded' | 'childRemoved' | 'disposed';
+export type GraphNodeEvents = 'created' | 'childAdded' | 'childRemoved' | 'cloaked' | 'uncloaked' | 'disposed';
 
 export type WalkReturnData = Record<string, any>;
 
@@ -264,7 +264,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return this.children.indexOf(node) > -1;
     }
 
-    public getAllChildren<T extends GraphNode>()
+    public getAllChildren<T extends GraphNode>(): T[]
     {
         return this.walk<T, {nodes: T[]}>((node, options) =>
         {
@@ -287,11 +287,6 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
     protected onRemovedFromParent(oldParent: GraphNode)
     {
         // subclasses
-    }
-
-    public get isMetaNode()
-    {
-        return false;
     }
 }
 

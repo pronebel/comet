@@ -7,7 +7,14 @@ import { registerInstance } from './instances';
 
 export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
 
-export type NodeFactoryEvents = 'created' | 'disposed' | 'modelModified' | 'childAdded' | 'childRemoved';
+export type NodeFactoryEvents =
+| 'created'
+| 'disposed'
+| 'modelModified'
+| 'childAdded'
+| 'childRemoved'
+| 'cloaked'
+| 'uncloaked';
 
 export const nodeFactoryEmitter: EventEmitter<NodeFactoryEvents> = new EventEmitter<NodeFactoryEvents>();
 
@@ -66,12 +73,25 @@ export function registerNewNode(node: ClonableNode)
         nodeFactoryEmitter.emit('childRemoved', node);
     };
 
+    const onCloaked = (node: ClonableNode) =>
+    {
+        nodeFactoryEmitter.emit('cloaked', node);
+    };
+
+    const onUncloaked = (node: ClonableNode) =>
+    {
+        nodeFactoryEmitter.emit('uncloaked', node);
+    };
+
     const onDisposed = () =>
     {
         node.off('disposed', onDisposed);
         node.off('modelChanged', onModelModified);
         node.off('childAdded', onChildAdded);
         node.off('childRemoved', onChildRemoved);
+        node.off('cloaked', onCloaked);
+        node.off('uncloaked', onUncloaked);
+
         nodeFactoryEmitter.emit('disposed', node);
     };
 
@@ -79,6 +99,8 @@ export function registerNewNode(node: ClonableNode)
     node.on('modelChanged', onModelModified);
     node.on('childAdded', onChildAdded);
     node.on('childRemoved', onChildRemoved);
+    node.on('cloaked', onCloaked);
+    node.on('uncloaked', onUncloaked);
 
     nodeFactoryEmitter.emit('created', node);
 }

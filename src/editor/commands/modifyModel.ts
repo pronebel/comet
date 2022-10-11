@@ -19,8 +19,10 @@ export class ModifyModelCommand<M extends ModelBase>
 
     public apply(): void
     {
-        const { datastore, params: { nodeId, values }, cache } = this;
-        const node = this.getInstance(nodeId);
+        const { datastore, params, params: { values }, cache } = this;
+        const sourceNode = this.getInstance(params.nodeId);
+        const node = sourceNode.getModificationCloneTarget();
+        const nodeId = node.id;
 
         // update datastore
         datastore.modifyNodeModel(nodeId, values);
