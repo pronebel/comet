@@ -11,7 +11,7 @@ import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance, getInstances, hasInstance } from '../../core/nodes/instances';
 import { nodeFactoryEmitter, registerNodeType } from '../../core/nodes/nodeFactory';
-import { createNodeSchema, getNodeSchema } from '../../core/nodes/schema';
+import { createNodeSchema } from '../../core/nodes/schema';
 import { Action } from '../action';
 import { type AppOptions, Application } from '../application';
 import { AddChildCommand } from '../commands/addChild';
@@ -133,6 +133,11 @@ export class TestApp extends Application
         }
 
         this.deselect();
+
+        if (getUrlParam<number>('restore') === 1)
+        {
+            this.restoreDatastore();
+        }
 
         if (localStorage['saveUndo'] === '0')
         {
@@ -293,9 +298,11 @@ export class TestApp extends Application
                 id: selected.id,
                 parent: selected.parent?.id,
                 children: selected.children.map((node) => (node.id)),
+                allChildren: selected.getAllChildren<ClonableNode>().map((node) => (node.id)),
                 parents: selected.getParents().map((node) => (node.id)),
                 dependants: selected.getDependants().map((node) => (node.id)),
                 dependencies: selected.getDependencies().map((node) => (node.id)),
+                restoreDependencies: selected.getRestoreDependencies().map((node) => (node.id)),
                 original: selected.getOriginal().id,
                 cloneTarget: selected.getCloneTarget().id,
                 cloneRoot: cloneRoot ? cloneRoot.id : undefined,

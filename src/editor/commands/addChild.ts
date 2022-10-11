@@ -37,6 +37,8 @@ export class AddChildCommand<
         const originalParentNode = sourceNode.getAddChildCloneTarget();
         const clonedParentNodes = originalParentNode.getClonedDescendants();
 
+        nodeSchema.parent = originalParentNode.id;
+
         const { node } = new CreateNodeCommand({ nodeSchema }).run();
         const nodes: ClonableNode[] = [node];
 

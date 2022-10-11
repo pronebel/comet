@@ -43,7 +43,6 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
     const node = new NodeClass(options) as ClonableNode;
 
     registerInstance(node);
-    registerNewNode(node);
 
     return node as unknown as T;
 }

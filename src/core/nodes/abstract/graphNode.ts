@@ -264,6 +264,19 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
         return this.children.indexOf(node) > -1;
     }
 
+    public getAllChildren<T extends GraphNode>()
+    {
+        return this.walk<T, {nodes: T[]}>((node, options) =>
+        {
+            options.data.nodes.push(node);
+        }, {
+            data: {
+                nodes: [],
+            },
+            includeSelf: false,
+        }).nodes;
+    }
+
     protected onAddedToParent(): void
     {
         // subclasses
@@ -274,6 +287,11 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
     protected onRemovedFromParent(oldParent: GraphNode)
     {
         // subclasses
+    }
+
+    public get isMetaNode()
+    {
+        return false;
     }
 }
 

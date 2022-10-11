@@ -9,6 +9,11 @@ export class SceneNode extends ContainerNode<ContainerModel, Container>
     {
         return 'Scene';
     }
+
+    public get isMetaNode()
+    {
+        return true;
+    }
 }
 
 registerNodeType(SceneNode);

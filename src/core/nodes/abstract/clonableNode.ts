@@ -76,6 +76,8 @@ export abstract class ClonableNode<
         this.init();
         this.update();
 
+        registerNewNode(this.cast<ClonableNode>());
+
         this.emit('created', this);
     }
 
@@ -108,8 +110,6 @@ export abstract class ClonableNode<
                     this.model.isReference = true;
                 }
             }
-
-            registerNewNode(this.cast<ClonableNode>());
         }
     }
 
@@ -353,18 +353,23 @@ export abstract class ClonableNode<
         return nodes;
     }
 
-    public getCloneRoot()
+    public getCloneRoot(): ClonableNode
     {
         return this.walk<ClonableNode, { node?: ClonableNode }>((node, options) =>
         {
-            if (node.cloneInfo.isRoot)
+            const isParentMetaNode = node.parent ? node.parent.isMetaNode : false;
+
+            if (node.cloneInfo.isRoot || isParentMetaNode)
             {
                 options.data.node = node;
                 options.cancel = true;
             }
         }, {
             direction: 'up',
-        }).node;
+            data: {
+                node: this,
+            },
+        }).node as ClonableNode;
     }
 
     public getOriginal(): ClonableNode
@@ -481,6 +486,10 @@ export abstract class ClonableNode<
         return array;
     }
 
+    /**
+     * return the nodes which depend on this node, eg. clones or children
+     * @returns array of nodes
+     */
     public getDependants(): ClonableNode[]
     {
         const array = getDependants(this.cast<ClonableNode>());
@@ -490,25 +499,26 @@ export abstract class ClonableNode<
         return array;
     }
 
+    /**
+     * return the nodes which are required for this node to exist
+     * @returns array of nodes
+     */
     public getDependencies(): ClonableNode[]
     {
-        // const nodes = this.getCloneAncestors();
-        // const array: ClonableNode[] = [];
-
-        // nodes.push(...this.getParents<ClonableNode>());
-        // nodes.forEach((node) =>
-        // {
-        //     const parents = node.getParents<ClonableNode>();
-
-        //     parents.push(node);
-        //     parents.reverse();
-
-        //     array.push(...parents);
-        // });
-
-        // return array.sort(sortNodesByCreation).reverse().filter((item, pos, ary) => !pos || item !== ary[pos - 1]);
-
         const array = getDependencies(this.cast<ClonableNode>());
+
+        array.sort(sortNodesByCreation);
+
+        return array;
+    }
+
+    /**
+     * return the nodes which are required for this node to exist
+     * @returns array of nodes
+     */
+    public getRestoreDependencies(): ClonableNode[]
+    {
+        const array = getRestoreDependencies(this.getCloneRoot());
 
         array.sort(sortNodesByCreation);
 
@@ -689,6 +699,20 @@ function getDependencies(node: ClonableNode, includeSelf = false, array: Clonabl
     }
 
     node.getParents<ClonableNode>().forEach((parent) => getDependencies(parent, true, array));
+
+    return array;
+}
+
+function getRestoreDependencies(cloneRoot: ClonableNode, array: ClonableNode[] = []): ClonableNode[]
+{
+    const { cloneInfo } = cloneRoot;
+
+    array.push(cloneRoot, ...cloneRoot.getAllChildren<ClonableNode>());
+
+    if (cloneInfo.cloner)
+    {
+        getRestoreDependencies(cloneInfo.getCloner<ClonableNode>().getCloneRoot(), array);
+    }
 
     return array;
 }

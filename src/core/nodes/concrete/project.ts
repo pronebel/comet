@@ -35,6 +35,11 @@ export class ProjectNode extends ContainerNode<ProjectModel, Container, ProjectE
 
         return ProjectNode._instance;
     }
+
+    public get isMetaNode()
+    {
+        return true;
+    }
 }
 
 registerNodeType(ProjectNode);
