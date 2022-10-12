@@ -145,6 +145,11 @@ export abstract class ClonableNode<
 
         this.forEach<ClonableNode>((child) =>
         {
+            if (child.isCloaked)
+            {
+                return;
+            }
+
             const childNode = child.clone(cloneMode, depth + 1);
 
             childNode.setParent(node);
