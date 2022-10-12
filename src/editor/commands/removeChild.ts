@@ -48,6 +48,25 @@ export class RemoveChildCommand
             });
         });
 
+        const clonerNodesNeedingUpdate = nodes.filter((node) =>
+            node.cloneInfo.cloner
+        && datastore.hasNodeElement(node.id))
+            .map((node) => [node, node.cloneInfo.getCloner<ClonableNode>()]);
+
+        if (clonerNodesNeedingUpdate.length > 0)
+        {
+            datastore.batch(() =>
+            {
+                clonerNodesNeedingUpdate.forEach((nodeWithCloner) =>
+                {
+                    const [node, cloner] = nodeWithCloner;
+                    const cloneInfoSchema = cloner.cloneInfo.clone().removeCloned(node).toSchema();
+
+                    datastore.updateNodeCloneInfo(cloner.id, cloneInfoSchema);
+                });
+            });
+        }
+
         return { nodes };
     }
 

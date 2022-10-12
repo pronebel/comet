@@ -60,4 +60,3 @@ export interface DSModelModifiedEvent extends DSNodeEvent
 }
 
 export type DSCloneInfoModifiedEvent = DSNodeEvent & CloneInfoSchema;
-

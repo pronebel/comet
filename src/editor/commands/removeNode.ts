@@ -31,16 +31,6 @@ export class RemoveNodeCommand
 
         node.cloak();
 
-        // update node cloneInfo
-        const cloner = node.cloneInfo.getCloner<ClonableNode>();
-
-        if (cloner)
-        {
-            const cloneInfoSchema = cloner.cloneInfo.clone().removeCloned(node).toSchema();
-
-            datastore.updateNodeCloneInfo(cloner.id, cloneInfoSchema);
-        }
-
         return { node };
     }
 
@@ -58,7 +48,6 @@ export class RemoveNodeCommand
 
         node.uncloak();
 
-        // update node cloneInfo
         const cloner = node.cloneInfo.getCloner<ClonableNode>();
 
         if (cloner)

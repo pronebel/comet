@@ -616,7 +616,7 @@ export class TestApp extends Application
 
                 let final = isCloned ? `<span style="color:yellow;font-style:italic">${line}</span>` : line;
 
-                final = node.isCloaked ? `<span style="opacity:0.5">${line}</span>` : line;
+                final = node.isCloaked ? `<span style="opacity:0.7;font-style:italic">${line}</span>` : line;
 
                 html += final;
             }, {

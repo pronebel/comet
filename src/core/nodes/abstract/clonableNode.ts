@@ -537,7 +537,18 @@ export abstract class ClonableNode<
      */
     public getRestoreDependencies(): ClonableNode[]
     {
-        const array = getRestoreDependencies(this.getCloneRoot());
+        let array = getRestoreDependencies(this.getCloneRoot());
+
+        if (this.cloneInfo.isReference)
+        {
+            const cloneTarget = this.getCloneTarget();
+            const dependants = cloneTarget.getDependants();
+
+            dependants.forEach((node) => array.push(...node.getDependencies()));
+            array.push(...dependants);
+        }
+
+        array = Array.from(new Set(array));
 
         array.sort(sortNodesByCreation);
 
