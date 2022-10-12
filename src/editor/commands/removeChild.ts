@@ -33,7 +33,6 @@ export class RemoveChildCommand
 
         const nodes: ClonableNode[] = [originalNode, ...dependantNodes];
 
-        // prepare cache
         cache.commands = [];
 
         nodes.sort(sortNodesByCreation).reverse();
@@ -42,7 +41,6 @@ export class RemoveChildCommand
         {
             nodes.forEach((node) =>
             {
-                // track in cache
                 const command = new RemoveNodeCommand({ nodeId: node.id });
 
                 cache.commands.push(command);
@@ -59,7 +57,12 @@ export class RemoveChildCommand
 
         for (let i = commands.length - 1; i >= 0; i--)
         {
-            commands[i].undo();
+            const command = commands[i];
+
+            // ensure restore dependencies are available before reverting undo of single node
+            this.getInstance(command.params.nodeId);
+
+            command.undo();
         }
     }
 }

@@ -38,7 +38,7 @@ export abstract class ClonableNode<
     public cloneInfo: CloneInfo;
     public defineCustomProperties: Map<string, CustomProperty>;
     public assignedCustomProperties: Map<keyof M, string>;
-    public isCloaked?: boolean;
+    public isCloaked: boolean;
 
     constructor(
         options: NodeOptions<M> = {},
@@ -65,6 +65,7 @@ export abstract class ClonableNode<
             });
         }
 
+        this.isCloaked = false;
         this.defineCustomProperties = new Map();
         this.assignedCustomProperties = new Map();
 
