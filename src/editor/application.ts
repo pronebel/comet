@@ -250,13 +250,9 @@ export abstract class Application extends EventEmitter<AppEvents>
         console.log(`%c${logId}:Restore node "${nodeId}"`, logStyle);
 
         const node = getInstance<ClonableNode>(nodeId);
-        const nodes = node.getRestoreDependencies();
 
-        nodes.forEach((node) =>
-        {
-            const command = new RemoveNodeCommand({ nodeId: node.id });
-
-            command.undo();
-        });
+        node.getRestoreDependencies()
+            .filter((dependantNode) => dependantNode !== node && dependantNode.isCloaked)
+            .forEach((node) => new RemoveNodeCommand({ nodeId: node.id }).undo());
     }
 }
