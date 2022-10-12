@@ -430,7 +430,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.trackNodeElementRemoteEvents(nodeId);
     }
 
-    public createNode(nodeSchema: NodeSchema, updateParentChildrenArray = false)
+    public createNode(nodeSchema: NodeSchema)
     {
         console.log(
             `%c${logId}:createNode! childId: ${JSON.stringify(nodeSchema)}`,
@@ -446,7 +446,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         this.registerNodeElement(nodeSchema.id, nodeElement);
 
-        if (updateParentChildrenArray && nodeSchema.parent)
+        if (nodeSchema.parent)
         {
             this.setNodeParent(nodeSchema.id, nodeSchema.parent);
         }
@@ -484,10 +484,10 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         this.unRegisterNode(nodeId);
     }
 
-    public setNodeParent(childId: string, parentId: string, updateChildren = true)
+    public setNodeParent(childId: string, parentId: string)
     {
         console.log(
-            `%c${logId}:setNodeParent! childId: ${childId} parentId: ${parentId} updateChildren: ${updateChildren}`,
+            `%c${logId}:setNodeParent! childId: ${childId} parentId: ${parentId}`,
             logStyle,
         );
 
@@ -497,11 +497,12 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         // set parent data
         childElement.set('parent', parentId);
 
-        if (updateChildren)
-        {
-            // set children data
-            const childArray = parentElement.get('children') as RealTimeArray;
+        // set children data if not present
+        const childArray = parentElement.get('children') as RealTimeArray;
+        const index = childArray.findIndex((id) => id.value() === childId);
 
+        if (index === -1)
+        {
             childArray.push(childId);
         }
     }

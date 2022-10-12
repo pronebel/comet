@@ -64,7 +64,7 @@ export class CloneCommand
             // update parenting info in datastore to trigger remote users
             if (node.parent)
             {
-                datastore.setNodeParent(node.id, node.parent.id, false);
+                datastore.setNodeParent(node.id, node.parent.id);
             }
 
             // register the graph node

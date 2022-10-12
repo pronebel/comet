@@ -36,6 +36,7 @@ export class RemoveNodeCommand
 
         if (cloner)
         {
+            // todo: just modify schema not node
             cloner.cloneInfo.removeCloned(node);
             datastore.updateNodeCloneInfo(cloner.id, getCloneInfoSchema(cloner));
         }
@@ -52,7 +53,7 @@ export class RemoveNodeCommand
 
         if (!datastore.hasNodeElement(nodeId))
         {
-            datastore.createNode(nodeSchema, true);
+            datastore.createNode(nodeSchema);
         }
 
         node.uncloak();
@@ -62,7 +63,7 @@ export class RemoveNodeCommand
 
         if (cloner)
         {
-            // update clone info
+            // todo: just modify schema not node
             cloner.cloneInfo.addCloned(node);
             datastore.updateNodeCloneInfo(cloner.id, getCloneInfoSchema(cloner));
         }

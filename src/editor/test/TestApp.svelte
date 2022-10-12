@@ -227,32 +227,32 @@
     <button on:click={onCloneReference}>+ Reference</button>
     <button on:click={onDuplicate}>+ Duplicate</button>
     <button on:click={onUnlink}>Unlink</button>
-    <button on:click={onInspect}>Inspect</button>
-    <button on:click={onUndo}>Undo</button>
-    <button on:click={onRedo}>Redo</button>
-    <hr />
-    <input bind:value={undoStackEnd} />
-    <button on:click={onReadUndoStack}>Load Undo</button>
-    <button on:click={onToggleReplay}
-      >{localStorage["saveUndo"] === "1" ? "Replay On" : "Replay Off"}</button
-    >
-    <button on:click={onPeekUndoStack}>Peek Undo</button>
-    <button on:click={onWriteUndoStack}>Save Undo</button>
-    <button on:click={onClearUndoStack}>Clear Undo</button>
-    <hr />
-    <button on:click={onNew}>New</button>
-    <button on:click={onReload}>Refresh</button>
-    <button on:click={onReOpen}>ReOpen</button>
-    <button on:click={onRestoreDatastore}>Restore DStore</button>
-    <button on:click={onSaveDatastore}>Save DStore</button>
-    <button on:click={onInspectDatastore}>Inspect DStore</button>
-    <button on:click={onAudit}>Audit</button>
-    <hr />
     <button on:click={onDeselect}>Deselect</button>
     <button on:click={onRandColor}>Rand Color</button>
     <button on:click={onRandSize}>Rand Size</button>
     <button on:click={onRotate}>Rotate</button>
     <button on:click={onResetModel}>Clear Model</button>
+    <button on:click={onInspect}>Inspect</button>
+    <hr />
+    <button on:click={onUndo}>Undo</button>
+    <button on:click={onRedo}>Redo</button>
+    <button on:click={onClearUndoStack}>Clear Undo</button>
+    <button on:click={onPeekUndoStack}>Inspect Undo</button>
+    <button on:click={onWriteUndoStack}>Save Undo</button>
+    <button on:click={onReadUndoStack}>Load Undo</button>
+    <input bind:value={undoStackEnd} />
+    <button on:click={onToggleReplay}
+      >{localStorage["saveUndo"] === "1" ? "Replay On" : "Replay Off"}</button
+    >
+    <hr />
+    <button on:click={onAudit}>Audit</button>
+    <button on:click={onRestoreDatastore}>Restore DStore</button>
+    <button on:click={onSaveDatastore}>Save DStore</button>
+    <button on:click={onInspectDatastore}>Inspect DStore</button>
+    <hr />
+    <button on:click={onNew}>New</button>
+    <button on:click={onReload}>Refresh</button>
+    <button on:click={onReOpen}>ReOpen</button>
     <hr />
     <button on:click={onSetCustomProp}>Set Prop</button>
     <keyvalue>
@@ -328,10 +328,10 @@
     width: 100%;
     height: 0px;
     margin: 0;
-    margin-top: 5px;
-    margin-bottom: 10px;
+    margin-top: 2px;
+    margin-bottom: 4px;
     border: none;
-    border-bottom: 4px outset #8e8e8e;
+    border-bottom: 2px outset #8e8e8e;
     position: relative;
   }
 
