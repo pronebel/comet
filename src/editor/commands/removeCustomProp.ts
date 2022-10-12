@@ -27,6 +27,8 @@ export class RemoveCustomPropCommand
     {
         const { datastore, params: { nodeId, customKey, updateMode }, cache } = this;
 
+        const node = this.getInstance(nodeId);
+
         if (updateMode === 'full')
         {
             // update datastore
@@ -35,8 +37,6 @@ export class RemoveCustomPropCommand
 
             definedCustomProps.remove(customKey);
         }
-
-        const node = this.getInstance(nodeId);
 
         // update cache
         cache.prop = node.getCustomProperty(customKey);

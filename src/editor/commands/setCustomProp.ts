@@ -32,6 +32,8 @@ export class SetCustomPropCommand
         const nodeElement = datastore.getNodeElement(nodeId);
         const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
 
+        const node = this.getInstance(nodeId);
+
         if (updateMode === 'full')
         {
             // update datastore
@@ -40,8 +42,6 @@ export class SetCustomPropCommand
                 value,
             });
         }
-
-        const node = this.getInstance(nodeId);
 
         // update cache
         const prevProp = node.getCustomProperty(customKey);
