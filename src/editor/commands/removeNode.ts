@@ -1,6 +1,6 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance } from '../../core/nodes/instances';
-import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
+import { getNodeSchema } from '../../core/nodes/schema';
 import { Command } from '../command';
 
 export interface RemoveNodeCommandParams
@@ -36,9 +36,9 @@ export class RemoveNodeCommand
 
         if (cloner)
         {
-            // todo: just modify schema not node
-            cloner.cloneInfo.removeCloned(node);
-            datastore.updateNodeCloneInfo(cloner.id, getCloneInfoSchema(cloner));
+            const cloneInfoSchema = cloner.cloneInfo.clone().removeCloned(node).toSchema();
+
+            datastore.updateNodeCloneInfo(cloner.id, cloneInfoSchema);
         }
 
         return { node };
@@ -63,9 +63,9 @@ export class RemoveNodeCommand
 
         if (cloner)
         {
-            // todo: just modify schema not node
-            cloner.cloneInfo.addCloned(node);
-            datastore.updateNodeCloneInfo(cloner.id, getCloneInfoSchema(cloner));
+            const cloneInfoSchema = cloner.cloneInfo.clone().addCloned(node).toSchema();
+
+            datastore.updateNodeCloneInfo(cloner.id, cloneInfoSchema);
         }
     }
 }

@@ -35,6 +35,15 @@ export class CloneInfo
         this.cloned = [];
     }
 
+    public clone()
+    {
+        const cloneInfo = new CloneInfo(this.cloneMode, this.cloner);
+
+        cloneInfo.cloned = [...this.cloned];
+
+        return cloneInfo;
+    }
+
     public get clonedCount()
     {
         return this.cloned.length;
@@ -117,12 +126,17 @@ export class CloneInfo
             this.cloner.cloneInfo.removeCloned(owner);
             delete this.cloner;
         }
+
         this.cloneMode = CloneMode.Original;
+
+        return this;
     }
 
     public addCloned(cloned: Clonable)
     {
         this.cloned.push(cloned);
+
+        return this;
     }
 
     public removeCloned(cloned: Clonable)
@@ -133,6 +147,8 @@ export class CloneInfo
         {
             this.cloned.splice(index, 1);
         }
+
+        return this;
     }
 
     public getCloner<T = unknown>()
@@ -151,10 +167,17 @@ export class CloneInfo
         const clonerId = cloner ? cloner.id : undefined;
         const clonedSchema = cloned.map((node) => node.id);
 
-        return {
+        const schema = {
             cloner: clonerId,
             cloneMode,
             cloned: clonedSchema,
         };
+
+        if (!clonerId)
+        {
+            delete schema.cloner;
+        }
+
+        return schema;
     }
 }
