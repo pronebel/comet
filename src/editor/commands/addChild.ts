@@ -31,9 +31,9 @@ export class AddChildCommand<
 
     public apply(): AddChildCommandReturn
     {
-        const { datastore, cache, params: { parentId, nodeSchema } } = this;
+        const { datastore, cache, params, params: { nodeSchema } } = this;
 
-        const sourceNode = this.getInstance(parentId);
+        const sourceNode = this.getInstance(params.parentId);
         const originalParentNode = sourceNode.getAddChildCloneTarget();
         const clonedParentNodes = originalParentNode.getClonedDescendants();
 
@@ -42,7 +42,7 @@ export class AddChildCommand<
         const { node } = new CreateNodeCommand({ nodeSchema }).run();
         const nodes: ClonableNode[] = [node];
 
-        datastore.setNodeParent(nodeSchema.id, parentId);
+        datastore.setNodeParent(nodeSchema.id, originalParentNode.id);
 
         let lastCloneSource = node;
 
