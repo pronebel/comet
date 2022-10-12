@@ -2,7 +2,7 @@
   import type { ClonableNode } from "../../core/nodes/abstract/clonableNode";
   import { CloneMode } from "../../core/nodes/cloneInfo";
   import type { ContainerNode } from "../../core/nodes/concrete/container";
-  import { getInstance } from "../../core/nodes/instances";
+  import { getInstance, unregisterInstance } from "../../core/nodes/instances";
   import { Auditor } from "../auditor";
   import { getUserName } from "../sync/user";
   import { getUrlParam } from "../util";
@@ -44,6 +44,20 @@
   const onReOpen = () => {
     console.clear();
     app.openProject("test");
+  };
+
+  const onPurge = () => {
+    app.project?.walk<ClonableNode>((node) => {
+      if (node.isCloaked) {
+        if (app.datastore.hasNodeElement(node.id)) {
+          throw new Error(
+            `Node "${node.id}" is cloaked but still in datastore`
+          );
+        }
+        unregisterInstance(node);
+        node.deleteSelf();
+      }
+    });
   };
 
   const onNew = () => {
@@ -253,6 +267,7 @@
     <button on:click={onNew}>New</button>
     <button on:click={onReload}>Refresh</button>
     <button on:click={onReOpen}>ReOpen</button>
+    <button on:click={onPurge}>Purge</button>
     <hr />
     <button on:click={onSetCustomProp}>Set Prop</button>
     <keyvalue>

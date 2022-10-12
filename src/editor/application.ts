@@ -113,17 +113,14 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public async init()
     {
-        if (userName === 'ali')
+        if (localStorage['saveUndo'] === '0')
         {
-            if (localStorage['saveUndo'] === '0')
-            {
-                localStorage['replayIndex'] = '0';
-            }
-            else
-            {
-                localStorage[localStorageCommandsKey] = '[]';
-                localStorage.removeItem('replayIndex');
-            }
+            localStorage['replayIndex'] = '0';
+        }
+        else
+        {
+            localStorage[localStorageCommandsKey] = '[]';
+            localStorage.removeItem('replayIndex');
         }
     }
 
