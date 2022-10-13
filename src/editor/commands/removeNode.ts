@@ -47,14 +47,5 @@ export class RemoveNodeCommand
         }
 
         node.uncloak();
-
-        const cloner = node.cloneInfo.getCloner<ClonableNode>();
-
-        if (cloner)
-        {
-            const cloneInfoSchema = cloner.cloneInfo.clone().addCloned(node).toSchema();
-
-            datastore.updateNodeCloneInfo(cloner.id, cloneInfoSchema);
-        }
     }
 }
