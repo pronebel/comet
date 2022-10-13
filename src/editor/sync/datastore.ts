@@ -41,6 +41,15 @@ export const defaultProjectSettings = {
 
 export const connectionTimeout = 2500;
 
+function objectSetEvent(e: IConvergenceEvent)
+{
+    const event = e as ObjectSetEvent;
+    const nodeElement = event.element as RealTimeObject;
+    const nodeId = nodeElement.get('id').value() as string;
+
+    return { event, nodeElement, nodeId };
+}
+
 export class Datastore extends EventEmitter<DatastoreEvents>
 {
     protected _domain?: ConvergenceDomain;
@@ -161,6 +170,142 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         });
     }
 
+    public onNodeCreated = (e: IConvergenceEvent) =>
+    {
+        const { event } = objectSetEvent(e);
+        const nodeElement = event.value as RealTimeObject;
+        const nodeId = nodeElement.get('id').value() as string;
+
+        consolidateId(nodeId);
+
+        console.log(`%c${logId}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
+
+        this.registerNodeElement(nodeId, nodeElement);
+
+        this.emit('nodeCreated', { nodeId } as DSNodeCreatedEvent);
+    };
+
+    public onNodeRemoved = (e: IConvergenceEvent) =>
+    {
+        const { event } = objectSetEvent(e);
+        const nodeId = event.key;
+        const nodeElement = event.oldValue as RealTimeObject;
+        const parentId = nodeElement.get('parent').value() as string | undefined;
+
+        console.log(`%c${logId}:nodes.remove: ${nodeId}`, logStyle);
+
+        this.unRegisterNode(nodeId);
+
+        this.emit('nodeRemoved', { nodeId, parentId } as DSNodeRemovedEvent);
+    };
+
+    public onNodeRootPropertySet = (e: IConvergenceEvent) =>
+    {
+        const { event, nodeElement, nodeId } = objectSetEvent(e);
+        const key = event.key;
+
+        if (key === 'parent')
+        {
+            const parentId = event.value.value();
+            const oldParentId = event.oldValue.value();
+            const childId = nodeElement.get('id').value();
+
+            console.log(
+                `%c${logId}:${nodeId}:parent.set! parentId: "${parentId}" 
+                childId: "${childId}" oldParentId: "${oldParentId}"`,
+                logStyle,
+            );
+
+            this.emit('parentSet', { parentId, nodeId: childId } as DSParentSetEvent);
+        }
+    };
+
+    public onNodeDefinedCustomPropSet = (e: IConvergenceEvent) =>
+    {
+        const { event, nodeElement } = objectSetEvent(e);
+        const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
+        const customKey = event.key;
+        const element = event.value as RealTimeObject;
+        const { type, value } = element.toJSON();
+        const info = JSON.stringify(element.toJSON());
+
+        console.log(`%c${logId}:${nodeId}:customProperties.defined: ${info}`, logStyle);
+
+        this.emit('customPropDefined', { nodeId, customKey, type, value } as DSCustomPropDefinedEvent);
+    };
+
+    public onNodeDefinedCustomPropRemoved = (e: IConvergenceEvent) =>
+    {
+        const { event, nodeElement } = objectSetEvent(e);
+        const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
+        const customKey = event.key;
+
+        console.log(`%c${logId}:${nodeId}:customProperties.undefined: "${customKey}"`, logStyle);
+
+        this.emit('customPropUndefined', { nodeId, customKey } as DSCustomPropUndefinedEvent);
+    };
+
+    public onNodeAssignedCustomPropSet = (e: IConvergenceEvent) =>
+    {
+        const { event, nodeElement } = objectSetEvent(e);
+        const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
+        const modelKey = event.key;
+        const customKey = event.value.value() as string;
+
+        console.log(`%c${logId}:${nodeId}:customProperties.assign: "${modelKey}->${customKey}"`, logStyle);
+
+        this.emit('customPropAssigned', { nodeId, modelKey, customKey } as DSCustomPropAssignedEvent);
+    };
+
+    public onNodeAssignedCustomPropRemoved = (e: IConvergenceEvent) =>
+    {
+        const { event, nodeElement } = objectSetEvent(e);
+        const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
+        const modelKey = event.key;
+
+        console.log(`%c${logId}:${nodeId}:customProperties.unassigned: "${modelKey}"`, logStyle);
+
+        this.emit('customPropUnassigned', { nodeId, modelKey } as DSCustomPropUnassignedEvent);
+    };
+
+    public onNodeModelPropertySet = (e: IConvergenceEvent) =>
+    {
+        const { event, nodeElement } = objectSetEvent(e);
+        const nodeId = (nodeElement.parent() as RealTimeObject).get('id').value() as string;
+        const key = event.key;
+        const value = event.value.value() as ModelValue;
+
+        console.log(`%c${logId}:${nodeId}:model.set: ${key}->${value}`, logStyle);
+
+        this.emit('modelModified', { nodeId, key, value } as DSModelModifiedEvent);
+    };
+
+    public onNodeModelValueSet = (e: IConvergenceEvent) =>
+    {
+        const { event, nodeId } = objectSetEvent(e);
+        const model = event.element.value() as object;
+
+        console.log(`%c${logId}:${nodeId}:model.value: ${JSON.stringify(model)}`, logStyle);
+
+        this.emit('modelModified', { nodeId, key: null, value: model } as DSModelModifiedEvent);
+    };
+
+    public onNodeModelPropertyRemove = (e: IConvergenceEvent) =>
+    {
+        throw new Error(`${logId}:Model REMOVED event not supported yet ${e.name}`);
+    };
+
+    public onNodeCloneInfoValueSet = (e: IConvergenceEvent) =>
+    {
+        const { event, nodeElement } = objectSetEvent(e);
+        const nodeId = (nodeElement.parent() as RealTimeObject).get('id').value() as string;
+        const cloneInfo = event.element.value() as CloneInfoSchema;
+
+        console.log(`%c${logId}:${nodeId}:cloneInfo.set: ${JSON.stringify(cloneInfo)}`, logStyle);
+
+        this.emit('cloneInfoModified', { nodeId, ...cloneInfo } as DSCloneInfoModifiedEvent);
+    };
+
     public trackExistingNodeElement(nodeId: string)
     {
         const nodeElement = this.nodes.get(nodeId) as RealTimeObject;
@@ -206,35 +351,9 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         await this.joinActivity('editProject', model.modelId());
 
         // catch events when a remote user adds or removes a node...
-        this.nodes.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-        {
-            const nodeElement = (event as ObjectSetEvent).value as RealTimeObject;
-            const nodeId = nodeElement.get('id').value() as string;
-
-            consolidateId(nodeId);
-
-            console.log(`%c${logId}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
-
-            this.registerNodeElement(nodeId, nodeElement);
-
-            const e: DSNodeCreatedEvent = { nodeId };
-
-            this.emit('nodeCreated', e);
-        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
-        {
-            const nodeId = (event as ObjectSetEvent).key;
-
-            const nodeElement = (event as ObjectSetEvent).oldValue as RealTimeObject;
-            const parentId = nodeElement.get('parent').value() as string | undefined;
-
-            console.log(`%c${logId}:nodes.remove: ${nodeId}`, logStyle);
-
-            this.unRegisterNode(nodeId);
-
-            const e: DSNodeRemovedEvent = { nodeId, parentId };
-
-            this.emit('nodeRemoved', e);
-        });
+        this.nodes
+            .on(RealTimeObject.Events.SET, this.onNodeCreated)
+            .on(RealTimeObject.Events.REMOVE, this.onNodeRemoved);
 
         return this.hydrate();
     }
@@ -245,115 +364,28 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         const nodeElement = this.getNodeElement(nodeId);
 
-        // track remote events on node changes
-        nodeElement.on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-        {
-            const setEvent = event as ObjectSetEvent;
-            const key = setEvent.key;
-
-            if (key === 'parent')
-            {
-                const parentId = (event as ObjectSetEvent).value.value();
-                const oldParentId = (event as ObjectSetEvent).oldValue.value();
-                const childId = nodeElement.get('id').value();
-
-                console.log(
-                    `%c${logId}:${nodeId}:parent.set! parentId: "${parentId}" 
-                    childId: "${childId}" oldParentId: "${oldParentId}"`,
-                    logStyle,
-                );
-
-                const e: DSParentSetEvent = { parentId, nodeId: childId };
-
-                this.emit('parentSet', e);
-            }
-        });
+        // track remote events on node property changes
+        nodeElement.on(RealTimeObject.Events.SET, this.onNodeRootPropertySet);
 
         // catch events on nodeElement custom prop defined changes (as a remote user)
         nodeElement.elementAt('customProperties', 'defined')
-            .on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-            {
-                const customKey = (event as ObjectSetEvent).key;
-                const element = (event as ObjectSetEvent).value as RealTimeObject;
-
-                const { type, value } = element.toJSON();
-                const info = JSON.stringify(element.toJSON());
-
-                console.log(`%c${logId}:${nodeId}:customProperties.defined: ${info}`, logStyle);
-
-                const e: DSCustomPropDefinedEvent = { nodeId, customKey, type, value };
-
-                this.emit('customPropDefined', e);
-            }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
-            {
-                const customKey = (event as ObjectSetEvent).key;
-
-                console.log(`%c${logId}:${nodeId}:customProperties.undefined: "${customKey}"`, logStyle);
-
-                const e: DSCustomPropUndefinedEvent = { nodeId, customKey };
-
-                this.emit('customPropUndefined', e);
-            });
+            .on(RealTimeObject.Events.SET, this.onNodeDefinedCustomPropSet)
+            .on(RealTimeObject.Events.REMOVE, this.onNodeDefinedCustomPropRemoved);
 
         // catch events on nodeElement custom prop assigned changes (as a remote user)
         nodeElement.elementAt('customProperties', 'assigned')
-            .on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-            {
-                const modelKey = (event as ObjectSetEvent).key;
-                const customKey = (event as ObjectSetEvent).value.value() as string;
-
-                console.log(`%c${logId}:${nodeId}:customProperties.assign: "${modelKey}->${customKey}"`, logStyle);
-
-                const e: DSCustomPropAssignedEvent = { nodeId, modelKey, customKey };
-
-                this.emit('customPropAssigned', e);
-            }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
-            {
-                const modelKey = (event as ObjectSetEvent).key;
-
-                console.log(`%c${logId}:${nodeId}:customProperties.unassigned: "${modelKey}"`, logStyle);
-
-                const e: DSCustomPropUnassignedEvent = { nodeId, modelKey };
-
-                this.emit('customPropUnassigned', e);
-            });
+            .on(RealTimeObject.Events.SET, this.onNodeAssignedCustomPropSet)
+            .on(RealTimeObject.Events.REMOVE, this.onNodeAssignedCustomPropRemoved);
 
         // catch events from model
-        nodeElement.elementAt('model').on(RealTimeObject.Events.SET, (event: IConvergenceEvent) =>
-        {
-            const key = (event as ObjectSetEvent).key;
-            const value = (event as ObjectSetEvent).value.value() as ModelValue;
-
-            console.log(`%c${logId}:${nodeId}:model.set: ${key}->${value}`, logStyle);
-
-            const e: DSModelModifiedEvent = { nodeId, key, value };
-
-            this.emit('modelModified', e);
-        }).on(RealTimeObject.Events.VALUE, (event: IConvergenceEvent) =>
-        {
-            const model = (event as ObjectSetEvent).element.value() as object;
-
-            console.log(`%c${logId}:${nodeId}:model.value: ${JSON.stringify(model)}`, logStyle);
-
-            const e: DSModelModifiedEvent = { nodeId, key: null, value: model };
-
-            this.emit('modelModified', e);
-        }).on(RealTimeObject.Events.REMOVE, (event: IConvergenceEvent) =>
-        {
-            throw new Error(`${logId}:Model REMOVED event not supported yet ${event.name}`);
-        });
+        nodeElement.elementAt('model')
+            .on(RealTimeObject.Events.SET, this.onNodeModelPropertySet)
+            .on(RealTimeObject.Events.VALUE, this.onNodeModelValueSet)
+            .on(RealTimeObject.Events.REMOVE, this.onNodeModelPropertyRemove);
 
         // catch events from cloneInfo
-        nodeElement.elementAt('cloneInfo').on(RealTimeObject.Events.VALUE, (event: IConvergenceEvent) =>
-        {
-            const cloneInfo = (event as ObjectSetEvent).element.value() as CloneInfoSchema;
-
-            console.log(`%c${logId}:${nodeId}:cloneInfo.set: ${JSON.stringify(cloneInfo)}`, logStyle);
-
-            const e: DSCloneInfoModifiedEvent = { nodeId, ...cloneInfo };
-
-            this.emit('cloneInfoModified', e);
-        });
+        nodeElement.elementAt('cloneInfo')
+            .on(RealTimeObject.Events.VALUE, this.onNodeCloneInfoValueSet);
     }
 
     public hydrate()
