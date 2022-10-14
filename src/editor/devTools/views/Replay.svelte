@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { localStorageCommandsKey, Application } from "../application";
-  import { getUserName } from "../sync/user";
+  import { localStorageCommandsKey, Application } from "../../application";
+  import { getUserName } from "../../sync/user";
 
   const app = Application.instance;
   const userName = getUserName();

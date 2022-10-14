@@ -1,11 +1,11 @@
 <script lang="ts">
-  import type { ClonableNode } from "../../core/nodes/abstract/clonableNode";
-  import { CloneMode } from "../../core/nodes/cloneInfo";
-  import { unregisterInstance } from "../../core/nodes/instances";
-  import { Auditor } from "../auditor";
-  import { diagnostics } from "../diagnostics";
+  import type { ClonableNode } from "../../../core/nodes/abstract/clonableNode";
+  import { CloneMode } from "../../../core/nodes/cloneInfo";
+  import { unregisterInstance } from "../../../core/nodes/instances";
+  import { Auditor } from "../../auditor";
+  import { diagnostics } from "../../diagnostics";
 
-  import { DevToolsApp } from "./app";
+  import { DevToolsApp } from "./../app";
 
   let customPropName: string = "name";
   let customPropValue: string = "foo1";

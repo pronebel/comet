@@ -1,6 +1,6 @@
 <script lang="ts">
-  import { getUrlParam } from "../util";
-  import { DevToolsApp } from "./app";
+  import { getUrlParam } from "../../util";
+  import { DevToolsApp } from "./../app";
 
   let isInitialising = false;
 

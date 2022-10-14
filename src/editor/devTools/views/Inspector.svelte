@@ -1,9 +1,9 @@
 <script lang="ts">
-  import type { ClonableNode } from "../../core/nodes/abstract/clonableNode";
-  import type { ContainerNode } from "../../core/nodes/concrete/container";
-  import { getInstance } from "../../core/nodes/instances";
-  import { getUserName } from "../sync/user";
-  import { DevToolsApp } from "./app";
+  import type { ClonableNode } from "../../../core/nodes/abstract/clonableNode";
+  import type { ContainerNode } from "../../../core/nodes/concrete/container";
+  import { getInstance } from "../../../core/nodes/instances";
+  import { getUserName } from "../../sync/user";
+  import { DevToolsApp } from "../app";
 
   const userName = getUserName();
 
