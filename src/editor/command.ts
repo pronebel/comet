@@ -8,9 +8,9 @@ export type UpdateMode = 'graphOnly' | 'full';
 export interface CommandSchema
 {
     name: string;
-    isUndoRoot: boolean;
+    // isUndoRoot: boolean;
     params: Record<string, any>;
-    cache: Record<string, any>;
+    // cache: Record<string, any>;
 }
 
 export abstract class Command<ParamsType extends {} = {}, ReturnType = void, CacheType extends {} = {}>
@@ -82,9 +82,9 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
     {
         return {
             name: this.name,
-            isUndoRoot: this.isUndoRoot,
+            // isUndoRoot: this.isUndoRoot,
             params: this.params,
-            cache: this.cache,
+            // cache: this.cache,
         };
     }
 }

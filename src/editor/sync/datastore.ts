@@ -26,11 +26,12 @@ import type {
     DSNodeRemovedEvent,
     DSParentSetEvent,
 } from './datastoreEvents';
-import { getUserName } from './user';
+import { getUserLogColor, getUserName } from './user';
 
 const userName = getUserName();
 const logStyle = 'color:LimeGreen';
-const logId = `${userName}:DATS`;
+const userColor = getUserLogColor(userName);
+const logId = `${userName}`;
 
 export const defaultProjectSettings = {
     collection: 'projects',
@@ -163,7 +164,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
             }).then((domain) =>
             {
                 clearTimeout(timeout);
-                console.log(`%c${logId}:Connected as "${userName}"`, logStyle);
+                console.log(`%c${logId}:%cConnected as "${userName}"`, userColor, logStyle);
                 this._domain = domain;
                 resolve(domain);
             }).catch(reject);
@@ -178,7 +179,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
         consolidateId(nodeId);
 
-        console.log(`%c${logId}:🟦 onNodeCreated: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
+        console.log(`%c${logId}:%c🟦 onNodeCreated: ${JSON.stringify(nodeElement.toJSON())}`, userColor, logStyle);
 
         this.registerNodeElement(nodeId, nodeElement);
 
@@ -192,7 +193,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const nodeElement = event.oldValue as RealTimeObject;
         const parentId = nodeElement.get('parent').value() as string | undefined;
 
-        console.log(`%c${logId}:🟦 onNodeRemoved: ${nodeId}`, logStyle);
+        console.log(`%c${logId}:%c🟦 onNodeRemoved: "${nodeId}"`, userColor, logStyle);
 
         this.unRegisterNode(nodeId);
 
@@ -201,22 +202,20 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     public onNodeRootPropertySet = (e: IConvergenceEvent) =>
     {
-        const { event, nodeElement, nodeId } = objectSetEvent(e);
+        const { event, nodeId } = objectSetEvent(e);
         const key = event.key;
 
         if (key === 'parent')
         {
             const parentId = event.value.value();
             const oldParentId = event.oldValue.value();
-            const childId = nodeElement.get('id').value();
 
             console.log(
-                `%c${logId}:${nodeId}:🟦 onNodeRootPropertySet(parent): parentId: "${parentId}" 
-                childId: "${childId}" oldParentId: "${oldParentId}"`,
-                logStyle,
+                `%c${logId}:%c🟦 onNodeRootPropertySet(parent): parentId: "${parentId}" 
+                childId: "${nodeId}" oldParentId: "${oldParentId}"`, userColor, logStyle,
             );
 
-            this.emit('parentSet', { parentId, nodeId: childId } as DSParentSetEvent);
+            this.emit('parentSet', { parentId, nodeId } as DSParentSetEvent);
         }
     };
 
@@ -229,7 +228,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const { type, value } = element.toJSON();
         const info = JSON.stringify(element.toJSON());
 
-        console.log(`%c${logId}:${nodeId}:🟦 onNodeDefinedCustomPropSet: ${info}`, logStyle);
+        console.log(`%c${logId}:%c🟦 onNodeDefinedCustomPropSet: nodeId: "${nodeId}" info: ${info}`, userColor, logStyle);
 
         this.emit('customPropDefined', { nodeId, customKey, type, value } as DSCustomPropDefinedEvent);
     };
@@ -240,7 +239,11 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
         const customKey = event.key;
 
-        console.log(`%c${logId}:${nodeId}:🟦 onNodeDefinedCustomPropRemoved: "${customKey}"`, logStyle);
+        console.log(
+            `%c${logId}:%c🟦 onNodeDefinedCustomPropRemoved: nodeId: "${nodeId}" customKey: "${customKey}"`,
+            userColor,
+            logStyle,
+        );
 
         this.emit('customPropUndefined', { nodeId, customKey } as DSCustomPropUndefinedEvent);
     };
@@ -252,7 +255,11 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const modelKey = event.key;
         const customKey = event.value.value() as string;
 
-        console.log(`%c${logId}:${nodeId}:🟦 onNodeAssignedCustomPropSet: "${modelKey}->${customKey}"`, logStyle);
+        console.log(
+            `%c${logId}:%c🟦 onNodeAssignedCustomPropSet: nodeId: "${nodeId}" modelKey: "${modelKey}->${customKey}"`,
+            userColor,
+            logStyle,
+        );
 
         this.emit('customPropAssigned', { nodeId, modelKey, customKey } as DSCustomPropAssignedEvent);
     };
@@ -263,7 +270,10 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
         const modelKey = event.key;
 
-        console.log(`%c${logId}:${nodeId}:🟦 onNodeAssignedCustomPropRemoved: "${modelKey}"`, logStyle);
+        console.log(`%c${logId}:%c🟦 onNodeAssignedCustomPropRemoved: nodeId: "${nodeId}" modelKey "${modelKey}"`,
+            userColor,
+            logStyle,
+        );
 
         this.emit('customPropUnassigned', { nodeId, modelKey } as DSCustomPropUnassignedEvent);
     };
@@ -275,7 +285,11 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const key = event.key;
         const value = event.value.value() as ModelValue;
 
-        console.log(`%c${logId}:${nodeId}:🟦 onNodeModelPropertySet: ${key}->${value}`, logStyle);
+        console.log(
+            `%c${logId}:%c🟦 onNodeModelPropertySet: nodeId: "${nodeId}" key: "${key}" value: "${value}"`,
+            userColor,
+            logStyle,
+        );
 
         this.emit('modelModified', { nodeId, key, value } as DSModelModifiedEvent);
     };
@@ -285,7 +299,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const { event, nodeId } = objectSetEvent(e);
         const model = event.element.value() as object;
 
-        console.log(`%c${logId}:${nodeId}:🟦 onNodeModelValueSet: ${JSON.stringify(model)}`, logStyle);
+        console.log(`%c${logId}:%c🟦 onNodeModelValueSet: nodeId: "${nodeId}" ${JSON.stringify(model)}`, userColor, logStyle);
 
         this.emit('modelModified', { nodeId, key: null, value: model } as DSModelModifiedEvent);
     };
@@ -301,7 +315,11 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const nodeId = (nodeElement.parent() as RealTimeObject).get('id').value() as string;
         const cloneInfo = event.element.value() as CloneInfoSchema;
 
-        console.log(`%c${logId}:${nodeId}:🟦 onNodeCloneInfoValueSet: ${JSON.stringify(cloneInfo)}`, logStyle);
+        console.log(
+            `%c${logId}:%c:🟦 onNodeCloneInfoValueSet: nodeId: "${nodeId}" ${JSON.stringify(cloneInfo)}`,
+            userColor,
+            logStyle,
+        );
 
         this.emit('cloneInfoModified', { nodeId, ...cloneInfo } as DSCloneInfoModifiedEvent);
     };
@@ -335,7 +353,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
             data,
         });
 
-        console.log(`%c${logId}:Created project "${model.modelId()}"`, logStyle);
+        console.log(`%c${logId}:%cCreated project "${model.modelId()}"`, userColor, logStyle);
 
         return await this.openProject(model.modelId());
     }
@@ -344,7 +362,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
     {
         const model = await this.domain.models().open(id);
 
-        console.log(`%c${logId}:Opened project "${model.modelId()}"`, logStyle);
+        console.log(`%c${logId}:%cOpened project "${model.modelId()}"`, userColor, logStyle);
 
         this._model = model;
 
@@ -360,7 +378,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected trackNodeElementRemoteEvents(nodeId: string)
     {
-        console.log(`%c${logId}:track nodeElement: "${nodeId}"`, logStyle);
+        console.log(`%c${logId}:%ctrack nodeElement: "${nodeId}"`, userColor, logStyle);
 
         const nodeElement = this.getNodeElement(nodeId);
 
@@ -454,7 +472,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         // store element
         this.nodeRealtimeObjects.set(nodeId, nodeElement);
 
-        console.log(`%c${logId}:Registered New RealTimeObject "${nodeId}"`, logStyle);
+        console.log(`%c${logId}:%cRegistered New RealTimeObject "${nodeId}"`, userColor, logStyle);
 
         // track remote events
         this.trackNodeElementRemoteEvents(nodeId);
@@ -463,8 +481,10 @@ export class Datastore extends EventEmitter<DatastoreEvent>
     public createNode(nodeSchema: NodeSchema)
     {
         console.log(
-            `%c${logId}:🟩 createNode() childId: ${JSON.stringify(nodeSchema)}`,
+            `%c${logId}:%c🟩 createNode() nodeId: "${nodeSchema.id}" %c${JSON.stringify(nodeSchema)}`,
+            userColor,
             logStyle,
+            'color:#999',
         );
 
         if (this.nodes.hasKey(nodeSchema.id))
@@ -485,7 +505,8 @@ export class Datastore extends EventEmitter<DatastoreEvent>
     public removeNode(nodeId: string)
     {
         console.log(
-            `%c${logId}:🟩 removeNode() nodeId: ${nodeId}`,
+            `%c${logId}:%c🟩 removeNode() nodeId: ${nodeId}`,
+            userColor,
             logStyle,
         );
 
@@ -517,7 +538,8 @@ export class Datastore extends EventEmitter<DatastoreEvent>
     public setNodeParent(childId: string, parentId: string)
     {
         console.log(
-            `%c${logId}:🟩 setNodeParent() childId: ${childId} parentId: ${parentId}`,
+            `%c${logId}:%c🟩 setNodeParent() childId: ${childId} parentId: ${parentId}`,
+            userColor,
             logStyle,
         );
 
@@ -540,7 +562,8 @@ export class Datastore extends EventEmitter<DatastoreEvent>
     public modifyNodeModel(nodeId: string, values: object)
     {
         console.log(
-            `%c${logId}:🟩 modifyNodeModel() nodeId: ${nodeId} values: ${JSON.stringify(values)}`,
+            `%c${logId}:%c🟩 modifyNodeModel() nodeId: ${nodeId} values: ${JSON.stringify(values)}`,
+            userColor,
             logStyle,
         );
 
@@ -564,7 +587,8 @@ export class Datastore extends EventEmitter<DatastoreEvent>
     public updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema)
     {
         console.log(
-            `%c${logId}:🟩 updateNodeCloneInfo() nodeId: ${nodeId} cloneInfoSchema: ${JSON.stringify(cloneInfoSchema)}`,
+            `%c${logId}:%c🟩 updateNodeCloneInfo() nodeId: ${nodeId} cloneInfoSchema: ${JSON.stringify(cloneInfoSchema)}`,
+            userColor,
             logStyle,
         );
 
@@ -579,7 +603,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         {
             await this.domain.disconnect();
             await this.domain.dispose();
-            console.log(`%c${logId}:Domain disposed`, logStyle);
+            console.log(`%c${logId}:%cDomain disposed`, userColor, logStyle);
         }
     }
 
@@ -599,7 +623,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
             },
         });
 
-        console.log(`%c${logId}:Joined activity "${type}:${id}"`, logStyle);
+        console.log(`%c${logId}:%cJoined activity "${type}:${id}"`, userColor, logStyle);
     }
 
     public async hasProject(name: string)
@@ -628,7 +652,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
     {
         await this.domain.models().remove(id);
 
-        console.log(`%c${logId}:Delete project "${id}"`, logStyle);
+        console.log(`%c${logId}:%cDelete project "${id}"`, userColor, logStyle);
     }
 
     public unRegisterNode(id: string)
@@ -640,7 +664,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
         this.nodeRealtimeObjects.delete(id);
 
-        console.log(`%c${logId}:Unregistered RealTimeObject "${id}"`, logStyle);
+        console.log(`%c${logId}:%cUnregistered RealTimeObject "${id}"`, userColor, logStyle);
     }
 
     public getNodeElement(id: string)

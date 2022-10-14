@@ -23,7 +23,7 @@ import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { UnlinkCommand } from '../commands/unlink';
-import { getUserName } from '../sync/user';
+import { getUserLogColor, getUserName } from '../sync/user';
 import { getUrlParam } from '../util';
 import { DebugNode } from './debug';
 import { startDrag } from './drag';
@@ -31,8 +31,9 @@ import { startDrag } from './drag';
 export let app: TestApp;
 
 const userName = getUserName();
+const userColor = getUserLogColor(userName);
 const logStyle = `color:PaleTurquoise`;
-const logId = `${userName}:APPT`;
+const logId = `${userName}`;
 
 // must register any nodes outside of core explicitly
 registerNodeType(DebugNode);
@@ -78,13 +79,13 @@ export class TestApp extends Application
     {
         nodeFactoryEmitter.on('created', (node: ClonableNode) =>
         {
-            console.log(`%c${logId}:CREATED: "${node.id}"`, logStyle);
+            console.log(`%c${logId}:%cCREATED: "${node.id}"`, userColor, logStyle);
 
             this.makeInteractive(node.cast<ContainerNode>());
             this.selectLastNode();
         }).on('disposed', (node: ClonableNode) =>
         {
-            console.log(`%c${logId}:DISPOSED: "${node.id}"`, logStyle);
+            console.log(`%c${logId}:%cDISPOSED: "${node.id}"`, userColor, logStyle);
 
             throw new Error('disposed?');
         // @ts-ignore
@@ -99,7 +100,7 @@ export class TestApp extends Application
         })
             .on('childAdded', (node: ClonableNode) =>
             {
-                console.log(`%c${logId}:ADDED: "${node.id}"`, logStyle);
+                console.log(`%c${logId}:%cCHILD ADDED: "${node.id}"`, userColor, logStyle);
 
                 this.select(node.cast<ContainerNode>());
                 this.fitSelection(node.cast<ContainerNode>());
@@ -108,19 +109,19 @@ export class TestApp extends Application
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
             .on('childRemoved', (node: ClonableNode) =>
             {
-                console.log(`%c${logId}:REMOVED: "${node.id}"`, logStyle);
+                console.log(`%c${logId}:%cCHILD REMOVED: "${node.id}"`, userColor, logStyle);
 
                 this.selectLastNode();
             })
             .on('cloaked', (node: ClonableNode) =>
             {
-                console.log(`%c${logId}:CLOAKED: "${node.id}"`, logStyle);
+                console.log(`%c${logId}:%cCLOAKED: "${node.id}"`, userColor, logStyle);
 
                 this.selectLastNode();
             })
             .on('uncloaked', (node: ClonableNode) =>
             {
-                console.log(`%c${logId}:UNCLOAKED: "${node.id}"`, logStyle);
+                console.log(`%c${logId}:%cUNCLOAKED: "${node.id}"`, userColor, logStyle);
 
                 this.selectLastNode();
             });
@@ -207,7 +208,7 @@ export class TestApp extends Application
         const nodes = this.datastore.toJSON().nodes;
 
         localStorage['comet'] = JSON.stringify(nodes);
-        console.log(`%c${logId}:Datastore saved`, logStyle);
+        console.log(`%c${logId}:%cDatastore saved`, userColor, logStyle);
     }
 
     public restoreDatastore()
@@ -477,7 +478,7 @@ export class TestApp extends Application
         {
             sprite.interactive = true;
 
-            console.log(`%c${logId}:make interactive "${component.id}"`, logStyle);
+            console.log(`%c${logId}:%cmake interactive "${component.id}"`, userColor, logStyle);
             sprite.on('mousedown', this.onSpriteClicked);
         }
     }
@@ -490,7 +491,7 @@ export class TestApp extends Application
         {
             sprite.interactive = false;
 
-            console.log(`%c${logId}:unmake interactive "${component.id}"`, logStyle);
+            console.log(`%c${logId}:%cunmake interactive "${component.id}"`, userColor, logStyle);
             sprite.off('mousedown', this.onSpriteClicked);
         }
     }

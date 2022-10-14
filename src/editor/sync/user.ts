@@ -12,3 +12,13 @@ export function getUserName()
 
     return user;
 }
+
+export function getUserLogColor(user: string)
+{
+    if (user === 'ali')
+    {
+        return 'color:Violet';
+    }
+
+    return 'color:MediumPurple';
+}

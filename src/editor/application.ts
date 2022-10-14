@@ -13,11 +13,12 @@ import { RemoveNodeCommand } from './commands/removeNode';
 import { initDiagnostics } from './diagnostics';
 import { Datastore } from './sync/datastore';
 import { NodeUpdater } from './sync/nodeUpdater';
-import { getUserName } from './sync/user';
+import { getUserLogColor, getUserName } from './sync/user';
 import UndoStack from './undoStack';
 
 const userName = getUserName();
-const logId = `${userName}:APPL`;
+const userColor = getUserLogColor(userName);
+const logId = `${userName}`;
 const logStyle = 'color:LightCyan;';
 
 const localStorageUndoStackKey = `${userName}:undo`;
@@ -140,8 +141,8 @@ export abstract class Application extends EventEmitter<AppEvents>
             this.writeUndoStack();
         }
 
-        console.group(`%c${logId}:${command.name}.run()`, `font-weight:bold;${logStyle}`);
-        console.log(`%c🔔${JSON.stringify(command.params)}`, logStyle);
+        console.group(`%c${logId}:%c🔔 ${command.name}.run()`, userColor, `font-weight:bold;${logStyle}`);
+        console.log(`%c${JSON.stringify(command.params)}`, 'color:#999');
 
         const result = command.run();
 
@@ -247,7 +248,7 @@ export abstract class Application extends EventEmitter<AppEvents>
 
     public restoreNode(nodeId: string)
     {
-        console.log(`%c${logId}:Restore node "${nodeId}"`, logStyle);
+        console.log(`%c${logId}:%cRestore node "${nodeId}"`, userColor, logStyle);
 
         const node = getInstance<ClonableNode>(nodeId);
 

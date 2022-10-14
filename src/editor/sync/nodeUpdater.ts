@@ -18,10 +18,11 @@ import type {
     DSNodeRemovedEvent,
     DSParentSetEvent,
 } from './datastoreEvents';
-import { getUserName } from './user';
+import { getUserLogColor, getUserName } from './user';
 
 const userName = getUserName();
-const logId = `${userName}:NUPD`;
+const userColor = getUserLogColor(userName);
+const logId = `${userName}`;
 const logStyle = 'color:cyan';
 
 export class NodeUpdater
@@ -43,7 +44,7 @@ export class NodeUpdater
 
     protected log(eventName: string, event: any)
     {
-        console.log(`%c${logId}:${eventName} ${JSON.stringify(event)}`, logStyle);
+        console.log(`%c${logId}:%c${eventName} ${JSON.stringify(event)}`, userColor, logStyle);
     }
 
     protected onNodeCreated = (event: DSNodeCreatedEvent) =>

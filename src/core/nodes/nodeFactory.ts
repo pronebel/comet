@@ -1,6 +1,6 @@
 import EventEmitter from 'eventemitter3';
 
-import { getUserName } from '../../editor/sync/user';
+import { getUserLogColor, getUserName } from '../../editor/sync/user';
 import type { ModelValue } from '../model/model';
 import type { ClonableNode, ClonableNodeConstructor, NodeOptions } from './abstract/clonableNode';
 import { registerInstance } from './instances';
@@ -20,7 +20,8 @@ export const nodeFactoryEmitter: EventEmitter<NodeFactoryEvents> = new EventEmit
 
 const logStyle = 'color:MediumTurquoise';
 const userName = getUserName();
-const logId = `${userName}:NODF`;
+const userColor = getUserLogColor(userName);
+const logId = `${userName}`;
 
 export function registerNodeType(nodeClass: ClonableNodeConstructor)
 {
@@ -45,7 +46,7 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
 
     const { id } = options;
 
-    console.log(`%c${logId}:createNode "${id}"`, logStyle);
+    console.log(`%c${logId}:%cCreate Graph Node "${id}"`, userColor, logStyle);
 
     const node = new NodeClass(options) as ClonableNode;
 
@@ -56,7 +57,7 @@ export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
 
 export function registerNewNode(node: ClonableNode)
 {
-    console.log(`%c${logId}:Registering node "${node.id}"`, logStyle);
+    console.log(`%c${logId}:%cRegistering Graph Node "${node.id}"`, userColor, logStyle);
 
     const onModelModified = (key: string, value: ModelValue, oldValue: ModelValue) =>
     {
