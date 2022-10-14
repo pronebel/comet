@@ -2,7 +2,7 @@ import type { RealTimeObject } from '@convergence/convergence';
 
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomProperty } from '../../core/nodes/customProperties';
-import { type UpdateMode, Command } from '../command';
+import { type UpdateMode, Command } from '../core/command';
 import { SetCustomPropCommand } from './setCustomProp';
 import { UnAssignCustomPropCommand } from './unassignCustomProp';
 

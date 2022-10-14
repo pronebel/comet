@@ -1,7 +1,7 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance } from '../../core/nodes/instances';
 import { getNodeSchema } from '../../core/nodes/schema';
-import { Command } from '../command';
+import { Command } from '../core/command';
 
 export interface RemoveNodeCommandParams
 {

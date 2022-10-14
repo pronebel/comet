@@ -1,12 +1,12 @@
 import { deepEqual } from 'fast-equals';
 
-import { ClonableNode } from '../core/nodes/abstract/clonableNode';
-import type { GraphNode } from '../core/nodes/abstract/graphNode';
-import { CloneMode } from '../core/nodes/cloneInfo';
-import type { ProjectNode } from '../core/nodes/concrete/project';
-import { getInstance, getInstancesByType } from '../core/nodes/instances';
-import { getNodeSchema } from '../core/nodes/schema';
-import { Application } from './application';
+import { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import type { GraphNode } from '../../core/nodes/abstract/graphNode';
+import { CloneMode } from '../../core/nodes/cloneInfo';
+import type { ProjectNode } from '../../core/nodes/concrete/project';
+import { getInstance, getInstancesByType } from '../../core/nodes/instances';
+import { getNodeSchema } from '../../core/nodes/schema';
+import { Application } from '../application';
 
 enum Result
     {

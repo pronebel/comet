@@ -1,6 +1,6 @@
 import type { RealTimeObject } from '@convergence/convergence';
 
-import { type UpdateMode, Command } from '../command';
+import { type UpdateMode, Command } from '../core/command';
 import { AssignCustomPropCommand } from './assignCustomProp';
 
 export interface UnAssignCustomPropCommandParams

@@ -1,5 +1,6 @@
 import type { Application } from './application';
-import type { Command, CommandSchema } from './command';
+import type { Command, CommandSchema } from './core/command';
+import type { UndoStackEvent } from './core/undoStack';
 import type {
     DatastoreEvent,
     DSCloneInfoModifiedEvent,
@@ -13,7 +14,6 @@ import type {
     DSNodeRemovedEvent,
     DSParentSetEvent,
 } from './sync/datastoreEvents';
-import type { UndoStackEvent } from './undoStack';
 
 export type DSEventEntry = {
     type: 'dsEvent';

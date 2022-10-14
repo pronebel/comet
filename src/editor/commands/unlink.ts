@@ -2,7 +2,7 @@ import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
 import { CloneInfo } from '../../core/nodes/cloneInfo';
 import { type NodeSchema, getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
-import { Command } from '../command';
+import { Command } from '../core/command';
 
 export interface UnlinkCommandParams
 {

@@ -1,5 +1,5 @@
 import type { ModelBase } from '../../core/model/model';
-import { Command } from '../command';
+import { Command } from '../core/command';
 
 export interface ModifyModelCommandParams<M>
 {

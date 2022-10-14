@@ -2,7 +2,7 @@ import type { ModelBase } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { CloneMode } from '../../core/nodes/cloneInfo';
 import type { NodeSchema } from '../../core/nodes/schema';
-import { Command } from '../command';
+import { Command } from '../core/command';
 import { CloneCommand } from './clone';
 import { CreateNodeCommand } from './createNode';
 import { RemoveChildCommand } from './removeChild';

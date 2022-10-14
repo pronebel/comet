@@ -2,7 +2,7 @@ import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import { registerInstance } from '../../core/nodes/instances';
 import { getCloneInfoSchema, getNodeSchema } from '../../core/nodes/schema';
-import { Command } from '../command';
+import { Command } from '../core/command';
 import { RemoveNodeCommand } from './removeNode';
 import { SetParentCommand } from './setParent';
 

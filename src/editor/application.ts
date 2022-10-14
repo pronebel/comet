@@ -6,14 +6,14 @@ import { Application as PixiApplication } from 'pixi.js';
 import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { ProjectNode } from '../core/nodes/concrete/project';
 import { clearInstances, getInstance } from '../core/nodes/instances';
-import type { Command } from './command';
-import { createCommand } from './commandFactory';
 import { RemoveNodeCommand } from './commands/removeNode';
+import type { Command } from './core/command';
+import { createCommand } from './core/commandFactory';
+import UndoStack from './core/undoStack';
 import { initDiagnostics } from './diagnostics';
 import { Datastore } from './sync/datastore';
 import { NodeUpdater } from './sync/nodeUpdater';
 import { getUserLogColor, getUserName } from './sync/user';
-import UndoStack from './undoStack';
 
 const userName = getUserName();
 const userColor = getUserLogColor(userName);

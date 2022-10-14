@@ -1,6 +1,6 @@
-import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
-import { getInstance } from '../core/nodes/instances';
-import { Application } from './application';
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { getInstance } from '../../core/nodes/instances';
+import { Application } from '../application';
 import type { CommandName } from './commandFactory';
 
 export type UpdateMode = 'graphOnly' | 'full';

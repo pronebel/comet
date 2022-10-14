@@ -1,17 +1,17 @@
-import type { ModelBase } from '../core/model/model';
+import type { ModelBase } from '../../core/model/model';
+import { type AddChildCommandParams, AddChildCommand } from '../commands/addChild';
+import { type AssignCustomPropCommandParams, AssignCustomPropCommand } from '../commands/assignCustomProp';
+import { type CloneCommandParams, CloneCommand } from '../commands/clone';
+import { type CreateNodeCommandParams, CreateNodeCommand } from '../commands/createNode';
+import { type ModifyModelCommandParams, ModifyModelCommand } from '../commands/modifyModel';
+import { type RemoveChildCommandParams, RemoveChildCommand } from '../commands/removeChild';
+import { type RemoveCustomPropCommandParams, RemoveCustomPropCommand } from '../commands/removeCustomProp';
+import { type RemoveNodeCommandParams, RemoveNodeCommand } from '../commands/removeNode';
+import { type SetCustomPropCommandParams, SetCustomPropCommand } from '../commands/setCustomProp';
+import { type SetParentCommandParams, SetParentCommand } from '../commands/setParent';
+import { type UnAssignCustomPropCommandParams, UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
+import { type UnlinkCommandParams, UnlinkCommand } from '../commands/unlink';
 import type { Command } from './command';
-import { type AddChildCommandParams, AddChildCommand } from './commands/addChild';
-import { type AssignCustomPropCommandParams, AssignCustomPropCommand } from './commands/assignCustomProp';
-import { type CloneCommandParams, CloneCommand } from './commands/clone';
-import { type CreateNodeCommandParams, CreateNodeCommand } from './commands/createNode';
-import { type ModifyModelCommandParams, ModifyModelCommand } from './commands/modifyModel';
-import { type RemoveChildCommandParams, RemoveChildCommand } from './commands/removeChild';
-import { type RemoveCustomPropCommandParams, RemoveCustomPropCommand } from './commands/removeCustomProp';
-import { type RemoveNodeCommandParams, RemoveNodeCommand } from './commands/removeNode';
-import { type SetCustomPropCommandParams, SetCustomPropCommand } from './commands/setCustomProp';
-import { type SetParentCommandParams, SetParentCommand } from './commands/setParent';
-import { type UnAssignCustomPropCommandParams, UnAssignCustomPropCommand } from './commands/unassignCustomProp';
-import { type UnlinkCommandParams, UnlinkCommand } from './commands/unlink';
 
 export type CommandName =
     'AssignCustomProp' |

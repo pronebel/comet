@@ -4,7 +4,7 @@ import { CloneInfo } from '../../core/nodes/cloneInfo';
 import { getInstance, hasInstance } from '../../core/nodes/instances';
 import { createNode } from '../../core/nodes/nodeFactory';
 import type { NodeSchema } from '../../core/nodes/schema';
-import { Command } from '../command';
+import { Command } from '../core/command';
 import { AssignCustomPropCommand } from './assignCustomProp';
 import { SetCustomPropCommand } from './setCustomProp';
 

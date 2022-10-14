@@ -1,7 +1,7 @@
 import { EventEmitter } from 'eventemitter3';
 
-import type { Command } from './command';
-import type { Datastore } from './sync/datastore';
+import type { Command } from '../core/command';
+import type { Datastore } from '../sync/datastore';
 
 export type UndoStackEvent = 'push' | 'undo' | 'redo';
 
