@@ -1,10 +1,10 @@
 <script lang="ts">
   import { getUrlParam } from "../util";
-  import { TestApp } from "./testApp";
+  import { DevToolsApp } from "./app";
 
   let isInitialising = false;
 
-  const app = TestApp.getInstance();
+  const app = DevToolsApp.getInstance();
 
   const onConnect = () => {
     if (isInitialising) {
@@ -23,7 +23,7 @@
   export let onInit: () => void;
 </script>
 
-<div id="connect">
+<div>
   <button on:click={onConnect}
     >{isInitialising ? "Connecting..." : "Connect"}</button
   >

@@ -10,7 +10,7 @@ import type { ProjectNode } from '../../core/nodes/concrete/project';
 import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import type { CustomProperty } from '../../core/nodes/customProperties';
 import { getInstance, getInstances, hasInstance } from '../../core/nodes/instances';
-import { nodeFactoryEmitter, registerNodeType } from '../../core/nodes/nodeFactory';
+import { nodeFactoryEmitter } from '../../core/nodes/nodeFactory';
 import { createNodeSchema, getNodeSchema } from '../../core/nodes/schema';
 import { Action } from '../action';
 import { type AppOptions, Application } from '../application';
@@ -25,27 +25,22 @@ import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import { UnlinkCommand } from '../commands/unlink';
 import { getUserLogColor, getUserName } from '../sync/user';
 import { getUrlParam } from '../util';
-import { DebugNode } from './debug';
 import { startDrag } from './drag';
-
-export let app: TestApp;
+import { DebugNode } from './nodes/debug';
 
 const userName = getUserName();
 const userColor = getUserLogColor(userName);
 const logStyle = `color:PaleTurquoise`;
 const logId = `${userName}`;
 
-// must register any nodes outside of core explicitly
-registerNodeType(DebugNode);
-
-export class TestApp extends Application
+export class DevToolsApp extends Application
 {
     public selected?: ContainerNode;
     public selection: Sprite;
 
     public static getInstance()
     {
-        return Application.instance as unknown as TestApp;
+        return Application.instance as unknown as DevToolsApp;
     }
 
     constructor(options: AppOptions)

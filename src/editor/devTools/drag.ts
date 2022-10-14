@@ -1,6 +1,6 @@
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import { ModifyModelCommand } from '../commands/modifyModel';
-import { TestApp } from './testApp';
+import { DevToolsApp } from './app';
 
 type AnyContainer = ContainerNode<any, any>;
 
@@ -44,7 +44,7 @@ window.addEventListener('mousemove', (e: MouseEvent) =>
         state.component.model.x = newX;
         state.component.model.y = newY;
 
-        const app = TestApp.getInstance();
+        const app = DevToolsApp.getInstance();
 
         app.fitSelection(app.selected);
     }
@@ -56,7 +56,7 @@ window.addEventListener('mouseup', () =>
     {
         if (((state.newX !== state.startX) || (state.newY !== state.startY)))
         {
-            const app: TestApp = TestApp.getInstance();
+            const app: DevToolsApp = DevToolsApp.getInstance();
 
             const nodeId = state.component.id;
 

@@ -1,7 +1,6 @@
 import type { Container } from 'pixi.js';
 
 import { ModelSchema } from '../../model/schema';
-import { registerNodeType } from '../nodeFactory';
 import { type ContainerEvents, type ContainerModel, ContainerNode, containerSchema } from './container';
 
 export type ProjectEvents = ContainerEvents;
@@ -42,4 +41,3 @@ export class ProjectNode extends ContainerNode<ProjectModel, Container, ProjectE
     }
 }
 
-registerNodeType(ProjectNode);

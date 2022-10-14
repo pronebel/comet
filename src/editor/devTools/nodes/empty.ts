@@ -1,9 +1,7 @@
 import { type DisplayObject, Container, Graphics, Text } from 'pixi.js';
 
-import type { ModelSchema } from '../../model/schema';
-import { registerNodeType } from '../nodeFactory';
-import type { ContainerModel } from './container';
-import { ContainerNode, containerSchema } from './container';
+import type { ModelSchema } from '../../../core/model/schema';
+import { type ContainerModel, ContainerNode, containerSchema } from '../../../core/nodes/concrete/container';
 
 export class EmptyNode extends ContainerNode<ContainerModel, Container>
 {
@@ -55,4 +53,3 @@ export class EmptyNode extends ContainerNode<ContainerModel, Container>
     }
 }
 
-registerNodeType(EmptyNode);

@@ -1,13 +1,12 @@
 <script lang="ts">
-  import TestAppView from "../test/TestApp.svelte";
-
   import { onMount } from "svelte";
+  import DevTools from "../devTools/DevTools.svelte";
   import HotReload from "./util/HotReload.svelte";
-  import { TestApp } from "../test/testApp";
+  import { DevToolsApp } from "../devTools/app";
   import { Editor } from "../editor";
   import type { Application } from "../application";
 
-  const isTestApp = true;
+  const useDevTool = true;
 
   let windowError: Error | undefined;
   let isConnected = false;
@@ -18,8 +17,8 @@
   onMount(() => {
     let app: Application;
 
-    if (isTestApp) {
-      app = new TestApp({ canvas });
+    if (useDevTool) {
+      app = new DevToolsApp({ canvas });
     } else {
       app = new Editor({ canvas });
     }
@@ -45,8 +44,8 @@
   {#if connectionError}
     <div class="error">{connectionError}</div>
   {:else if isConnected && canvas}
-    {#if isTestApp}
-      <TestAppView />
+    {#if useDevTool}
+      <DevTools />
     {:else}
       <!-- todo: EditorApp-->
     {/if}

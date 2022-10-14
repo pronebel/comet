@@ -1,5 +1,4 @@
 // note: this file must be imported to trigger node type registration
-import '../core/nodes/concrete';
 
 import { EventEmitter } from 'eventemitter3';
 import { Application as PixiApplication } from 'pixi.js';

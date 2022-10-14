@@ -1,3 +1,6 @@
+// register all node types!
+import './nodeRegistry';
+// styles
 import './style/theme.css';
 import './style/app.css';
 import './style/dark-theme.css';
@@ -12,5 +15,3 @@ const app = new App({
 });
 
 export default app;
-
-// import './sync/testing';

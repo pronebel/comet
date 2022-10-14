@@ -5,14 +5,14 @@
   import { Auditor } from "../auditor";
   import { diagnostics } from "../diagnostics";
 
-  import { TestApp } from "./testApp";
+  import { DevToolsApp } from "./app";
 
   let customPropName: string = "name";
   let customPropValue: string = "foo1";
   let assignModelKey: string = "label";
   let undoStackEnd: number = 0;
 
-  const app = TestApp.getInstance();
+  const app = DevToolsApp.getInstance();
 
   const onReload = () => {
     window.location.reload();
@@ -173,7 +173,7 @@
   };
 </script>
 
-<div id="actions">
+<div>
   <button on:click={onNewContainer}>New Empty</button>
   <button on:click={onNewChild}>New Child</button>
   <button on:click={onDelete}>Delete</button>
@@ -220,7 +220,7 @@
 
 <style>
   div {
-    position: absolute;
+    position: fixed;
     top: 10px;
     right: 10px;
     width: 95px;

@@ -20,6 +20,20 @@ const clearLog = () => log.length = 0;
 
 class TestComponent extends ClonableNode<TestModel, Sprite>
 {
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected addViewToParent(parent: ClonableNode<ModelBase, object, string>): void
+    {
+        //
+    }
+
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected removeViewFromParent(parent: ClonableNode<ModelBase, object, string>): void
+    {
+        //
+    }
+
     public nodeType(): string
     {
         return 'Test';

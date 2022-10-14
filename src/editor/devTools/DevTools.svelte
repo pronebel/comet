@@ -7,7 +7,7 @@
   let isInit = false;
 </script>
 
-<div id="testApp">
+<div>
   <Inspector />
   {#if isInit}
     <Replay />
@@ -19,10 +19,10 @@
 
 <style>
   div {
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
+    position: fixed;
     bottom: 0;
+    right: 0;
+    left: 0;
+    height: 50%;
   }
 </style>

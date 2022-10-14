@@ -3,13 +3,13 @@
   import type { ContainerNode } from "../../core/nodes/concrete/container";
   import { getInstance } from "../../core/nodes/instances";
   import { getUserName } from "../sync/user";
-  import { TestApp } from "./testApp";
+  import { DevToolsApp } from "./app";
 
   const userName = getUserName();
 
   let shouldUpdateDebug = true;
 
-  const app = TestApp.getInstance();
+  const app = DevToolsApp.getInstance();
 
   const onPreMouseUp = () => {
     const selection = window.getSelection();
@@ -33,7 +33,7 @@
   }, 500);
 </script>
 
-<div id="inspector">
+<div>
   <!-- svelte-ignore a11y-mouse-events-have-key-events -->
   <pre
     id="debug"

@@ -5,7 +5,6 @@ import { ModelSchema } from '../../model/schema';
 import type { ClonableNode } from '../abstract/clonableNode';
 import type { DisplayObjectEvents, DisplayObjectModel } from '../abstract/displayObject';
 import { DisplayObjectNode, displayObjectSchema } from '../abstract/displayObject';
-import { registerNodeType } from '../nodeFactory';
 
 export type ContainerEvents = DisplayObjectEvents;
 
@@ -81,4 +80,3 @@ export class ContainerNode<
     }
 }
 
-registerNodeType(ContainerNode);
