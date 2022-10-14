@@ -10,6 +10,7 @@ import { clearInstances, getInstance } from '../core/nodes/instances';
 import type { Command } from './command';
 import { createCommand } from './commandFactory';
 import { RemoveNodeCommand } from './commands/removeNode';
+import { initDiagnostics } from './diagnostics';
 import { Datastore } from './sync/datastore';
 import { NodeUpdater } from './sync/nodeUpdater';
 import { getUserName } from './sync/user';
@@ -58,6 +59,8 @@ export abstract class Application extends EventEmitter<AppEvents>
 
         this.undoStack = new UndoStack(datastore);
         this.nodeUpdater = new NodeUpdater(datastore);
+
+        initDiagnostics(this);
 
         this.initDatastoreEvents();
     }

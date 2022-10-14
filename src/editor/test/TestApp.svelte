@@ -4,6 +4,7 @@
   import type { ContainerNode } from "../../core/nodes/concrete/container";
   import { getInstance, unregisterInstance } from "../../core/nodes/instances";
   import { Auditor } from "../auditor";
+  import { diagnostics } from "../diagnostics";
   import { getUserName } from "../sync/user";
   import { getUrlParam } from "../util";
   import Replay from "./Replay.svelte";
@@ -170,16 +171,9 @@
     app.readUndoStack(undoStackEnd);
   };
 
-  const onToggleReplay = () => {
-    const saveUndo = localStorage["saveUndo"];
-    if (saveUndo === "1") {
-      localStorage["saveUndo"] = "0";
-    } else if (saveUndo === "0") {
-      localStorage["saveUndo"] = "1";
-    } else {
-      localStorage["saveUndo"] = "1";
-    }
-    window.location.reload();
+  const onShowDiagnostics = () => {
+    console.clear();
+    console.dir(diagnostics);
   };
 
   const onSetCustomProp = () => {
@@ -255,9 +249,7 @@
     <button on:click={onWriteUndoStack}>Save Undo</button>
     <button on:click={onReadUndoStack}>Load Undo</button>
     <input bind:value={undoStackEnd} />
-    <button on:click={onToggleReplay}
-      >{localStorage["saveUndo"] === "1" ? "Replay On" : "Replay Off"}</button
-    >
+    <button on:click={onShowDiagnostics}>Diagnostics</button>
     <hr />
     <button on:click={onAudit}>Audit</button>
     <button on:click={onRestoreDatastore}>Restore DStore</button>

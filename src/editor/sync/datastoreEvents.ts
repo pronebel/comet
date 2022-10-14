@@ -2,8 +2,9 @@ import type { ModelValue } from '../../core/model/model';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import type { CloneInfoSchema } from '../../core/nodes/schema';
 
-export type DatastoreEvents =
+export type DatastoreEvent =
 | 'nodeCreated'
+| 'nodeHydrated'
 | 'nodeRemoved'
 | 'parentSet'
 | 'customPropDefined'
@@ -13,50 +14,61 @@ export type DatastoreEvents =
 | 'modelModified'
 | 'cloneInfoModified';
 
-export interface DSNodeEvent
+export type DSNodeEvent =
+    | DSNodeCreatedEvent
+    | DSNodeRemovedEvent
+    | DSParentSetEvent
+    | DSCustomPropDefinedEvent
+    | DSCustomPropUndefinedEvent
+    | DSCustomPropAssignedEvent
+    | DSCustomPropUnassignedEvent
+    | DSModelModifiedEvent
+    | DSCloneInfoModifiedEvent;
+
+export interface DSNodeEventBase
 {
     nodeId: string;
 }
 
-export type DSNodeCreatedEvent = DSNodeEvent;
+export type DSNodeCreatedEvent = DSNodeEventBase;
 
-export interface DSNodeRemovedEvent extends DSNodeEvent
+export interface DSNodeRemovedEvent extends DSNodeEventBase
 {
     parentId?: string;
 }
 
-export interface DSParentSetEvent extends DSNodeEvent
+export interface DSParentSetEvent extends DSNodeEventBase
 {
     parentId: string;
 }
 
-export interface DSCustomPropDefinedEvent extends DSNodeEvent
+export interface DSCustomPropDefinedEvent extends DSNodeEventBase
 {
     customKey: string;
     type: CustomPropertyType;
     value: CustomPropertyValueType;
 }
 
-export interface DSCustomPropUndefinedEvent extends DSNodeEvent
+export interface DSCustomPropUndefinedEvent extends DSNodeEventBase
 {
     customKey: string;
 }
 
-export interface DSCustomPropAssignedEvent extends DSNodeEvent
+export interface DSCustomPropAssignedEvent extends DSNodeEventBase
 {
     modelKey: string;
     customKey: string;
 }
 
-export interface DSCustomPropUnassignedEvent extends DSNodeEvent
+export interface DSCustomPropUnassignedEvent extends DSNodeEventBase
 {
     modelKey: string;
 }
 
-export interface DSModelModifiedEvent extends DSNodeEvent
+export interface DSModelModifiedEvent extends DSNodeEventBase
 {
     key: string | null; // undefined means whole object was set, which will be .value
     value: ModelValue;
 }
 
-export type DSCloneInfoModifiedEvent = DSNodeEvent & CloneInfoSchema;
+export type DSCloneInfoModifiedEvent = DSNodeEventBase & CloneInfoSchema;

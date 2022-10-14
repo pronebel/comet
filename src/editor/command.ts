@@ -3,11 +3,15 @@ import { getInstance } from '../core/nodes/instances';
 import { Application } from './application';
 import type { CommandName } from './commandFactory';
 
-// 'graphOnly' = update just the nodes in the node graph (usually for updates from remote users where datastore is already modified)
-// 'full' = update both the graph nodes and the datastore (usually for local modifications)
 export type UpdateMode = 'graphOnly' | 'full';
 
-export type NodeTargetCommand = { params: { nodeId: string } };
+export interface CommandSchema
+{
+    name: string;
+    isUndoRoot: boolean;
+    params: Record<string, any>;
+    cache: Record<string, any>;
+}
 
 export abstract class Command<ParamsType extends {} = {}, ReturnType = void, CacheType extends {} = {}>
 {
@@ -74,7 +78,7 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
         return node;
     }
 
-    public toJSON()
+    public toJSON(): CommandSchema
     {
         return {
             name: this.name,
@@ -84,3 +88,4 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
         };
     }
 }
+

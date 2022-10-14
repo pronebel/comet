@@ -30,6 +30,7 @@ export class NodeUpdater
     {
         datastore
             .on('nodeCreated', this.onNodeCreated)
+            .on('nodeHydrated', this.onNodeCreated)
             .on('nodeRemoved', this.onNodeRemoved)
             .on('parentSet', this.onParentSet)
             .on('customPropDefined', this.onCustomPropDefined)

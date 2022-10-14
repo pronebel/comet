@@ -15,7 +15,7 @@ import type { CloneInfoSchema, NodeSchema, ProjectSchema } from '../../core/node
 import { createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import type {
-    DatastoreEvents,
+    DatastoreEvent,
     DSCloneInfoModifiedEvent,
     DSCustomPropAssignedEvent,
     DSCustomPropDefinedEvent,
@@ -29,7 +29,7 @@ import type {
 import { getUserName } from './user';
 
 const userName = getUserName();
-const logStyle = 'color:LawnGreen';
+const logStyle = 'color:LimeGreen';
 const logId = `${userName}:DATS`;
 
 export const defaultProjectSettings = {
@@ -50,7 +50,7 @@ function objectSetEvent(e: IConvergenceEvent)
     return { event, nodeElement, nodeId };
 }
 
-export class Datastore extends EventEmitter<DatastoreEvents>
+export class Datastore extends EventEmitter<DatastoreEvent>
 {
     protected _domain?: ConvergenceDomain;
     protected _model?: RealTimeModel;
@@ -178,7 +178,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
 
         consolidateId(nodeId);
 
-        console.log(`%c${logId}:nodes.set: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
+        console.log(`%c${logId}:🟦 onNodeCreated: ${JSON.stringify(nodeElement.toJSON())}`, logStyle);
 
         this.registerNodeElement(nodeId, nodeElement);
 
@@ -192,7 +192,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const nodeElement = event.oldValue as RealTimeObject;
         const parentId = nodeElement.get('parent').value() as string | undefined;
 
-        console.log(`%c${logId}:nodes.remove: ${nodeId}`, logStyle);
+        console.log(`%c${logId}:🟦 onNodeRemoved: ${nodeId}`, logStyle);
 
         this.unRegisterNode(nodeId);
 
@@ -211,7 +211,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
             const childId = nodeElement.get('id').value();
 
             console.log(
-                `%c${logId}:${nodeId}:parent.set! parentId: "${parentId}" 
+                `%c${logId}:${nodeId}:🟦 onNodeRootPropertySet(parent): parentId: "${parentId}" 
                 childId: "${childId}" oldParentId: "${oldParentId}"`,
                 logStyle,
             );
@@ -229,7 +229,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const { type, value } = element.toJSON();
         const info = JSON.stringify(element.toJSON());
 
-        console.log(`%c${logId}:${nodeId}:customProperties.defined: ${info}`, logStyle);
+        console.log(`%c${logId}:${nodeId}:🟦 onNodeDefinedCustomPropSet: ${info}`, logStyle);
 
         this.emit('customPropDefined', { nodeId, customKey, type, value } as DSCustomPropDefinedEvent);
     };
@@ -240,7 +240,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
         const customKey = event.key;
 
-        console.log(`%c${logId}:${nodeId}:customProperties.undefined: "${customKey}"`, logStyle);
+        console.log(`%c${logId}:${nodeId}:🟦 onNodeDefinedCustomPropRemoved: "${customKey}"`, logStyle);
 
         this.emit('customPropUndefined', { nodeId, customKey } as DSCustomPropUndefinedEvent);
     };
@@ -252,7 +252,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const modelKey = event.key;
         const customKey = event.value.value() as string;
 
-        console.log(`%c${logId}:${nodeId}:customProperties.assign: "${modelKey}->${customKey}"`, logStyle);
+        console.log(`%c${logId}:${nodeId}:🟦 onNodeAssignedCustomPropSet: "${modelKey}->${customKey}"`, logStyle);
 
         this.emit('customPropAssigned', { nodeId, modelKey, customKey } as DSCustomPropAssignedEvent);
     };
@@ -263,7 +263,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
         const modelKey = event.key;
 
-        console.log(`%c${logId}:${nodeId}:customProperties.unassigned: "${modelKey}"`, logStyle);
+        console.log(`%c${logId}:${nodeId}:🟦 onNodeAssignedCustomPropRemoved: "${modelKey}"`, logStyle);
 
         this.emit('customPropUnassigned', { nodeId, modelKey } as DSCustomPropUnassignedEvent);
     };
@@ -275,7 +275,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const key = event.key;
         const value = event.value.value() as ModelValue;
 
-        console.log(`%c${logId}:${nodeId}:model.set: ${key}->${value}`, logStyle);
+        console.log(`%c${logId}:${nodeId}:🟦 onNodeModelPropertySet: ${key}->${value}`, logStyle);
 
         this.emit('modelModified', { nodeId, key, value } as DSModelModifiedEvent);
     };
@@ -285,7 +285,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const { event, nodeId } = objectSetEvent(e);
         const model = event.element.value() as object;
 
-        console.log(`%c${logId}:${nodeId}:model.value: ${JSON.stringify(model)}`, logStyle);
+        console.log(`%c${logId}:${nodeId}:🟦 onNodeModelValueSet: ${JSON.stringify(model)}`, logStyle);
 
         this.emit('modelModified', { nodeId, key: null, value: model } as DSModelModifiedEvent);
     };
@@ -301,7 +301,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         const nodeId = (nodeElement.parent() as RealTimeObject).get('id').value() as string;
         const cloneInfo = event.element.value() as CloneInfoSchema;
 
-        console.log(`%c${logId}:${nodeId}:cloneInfo.set: ${JSON.stringify(cloneInfo)}`, logStyle);
+        console.log(`%c${logId}:${nodeId}:🟦 onNodeCloneInfoValueSet: ${JSON.stringify(cloneInfo)}`, logStyle);
 
         this.emit('cloneInfoModified', { nodeId, ...cloneInfo } as DSCloneInfoModifiedEvent);
     };
@@ -425,9 +425,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         consolidateId(id);
 
         // create the graph node
-        const e: DSNodeCreatedEvent = { nodeId: id };
-
-        this.emit('nodeCreated', e);
+        this.emit('nodeHydrated', { nodeId: id } as DSNodeCreatedEvent);
 
         // recursively create children
         (nodeElement.get('children').value() as RealTimeArray).forEach((id) =>
@@ -465,7 +463,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public createNode(nodeSchema: NodeSchema)
     {
         console.log(
-            `%c${logId}:createNode! childId: ${JSON.stringify(nodeSchema)}`,
+            `%c${logId}:🟩 createNode() childId: ${JSON.stringify(nodeSchema)}`,
             logStyle,
         );
 
@@ -487,7 +485,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public removeNode(nodeId: string)
     {
         console.log(
-            `%c${logId}:removeNode! nodeId: ${nodeId}`,
+            `%c${logId}:🟩 removeNode() nodeId: ${nodeId}`,
             logStyle,
         );
 
@@ -519,7 +517,7 @@ export class Datastore extends EventEmitter<DatastoreEvents>
     public setNodeParent(childId: string, parentId: string)
     {
         console.log(
-            `%c${logId}:setNodeParent! childId: ${childId} parentId: ${parentId}`,
+            `%c${logId}:🟩 setNodeParent() childId: ${childId} parentId: ${parentId}`,
             logStyle,
         );
 
@@ -539,22 +537,10 @@ export class Datastore extends EventEmitter<DatastoreEvents>
         }
     }
 
-    public updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema)
-    {
-        console.log(
-            `%c${logId}:updateNodeCloneInfo! nodeId: ${nodeId} cloneInfoSchema: ${JSON.stringify(cloneInfoSchema)}`,
-            logStyle,
-        );
-
-        const nodeElement = this.getNodeElement(nodeId);
-
-        nodeElement.get('cloneInfo').value(cloneInfoSchema);
-    }
-
     public modifyNodeModel(nodeId: string, values: object)
     {
         console.log(
-            `%c${logId}:modifyNodeModel! nodeId: ${nodeId} values: ${JSON.stringify(values)}`,
+            `%c${logId}:🟩 modifyNodeModel() nodeId: ${nodeId} values: ${JSON.stringify(values)}`,
             logStyle,
         );
 
@@ -573,6 +559,18 @@ export class Datastore extends EventEmitter<DatastoreEvents>
                 }
             });
         }
+    }
+
+    public updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema)
+    {
+        console.log(
+            `%c${logId}:🟩 updateNodeCloneInfo() nodeId: ${nodeId} cloneInfoSchema: ${JSON.stringify(cloneInfoSchema)}`,
+            logStyle,
+        );
+
+        const nodeElement = this.getNodeElement(nodeId);
+
+        nodeElement.get('cloneInfo').value(cloneInfoSchema);
     }
 
     public async disconnect()

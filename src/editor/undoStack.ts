@@ -1,13 +1,18 @@
+import { EventEmitter } from 'eventemitter3';
+
 import type { Command } from './command';
 import type { Datastore } from './sync/datastore';
 
-export default class UndoStack
+export type UndoStackEvent = 'push' | 'undo' | 'redo';
+
+export default class UndoStack extends EventEmitter<UndoStackEvent>
 {
     public stack: Command[];
     public head: number;
 
     constructor(public readonly datastore: Datastore)
     {
+        super();
         this.stack = [];
         this.head = -1;
     }
@@ -33,7 +38,6 @@ export default class UndoStack
 
         if (head >= -1 && head < stack.length - 1)
         {
-            // if we have undone and there are commands past the head, delete them
             const deleteCount = stack.length - 1 - head;
 
             stack.splice(head + 1, deleteCount);
@@ -41,6 +45,8 @@ export default class UndoStack
 
         stack.push(command);
         this.head++;
+
+        this.emit('push', command);
     }
 
     public undo()
@@ -58,6 +64,7 @@ export default class UndoStack
         {
             const cmd = stack[i];
 
+            this.emit('undo', cmd);
             cmd.undo();
         }
 
@@ -70,6 +77,7 @@ export default class UndoStack
 
         for (const cmd of commands)
         {
+            this.emit('redo', cmd);
             cmd.redo();
             this.head++;
         }
