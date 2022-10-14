@@ -179,7 +179,12 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
         consolidateId(nodeId);
 
-        console.log(`%c${logId}:%c🟦 onNodeCreated: ${JSON.stringify(nodeElement.toJSON())}`, userColor, logStyle);
+        console.log(
+            `%c${logId}:%c🟦 onNodeCreated: nodeId: "${nodeId}" %c${JSON.stringify(nodeElement.toJSON())}`,
+            userColor,
+            logStyle,
+            'color:#999',
+        );
 
         this.registerNodeElement(nodeId, nodeElement);
 
@@ -211,7 +216,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
             const oldParentId = event.oldValue.value();
 
             console.log(
-                `%c${logId}:%c🟦 onNodeRootPropertySet(parent): parentId: "${parentId}" 
+                `%c${logId}:%c🟦 onNodeRootPropertySet["parent"]: parentId: "${parentId}" 
                 childId: "${nodeId}" oldParentId: "${oldParentId}"`, userColor, logStyle,
             );
 
