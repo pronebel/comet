@@ -41,6 +41,7 @@
 
 <main>
   <canvas bind:this={canvas} />
+
   {#if connectionError}
     <div class="error">{connectionError}</div>
   {:else if isConnected && canvas}
@@ -50,6 +51,7 @@
       <!-- todo: EditorApp-->
     {/if}
   {/if}
+
   {#if windowError}
     <div class="windowError">
       <!-- svelte-ignore a11y-invalid-attribute -->
@@ -62,6 +64,7 @@
       <pre>{windowError.stack?.replace(/ at /g, "\nat ")}</pre>
     </div>
   {/if}
+
   <HotReload />
 </main>
 
