@@ -1,8 +1,8 @@
 // register all node types!
 import './core/nodeRegistry';
 // styles
-import './style/theme.css';
 import './style/app.css';
+import './style/theme.css';
 import './style/dark-theme.css';
 import './style/light-theme.css';
 

@@ -155,9 +155,9 @@ export class DevToolsApp extends Application
         }
     }
 
-    protected resetState(): void
+    protected clear(): void
     {
-        super.resetState();
+        super.clear();
 
         delete this.selected;
         this.selection.visible = false;
@@ -214,7 +214,7 @@ export class DevToolsApp extends Application
 
             console.clear();
             this.datastore.setNodesData(nodes);
-            this.resetState();
+            this.clear();
             this.openProject('test');
         }
     }

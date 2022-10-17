@@ -163,8 +163,9 @@ export class Datastore extends EventEmitter<DatastoreEvent>
                 },
             }).then((domain) =>
             {
-                clearTimeout(timeout);
                 console.log(`%c${logId}:%cConnected as "${userName}"`, userColor, logStyle);
+
+                clearTimeout(timeout);
                 this._domain = domain;
                 resolve(domain);
             }).catch(reject);

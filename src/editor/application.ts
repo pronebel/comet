@@ -3,11 +3,11 @@
 import { EventEmitter } from 'eventemitter3';
 
 import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
-import type { ProjectNode } from '../core/nodes/concrete/project';
+import { ProjectNode } from '../core/nodes/concrete/project';
 import { clearInstances, getInstance } from '../core/nodes/instances';
 import { RemoveNodeCommand } from './commands/removeNode';
 import type { Command } from './core/command';
-import { createCommand } from './core/commandFactory';
+import { initHistory, writeCommandList, writeUndoStack } from './core/history';
 import UndoStack from './core/undoStack';
 import { initDiagnostics } from './diagnostics';
 import { Datastore } from './sync/datastore';
@@ -20,45 +20,17 @@ const userColor = getUserLogColor(userName);
 const logId = `${userName}`;
 const logStyle = 'color:LightCyan;';
 
-const localStorageUndoStackKey = `${userName}:undo`;
-
-export const localStorageCommandsKey = `commandList`;
-
-export interface AppOptions
-{
-    canvas: HTMLCanvasElement;
-}
-
 export type AppEvents = 'commandExec';
 
-export abstract class Application extends EventEmitter<AppEvents>
+export class Application extends EventEmitter<AppEvents>
 {
     public datastore: Datastore;
     public nodeUpdater: NodeUpdater;
     public undoStack: UndoStack;
     public editorViews: EditorView[];
-    public project?: ProjectNode;
+    public project: ProjectNode;
 
     private static _instance: Application;
-
-    constructor(public readonly options: AppOptions)
-    {
-        super();
-
-        Application._instance = this;
-
-        (window as any).app = this;
-
-        const datastore = this.datastore = new Datastore();
-
-        this.editorViews = [];
-        this.undoStack = new UndoStack(datastore);
-        this.nodeUpdater = new NodeUpdater(datastore);
-
-        initDiagnostics(this);
-
-        this.initDatastoreEvents();
-    }
 
     public static get instance()
     {
@@ -70,42 +42,39 @@ export abstract class Application extends EventEmitter<AppEvents>
         return Application._instance;
     }
 
-    public createEditorView(id: string)
+    constructor(public readonly options: {})
     {
-        const view = new EditorView(id);
+        super();
 
-        this.editorViews.push(view);
+        Application._instance = this;
 
-        return view;
+        (window as any).app = this;
+
+        this.project = new ProjectNode();
+
+        const datastore = this.datastore = new Datastore();
+
+        this.editorViews = [];
+        this.undoStack = new UndoStack(datastore);
+        this.nodeUpdater = new NodeUpdater(datastore);
+
+        this.init();
     }
 
-    protected initDatastoreEvents()
+    protected init()
     {
-        this.datastore.on('nodeRemoved', () => { this.writeUndoStack(); });
+        initDiagnostics(this);
+        initHistory();
+        this.datastore.on('nodeRemoved', () => { writeUndoStack(); });
     }
 
-    public undo = () =>
+    protected clear()
     {
-        this.writeCommandList('undo');
-        this.undoStack.undo();
-        this.onUndo();
-    };
+        clearInstances();
 
-    public redo = () =>
-    {
-        this.writeCommandList('redo');
-        this.undoStack.redo();
-        this.onRedo();
-    };
-
-    protected onUndo()
-    {
-        //
-    }
-
-    protected onRedo()
-    {
-        //
+        this.undoStack.clear();
+        this.datastore.reset();
+        this.editorViews.forEach((view) => view.reset());
     }
 
     public connect()
@@ -113,30 +82,47 @@ export abstract class Application extends EventEmitter<AppEvents>
         return this.datastore.connect();
     }
 
-    public async init()
+    public async createProject(name: string, id: string)
     {
-        if (localStorage['saveUndo'] === '0')
+        const { datastore } = this;
+
+        this.clear();
+
+        if (await datastore.hasProject(name))
         {
-            localStorage['replayIndex'] = '0';
+            await datastore.deleteProject(id);
         }
-        else
-        {
-            localStorage[localStorageCommandsKey] = '[]';
-            localStorage.removeItem('replayIndex');
-        }
+
+        const project = await datastore.createProject(name, id) as unknown as ProjectNode;
+
+        this.initProject(project);
+    }
+
+    public async openProject(id: string)
+    {
+        this.clear();
+
+        const project = await this.datastore.openProject(id) as unknown as ProjectNode;
+
+        this.initProject(project);
+    }
+
+    protected initProject(project: ProjectNode)
+    {
+        this.project = project;
     }
 
     public exec<R = unknown>(command: Command, isUndoRoot = true): R
     {
         command.isUndoRoot = isUndoRoot;
 
-        this.writeCommandList(command.name);
+        writeCommandList(command.name);
 
         this.undoStack.push(command);
 
         if (localStorage['saveUndo'] !== '0')
         {
-            this.writeUndoStack();
+            writeUndoStack();
         }
 
         console.group(`%c${logId}:%c🔔 ${command.name}.run()`, userColor, `font-weight:bold;${logStyle}`);
@@ -151,96 +137,13 @@ export abstract class Application extends EventEmitter<AppEvents>
         return result as unknown as R;
     }
 
-    public writeUndoStack()
+    public createEditorView(id: string)
     {
-        const data = JSON.stringify(this.undoStack.toJSON(), null, 4);
+        const view = new EditorView(id, this.project);
 
-        localStorage[localStorageUndoStackKey] = data;
-    }
+        this.editorViews.push(view);
 
-    public writeCommandList(commandName: string)
-    {
-        if (localStorage['saveUndo'] === '0')
-        {
-            return;
-        }
-
-        const commandList = JSON.parse(localStorage[localStorageCommandsKey] || '[]') as string[];
-
-        commandList.push(`${userName}:${commandName}`);
-        localStorage[localStorageCommandsKey] = JSON.stringify(commandList);
-    }
-
-    public readUndoStack(endIndex: number | undefined = undefined)
-    {
-        const data = localStorage[localStorageUndoStackKey];
-
-        if (data)
-        {
-            const { undoStack } = this;
-            let commandArray = JSON.parse(data) as any[];
-
-            commandArray = commandArray.slice(0, endIndex === 0 ? undefined : endIndex);
-
-            const commands = commandArray.map((commandJSON) =>
-                createCommand(commandJSON));
-
-            undoStack.stack.length = 0;
-            undoStack.stack.push(...commands);
-            undoStack.head = -1;
-        }
-    }
-
-    protected resetState()
-    {
-        if (this.project)
-        {
-            clearInstances();
-
-            this.undoStack.clear();
-            this.datastore.reset();
-            this.editorViews.forEach((view) => view.reset());
-
-            delete this.project;
-        }
-    }
-
-    public async createProject(name: string, id: string)
-    {
-        const { datastore } = this;
-
-        this.resetState();
-
-        if (await datastore.hasProject(name))
-        {
-            await datastore.deleteProject(id);
-        }
-
-        const project = await datastore.createProject(name, id) as unknown as ProjectNode;
-
-        this.initProject(project);
-    }
-
-    public async openProject(id: string)
-    {
-        this.resetState();
-
-        const project = await this.datastore.openProject(id) as unknown as ProjectNode;
-
-        this.initProject(project);
-    }
-
-    protected initProject(project: ProjectNode)
-    {
-        this.project = project;
-    }
-
-    protected onDatastoreHydrated()
-    {
-        if (this.project)
-        {
-            this.project.updateRecursive();
-        }
+        return view;
     }
 
     public restoreNode(nodeId: string)

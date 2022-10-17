@@ -1,5 +1,6 @@
 <script lang="ts">
-  import { localStorageCommandsKey, Application } from "../../application";
+  import { Application } from "../../application";
+  import { commandHistoryKey, replayIndexKey } from "../../core/localStorage";
   import { getUserName } from "../../sync/user";
 
   const app = Application.instance;
@@ -9,7 +10,7 @@
 
   function parseCommandList() {
     try {
-      const array = JSON.parse(localStorage[localStorageCommandsKey]);
+      const array = JSON.parse(localStorage[commandHistoryKey]);
       commandList.length = 0;
       commandList.push(...array);
     } catch (e) {}
@@ -24,8 +25,8 @@
     }
   });
 
-  let selectedIndex = !isNaN(parseInt(localStorage["replayIndex"]))
-    ? parseInt(localStorage["replayIndex"])
+  let selectedIndex = !isNaN(parseInt(localStorage[replayIndexKey]))
+    ? parseInt(localStorage[replayIndexKey])
     : -1;
 
   function getMyCommandIndex(index: number) {
@@ -45,7 +46,7 @@
 
   function onClick(index: number) {
     selectedIndex = index;
-    localStorage.setItem("replayIndex", String(selectedIndex));
+    localStorage.setItem(replayIndexKey, String(selectedIndex));
   }
 
   function exec() {
@@ -71,11 +72,11 @@
   function onRedo() {
     exec();
     selectedIndex = Math.min(commandList.length - 1, selectedIndex + 1);
-    localStorage.setItem("replayIndex", String(selectedIndex));
+    localStorage.setItem(replayIndexKey, String(selectedIndex));
   }
 
   setInterval(() => {
-    const replayIndex = localStorage.getItem("replayIndex");
+    const replayIndex = localStorage.getItem(replayIndexKey);
 
     if (replayIndex) {
       const index = parseInt(replayIndex as string);
