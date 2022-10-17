@@ -1,4 +1,4 @@
-import type { Application } from './application';
+import { Application } from './application';
 import type { Command, CommandSchema } from './core/command';
 import type { UndoStackEvent } from './core/undoStack';
 import type {
@@ -49,8 +49,10 @@ function logCommand(mode: UndoStackEvent, command: Command)
     });
 }
 
-export function initDiagnostics(app: Application)
+export function initDiagnostics()
 {
+    const app = Application.instance;
+
     app.datastore
         .on('nodeCreated', (e: DSNodeCreatedEvent) => logDSEvent('nodeCreated', e))
         .on('nodeRemoved', (e: DSNodeRemovedEvent) => logDSEvent('nodeRemoved', e))

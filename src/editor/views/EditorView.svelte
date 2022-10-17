@@ -1,25 +1,17 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import type { EditorView } from "../ui/editorView";
+  import type { EditableView } from "../ui/editableView";
 
-  export let editorView: EditorView;
+  export let view: EditableView;
 
-  let canvas: HTMLCanvasElement;
+  let container: HTMLDivElement;
 
   onMount(() => {
-    editorView.canvas = canvas;
+    view.setContainer(container);
   });
 </script>
 
-<main>
-  <canvas bind:this={canvas} />
-</main>
-
-<style>
-  canvas,
-  div {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-  }
-</style>
+<div
+  data-section="editorView"
+  class="fill flex-container-center"
+  bind:this={container} />

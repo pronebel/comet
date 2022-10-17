@@ -29,7 +29,7 @@ body {
   height: 100%;
 }
 
-.flex-center {
+.flex-container-center {
   display: flex;
   align-items: center;
   justify-content: center;

@@ -1,7 +1,7 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import HotReload from "./HotReload.svelte";
   import { Application } from "../application";
+  import HotReload from "./HotReload.svelte";
   import MainLayout from "./MainLayout.svelte";
 
   const app: Application = new Application({});
@@ -38,8 +38,7 @@
     height: 100%;
   }
 
-  .error,
-  .windowError {
+  .error {
     font-weight: bold;
     text-align: center;
     background-color: red;

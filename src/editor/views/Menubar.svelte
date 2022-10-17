@@ -1,12 +1,9 @@
 <script lang="ts">
-  import { Application } from "../application";
+  import { newDebugNode } from "../devTools/actions/newDebugNode";
 </script>
 
-<div data-section="menubar" class="fill flex-center">
-  <button on:click={() => Application.instance.createProject("Test", "test")}
-    >Create</button
-  >
-  <button>Open</button>
+<div data-section="menubar" class="fill flex-container-center">
+  <button on:click={() => newDebugNode()}>New Node</button>
 </div>
 
 <style>

@@ -13,21 +13,21 @@ import { initDiagnostics } from './diagnostics';
 import { Datastore } from './sync/datastore';
 import { NodeUpdater } from './sync/nodeUpdater';
 import { getUserLogColor, getUserName } from './sync/user';
-import { EditorView } from './ui/editorView';
+import { EditableView } from './ui/editableView';
 
 const userName = getUserName();
 const userColor = getUserLogColor(userName);
 const logId = `${userName}`;
 const logStyle = 'color:LightCyan;';
 
-export type AppEvents = 'commandExec';
+export type AppEvents = 'editorViewCreated';
 
 export class Application extends EventEmitter<AppEvents>
 {
     public datastore: Datastore;
     public nodeUpdater: NodeUpdater;
     public undoStack: UndoStack;
-    public editorViews: EditorView[];
+    public editorViews: EditableView[];
     public project: ProjectNode;
 
     private static _instance: Application;
@@ -55,31 +55,24 @@ export class Application extends EventEmitter<AppEvents>
         const datastore = this.datastore = new Datastore();
 
         this.editorViews = [];
+
         this.undoStack = new UndoStack(datastore);
         this.nodeUpdater = new NodeUpdater(datastore);
 
-        this.init();
-    }
-
-    protected init()
-    {
-        initDiagnostics(this);
-        initHistory();
         this.datastore.on('nodeRemoved', () => { writeUndoStack(); });
+
+        initDiagnostics();
+        initHistory();
     }
 
-    protected clear()
+    public async connect()
     {
-        clearInstances();
+        await this.datastore.connect();
 
-        this.undoStack.clear();
-        this.datastore.reset();
-        this.editorViews.forEach((view) => view.reset());
-    }
-
-    public connect()
-    {
-        return this.datastore.connect();
+        setTimeout(() =>
+        {
+            this.createProject('Test', 'test');
+        }, 100);
     }
 
     public async createProject(name: string, id: string)
@@ -93,23 +86,30 @@ export class Application extends EventEmitter<AppEvents>
             await datastore.deleteProject(id);
         }
 
-        const project = await datastore.createProject(name, id) as unknown as ProjectNode;
-
-        this.initProject(project);
+        this.project = await datastore.createProject(name, id) as unknown as ProjectNode;
+        this.init();
     }
 
     public async openProject(id: string)
     {
         this.clear();
 
-        const project = await this.datastore.openProject(id) as unknown as ProjectNode;
-
-        this.initProject(project);
+        this.project = await this.datastore.openProject(id) as unknown as ProjectNode;
+        this.init();
     }
 
-    protected initProject(project: ProjectNode)
+    protected init()
     {
-        this.project = project;
+        this.createEditorView();
+    }
+
+    protected clear()
+    {
+        clearInstances();
+
+        this.undoStack.clear();
+        this.datastore.reset();
+        // this.editorViews.forEach((view) => view.reset());
     }
 
     public exec<R = unknown>(command: Command, isUndoRoot = true): R
@@ -132,18 +132,25 @@ export class Application extends EventEmitter<AppEvents>
 
         console.groupEnd();
 
-        this.emit('commandExec', command, result);
-
         return result as unknown as R;
     }
 
-    public createEditorView(id: string)
+    public createEditorView()
     {
-        const view = new EditorView(id, this.project);
+        const view = new EditableView(this.project);
 
         this.editorViews.push(view);
 
+        this.emit('editorViewCreated', view);
+
         return view;
+    }
+
+    public emit<T extends AppEvents>(event: T, ...args: any[]): boolean
+    {
+        console.log(`%c${logId}:%c✨ ${event}!`, userColor, logStyle);
+
+        return EventEmitter.prototype.emit.call(this, event, ...args) as boolean;
     }
 
     public restoreNode(nodeId: string)

@@ -1,24 +1,21 @@
-// import { Application } from '../application';
+import { createNodeSchema } from '../../../core/nodes/schema';
+import { Application } from '../../application';
+import { AddChildCommand } from '../../commands/addChild';
 
-export function undo()
+export function newDebugNode()
 {
-    // const app = Application.instance;
+    const app = Application.instance;
+    const parentId = 'Scene:1';
+    const nodeSchema = createNodeSchema('Debug', {
+        parent: parentId,
+        model: {
+            x: 20,
+            y: 20,
+            width: 20,
+            height: 20,
+            tint: Math.round(Math.random() * 100000),
+        },
+    });
 
-    // if (this.project && this.selected)
-    // {
-    //     const parentId = this.selected.id;
-
-    //     const nodeSchema = createNodeSchema('Debug', {
-    //         parent: parentId,
-    //         model: {
-    //             x: 20,
-    //             y: 20,
-    //             width: 20,
-    //             height: 20,
-    //             tint: Math.round(Math.random() * 100000),
-    //         },
-    //     });
-
-    //     this.exec(new AddChildCommand({ parentId, nodeSchema }));
-    // }
+    app.exec(new AddChildCommand({ parentId, nodeSchema }));
 }
