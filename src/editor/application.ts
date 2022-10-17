@@ -1,7 +1,6 @@
 // note: this file must be imported to trigger node type registration
 
 import { EventEmitter } from 'eventemitter3';
-import { Application as PixiApplication } from 'pixi.js';
 
 import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { ProjectNode } from '../core/nodes/concrete/project';
@@ -14,6 +13,7 @@ import { initDiagnostics } from './diagnostics';
 import { Datastore } from './sync/datastore';
 import { NodeUpdater } from './sync/nodeUpdater';
 import { getUserLogColor, getUserName } from './sync/user';
+import { EditorView } from './ui/editorView';
 
 const userName = getUserName();
 const userColor = getUserLogColor(userName);
@@ -33,10 +33,10 @@ export type AppEvents = 'commandExec';
 
 export abstract class Application extends EventEmitter<AppEvents>
 {
-    public pixiApp: PixiApplication;
     public datastore: Datastore;
     public nodeUpdater: NodeUpdater;
     public undoStack: UndoStack;
+    public editorViews: EditorView[];
     public project?: ProjectNode;
 
     private static _instance: Application;
@@ -49,14 +49,9 @@ export abstract class Application extends EventEmitter<AppEvents>
 
         (window as any).app = this;
 
-        this.pixiApp = new PixiApplication({
-            view: options.canvas,
-            resizeTo: options.canvas,
-            backgroundColor: 0x333333,
-        });
-
         const datastore = this.datastore = new Datastore();
 
+        this.editorViews = [];
         this.undoStack = new UndoStack(datastore);
         this.nodeUpdater = new NodeUpdater(datastore);
 
@@ -75,9 +70,13 @@ export abstract class Application extends EventEmitter<AppEvents>
         return Application._instance;
     }
 
-    public get stage()
+    public createEditorView(id: string)
     {
-        return this.pixiApp.stage;
+        const view = new EditorView(id);
+
+        this.editorViews.push(view);
+
+        return view;
     }
 
     protected initDatastoreEvents()
@@ -200,8 +199,7 @@ export abstract class Application extends EventEmitter<AppEvents>
 
             this.undoStack.clear();
             this.datastore.reset();
-
-            this.stage.removeChild(this.project.view);
+            this.editorViews.forEach((view) => view.reset());
 
             delete this.project;
         }

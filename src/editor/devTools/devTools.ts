@@ -34,20 +34,18 @@ const logId = `${userName}`;
 // must register any nodes outside of core explicitly
 registerNodeType(DebugNode);
 
-export class DevApp extends Application
+export class DevTools
 {
     public selected?: ContainerNode;
     public selection: Sprite;
 
     public static getInstance()
     {
-        return Application.instance as unknown as DevApp;
+        return Application.instance as unknown as DevTools;
     }
 
-    constructor(options: AppOptions)
+    constructor()
     {
-        super(options);
-
         const selection = this.selection = new Sprite(Texture.WHITE);
 
         selection.tint = 0x00ffff;

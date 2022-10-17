@@ -1,6 +1,6 @@
 <script lang="ts">
   import { onMount } from "svelte";
-  import HotReload from "./util/HotReload.svelte";
+  import HotReload from "./HotReload.svelte";
   import DevTools from "../devTools/views/DevTools.svelte";
   import { DevToolsApp } from "../devTools/app";
   import { Editor } from "../editor";
