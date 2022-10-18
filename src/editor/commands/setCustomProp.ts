@@ -1,5 +1,3 @@
-import type { RealTimeObject } from '@convergence/convergence';
-
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomProperty, CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import { type UpdateMode, Command } from '../core/command';
@@ -28,19 +26,12 @@ export class SetCustomPropCommand
     public apply(): void
     {
         const { datastore, params: { nodeId, customKey, type, value, updateMode }, cache } = this;
-
-        const nodeElement = datastore.getNodeElement(nodeId);
-        const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
-
         const node = this.getInstance(nodeId);
 
         if (updateMode === 'full')
         {
             // update datastore
-            definedCustomProps.set(customKey, {
-                type,
-                value,
-            });
+            datastore.setCustomProperty(nodeId, customKey, type, value);
         }
 
         // update cache

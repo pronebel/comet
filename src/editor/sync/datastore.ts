@@ -10,6 +10,7 @@ import { EventEmitter } from 'eventemitter3';
 
 import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import { consolidateId, getInstance } from '../../core/nodes/instances';
 import type { CloneInfoSchema, NodeSchema, ProjectSchema } from '../../core/nodes/schema';
 import { createProjectSchema } from '../../core/nodes/schema';
@@ -601,6 +602,46 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const nodeElement = this.getNodeElement(nodeId);
 
         nodeElement.get('cloneInfo').value(cloneInfoSchema);
+    }
+
+    public setCustomProperty(
+        nodeId: string,
+        customKey: string,
+        type: CustomPropertyType,
+        value: CustomPropertyValueType | undefined,
+    )
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+        const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
+
+        definedCustomProps.set(customKey, {
+            type,
+            value,
+        });
+    }
+
+    public removeCustomProperty(nodeId: string, customKey: string)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+        const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
+
+        definedCustomProps.remove(customKey);
+    }
+
+    public assignCustomProperty(nodeId: string, modelKey: string, customKey: string)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+        const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
+
+        assignedCustomProps.set(modelKey, customKey);
+    }
+
+    public unassignCustomProperty(nodeId: string, modelKey: string)
+    {
+        const nodeElement = this.getNodeElement(nodeId);
+        const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
+
+        assignedCustomProps.remove(modelKey);
     }
 
     public async disconnect()

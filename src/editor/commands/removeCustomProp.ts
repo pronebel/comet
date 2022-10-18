@@ -1,5 +1,3 @@
-import type { RealTimeObject } from '@convergence/convergence';
-
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomProperty } from '../../core/nodes/customProperties';
 import { type UpdateMode, Command } from '../core/command';
@@ -32,10 +30,7 @@ export class RemoveCustomPropCommand
         if (updateMode === 'full')
         {
             // update datastore
-            const nodeElement = datastore.getNodeElement(nodeId);
-            const definedCustomProps = nodeElement.elementAt('customProperties', 'defined') as RealTimeObject;
-
-            definedCustomProps.remove(customKey);
+            datastore.removeCustomProperty(nodeId, customKey);
         }
 
         // update cache

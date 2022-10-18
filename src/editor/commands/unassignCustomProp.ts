@@ -1,5 +1,3 @@
-import type { RealTimeObject } from '@convergence/convergence';
-
 import { type UpdateMode, Command } from '../core/command';
 import { AssignCustomPropCommand } from './assignCustomProp';
 
@@ -39,10 +37,7 @@ export class UnAssignCustomPropCommand
             if (updateMode === 'full')
             {
                 // update datastore
-                const nodeElement = datastore.getNodeElement(nodeId);
-                const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
-
-                assignedCustomProps.remove(modelKey);
+                datastore.unassignCustomProperty(nodeId, modelKey);
             }
         }
     }
