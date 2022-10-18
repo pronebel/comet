@@ -9,6 +9,9 @@ export default defineConfig(({ command, mode }) => {
     // loadEnv(mode, process.cwd(), '')
     return {
         plugins: [svelte()], 
+        server: {
+            hmr: false,
+        },
         build: { 
             sourcemap: true,
             chunkSizeWarningLimit: 2000,

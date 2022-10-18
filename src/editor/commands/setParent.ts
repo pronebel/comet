@@ -1,3 +1,4 @@
+console.log('SETPARENT');
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { Command } from '../core/command';
 

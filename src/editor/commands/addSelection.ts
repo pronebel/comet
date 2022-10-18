@@ -1,3 +1,4 @@
+import type { ContainerNode } from '../../core/nodes/concrete/container';
 import { Command } from '../core/command';
 import type { EditableView } from '../ui/editableView';
 
@@ -16,7 +17,7 @@ export class AddSelectionCommand
     {
         const { params: { nodeId, view } } = this;
 
-        const node = this.getInstance(nodeId);
+        const node = this.getInstance<ContainerNode>(nodeId);
 
         view.selection.add(node);
     }
@@ -25,7 +26,7 @@ export class AddSelectionCommand
     {
         const { params: { nodeId, view } } = this;
 
-        const node = this.getInstance(nodeId);
+        const node = this.getInstance<ContainerNode>(nodeId);
 
         view.selection.remove(node);
     }

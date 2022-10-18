@@ -1,4 +1,5 @@
-import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+console.log('COMMAND');
+import type { AnyNode, ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance } from '../../core/nodes/instances';
 import { Application } from '../application';
 import type { CommandName } from './commandFactory';
@@ -65,7 +66,7 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
         return this.app.datastore;
     }
 
-    protected getInstance(nodeId: string): ClonableNode
+    protected getInstance<T extends AnyNode>(nodeId: string): T
     {
         const { datastore, app } = this;
         const node = getInstance<ClonableNode>(nodeId);
@@ -75,7 +76,7 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
             app.restoreNode(node.id);
         }
 
-        return node;
+        return node as unknown as T;
     }
 
     public toJSON(): CommandSchema

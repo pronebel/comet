@@ -41,6 +41,11 @@ export class ContainerNode<
         return new Container() as V;
     }
 
+    public getBounds()
+    {
+        return this.view.getBounds();
+    }
+
     // public updateView(): void
     // {
     //     const { view, values: {

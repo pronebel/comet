@@ -28,6 +28,7 @@ export class Application extends EventEmitter<AppEvents>
     public nodeUpdater: NodeUpdater;
     public undoStack: UndoStack;
     public editorViews: EditableView[];
+    public focusEditorView?: EditableView;
     public project: ProjectNode;
 
     private static _instance: Application;
@@ -140,6 +141,7 @@ export class Application extends EventEmitter<AppEvents>
         const view = new EditableView(this.project);
 
         this.editorViews.push(view);
+        this.focusEditorView = view;
 
         this.emit('editorViewCreated', view);
 

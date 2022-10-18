@@ -8,7 +8,19 @@ export function degToRad(deg: number)
     return deg * (Math.PI / 180);
 }
 
-export function distance(x1: number, y1: number, x2: number, y2: number)
+export function angleBetween(x1: number, y1: number, x2: number, y2: number)
+{
+    let deg = radToDeg(Math.atan2(y2 - y1, x2 - x1));
+
+    if (deg < 0)
+    {
+        deg = 180 + (180 - Math.abs(deg));
+    }
+
+    return deg;
+}
+
+export function distanceBetween(x1: number, y1: number, x2: number, y2: number)
 {
     const x = Math.abs(x2 - x1);
     const y = Math.abs(y2 - y1);
@@ -16,10 +28,13 @@ export function distance(x1: number, y1: number, x2: number, y2: number)
     return Math.sqrt((y * y) + (x * x));
 }
 
-export function polarPoint(deg: number, length: number)
+export function polarPoint(deg: number, length: number, centerX = 0, centerY = 0)
 {
-    const x = length * Math.cos(degToRad(deg));
-    const y = length * Math.sin(degToRad(deg));
+    const rad = degToRad(deg);
+    const x = centerX + (length * Math.cos(rad));
+    const y = centerY + (length * Math.sin(rad));
 
-    return [x, y];
+    return { x, y };
 }
+
+(window as any).polarPoint = polarPoint;

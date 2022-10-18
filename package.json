@@ -25,6 +25,7 @@
     },
     "dependencies": {
         "@convergence/convergence": "1.0.0-rc.12",
+        "color": "^4.2.3",
         "eventemitter3": "~4.0.7",
         "fast-equals": "^4.0.3",
         "hotkeys-js": "^3.10.0",
@@ -39,6 +40,7 @@
         "@goodboydigital/eslint-config": "^2.1.0",
         "@rollup/plugin-typescript": "~8.3.4",
         "@sveltejs/vite-plugin-svelte": "~1.0.1",
+        "@types/color": "^3.0.3",
         "@types/jest": "~28.1.6",
         "@types/node": "~18.7.2",
         "@types/uuid": "^8.3.4",

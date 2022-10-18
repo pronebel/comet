@@ -1,12 +1,12 @@
 import { EventEmitter } from 'eventemitter3';
 
-import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import type { ContainerNode } from '../../core/nodes/concrete/container';
 
 export type NodeSelectionEvent = 'add' | 'remove';
 
 export class NodeSelection extends EventEmitter<NodeSelectionEvent>
 {
-    public nodes: ClonableNode[];
+    public nodes: ContainerNode[];
 
     constructor()
     {
@@ -15,14 +15,14 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
         this.nodes = [];
     }
 
-    public add(node: ClonableNode)
+    public add(node: ContainerNode)
     {
         this.nodes.push(node);
 
         this.emit('add', node);
     }
 
-    public remove(node: ClonableNode)
+    public remove(node: ContainerNode)
     {
         const index = this.nodes.indexOf(node);
 
@@ -34,5 +34,39 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
         this.nodes.splice(index, 1);
 
         this.emit('remove', node);
+    }
+
+    public get hasSelection()
+    {
+        return this.nodes.length > 0;
+    }
+
+    public get firstNode(): ContainerNode | undefined
+    {
+        const { nodes } = this;
+
+        if (nodes.length === 0)
+        {
+            return undefined;
+        }
+
+        return nodes[0];
+    }
+
+    public get lastNode(): ContainerNode | undefined
+    {
+        const { nodes } = this;
+
+        if (nodes.length === 0)
+        {
+            return undefined;
+        }
+
+        return nodes[nodes.length - 1];
+    }
+
+    public isSelected(node: ContainerNode)
+    {
+        return this.nodes.indexOf(node) > -1;
     }
 }
