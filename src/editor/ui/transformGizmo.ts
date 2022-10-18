@@ -2,7 +2,7 @@ import type { InteractionEvent } from 'pixi.js';
 import { Container, Graphics, Rectangle } from 'pixi.js';
 
 import { angleBetween, distanceBetween, polarPoint } from '../../core/util/geom';
-import { drag } from './drag';
+import { type DragInfo, drag } from './drag';
 
 // transform handle and origin sizes
 const transformHandleSize = 7;
@@ -68,6 +68,9 @@ export class TransformGizmo extends Container
 
             e.stopPropagation();
 
+            const sx = bounds.x;
+            const sy = bounds.y;
+
             drag((dragInfo) =>
             {
                 const toX = startX + dragInfo.x;
@@ -86,6 +89,9 @@ export class TransformGizmo extends Container
                 this.originPos.x = origin.x / bounds.width;
                 this.originPos.y = origin.y / bounds.height;
 
+                bounds.x = sx + dragInfo.x;
+                bounds.y = sy + dragInfo.y;
+
                 this.update();
             });
         });
@@ -103,14 +109,14 @@ export class TransformGizmo extends Container
         this.addChild(origin);
 
         // create handles
-        this.topLeftHandle = this.createTransformHandle();
-        this.topCenterHandle = this.createTransformHandle();
-        this.topRightHandle = this.createTransformHandle();
-        this.rightCenterHandle = this.createTransformHandle();
-        this.bottomRightHandle = this.createTransformHandle();
-        this.bottomCenterHandle = this.createTransformHandle();
-        this.bottomLeftHandle = this.createTransformHandle();
-        this.leftCenterHandle = this.createTransformHandle();
+        this.topLeftHandle = this.createHandle();
+        this.topCenterHandle = this.createHandle();
+        this.topRightHandle = this.createHandle();
+        this.rightCenterHandle = this.createHandle((startBounds, { x }) => (bounds.width = startBounds.width + x));
+        this.bottomRightHandle = this.createHandle();
+        this.bottomCenterHandle = this.createHandle((startBounds, { y }) => (bounds.height = startBounds.height + y));
+        this.bottomLeftHandle = this.createHandle();
+        this.leftCenterHandle = this.createHandle();
 
         setInterval(() =>
         {
@@ -121,12 +127,26 @@ export class TransformGizmo extends Container
         this.update();
     }
 
-    protected createTransformHandle()
+    protected createHandle(dragHandler?: (startBounds: Rectangle, dragInfo: DragInfo, event: MouseEvent) => void)
     {
         const handle = new Graphics(handleTemplateGeometry);
 
         handle.interactive = true;
         handle.cursor = 'pointer';
+
+        if (dragHandler)
+        {
+            handle.on('mousedown', () =>
+            {
+                const startBounds = this.bounds.clone();
+
+                drag((dragInfo, event) =>
+                {
+                    dragHandler(startBounds, dragInfo, event);
+                    this.update();
+                });
+            });
+        }
 
         this.addChild(handle);
 
@@ -157,8 +177,6 @@ export class TransformGizmo extends Container
         this.pivot.y = bottom * originPos.y;
 
         // set location
-        // this.x = bounds.x + this.pivot.x;
-        // this.y = bounds.y + this.pivot.y;
         this.x = bounds.x;
         this.y = bounds.y;
 
