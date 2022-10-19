@@ -21,9 +21,11 @@ handleTemplate.endFill();
 
 export interface StartDragInfo
 {
+    handle: Graphics;
     bounds: Rectangle;
     angle: number;
     mouseAngle: number;
+    centerDistance: number;
 }
 
 export class TransformGizmo extends Container
@@ -48,9 +50,10 @@ export class TransformGizmo extends Container
     {
         super();
 
-        const bounds = this.bounds = new Rectangle(200, 200, 100, 50);
         const border = this.border = new Graphics();
         const origin = this.origin = new Graphics();
+
+        this.bounds = new Rectangle(200, 200, 100, 50);
 
         // bind bounds drag events
         border.interactive = true;
@@ -73,27 +76,16 @@ export class TransformGizmo extends Container
         this.addChild(origin);
 
         // create handles
-        this.topLeftHandle = this.createHandle();
-        this.topCenterHandle = this.createHandle();
-        this.topRightHandle = this.createHandle();
-        this.rightCenterHandle = this.createHandle((startInfo, { x }) => (bounds.width = startInfo.bounds.width + x));
-        this.bottomRightHandle = this.createHandle(
-            (startInfo) => (this.angle = startInfo.angle + (this.getMouseAngle() - startInfo.mouseAngle)),
-        );
-        this.bottomCenterHandle = this.createHandle((startInfo, { y }) => (bounds.height = startInfo.bounds.height + y));
-        this.bottomLeftHandle = this.createHandle();
-        this.leftCenterHandle = this.createHandle();
+        this.topLeftHandle = this.createHandle(this.onDragRotation);
+        this.topCenterHandle = this.createHandle(this.onDragVertical);
+        this.topRightHandle = this.createHandle(this.onDragRotation);
+        this.rightCenterHandle = this.createHandle(this.onDragHorizontal);
+        this.bottomRightHandle = this.createHandle(this.onDragRotation);
+        this.bottomCenterHandle = this.createHandle(this.onDragVertical);
+        this.bottomLeftHandle = this.createHandle(this.onDragRotation);
+        this.leftCenterHandle = this.createHandle(this.onDragHorizontal);
 
         this.update();
-    }
-
-    protected getMouseAngle()
-    {
-        const pos = this.origin.getGlobalPosition();
-        const mousePos = getWindowMouseClientPosition();
-        const angle = angleBetween(pos.x, pos.y, mousePos.x, mousePos.y);
-
-        return angle;
     }
 
     protected createHandle(dragHandler?: (startInfo: StartDragInfo, dragInfo: DragInfo, event: MouseEvent) => void)
@@ -107,10 +99,17 @@ export class TransformGizmo extends Container
         {
             handle.on('mousedown', () =>
             {
+                const { bounds, angle } = this;
+
+                const { x: centerX, y: centerY } = this.getBoundsCenter();
+                const centerDistance = distanceBetween(centerX, centerY, handle.x, handle.y);
+
                 const startInfo: StartDragInfo = {
-                    bounds: this.bounds.clone(),
-                    angle: this.angle,
+                    handle,
+                    bounds: bounds.clone(),
+                    angle,
                     mouseAngle: this.getMouseAngle(),
+                    centerDistance,
                 };
 
                 drag((dragInfo, event) =>
@@ -175,6 +174,15 @@ export class TransformGizmo extends Container
         origin.y = bottom * originPos.y;
     }
 
+    protected getMouseAngle()
+    {
+        const pos = this.origin.getGlobalPosition();
+        const mousePos = getWindowMouseClientPosition();
+        const angle = angleBetween(pos.x, pos.y, mousePos.x, mousePos.y);
+
+        return angle;
+    }
+
     protected onDragBounds = () =>
     {
         const { bounds } = this;
@@ -188,6 +196,13 @@ export class TransformGizmo extends Container
             this.update();
         });
     };
+
+    protected getBoundsCenter()
+    {
+        const bounds = this.bounds;
+
+        return { x: bounds.width * 0.5, y: bounds.height * 0.5 };
+    }
 
     protected onDragOrigin = (e: InteractionEvent) =>
     {
@@ -205,6 +220,7 @@ export class TransformGizmo extends Container
         const startY = origin.y;
         const origBoundsX = bounds.x;
         const origBoundsY = bounds.y;
+        const isAltDown = isKeyPressed('Alt');
 
         drag((dragInfo) =>
         {
@@ -218,17 +234,40 @@ export class TransformGizmo extends Container
             const originX = x;
             const originY = y;
 
+            if (isAltDown)
+            {
+                if (originX < 0 || originY < 0 || originX > bounds.width || originY > bounds.height)
+                {
+                    return;
+                }
+            }
+
             origin.x = originX;
             origin.y = originY;
 
-            this.originPos.x = origin.x / bounds.width;
-            this.originPos.y = origin.y / bounds.height;
+            this.originPos.x = originX / bounds.width;
+            this.originPos.y = originY / bounds.height;
 
             bounds.x = origBoundsX + dragInfo.x;
             bounds.y = origBoundsY + dragInfo.y;
 
             this.update();
         });
+    };
+
+    protected onDragHorizontal = (startInfo: StartDragInfo, { x }: DragInfo) =>
+    {
+        this.bounds.width = startInfo.bounds.width + x;
+    };
+
+    protected onDragVertical = (startInfo: StartDragInfo, { y }: DragInfo) =>
+    {
+        this.bounds.height = startInfo.bounds.height + y;
+    };
+
+    protected onDragRotation = (startInfo: StartDragInfo) =>
+    {
+        this.angle = startInfo.angle + (this.getMouseAngle() - startInfo.mouseAngle);
     };
 }
 
