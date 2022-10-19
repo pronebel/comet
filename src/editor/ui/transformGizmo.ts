@@ -3,6 +3,7 @@ import { Container, Graphics, Rectangle } from 'pixi.js';
 
 import { angleBetween, distanceBetween, polarPoint } from '../../core/util/geom';
 import { type DragInfo, drag, getWindowMouseClientPosition } from './drag';
+import { isKeyPressed } from './keyboard';
 
 // transform handle and origin sizes
 const transformHandleSize = 7;
@@ -53,55 +54,11 @@ export class TransformGizmo extends Container
 
         // bind bounds drag events
         border.interactive = true;
-        border.on('mousedown', () =>
-        {
-            const startX = bounds.x;
-            const startY = bounds.y;
-
-            drag((dragInfo) =>
-            {
-                this.bounds.x = startX + dragInfo.x;
-                this.bounds.y = startY + dragInfo.y;
-                this.update();
-            });
-        });
+        border.on('mousedown', this.onDragBounds);
 
         // bind origin drag events
         origin.interactive = true;
-        origin.on('mousedown', (e: InteractionEvent) =>
-        {
-            const startX = origin.x;
-            const startY = origin.y;
-
-            e.stopPropagation();
-
-            const origBoundsX = bounds.x;
-            const origBoundsY = bounds.y;
-
-            drag((dragInfo) =>
-            {
-                const toX = startX + dragInfo.x;
-                const toY = startY + dragInfo.y;
-
-                const deg = angleBetween(startX, startY, toX, toY);
-                const l = distanceBetween(startX, startY, toX, toY);
-                const { x, y } = polarPoint(deg - this.angle, l, startX, startY);
-
-                const originX = Math.min(Math.max(x, 0), bounds.width);
-                const originY = Math.min(Math.max(y, 0), bounds.height);
-
-                origin.x = originX;
-                origin.y = originY;
-
-                this.originPos.x = origin.x / bounds.width;
-                this.originPos.y = origin.y / bounds.height;
-
-                bounds.x = origBoundsX + dragInfo.x;
-                bounds.y = origBoundsY + dragInfo.y;
-
-                this.update();
-            });
-        });
+        origin.on('mousedown', this.onDragOrigin);
 
         this.angle = 45;
 
@@ -126,12 +83,6 @@ export class TransformGizmo extends Container
         this.bottomCenterHandle = this.createHandle((startInfo, { y }) => (bounds.height = startInfo.bounds.height + y));
         this.bottomLeftHandle = this.createHandle();
         this.leftCenterHandle = this.createHandle();
-
-        setInterval(() =>
-        {
-            // this.angle += 1;
-            // this.update();
-        }, 50);
 
         this.update();
     }
@@ -223,5 +174,61 @@ export class TransformGizmo extends Container
         origin.x = right * originPos.x;
         origin.y = bottom * originPos.y;
     }
+
+    protected onDragBounds = () =>
+    {
+        const { bounds } = this;
+        const startX = bounds.x;
+        const startY = bounds.y;
+
+        drag((dragInfo) =>
+        {
+            this.bounds.x = startX + dragInfo.x;
+            this.bounds.y = startY + dragInfo.y;
+            this.update();
+        });
+    };
+
+    protected onDragOrigin = (e: InteractionEvent) =>
+    {
+        if (!isKeyPressed('Shift'))
+        {
+            this.onDragBounds();
+
+            return;
+        }
+
+        e.stopPropagation();
+
+        const { bounds, origin } = this;
+        const startX = origin.x;
+        const startY = origin.y;
+        const origBoundsX = bounds.x;
+        const origBoundsY = bounds.y;
+
+        drag((dragInfo) =>
+        {
+            const toX = startX + dragInfo.x;
+            const toY = startY + dragInfo.y;
+
+            const deg = angleBetween(startX, startY, toX, toY);
+            const l = distanceBetween(startX, startY, toX, toY);
+            const { x, y } = polarPoint(deg - this.angle, l, startX, startY);
+
+            const originX = x;
+            const originY = y;
+
+            origin.x = originX;
+            origin.y = originY;
+
+            this.originPos.x = origin.x / bounds.width;
+            this.originPos.y = origin.y / bounds.height;
+
+            bounds.x = origBoundsX + dragInfo.x;
+            bounds.y = origBoundsY + dragInfo.y;
+
+            this.update();
+        });
+    };
 }
 

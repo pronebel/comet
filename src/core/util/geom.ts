@@ -10,11 +10,11 @@ export function degToRad(deg: number)
 
 export function angleBetween(x1: number, y1: number, x2: number, y2: number)
 {
-    let deg = radToDeg(Math.atan2(y2 - y1, x2 - x1));
+    const deg = radToDeg(Math.atan2(y2 - y1, x2 - x1));
 
     if (deg < 0)
     {
-        deg = 180 + (180 - Math.abs(deg));
+        return 180 + (180 - Math.abs(deg));
     }
 
     return deg;
