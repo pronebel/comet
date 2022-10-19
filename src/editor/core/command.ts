@@ -1,4 +1,3 @@
-console.log('COMMAND');
 import type { AnyNode, ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance } from '../../core/nodes/instances';
 import { Application } from '../application';

@@ -37,23 +37,22 @@ export function polarPoint(deg: number, length: number, centerX = 0, centerY = 0
     return { x, y };
 }
 
-(window as any).polarPoint = polarPoint;
+export function rotatePointAround(x: number, y: number, deg: number, originX: number, originY: number)
+{
+    const rad = degToRad(deg);
+    const sin = Math.sin(rad);
+    const cos = Math.cos(rad);
 
-// POINT rotate_point(float cx,float cy,float angle,POINT p)
-// {
-//   float s = sin(angle);
-//   float c = cos(angle);
+    // translate point back to origin:
+    const translatedX = x - originX;
+    const translatedY = y - originY;
 
-//   // translate point back to origin:
-//   p.x -= cx;
-//   p.y -= cy;
+    // rotate point
+    const rotatedX = (translatedX * cos) - (translatedY * sin);
+    const rotatedY = (translatedX * sin) + (translatedY * cos);
 
-//   // rotate point
-//   float xnew = p.x * c - p.y * s;
-//   float ynew = p.x * s + p.y * c;
+    // translate point back:
+    return { x: rotatedX + originX, y: rotatedY + originY };
+}
 
-//   // translate point back:
-//   p.x = xnew + cx;
-//   p.y = ynew + cy;
-//   return p;
-// }
+(window as any).rotatePointAround = rotatePointAround;

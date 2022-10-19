@@ -75,8 +75,8 @@ export class TransformGizmo extends Container
 
             e.stopPropagation();
 
-            const sx = bounds.x;
-            const sy = bounds.y;
+            const origBoundsX = bounds.x;
+            const origBoundsY = bounds.y;
 
             drag((dragInfo) =>
             {
@@ -96,8 +96,8 @@ export class TransformGizmo extends Container
                 this.originPos.x = origin.x / bounds.width;
                 this.originPos.y = origin.y / bounds.height;
 
-                bounds.x = sx + dragInfo.x;
-                bounds.y = sy + dragInfo.y;
+                bounds.x = origBoundsX + dragInfo.x;
+                bounds.y = origBoundsY + dragInfo.y;
 
                 this.update();
             });
