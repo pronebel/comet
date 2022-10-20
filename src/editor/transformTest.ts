@@ -1,7 +1,7 @@
 import type {  InteractionEvent,  Transform } from 'pixi.js';
 import { Application, Container, Graphics, Matrix, Rectangle, Sprite, Texture } from 'pixi.js';
 
-import { angleBetween, closestEdgeVertexOnRect, degToRad, distanceBetween, findNearestPointOnRect } from '../core/util/geom';
+import { angleBetween, closestEdgeVertexOnRect, degToRad, findNearestPointOnRect } from '../core/util/geom';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
 
@@ -138,17 +138,18 @@ const dragInfo: DragInfo = {
 };
 
 // create transform display objects
-const graphics = new Graphics();
+const border = new Graphics();
 const container = new Container();
 
 edit.addChild(container);
-container.addChild(graphics);
+container.addChild(border);
 
-graphics.clear();
-graphics.lineStyle(1, 0xffffff, 1);
-graphics.beginFill(0xffffff, 0.01);
-graphics.drawRect(0.5, 0.5, bounds.width, bounds.height);
-graphics.endFill();
+border.interactive = true;
+border.clear();
+border.lineStyle(1, 0xffffff, 1);
+border.beginFill(0xffffff, 0.01);
+border.drawRect(0.5, 0.5, bounds.width, bounds.height);
+border.endFill();
 
 function createPoint(tint: number, size = 10)
 {
@@ -186,57 +187,6 @@ const matrixCache = {
 };
 
 // run transform operation
-const updateMatrix = (trans: Transform, origMatrix: Matrix) =>
-{
-    const combinedMatrix = origMatrix.clone();
-
-    combinedMatrix.translate(-bounds.left, -bounds.top);
-    combinedMatrix.prepend(transform.matrix);
-    trans.setFromMatrix(combinedMatrix);
-};
-
-function calcTransform()
-{
-    const { matrix } = transform;
-
-    // const pivotX = bounds.width * (dragInfo.mode === 'scale' ? dragInfo.scale.pivotX : transform.pivotX);
-    // const pivotY = bounds.height * (dragInfo.mode === 'scale' ? dragInfo.scale.pivotY : transform.pivotY);
-    const pivotX = bounds.width * transform.pivotX;
-    const pivotY = bounds.height * transform.pivotY;
-
-    setPoint('pivot', pivotX, pivotY);
-
-    // reset transform matrix
-    matrix.identity();
-
-    // apply negative pivot
-    matrix.translate(-pivotX, -pivotY);
-
-    // scale
-    matrix.scale(transform.scaleX, transform.scaleY);
-
-    // rotate
-    matrix.rotate(degToRad(transform.rotation));
-
-    // move pivot back
-    matrix.translate(pivotX, pivotY);
-
-    // translate to transform bounds position
-    matrix.translate(bounds.left, bounds.top);
-
-    // translate to transform translation position
-    matrix.translate(transform.x, transform.y);
-
-    // update transform container with matrix
-    container.transform.setFromMatrix(matrix);
-    container.updateTransform();
-
-    // update sprites with transform matrix
-    updateMatrix(red.transform, matrixCache.red);
-    updateMatrix(green.transform, matrixCache.green);
-    updateMatrix(blue.transform, matrixCache.blue);
-}
-
 function getPivotGlobalPos()
 {
     const localPoint = { x: transform.pivotX * bounds.width, y: transform.pivotY * bounds.height };
@@ -246,13 +196,6 @@ function getPivotGlobalPos()
 
     return globalPoint;
 }
-
-setInterval(() =>
-{
-    calcTransform();
-
-    // transform.rotation += 1;
-}, 100);
 
 function getLocalPoint(e: InteractionEvent)
 {
@@ -298,8 +241,68 @@ function cacheTransformState(mode: DragMode, e: InteractionEvent)
     console.log(dragInfo);
 }
 
-graphics.interactive = true;
-graphics.on('mousedown', (e: InteractionEvent) =>
+const updateMatrix = (trans: Transform, origMatrix: Matrix) =>
+{
+    const combinedMatrix = origMatrix.clone();
+
+    combinedMatrix.translate(-bounds.left, -bounds.top);
+    combinedMatrix.prepend(transform.matrix);
+    trans.setFromMatrix(combinedMatrix);
+};
+
+function calcTransform()
+{
+    const { matrix } = transform;
+    const { scale, mode } = dragInfo;
+
+    const pivotX = bounds.width * transform.pivotX;
+    const pivotY = bounds.height * transform.pivotY;
+    const scalePivotX = (bounds.width * scale.pivotX) - pivotX;
+    const scalePivotY = (bounds.height * scale.pivotY) - pivotY;
+
+    setPoint('pivot', pivotX, pivotY);
+
+    // reset transform matrix
+    matrix.identity();
+
+    // apply negative pivot
+    matrix.translate(-pivotX, -pivotY);
+    if (mode === 'scale')
+    {
+        console.log(scalePivotX, scalePivotY);
+        matrix.translate(-scalePivotX, -scalePivotY);
+    }
+
+    // scale
+    matrix.scale(transform.scaleX, transform.scaleY);
+
+    // rotate
+    matrix.rotate(degToRad(transform.rotation));
+
+    // move pivot back
+    matrix.translate(pivotX, pivotY);
+    if (mode === 'scale')
+    {
+        matrix.translate(scalePivotX, scalePivotY);
+    }
+
+    // translate to transform bounds position
+    matrix.translate(bounds.left, bounds.top);
+
+    // translate to transform translation position
+    matrix.translate(transform.x, transform.y);
+
+    // update transform container with matrix
+    container.transform.setFromMatrix(matrix);
+    container.updateTransform();
+
+    // update sprites with transform matrix
+    updateMatrix(red.transform, matrixCache.red);
+    updateMatrix(green.transform, matrixCache.green);
+    updateMatrix(blue.transform, matrixCache.blue);
+}
+
+border.on('mousedown', (e: InteractionEvent) =>
 {
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
@@ -412,7 +415,7 @@ graphics.on('mousedown', (e: InteractionEvent) =>
         {
             const scale = localX / (dragInfo.initial.bounds.width);
 
-            // transform.scaleX = scale;
+            transform.scaleX = scale;
             console.log(scale);
         }
     }
@@ -424,3 +427,5 @@ window.addEventListener('mouseup', () =>
 {
     dragInfo.mode = 'none';
 });
+
+setInterval(calcTransform, 100);
