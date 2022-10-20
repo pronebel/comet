@@ -89,3 +89,63 @@ export function intersectLines(
 
     return { x: px, y: py };
 }
+
+export function findNearestPointOnLine(px: number, py: number, ax: number, ay: number, bx: number, by: number)
+{
+    const atob = { x: bx - ax, y: by - ay };
+    const atop = { x: px - ax, y: py - ay };
+    const len = (atob.x * atob.x) + (atob.y * atob.y);
+    let dot = (atop.x * atob.x) + (atop.y * atob.y);
+    const t = Math.min(1, Math.max(0, dot / len));
+
+    dot = ((bx - ax) * (py - ay)) - ((by - ay) * (px - ax));
+
+    return { x: ax + (atob.x * t), y: ay + (atob.y * t) };
+}
+
+export function findNearestPointOnRect(px: number, py: number, x: number, y: number, width: number, height: number)
+{
+    const left = x;
+    const right = x + width;
+    const top = y;
+    const bottom = top + height;
+
+    // top, right, bottom, left
+    const { x: topX, y: topY } = findNearestPointOnLine(px, py, left, top, right, top);
+    const { x: rightX, y: rightY }  = findNearestPointOnLine(px, py, right, top, right, bottom);
+    const { x: bottomX, y: bottomY }  = findNearestPointOnLine(px, py, left, bottom, right, bottom);
+    const { x: leftX, y: leftY }  = findNearestPointOnLine(px, py, left, top, left, bottom);
+
+    const topD = distanceBetween(px, py, topX, topY);
+    const rightD = distanceBetween(px, py, rightX, rightY);
+    const bottomD = distanceBetween(px, py, bottomX, bottomY);
+    const leftD = distanceBetween(px, py, leftX, leftY);
+
+    const points: {
+        side: 'top' | 'right' | 'bottom' | 'left';
+        d: number;
+        x: number;
+        y: number;
+    }[] = [
+        { side: 'top', d: topD, x: topX, y: topY },
+        { side: 'right', d: rightD, x: rightX, y: rightY },
+        { side: 'bottom', d: bottomD, x: bottomX, y: bottomY },
+        { side: 'left', d: leftD, x: leftX, y: leftY },
+    ];
+
+    points.sort((a, b) =>
+    {
+        if (a.d < b.d)
+        {
+            return -1;
+        }
+        if (a.d > b.d)
+        {
+            return 1;
+        }
+
+        return 0;
+    });
+
+    return points[0];
+}
