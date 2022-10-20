@@ -94,20 +94,26 @@ const transform = {
 };
 
 // track drag info
+type DragMode = 'none' | 'rotation' | 'drag' | 'scale';
+
 interface DragInfo
 {
-    mode: 'none' | 'rotation';
-    start: {
-        transformRotation: number;
+    mode: DragMode;
+    cache: typeof transform;
+    initial: {
         dragAngle: number;
+        dragPointX: number;
+        dragPointY: number;
     };
 }
 
 const dragInfo: DragInfo = {
     mode: 'none',
-    start: {
-        transformRotation: 0,
+    cache: transform,
+    initial: {
         dragAngle: 0,
+        dragPointX: 0,
+        dragPointY: 0,
     },
 };
 
@@ -225,6 +231,23 @@ setInterval(() =>
     // transform.rotation += 1;
 }, 100);
 
+function cacheTransformState(mode: DragMode, e: InteractionEvent)
+{
+    const globalX = e.data.global.x;
+    const globalY = e.data.global.y;
+    const globalPivot = getPivotGlobalPos();
+
+    dragInfo.mode = mode;
+    dragInfo.cache = {
+        ...transform,
+    };
+    dragInfo.initial = {
+        dragAngle: angleBetween(globalPivot.x, globalPivot.y, globalX, globalY),
+        dragPointX: globalX,
+        dragPointY: globalY,
+    };
+}
+
 graphics.interactive = true;
 graphics.on('mousemove', (e: InteractionEvent) =>
 {
@@ -236,7 +259,14 @@ graphics.on('mousemove', (e: InteractionEvent) =>
     localPoint.x = Math.min(bounds.width, Math.max(0, localPoint.x));
     localPoint.y = Math.min(bounds.height, Math.max(0, localPoint.y));
 
-    const { x, y } = findNearestPointOnRect(localPoint.x, localPoint.y, 0, 0, bounds.width, bounds.height);
+    const { x, y } = findNearestPointOnRect(
+        localPoint.x,
+        localPoint.y,
+        0,
+        0,
+        bounds.width,
+        bounds.height,
+    );
 
     setPoint('mouseLocal', localPoint.x, localPoint.y);
     setPoint('nearest', x, y);
@@ -244,11 +274,20 @@ graphics.on('mousemove', (e: InteractionEvent) =>
     if (dragInfo.mode === 'rotation')
     {
         const globalPivot = getPivotGlobalPos();
-        const angle = angleBetween(globalPivot.x, globalPivot.y, globalX, globalY) - dragInfo.start.dragAngle;
+        const angle = angleBetween(globalPivot.x, globalPivot.y, globalX, globalY) - dragInfo.initial.dragAngle;
 
-        transform.rotation = dragInfo.start.transformRotation + angle;
-        calcTransform();
+        transform.rotation = dragInfo.cache.rotation + angle;
     }
+    else if (dragInfo.mode === 'drag')
+    {
+        const deltaX = globalX - dragInfo.initial.dragPointX;
+        const deltaY = globalY - dragInfo.initial.dragPointY;
+
+        transform.x = dragInfo.cache.x + deltaX;
+        transform.y = dragInfo.cache.y + deltaY;
+    }
+
+    calcTransform();
 }).on('mousedown', (e: InteractionEvent) =>
 {
     const globalX = e.data.global.x;
@@ -281,11 +320,11 @@ graphics.on('mousemove', (e: InteractionEvent) =>
         }
         else if (e.data.originalEvent.metaKey)
         {
-            const globalPivot = getPivotGlobalPos();
-
-            dragInfo.mode = 'rotation';
-            dragInfo.start.transformRotation = transform.rotation;
-            dragInfo.start.dragAngle = angleBetween(globalPivot.x, globalPivot.y, globalX, globalY);
+            cacheTransformState('rotation', e);
+        }
+        else
+        {
+            cacheTransformState('drag', e);
         }
     }
 });

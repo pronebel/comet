@@ -123,23 +123,23 @@ export function findNearestPointOnRect(px: number, py: number, x: number, y: num
 
     const points: {
         side: 'top' | 'right' | 'bottom' | 'left';
-        d: number;
+        distance: number;
         x: number;
         y: number;
     }[] = [
-        { side: 'top', d: topD, x: topX, y: topY },
-        { side: 'right', d: rightD, x: rightX, y: rightY },
-        { side: 'bottom', d: bottomD, x: bottomX, y: bottomY },
-        { side: 'left', d: leftD, x: leftX, y: leftY },
+        { side: 'top', distance: topD, x: topX, y: topY },
+        { side: 'right', distance: rightD, x: rightX, y: rightY },
+        { side: 'bottom', distance: bottomD, x: bottomX, y: bottomY },
+        { side: 'left', distance: leftD, x: leftX, y: leftY },
     ];
 
     points.sort((a, b) =>
     {
-        if (a.d < b.d)
+        if (a.distance < b.distance)
         {
             return -1;
         }
-        if (a.d > b.d)
+        if (a.distance > b.distance)
         {
             return 1;
         }
