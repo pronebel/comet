@@ -20,10 +20,16 @@ export function angleBetween(x1: number, y1: number, x2: number, y2: number)
     return deg;
 }
 
-export function distanceBetween(x1: number, y1: number, x2: number, y2: number)
+export function distanceBetween(x1: number, y1: number, x2: number, y2: number, abs = true)
 {
-    const x = Math.abs(x2 - x1);
-    const y = Math.abs(y2 - y1);
+    let x = x2 - x1;
+    let y = y2 - y1;
+
+    if (abs)
+    {
+        x = Math.abs(x);
+        y = Math.abs(y);
+    }
 
     return Math.sqrt((y * y) + (x * x));
 }
@@ -103,23 +109,21 @@ export function findNearestPointOnLine(px: number, py: number, ax: number, ay: n
     return { x: ax + (atob.x * t), y: ay + (atob.y * t) };
 }
 
-export function findNearestPointOnRect(px: number, py: number, x: number, y: number, width: number, height: number)
+export function findNearestPointOnRect(x: number, y: number, left: number, top: number, width: number, height: number)
 {
-    const left = x;
-    const right = x + width;
-    const top = y;
+    const right = left + width;
     const bottom = top + height;
 
     // top, right, bottom, left
-    const { x: topX, y: topY } = findNearestPointOnLine(px, py, left, top, right, top);
-    const { x: rightX, y: rightY }  = findNearestPointOnLine(px, py, right, top, right, bottom);
-    const { x: bottomX, y: bottomY }  = findNearestPointOnLine(px, py, left, bottom, right, bottom);
-    const { x: leftX, y: leftY }  = findNearestPointOnLine(px, py, left, top, left, bottom);
+    const { x: topX, y: topY } = findNearestPointOnLine(x, y, left, top, right, top);
+    const { x: rightX, y: rightY }  = findNearestPointOnLine(x, y, right, top, right, bottom);
+    const { x: bottomX, y: bottomY }  = findNearestPointOnLine(x, y, left, bottom, right, bottom);
+    const { x: leftX, y: leftY }  = findNearestPointOnLine(x, y, left, top, left, bottom);
 
-    const topD = distanceBetween(px, py, topX, topY);
-    const rightD = distanceBetween(px, py, rightX, rightY);
-    const bottomD = distanceBetween(px, py, bottomX, bottomY);
-    const leftD = distanceBetween(px, py, leftX, leftY);
+    const topD = distanceBetween(x, y, topX, topY);
+    const rightD = distanceBetween(x, y, rightX, rightY);
+    const bottomD = distanceBetween(x, y, bottomX, bottomY);
+    const leftD = distanceBetween(x, y, leftX, leftY);
 
     const points: {
         side: 'top' | 'right' | 'bottom' | 'left';
@@ -148,4 +152,52 @@ export function findNearestPointOnRect(px: number, py: number, x: number, y: num
     });
 
     return points[0];
+}
+
+export function closestEdgeVertexOnRect(
+    x: number,
+    y: number,
+    left: number,
+    top: number,
+    width: number,
+    height: number,
+    centerProportion: number,
+): {
+        x: 'left' | 'center' | 'right';
+        y: 'top' | 'center' | 'bottom';
+    }
+{
+    const near = 0.5 - centerProportion;
+    const far = 0.5 + centerProportion;
+    const centerLeft = left + (width * near);
+    const centerRight = left + (width * far);
+    const centerTop = top + (height * near);
+    const centerBottom = top + (height * far);
+
+    let hPos: 'left' | 'center' | 'right' = 'left';
+
+    if (x >= centerLeft && x <= centerRight)
+    {
+        hPos = 'center';
+    }
+    else if (x > centerRight)
+    {
+        hPos = 'right';
+    }
+
+    let vPos: 'top' | 'center' | 'bottom' = 'top';
+
+    if (y >= centerTop && y <= centerBottom)
+    {
+        vPos = 'center';
+    }
+    else if (y > centerBottom)
+    {
+        vPos = 'bottom';
+    }
+
+    return {
+        x: hPos,
+        y: vPos,
+    };
 }
