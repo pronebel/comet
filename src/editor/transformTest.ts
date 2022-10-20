@@ -1,12 +1,21 @@
-import type { InteractionEvent, Transform } from 'pixi.js';
+import type { Transform } from 'pixi.js';
 import { Application, Container, Graphics, Matrix, Sprite, Texture } from 'pixi.js';
 
 import { degToRad } from '../core/util/geom';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
 
-// create canvas and setup pixi
+type SpriteConfig = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+    angle: number;
+    pivotX: number;
+    pivotY: number;
+};
 
+// create canvas and setup pixi
 const canvasWidth = 500;
 const canvasHeight = 500;
 const painter = new Canvas2DPainter(canvasWidth, canvasHeight, '#ccc');
@@ -31,17 +40,18 @@ pixi.stage.addChild(Grid.createTilingSprite(screen.availWidth, screen.availHeigh
 pixi.stage.addChild(edit);
 pixi.stage.addChild(sprites);
 
-function createSprite(tint: number, x: number, y: number, width: number, height: number, addToStage = true)
+function createSprite(tint: number, config: SpriteConfig, addToStage = true)
 {
     const sprite = new Sprite(Texture.WHITE);
 
     sprite.tint = tint;
-    // sprite.pivot.x = width * 0.5;
-    // sprite.pivot.y = height * 0.5;
-    sprite.width = width;
-    sprite.height = height;
-    sprite.x = x;
-    sprite.y = y;
+    sprite.width = config.width;
+    sprite.height = config.height;
+    sprite.x = config.x;
+    sprite.y = config.y;
+    sprite.angle = config.angle;
+    sprite.pivot.x = config.pivotX;
+    sprite.pivot.y = config.pivotY;
 
     if (addToStage)
     {
@@ -53,30 +63,39 @@ function createSprite(tint: number, x: number, y: number, width: number, height:
 }
 
 // create 3 sprites and setup properties
-const red = createSprite(0xff0000, 100, 50, 100, 50);
-const green = createSprite(0x00ff00, 250, 50, 50, 100);
-const blue = createSprite(0x0000ff, 150, 150, 50, 50);
+const spriteConfig: Record<string, SpriteConfig> = {
+    red: { x: 100, y: 50, width: 100, height: 50, angle: 0, pivotX: 0, pivotY: 0 },
+    green: { x: 250, y: 50, width: 50, height: 100, angle: 45, pivotX: 0, pivotY: 0 },
+    blue: { x: 150, y: 150, width: 50, height: 50, angle: 0, pivotX: 0, pivotY: 0 },
+};
 
-green.angle = 45;
+const red = createSprite(0xff0000, spriteConfig.red);
+const green = createSprite(0x00ff00, spriteConfig.green);
+const blue = createSprite(0x0000ff, spriteConfig.blue);
 
-// update transforms before caching matrix
+// update transforms before caching matrices
 red.updateTransform();
 green.updateTransform();
 blue.updateTransform();
 
-// create basic transform gizmo
-const pivotH = 0.5;
-const pivotV = 0.5;
+// calculate bounds
 const bounds = sprites.getBounds();
-const centerX = bounds.width * pivotH;
-const centerY = bounds.height * pivotV;
+
+// setup transform state
+const transform = {
+    pivotX: 0.5,
+    pivotY: 0.5,
+    scaleX: 1,
+    scaleY: 1,
+    rotation: 0,
+};
+
+// create transform display objects
 
 const graphics = new Graphics();
 const container = new Container();
-const bg = createSprite(0x333333, 0, 0, bounds.width, bounds.height, false);
 
 edit.addChild(container);
-container.addChild(bg);
 container.addChild(graphics);
 
 graphics.clear();
@@ -85,25 +104,17 @@ graphics.beginFill(0xffffff, 0.01);
 graphics.drawRect(0.5, 0.5, bounds.width, bounds.height);
 graphics.endFill();
 
-// graphics.interactive = true;
-// graphics.on('mousemove', (e: InteractionEvent) =>
-// {
-//     const localPoint = graphics.worldTransform.applyInverse(e.data.global);
-// });
-
 // setup transform operation
-const state = {
-    deg: 15,
-};
 const transformMatrix = new Matrix();
 
-// cache matrix and run transform operation
+// cache matrices
 const matrixCache = {
     red: red.worldTransform.clone(),
     green: green.worldTransform.clone(),
     blue: blue.worldTransform.clone(),
 };
 
+// run transform operation
 const updateMatrix = (transform: Transform, origMatrix: Matrix) =>
 {
     const combinedMatrix = origMatrix.clone();
@@ -115,14 +126,20 @@ const updateMatrix = (transform: Transform, origMatrix: Matrix) =>
 
 setInterval(() =>
 {
+    const centerX = bounds.width * transform.pivotX;
+    const centerY = bounds.height * transform.pivotY;
+
     // reset transform matrix
     transformMatrix.identity();
 
     // apply negative pivot
     transformMatrix.translate(-centerX, -centerY);
 
+    // scale
+    transformMatrix.scale(transform.scaleX, transform.scaleY);
+
     // rotate
-    transformMatrix.rotate(degToRad(state.deg));
+    transformMatrix.rotate(degToRad(transform.rotation));
 
     // move pivot back
     transformMatrix.translate(centerX, centerY);
@@ -139,5 +156,11 @@ setInterval(() =>
     updateMatrix(green.transform, matrixCache.green);
     updateMatrix(blue.transform, matrixCache.blue);
 
-    // state.deg += 1;
+    transform.rotation += 1;
 }, 100);
+
+// graphics.interactive = true;
+// graphics.on('mousemove', (e: InteractionEvent) =>
+// {
+//     const localPoint = graphics.worldTransform.applyInverse(e.data.global);
+// });
