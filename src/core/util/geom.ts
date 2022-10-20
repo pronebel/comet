@@ -55,4 +55,37 @@ export function rotatePointAround(x: number, y: number, deg: number, originX: nu
     return { x: rotatedX + originX, y: rotatedY + originY };
 }
 
-(window as any).rotatePointAround = rotatePointAround;
+export function intersectLines(
+    p1x: number,
+    p1y: number,
+    p2x: number,
+    p2y: number,
+    p3x: number,
+    p3y: number,
+    p4x: number,
+    p4y: number,
+): {x: number; y: number} | undefined
+{
+    const c2x = p3x - p4x; // (x3 - x4)
+    const c3x = p1x - p2x; // (x1 - x2)
+    const c2y = p3y - p4y; // (y3 - y4)
+    const c3y = p1y - p2y; // (y1 - y2)
+
+    // down part of intersection point formula
+    const d  = (c3x * c2y) - (c3y * c2x);
+
+    if (d === 0)
+    {
+        return undefined;
+    }
+
+    // upper part of intersection point formula
+    const u1 = (p1x * p2y) - (p1y * p2x); // (x1 * y2 - y1 * x2)
+    const u4 = (p3x * p4y) - (p3y * p4x); // (x3 * y4 - y3 * x4)
+
+    // intersection point formula
+    const px = ((u1 * c2x) - (c3x * u4)) / d;
+    const py = ((u1 * c2y) - (c3y * u4)) / d;
+
+    return { x: px, y: py };
+}

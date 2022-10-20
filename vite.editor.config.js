@@ -10,7 +10,7 @@ export default defineConfig(({ command, mode }) => {
     return {
         plugins: [svelte()], 
         server: {
-            hmr: false,
+            hmr: true,
         },
         build: { 
             sourcemap: true,
