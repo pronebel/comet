@@ -17,6 +17,9 @@ type SpriteConfig = {
     pivotY: number;
 };
 
+type WithBounds = {getBounds: () => Rectangle};
+const selection: WithBounds[] = [];
+
 // create canvas and setup pixi
 const canvasWidth = 500;
 const canvasHeight = 500;
@@ -26,6 +29,7 @@ document.body.style.cssText = `
     display: flex;
     align-items: center;
     justify-content: center;
+    cursor: crosshair;
 `;
 document.body.appendChild(painter.canvas);
 
@@ -67,13 +71,36 @@ function createSprite(tint: number, config: SpriteConfig, addToStage = true)
 // create 3 sprites and setup properties
 const spriteConfig: Record<string, SpriteConfig> = {
     red: { x: 100, y: 50, width: 100, height: 50, angle: 0, pivotX: 0, pivotY: 0 },
-    green: { x: 250, y: 50, width: 50, height: 100, angle: 45, pivotX: 0, pivotY: 0 },
+    green: { x: 250, y: 50, width: 50, height: 100, angle: 0, pivotX: 0, pivotY: 0 },
     blue: { x: 150, y: 150, width: 50, height: 50, angle: 0, pivotX: 0, pivotY: 0 },
 };
 
 const red = createSprite(0xff0000, spriteConfig.red);
 const green = createSprite(0x009900, spriteConfig.green);
 const blue = createSprite(0x0000ff, spriteConfig.blue);
+
+selection.push(red, green, blue);
+
+function getBounds()
+{
+    let rect = new Rectangle();
+
+    for (const obj of selection)
+    {
+        const bounds = obj.getBounds();
+
+        if (rect.width === 0 && rect.height === 0 && rect.x === 0 && rect.y === 0)
+        {
+            rect = bounds;
+        }
+        else
+        {
+            rect.enlarge(bounds);
+        }
+    }
+
+    return rect;
+}
 
 // update transforms before caching matrices
 red.updateTransform();
@@ -142,14 +169,9 @@ const border = new Graphics();
 const container = new Container();
 
 edit.addChild(container);
-container.addChild(border);
+edit.addChild(border);
 
 border.interactive = true;
-border.clear();
-border.lineStyle(1, 0xffffff, 1);
-border.beginFill(0xffffff, 0.01);
-border.drawRect(0.5, 0.5, bounds.width, bounds.height);
-border.endFill();
 
 function createPoint(tint: number, size = 10)
 {
@@ -168,7 +190,7 @@ function createPoint(tint: number, size = 10)
 const points = {
     pivot: createPoint(0xffffff),
     nearest: createPoint(0xffff00, 13),
-    mouseLocal: createPoint(0x0000ff, 7),
+    mouseLocal: createPoint(0x00ffff, 7),
 };
 
 const setPoint = (name: keyof typeof points, localX: number, localY: number) =>
@@ -221,7 +243,7 @@ function cacheTransformState(mode: DragMode, e: InteractionEvent)
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
     const globalPivot = getPivotGlobalPos();
-    const localPoint = constrainLocalPoint(getLocalPoint(e));
+    const localPoint = getLocalPoint(e);
 
     dragInfo.mode = mode;
 
@@ -250,6 +272,35 @@ const updateMatrix = (trans: Transform, origMatrix: Matrix) =>
     trans.setFromMatrix(combinedMatrix);
 };
 
+function fitBorder()
+{
+    const uniformBounds = getBounds();
+
+    border.clear();
+
+    border.lineStyle(1, 0xffffff, 1);
+    border.beginFill(0xffffff, 0.01);
+    border.drawRect(uniformBounds.left, uniformBounds.top, uniformBounds.width, uniformBounds.height);
+    border.endFill();
+
+    const p1 = container.worldTransform.apply({ x: 0, y: 0 });
+    const p2 = container.worldTransform.apply({ x: bounds.width, y: 0 });
+    const p3 = container.worldTransform.apply({ x: bounds.width, y: bounds.height });
+    const p4 = container.worldTransform.apply({ x: 0, y: bounds.height });
+
+    const path = [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y];
+
+    border.beginFill(0xffffff, 0.1);
+    border.drawPolygon(path);
+    border.endFill();
+
+    border.lineStyle(1, 0xffffff, 1);
+    border.moveTo(p1.x, p1.y); border.lineTo(p2.x, p2.y);
+    border.moveTo(p2.x, p2.y); border.lineTo(p3.x, p3.y);
+    border.moveTo(p3.x, p3.y); border.lineTo(p4.x, p4.y);
+    border.moveTo(p4.x, p4.y); border.lineTo(p1.x, p1.y);
+}
+
 function calcTransform()
 {
     const { matrix } = transform;
@@ -257,8 +308,8 @@ function calcTransform()
 
     const pivotX = bounds.width * transform.pivotX;
     const pivotY = bounds.height * transform.pivotY;
-    const scalePivotX = (bounds.width * scale.pivotX) - pivotX;
-    const scalePivotY = (bounds.height * scale.pivotY) - pivotY;
+    // const scalePivotX = (bounds.width * scale.pivotX) - pivotX;
+    // const scalePivotY = (bounds.height * scale.pivotY) - pivotY;
 
     setPoint('pivot', pivotX, pivotY);
 
@@ -267,11 +318,10 @@ function calcTransform()
 
     // apply negative pivot
     matrix.translate(-pivotX, -pivotY);
-    if (mode === 'scale')
-    {
-        console.log(scalePivotX, scalePivotY);
-        matrix.translate(-scalePivotX, -scalePivotY);
-    }
+    // if (mode === 'scale')
+    // {
+    //     matrix.translate(-scalePivotX, -scalePivotY);
+    // }
 
     // scale
     matrix.scale(transform.scaleX, transform.scaleY);
@@ -281,10 +331,10 @@ function calcTransform()
 
     // move pivot back
     matrix.translate(pivotX, pivotY);
-    if (mode === 'scale')
-    {
-        matrix.translate(scalePivotX, scalePivotY);
-    }
+    // if (mode === 'scale')
+    // {
+    //     matrix.translate(scalePivotX, scalePivotY);
+    // }
 
     // translate to transform bounds position
     matrix.translate(bounds.left, bounds.top);
@@ -300,6 +350,8 @@ function calcTransform()
     updateMatrix(red.transform, matrixCache.red);
     updateMatrix(green.transform, matrixCache.green);
     updateMatrix(blue.transform, matrixCache.blue);
+
+    fitBorder();
 }
 
 border.on('mousedown', (e: InteractionEvent) =>
@@ -307,9 +359,9 @@ border.on('mousedown', (e: InteractionEvent) =>
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
 
-    const { x: localX, y: localY } = constrainLocalPoint(getLocalPoint(e));
+    const { x: localX, y: localY } = getLocalPoint(e);
 
-    setPoint('mouseLocal', localX, localY);
+    // setPoint('mouseLocal', localX, localY);
 
     if (e.data.buttons === 1)
     {
@@ -372,11 +424,11 @@ border.on('mousedown', (e: InteractionEvent) =>
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
 
-    let localPoint = getLocalPoint(e);
+    const localPoint = getLocalPoint(e);
     const localX = localPoint.x;
     const localY = localPoint.y;
 
-    localPoint = constrainLocalPoint(localPoint);
+    // localPoint = constrainLocalPoint(localPoint);
 
     const globalPivot = getPivotGlobalPos();
 
@@ -390,7 +442,7 @@ border.on('mousedown', (e: InteractionEvent) =>
     );
 
     setPoint('nearest', x, y);
-    setPoint('mouseLocal', localPoint.x, localPoint.y);
+    // setPoint('mouseLocal', localPoint.x, localPoint.y);
 
     if (dragInfo.mode === 'rotation')
     {
@@ -416,7 +468,7 @@ border.on('mousedown', (e: InteractionEvent) =>
             const scale = localX / (dragInfo.initial.bounds.width);
 
             transform.scaleX = scale;
-            console.log(scale);
+            // console.log(scale);
         }
     }
 
