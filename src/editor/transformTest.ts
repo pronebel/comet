@@ -47,6 +47,7 @@ interface DragInfo
         hVertex: DragHVertex;
         vVertex: DragVVertex;
         side: RectSide;
+        duplex: boolean;
     };
     initial: {
         width: number;
@@ -66,6 +67,7 @@ const dragInfo: DragInfo = {
         hVertex: 'center',
         vVertex: 'center',
         side: 'right',
+        duplex: false,
     },
     initial: {
         width: 0,
@@ -529,14 +531,29 @@ border.on('mousedown', (e: InteractionEvent) =>
 
         if (e.data.originalEvent.altKey)
         {
-            // scale from center if alt/option down
-            setPivotFromScaleMode('center', 'center');
-            deltaX *= 2;
+            if (!dragInfo.scale.duplex)
+            {
+                // enabled duplex
+                dragInfo.scale.duplex = true;
+                setPivotFromScaleMode('center', 'center');
+                // todo: cache some position to fix delta offset when disabling duplex
+            }
         }
         else
+        if (dragInfo.scale.duplex)
         {
-            // scale from initial vertex selection
+            // disable duplex
+            dragInfo.scale.duplex = false;
             setPivotFromScaleMode(dragInfo.scale.hVertex, dragInfo.scale.vVertex);
+            // todo: apply delta to move drag point back to cursor location
+            const p = getPivotGlobalPos();
+
+            console.log(globalPivot, p);
+        }
+
+        if (dragInfo.scale.duplex)
+        {
+            deltaX *= 2;
         }
 
         if (dragInfo.scale.side === 'right')
