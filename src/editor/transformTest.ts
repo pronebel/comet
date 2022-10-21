@@ -1,4 +1,4 @@
-import type {  InteractionEvent,  Transform } from 'pixi.js';
+import type {  DisplayObject, InteractionEvent,  Transform } from 'pixi.js';
 import { Application, Container, Graphics, Matrix, Rectangle, Sprite, Texture } from 'pixi.js';
 
 import type { DragHVertex, DragVVertex  } from '../core/util/geom';
@@ -80,8 +80,8 @@ const dragInfo: DragInfo = {
     },
 };
 
-type WithBounds = {getBounds: () => Rectangle};
-const selection: WithBounds[] = [];
+const selection: DisplayObject[] = [];
+const matrixCache: Matrix[] = [];
 
 // create canvas and setup pixi
 const canvasWidth = 500;
@@ -142,7 +142,9 @@ const red = createSprite(0xff0000, spriteConfig.red);
 const green = createSprite(0x009900, spriteConfig.green);
 const blue = createSprite(0x0000ff, spriteConfig.blue);
 
+// initialise selection
 selection.push(red, green, blue);
+selection.forEach((obj) => matrixCache.push(obj.worldTransform.clone()));
 
 function getBounds()
 {
@@ -208,13 +210,6 @@ const setPoint = (name: keyof typeof points, localX: number, localY: number) =>
 
     point.x = localX;
     point.y = localY;
-};
-
-// cache matrices
-const matrixCache = {
-    red: red.worldTransform.clone(),
-    green: green.worldTransform.clone(),
-    blue: blue.worldTransform.clone(),
 };
 
 // run transform operation
@@ -410,10 +405,14 @@ function calcTransform()
     container.transform.setFromMatrix(matrix);
     container.updateTransform();
 
-    // update sprites with transform matrix
-    updateMatrix(red.transform, matrixCache.red);
-    updateMatrix(green.transform, matrixCache.green);
-    updateMatrix(blue.transform, matrixCache.blue);
+    // update selection with transformed matrix
+    for (let i = 0; i < selection.length; i++)
+    {
+        const view = selection[i];
+        const cachedMatrix = matrixCache[i];
+
+        updateMatrix(view.transform, cachedMatrix);
+    }
 
     // fit uniform encompassing border
     fitBorder();
