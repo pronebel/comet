@@ -463,6 +463,7 @@ const onDragStart = (e: InteractionEvent) =>
                 const { h, v } = closestEdgeVertexOnRect(localX, localY, 0, 0, bounds.width, bounds.height, 0.25);
 
                 // cache extra scale info
+                dragInfo.scale.duplex = false;
                 dragInfo.scale.hVertex = h;
                 dragInfo.scale.vVertex = v;
                 dragInfo.scale.side = side;
@@ -471,7 +472,17 @@ const onDragStart = (e: InteractionEvent) =>
 
                 // override pivot and cache state
                 initDragState('scale', e);
-                setPivotFromScaleMode(h, v);
+
+                if (e.data.originalEvent.altKey)
+                {
+                    // enabled duplex
+                    dragInfo.scale.duplex = true;
+                    setPivotFromScaleMode('center', 'center');
+                }
+                else
+                {
+                    setPivotFromScaleMode(h, v);
+                }
             }
             else
             {
@@ -554,9 +565,9 @@ const onDragMove = (e: InteractionEvent) =>
             setPivotFromScaleMode(dragInfo.scale.hVertex, dragInfo.scale.vVertex);
         }
 
-        const { duplex, vertex } = dragInfo.scale;
+        const { vertex } = dragInfo.scale;
 
-        if (duplex)
+        if (dragInfo.scale.duplex)
         {
             // apply duplex multiplier
             deltaX *= 2;
@@ -608,6 +619,7 @@ const onDragMove = (e: InteractionEvent) =>
         }
     }
 
+    console.log(dragInfo.scale.duplex);
     calcTransform();
 };
 
