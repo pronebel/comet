@@ -189,32 +189,28 @@ edit.addChild(border);
 
 border.interactive = true;
 
-function createPoint(tint: number, size = 10)
+const pivot = new Container();
+const pivotShape = new Graphics();
+const pivotSize = 10;
+
+pivot.addChild(pivotShape);
+pivotShape.lineStyle(1, 0xffff00, 1);
+pivotShape.beginFill(0xffffff, 0.001);
+pivotShape.drawCircle(0, 0, pivotSize);
+pivotShape.moveTo(0, pivotSize * -1.5);
+pivotShape.lineTo(0, pivotSize * 1.5);
+pivotShape.moveTo(pivotSize * -1.5, 0);
+pivotShape.lineTo(pivotSize * 1.5, 0);
+pivotShape.endFill();
+
+edit.addChild(pivot);
+
+const setPivotViewPos = () =>
 {
-    const point = new Sprite(Texture.WHITE);
+    const p = getPivotGlobalPos();
 
-    point.tint = tint;
-    point.width = point.height = size;
-    point.pivot.x = size * 0.5;
-    point.pivot.y = size * 0.5;
-
-    container.addChild(point);
-
-    return point;
-}
-
-const points = {
-    pivot: createPoint(0xffffff),
-    nearest: createPoint(0xffff00, 13),
-    mouseLocal: createPoint(0x00ffff, 7),
-};
-
-const setPoint = (name: keyof typeof points, localX: number, localY: number) =>
-{
-    const point = points[name];
-
-    point.x = localX;
-    point.y = localY;
+    pivot.x = p.x;
+    pivot.y = p.y;
 };
 
 // run transform operation
@@ -388,11 +384,23 @@ function calcTransform()
     const pivotX = bounds.width * transform.pivotX;
     const pivotY = bounds.height * transform.pivotY;
 
-    // if (dragInfo.mode !== 'scale')
-    // {
-    //     setPoint('pivot', pivotX, pivotY);
-    // }
-    setPoint('pivot', pivotX, pivotY);
+    if (dragInfo.mode === 'scale')
+    {
+        const localPoint = {
+            x: dragInfo.cache.pivotX * bounds.width,
+            y: dragInfo.cache.pivotY * bounds.height,
+        };
+        const p = container.worldTransform.apply(localPoint);
+
+        pivot.x = p.x;
+        pivot.y = p.y;
+    }
+    else
+    {
+        setPivotViewPos();
+    }
+
+    pivot.angle = transform.rotation;
 
     // reset transform matrix
     matrix.identity();
@@ -470,8 +478,6 @@ const onDragStart = (e: InteractionEvent) =>
 
     const { x: localX, y: localY } = getLocalPoint(globalX, globalY);
 
-    // setPoint('mouseLocal', localX, localY);
-
     if (e.data.buttons === 1)
     {
         if (e.data.originalEvent.shiftKey)
@@ -510,6 +516,8 @@ const onDragStart = (e: InteractionEvent) =>
             }
         }
     }
+
+    calcTransform();
 };
 
 const onDragEnd = () =>
@@ -527,19 +535,18 @@ const onDragEnd = () =>
     }
 
     dragInfo.mode = 'none';
+
+    calcTransform();
 };
 
 const onDragMove = (e: InteractionEvent) =>
 {
-    const { bounds } = transform;
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
 
     const localPoint = getLocalPoint(globalX, globalY);
-    const localX = localPoint.x;
-    const localY = localPoint.y;
 
-    if (e.data.originalEvent.shiftKey)
+    if (e.data.originalEvent.shiftKey && e.data.buttons === 1)
     {
         // move pivot
         if (e.data.originalEvent.altKey)
@@ -556,18 +563,6 @@ const onDragMove = (e: InteractionEvent) =>
     }
 
     const globalPivot = getPivotGlobalPos();
-
-    const { x, y } = findNearestPointOnRect(
-        localX,
-        localY,
-        0,
-        0,
-        bounds.width,
-        bounds.height,
-    );
-
-    setPoint('nearest', x, y);
-    setPoint('mouseLocal', localPoint.x, localPoint.y);
 
     if (dragInfo.mode === 'rotation')
     {
