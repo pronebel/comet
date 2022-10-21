@@ -1,7 +1,7 @@
 import type {  InteractionEvent,  Transform } from 'pixi.js';
 import { Application, Container, Graphics, Matrix, Rectangle, Sprite, Texture } from 'pixi.js';
 
-import type { DragHVertex, DragVVertex } from '../core/util/geom';
+import type { DragHVertex, DragVVertex, RectSide } from '../core/util/geom';
 import { angleBetween, closestEdgeVertexOnRect, degToRad, findNearestPointOnRect } from '../core/util/geom';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
@@ -40,6 +40,7 @@ interface DragInfo
     scale: {
         hVertex: DragHVertex;
         vVertex: DragVVertex;
+        side: RectSide;
     };
     initial: {
         bounds: Rectangle;
@@ -57,6 +58,7 @@ const dragInfo: DragInfo = {
     scale: {
         hVertex: 'center',
         vVertex: 'center',
+        side: 'right',
     },
     initial: {
         bounds: new Rectangle(),
@@ -366,6 +368,10 @@ function calcTransform()
     const pivotX = bounds.width * transform.pivotX;
     const pivotY = bounds.height * transform.pivotY;
 
+    // if (dragInfo.mode !== 'scale')
+    // {
+    //     setPoint('pivot', pivotX, pivotY);
+    // }
     setPoint('pivot', pivotX, pivotY);
 
     // reset transform matrix
@@ -425,7 +431,7 @@ border.on('mousedown', (e: InteractionEvent) =>
         }
         else
         {
-            const { distance } = findNearestPointOnRect(
+            const { distance, side } = findNearestPointOnRect(
                 localX,
                 localY,
                 0,
@@ -440,12 +446,16 @@ border.on('mousedown', (e: InteractionEvent) =>
                 const { h, v } = closestEdgeVertexOnRect(localX, localY, 0, 0, bounds.width, bounds.height, 0.25);
                 const pivotGlobalPos = getPivotGlobalPos();
 
+                // cache extra scale info
                 dragInfo.scale.hVertex = h;
                 dragInfo.scale.vVertex = v;
+                dragInfo.scale.side = side;
 
-                setPivotFromScaleMode(h, v);
+                // override pivot and cache state
                 cacheTransformState('scale', e);
+                setPivotFromScaleMode(h, v);
 
+                // cache pivot as global point (restore on mouseup)
                 dragInfo.cache.pivotX = pivotGlobalPos.x;
                 dragInfo.cache.pivotY = pivotGlobalPos.y;
             }
@@ -502,10 +512,12 @@ border.on('mousedown', (e: InteractionEvent) =>
         // scaling
         if (e.data.originalEvent.altKey)
         {
+            // scale from center if alt/option down
             setPivotFromScaleMode('center', 'center');
         }
         else
         {
+            // scale from initial vertex selection
             setPivotFromScaleMode(dragInfo.scale.hVertex, dragInfo.scale.vVertex);
         }
 

@@ -109,7 +109,10 @@ export function findNearestPointOnLine(px: number, py: number, ax: number, ay: n
     return { x: ax + (atob.x * t), y: ay + (atob.y * t) };
 }
 
-export function findNearestPointOnRect(x: number, y: number, left: number, top: number, width: number, height: number)
+export type RectSide = 'top' | 'right' | 'bottom' | 'left';
+
+export function findNearestPointOnRect(x: number, y: number, left: number, top: number, width: number, height: number):
+{side: RectSide; distance: number; x: number; y: number}
 {
     const right = left + width;
     const bottom = top + height;
