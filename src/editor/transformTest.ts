@@ -1,14 +1,14 @@
 import type { DisplayObject, InteractionEvent, Transform } from 'pixi.js';
 import { Application, Container, Graphics, Matrix, Rectangle, Sprite, Texture } from 'pixi.js';
 
-import type { DragHVertex, DragVVertex  } from '../core/util/geom';
+import type { DragHVertex, DragVVertex } from '../core/util/geom';
 import {
     angleBetween,
     closestEdgeVertexOnRect,
     degToRad,
+    distanceBetween,
     findNearestPointOnRect,
-    rotatePointAround,
-} from '../core/util/geom';
+    rotatePointAround } from '../core/util/geom';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
 
@@ -486,7 +486,7 @@ const onDragStart = (e: InteractionEvent) =>
         }
         else
         {
-            const { distance } = findNearestPointOnRect(
+            const { x, y } = findNearestPointOnRect(
                 localX,
                 localY,
                 0,
@@ -494,6 +494,10 @@ const onDragStart = (e: InteractionEvent) =>
                 bounds.width,
                 bounds.height,
             );
+
+            const p = getGlobalPoint(x, y);
+
+            const distance = distanceBetween(p.x, p.y, globalX, globalY);
 
             if (distance <= edgeDragDistance)
             {
