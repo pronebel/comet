@@ -535,7 +535,21 @@ const onDragMove = (e: InteractionEvent) =>
     const localX = localPoint.x;
     const localY = localPoint.y;
 
-    // localPoint = constrainLocalPoint(localPoint);
+    if (e.data.originalEvent.shiftKey)
+    {
+        // move pivot
+        if (e.data.originalEvent.altKey)
+        {
+            const p = constrainLocalPoint(localPoint);
+            const gp = getGlobalPoint(p.x, p.y);
+
+            setPivot(gp.x, gp.y);
+        }
+        else
+        {
+            setPivot(globalX, globalY);
+        }
+    }
 
     const globalPivot = getPivotGlobalPos();
 
@@ -560,7 +574,7 @@ const onDragMove = (e: InteractionEvent) =>
     }
     else if (dragInfo.mode === 'translation')
     {
-        // drag
+        // translation
         const deltaX = globalX - dragInfo.initial.dragPointX;
         const deltaY = globalY - dragInfo.initial.dragPointY;
 
