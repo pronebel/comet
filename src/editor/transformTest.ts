@@ -1,4 +1,4 @@
-import type {  DisplayObject, InteractionEvent,  Transform } from 'pixi.js';
+import {  type DisplayObject, type InteractionEvent,  type Transform, ViewableBuffer } from 'pixi.js';
 import { Application, Container, Graphics, Matrix, Rectangle, Sprite, Texture } from 'pixi.js';
 
 import type { DragHVertex, DragVVertex  } from '../core/util/geom';
@@ -143,8 +143,20 @@ const green = createSprite(0x009900, spriteConfig.green);
 const blue = createSprite(0x0000ff, spriteConfig.blue);
 
 // initialise selection
-selection.push(red, green, blue);
-selection.forEach((obj) => matrixCache.push(obj.worldTransform.clone()));
+function addObject(view: DisplayObject)
+{
+    view.updateTransform();
+    selection.push(view);
+    matrixCache.push(view.worldTransform.clone());
+}
+
+function addObjects(views: DisplayObject[])
+{
+    views.forEach((view) =>
+    {
+        addObject(view);
+    });
+}
 
 function getBounds()
 {
@@ -653,5 +665,7 @@ border
     .on('mousemove', onDragMove);
 
 window.addEventListener('mouseup', onDragEnd);
+
+addObjects([red, green, blue]);
 
 setInterval(calcTransform, 100);
