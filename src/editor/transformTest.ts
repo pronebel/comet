@@ -37,7 +37,7 @@ type SpriteConfig = {
 };
 
 // track drag info
-type DragMode = 'none' | 'rotation' | 'drag' | 'scale';
+type DragMode = 'none' | 'translation' | 'rotation' | 'scale';
 
 interface DragInfo
 {
@@ -50,6 +50,7 @@ interface DragInfo
         duplex: boolean;
         centerX: number;
         centerY: number;
+        vertex: string;
     };
     initial: {
         width: number;
@@ -72,6 +73,7 @@ const dragInfo: DragInfo = {
         duplex: false,
         centerX: 0,
         centerY: 0,
+        vertex: '',
     },
     initial: {
         width: 0,
@@ -248,14 +250,6 @@ function getGlobalPoint(localX: number, localY: number)
     return { x: globalPoint.x, y: globalPoint.y };
 }
 
-function getGlobalCenter()
-{
-    const localX = bounds.width * 0.5;
-    const localY = bounds.height * 0.5;
-
-    return getGlobalPoint(localX, localY);
-}
-
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function constrainLocalPoint(localPoint: {x: number; y: number})
 {
@@ -269,7 +263,7 @@ function constrainLocalPoint(localPoint: {x: number; y: number})
     return p;
 }
 
-function cacheTransformState(mode: DragMode, e: InteractionEvent)
+function initDragState(mode: DragMode, e: InteractionEvent)
 {
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
@@ -431,7 +425,7 @@ function calcTransform()
     fitBorder();
 }
 
-border.on('mousedown', (e: InteractionEvent) =>
+const onDragStart = (e: InteractionEvent) =>
 {
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
@@ -450,7 +444,7 @@ border.on('mousedown', (e: InteractionEvent) =>
         else if (e.data.originalEvent.metaKey)
         {
             // rotation
-            cacheTransformState('rotation', e);
+            initDragState('rotation', e);
         }
         else
         {
@@ -472,19 +466,23 @@ border.on('mousedown', (e: InteractionEvent) =>
                 dragInfo.scale.hVertex = h;
                 dragInfo.scale.vVertex = v;
                 dragInfo.scale.side = side;
+                dragInfo.scale.vertex = `${h}-${v}`;
+                console.log(dragInfo.scale.vertex);
 
                 // override pivot and cache state
-                cacheTransformState('scale', e);
+                initDragState('scale', e);
                 setPivotFromScaleMode(h, v);
             }
             else
             {
                 // translation
-                cacheTransformState('drag', e);
+                initDragState('translation', e);
             }
         }
     }
-}).on('mousemove', (e: InteractionEvent) =>
+};
+
+const onDragMove = (e: InteractionEvent) =>
 {
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
@@ -516,7 +514,7 @@ border.on('mousedown', (e: InteractionEvent) =>
 
         transform.rotation = dragInfo.cache.rotation + angle;
     }
-    else if (dragInfo.mode === 'drag')
+    else if (dragInfo.mode === 'translation')
     {
         // drag
         const deltaX = globalX - dragInfo.initial.dragPointX;
@@ -529,12 +527,15 @@ border.on('mousedown', (e: InteractionEvent) =>
     {
         // scaling
         const width = dragInfo.initial.width;
+        const height = dragInfo.initial.height;
         const dragPointX = dragInfo.initial.dragPointX;
         const dragPointY = dragInfo.initial.dragPointY;
         const p1 = rotatePointAround(globalX, globalY, -transform.rotation, globalPivot.x, globalPivot.y);
         const p2 = rotatePointAround(dragPointX, dragPointY, -transform.rotation, globalPivot.x, globalPivot.y);
         let deltaX = (p1.x - p2.x);
+        let deltaY = (p1.y - p2.y);
         let scaleX = 1;
+        let scaleY = 1;
 
         if (e.data.originalEvent.altKey)
         {
@@ -553,23 +554,64 @@ border.on('mousedown', (e: InteractionEvent) =>
             setPivotFromScaleMode(dragInfo.scale.hVertex, dragInfo.scale.vVertex);
         }
 
-        if (dragInfo.scale.duplex)
+        const { duplex, vertex } = dragInfo.scale;
+
+        if (duplex)
         {
+            // apply duplex multiplier
             deltaX *= 2;
+            deltaY *= 2;
         }
 
-        if (dragInfo.scale.side === 'right')
+        if (
+            vertex === 'left-top'
+            || vertex === 'left-center'
+            || vertex === 'left-bottom'
+        )
+        {
+            deltaX *= -1;
+        }
+
+        if (
+            vertex === 'left-top'
+            || vertex === 'center-top'
+            || vertex === 'right-top'
+        )
+        {
+            deltaY *= -1;
+        }
+
+        if (
+            vertex === 'left-top'
+            || vertex === 'left-center'
+            || vertex === 'left-bottom'
+            || vertex === 'right-top'
+            || vertex === 'right-center'
+            || vertex === 'right-bottom'
+        )
         {
             scaleX = ((width + deltaX) / width) * dragInfo.cache.scaleX;
+            transform.scaleX = scaleX;
         }
 
-        transform.scaleX = scaleX;
+        if (
+            vertex === 'left-top'
+            || vertex === 'center-top'
+            || vertex === 'right-top'
+            || vertex === 'left-bottom'
+            || vertex === 'center-bottom'
+            || vertex === 'right-bottom'
+        )
+        {
+            scaleY = ((height + deltaY) / height) * dragInfo.cache.scaleY;
+            transform.scaleY = scaleY;
+        }
     }
 
     calcTransform();
-});
+};
 
-window.addEventListener('mouseup', () =>
+const onDragEnd = () =>
 {
     if (dragInfo.mode === 'scale')
     {
@@ -582,6 +624,12 @@ window.addEventListener('mouseup', () =>
     }
 
     dragInfo.mode = 'none';
-});
+};
+
+border
+    .on('mousedown', onDragStart)
+    .on('mousemove', onDragMove);
+
+window.addEventListener('mouseup', onDragEnd);
 
 setInterval(calcTransform, 100);
