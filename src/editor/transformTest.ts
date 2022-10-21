@@ -1,4 +1,4 @@
-import {  type DisplayObject, type InteractionEvent,  type Transform, ViewableBuffer } from 'pixi.js';
+import type { DisplayObject, InteractionEvent, Transform } from 'pixi.js';
 import { Application, Container, Graphics, Matrix, Rectangle, Sprite, Texture } from 'pixi.js';
 
 import type { DragHVertex, DragVVertex  } from '../core/util/geom';
@@ -16,6 +16,7 @@ const edgeDragDistance = 15;
 
 // setup transform state
 const transform = {
+    bounds: new Rectangle(),
     matrix: new Matrix(),
     x: 0,
     y: 0,
@@ -179,14 +180,6 @@ function getBounds()
     return rect;
 }
 
-// update transforms before caching matrices
-red.updateTransform();
-green.updateTransform();
-blue.updateTransform();
-
-// calculate bounds
-const bounds = sprites.getBounds();
-
 // create transform display objects
 const border = new Graphics();
 const container = new Container();
@@ -227,6 +220,7 @@ const setPoint = (name: keyof typeof points, localX: number, localY: number) =>
 // run transform operation
 function getPivotGlobalPos()
 {
+    const { bounds } = transform;
     const localPoint = { x: transform.pivotX * bounds.width, y: transform.pivotY * bounds.height };
     const globalPoint = { x: 0, y: 0 };
 
@@ -254,6 +248,7 @@ function getGlobalPoint(localX: number, localY: number)
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 function constrainLocalPoint(localPoint: {x: number; y: number})
 {
+    const { bounds } = transform;
     const p = {
         ...localPoint,
     };
@@ -266,6 +261,7 @@ function constrainLocalPoint(localPoint: {x: number; y: number})
 
 function initDragState(mode: DragMode, e: InteractionEvent)
 {
+    const { bounds } = transform;
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
     const globalPivot = getPivotGlobalPos();
@@ -290,6 +286,7 @@ function initDragState(mode: DragMode, e: InteractionEvent)
 
 const updateMatrix = (trans: Transform, origMatrix: Matrix) =>
 {
+    const { bounds } = transform;
     const combinedMatrix = origMatrix.clone();
 
     combinedMatrix.translate(-bounds.left, -bounds.top);
@@ -299,6 +296,7 @@ const updateMatrix = (trans: Transform, origMatrix: Matrix) =>
 
 function fitBorder()
 {
+    const { bounds } = transform;
     const uniformBounds = getBounds();
 
     border.clear();
@@ -330,6 +328,7 @@ function fitBorder()
 
 function setPivot(globalX: number, globalY: number)
 {
+    const { bounds } = transform;
     const { x: localX, y: localY } = getLocalPoint(globalX, globalY);
 
     // move pivot
@@ -350,8 +349,10 @@ function setPivot(globalX: number, globalY: number)
 
 function setPivotFromScaleMode(hVertex: DragHVertex, vVertex: DragVVertex)
 {
-    let h = 0.5; // left
-    let v = 0.5; // top
+    const { bounds } = transform;
+
+    let h = 0.5;
+    let v = 0.5;
 
     if (hVertex === 'left')
     {
@@ -381,6 +382,7 @@ function setPivotFromScaleMode(hVertex: DragHVertex, vVertex: DragVVertex)
 
 function calcTransform()
 {
+    const { bounds } = transform;
     const { matrix } = transform;
 
     const pivotX = bounds.width * transform.pivotX;
@@ -432,7 +434,7 @@ function calcTransform()
 
 function initScaling(e: InteractionEvent)
 {
-    // scaling
+    const { bounds } = transform;
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
 
@@ -462,6 +464,7 @@ function initScaling(e: InteractionEvent)
 
 const onDragStart = (e: InteractionEvent) =>
 {
+    const { bounds } = transform;
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
 
@@ -507,6 +510,8 @@ const onDragStart = (e: InteractionEvent) =>
 
 const onDragEnd = () =>
 {
+    const { bounds } = transform;
+
     if (dragInfo.mode === 'scale')
     {
         // restore cached pivot when scaling
@@ -522,6 +527,7 @@ const onDragEnd = () =>
 
 const onDragMove = (e: InteractionEvent) =>
 {
+    const { bounds } = transform;
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
 
@@ -564,10 +570,11 @@ const onDragMove = (e: InteractionEvent) =>
     else if (dragInfo.mode === 'scale')
     {
         // scaling
-        const width = dragInfo.initial.width;
-        const height = dragInfo.initial.height;
-        const dragPointX = dragInfo.initial.dragPointX;
-        const dragPointY = dragInfo.initial.dragPointY;
+        const { initial } = dragInfo;
+        const width = initial.width;
+        const height = initial.height;
+        const dragPointX = initial.dragPointX;
+        const dragPointY = initial.dragPointY;
         const p1 = rotatePointAround(globalX, globalY, -transform.rotation, globalPivot.x, globalPivot.y);
         const p2 = rotatePointAround(dragPointX, dragPointY, -transform.rotation, globalPivot.x, globalPivot.y);
         let deltaX = (p1.x - p2.x);
@@ -666,6 +673,10 @@ border
 
 window.addEventListener('mouseup', onDragEnd);
 
+// add objects
 addObjects([red, green, blue]);
+
+// init to calculate bounds
+transform.bounds = sprites.getBounds();
 
 setInterval(calcTransform, 100);
