@@ -48,6 +48,8 @@ interface DragInfo
         vVertex: DragVVertex;
         side: RectSide;
         duplex: boolean;
+        centerX: number;
+        centerY: number;
     };
     initial: {
         width: number;
@@ -68,6 +70,8 @@ const dragInfo: DragInfo = {
         vVertex: 'center',
         side: 'right',
         duplex: false,
+        centerX: 0,
+        centerY: 0,
     },
     initial: {
         width: 0,
@@ -242,6 +246,14 @@ function getGlobalPoint(localX: number, localY: number)
     const globalPoint = container.worldTransform.apply(p);
 
     return { x: globalPoint.x, y: globalPoint.y };
+}
+
+function getGlobalCenter()
+{
+    const localX = bounds.width * 0.5;
+    const localY = bounds.height * 0.5;
+
+    return getGlobalPoint(localX, localY);
 }
 
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -455,7 +467,6 @@ border.on('mousedown', (e: InteractionEvent) =>
             {
                 // scaling
                 const { h, v } = closestEdgeVertexOnRect(localX, localY, 0, 0, bounds.width, bounds.height, 0.25);
-                const pivotGlobalPos = getPivotGlobalPos();
 
                 // cache extra scale info
                 dragInfo.scale.hVertex = h;
@@ -465,10 +476,6 @@ border.on('mousedown', (e: InteractionEvent) =>
                 // override pivot and cache state
                 cacheTransformState('scale', e);
                 setPivotFromScaleMode(h, v);
-
-                // cache pivot as global point (restore on mouseup)
-                dragInfo.cache.pivotX = pivotGlobalPos.x;
-                dragInfo.cache.pivotY = pivotGlobalPos.y;
             }
             else
             {
@@ -536,7 +543,6 @@ border.on('mousedown', (e: InteractionEvent) =>
                 // enabled duplex
                 dragInfo.scale.duplex = true;
                 setPivotFromScaleMode('center', 'center');
-                // todo: cache some position to fix delta offset when disabling duplex
             }
         }
         else
@@ -545,10 +551,6 @@ border.on('mousedown', (e: InteractionEvent) =>
             // disable duplex
             dragInfo.scale.duplex = false;
             setPivotFromScaleMode(dragInfo.scale.hVertex, dragInfo.scale.vVertex);
-            // todo: apply delta to move drag point back to cursor location
-            const p = getPivotGlobalPos();
-
-            console.log(globalPivot, p);
         }
 
         if (dragInfo.scale.duplex)
@@ -572,7 +574,11 @@ window.addEventListener('mouseup', () =>
     if (dragInfo.mode === 'scale')
     {
         // restore cached pivot when scaling
-        setPivot(dragInfo.cache.pivotX, dragInfo.cache.pivotY);
+        const localX = bounds.width * dragInfo.cache.pivotX;
+        const localY = bounds.height * dragInfo.cache.pivotY;
+        const p = getGlobalPoint(localX, localY);
+
+        setPivot(p.x, p.y);
     }
 
     dragInfo.mode = 'none';
