@@ -1,11 +1,24 @@
 import type {  InteractionEvent,  Transform } from 'pixi.js';
 import { Application, Container, Graphics, Matrix, Rectangle, Sprite, Texture } from 'pixi.js';
 
+import type { DragHVertex, DragVVertex } from '../core/util/geom';
 import { angleBetween, closestEdgeVertexOnRect, degToRad, findNearestPointOnRect } from '../core/util/geom';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
 
 const edgeDragDistance = 15;
+
+// setup transform state
+const transform = {
+    matrix: new Matrix(),
+    x: 0,
+    y: 0,
+    pivotX: 0.5,
+    pivotY: 0.5,
+    scaleX: 1,
+    scaleY: 1,
+    rotation: 0,
+};
 
 type SpriteConfig = {
     x: number;
@@ -15,6 +28,44 @@ type SpriteConfig = {
     angle: number;
     pivotX: number;
     pivotY: number;
+};
+
+// track drag info
+type DragMode = 'none' | 'rotation' | 'drag' | 'scale';
+
+interface DragInfo
+{
+    mode: DragMode;
+    cache: typeof transform;
+    scale: {
+        hArea: DragHVertex;
+        vArea: DragVVertex;
+    };
+    initial: {
+        bounds: Rectangle;
+        dragAngle: number;
+        dragPointX: number;
+        dragPointY: number;
+        dragScaleEdgeX: number;
+        dragScaleEdgeY: number;
+    };
+}
+
+const dragInfo: DragInfo = {
+    mode: 'none',
+    cache: transform,
+    scale: {
+        hArea: 'center',
+        vArea: 'center',
+    },
+    initial: {
+        bounds: new Rectangle(),
+        dragAngle: 0,
+        dragPointX: 0,
+        dragPointY: 0,
+        dragScaleEdgeX: 0,
+        dragScaleEdgeY: 0,
+    },
 };
 
 type WithBounds = {getBounds: () => Rectangle};
@@ -110,60 +161,6 @@ blue.updateTransform();
 // calculate bounds
 const bounds = sprites.getBounds();
 
-// setup transform state
-const transform = {
-    matrix: new Matrix(),
-    x: 0,
-    y: 0,
-    pivotX: 0.5,
-    pivotY: 0.5,
-    scaleX: 1,
-    scaleY: 1,
-    rotation: 0,
-};
-
-// track drag info
-type DragMode = 'none' | 'rotation' | 'drag' | 'scale';
-
-interface DragInfo
-{
-    mode: DragMode;
-    cache: typeof transform;
-    scale: {
-        hArea: 'left' | 'center' | 'right';
-        vArea: 'top' | 'center' | 'bottom';
-        pivotX: number;
-        pivotY: number;
-    };
-    initial: {
-        bounds: Rectangle;
-        dragAngle: number;
-        dragPointX: number;
-        dragPointY: number;
-        dragScaleEdgeX: number;
-        dragScaleEdgeY: number;
-    };
-}
-
-const dragInfo: DragInfo = {
-    mode: 'none',
-    cache: transform,
-    scale: {
-        hArea: 'center',
-        vArea: 'center',
-        pivotX: 0,
-        pivotY: 0,
-    },
-    initial: {
-        bounds: new Rectangle(),
-        dragAngle: 0,
-        dragPointX: 0,
-        dragPointY: 0,
-        dragScaleEdgeX: 0,
-        dragScaleEdgeY: 0,
-    },
-};
-
 // create transform display objects
 const border = new Graphics();
 const container = new Container();
@@ -219,13 +216,23 @@ function getPivotGlobalPos()
     return globalPoint;
 }
 
-function getLocalPoint(e: InteractionEvent)
+function getLocalPoint(globalX: number, globalY: number)
 {
-    const localPoint = container.worldTransform.applyInverse(e.data.global);
+    const p = { x: globalX, y: globalY };
+    const localPoint = container.worldTransform.applyInverse(p);
 
     return { x: localPoint.x, y: localPoint.y };
 }
 
+function getGlobalPoint(localX: number, localY: number)
+{
+    const p = { x: localX, y: localY };
+    const globalPoint = container.worldTransform.apply(p);
+
+    return { x: globalPoint.x, y: globalPoint.y };
+}
+
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function constrainLocalPoint(localPoint: {x: number; y: number})
 {
     const p = {
@@ -243,7 +250,7 @@ function cacheTransformState(mode: DragMode, e: InteractionEvent)
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
     const globalPivot = getPivotGlobalPos();
-    const localPoint = getLocalPoint(e);
+    const localPoint = getLocalPoint(globalX, globalY);
 
     dragInfo.mode = mode;
 
@@ -259,8 +266,6 @@ function cacheTransformState(mode: DragMode, e: InteractionEvent)
         dragScaleEdgeX: localPoint.x,
         dragScaleEdgeY: localPoint.y,
     };
-
-    console.log(dragInfo);
 }
 
 const updateMatrix = (trans: Transform, origMatrix: Matrix) =>
@@ -301,15 +306,63 @@ function fitBorder()
     border.moveTo(p4.x, p4.y); border.lineTo(p1.x, p1.y);
 }
 
+function setPivot(globalX: number, globalY: number)
+{
+    const { x: localX, y: localY } = getLocalPoint(globalX, globalY);
+
+    // move pivot
+    transform.pivotX = localX / bounds.width;
+    transform.pivotY = localY / bounds.height;
+
+    calcTransform();
+
+    const newPoint = getPivotGlobalPos();
+    const deltaX = newPoint.x - globalX;
+    const deltaY = newPoint.y - globalY;
+
+    transform.x += -deltaX;
+    transform.y += -deltaY;
+
+    calcTransform();
+}
+
+function setPivotFromScaleMode(hArea: DragHVertex, vArea: DragVVertex)
+{
+    let h = 0.5; // left
+    let v = 0.5; // top
+
+    if (hArea === 'left')
+    {
+        h = 1;
+    }
+    else if (hArea === 'right')
+    {
+        h = 0;
+    }
+
+    if (vArea === 'top')
+    {
+        v = 1;
+    }
+    else if (vArea === 'bottom')
+    {
+        v = 0;
+    }
+
+    const localX = bounds.width * h;
+    const localY = bounds.height * v;
+
+    const p = getGlobalPoint(localX, localY);
+
+    setPivot(p.x, p.y);
+}
+
 function calcTransform()
 {
     const { matrix } = transform;
-    const { scale, mode } = dragInfo;
 
     const pivotX = bounds.width * transform.pivotX;
     const pivotY = bounds.height * transform.pivotY;
-    // const scalePivotX = (bounds.width * scale.pivotX) - pivotX;
-    // const scalePivotY = (bounds.height * scale.pivotY) - pivotY;
 
     setPoint('pivot', pivotX, pivotY);
 
@@ -318,10 +371,6 @@ function calcTransform()
 
     // apply negative pivot
     matrix.translate(-pivotX, -pivotY);
-    // if (mode === 'scale')
-    // {
-    //     matrix.translate(-scalePivotX, -scalePivotY);
-    // }
 
     // scale
     matrix.scale(transform.scaleX, transform.scaleY);
@@ -331,10 +380,6 @@ function calcTransform()
 
     // move pivot back
     matrix.translate(pivotX, pivotY);
-    // if (mode === 'scale')
-    // {
-    //     matrix.translate(scalePivotX, scalePivotY);
-    // }
 
     // translate to transform bounds position
     matrix.translate(bounds.left, bounds.top);
@@ -351,6 +396,7 @@ function calcTransform()
     updateMatrix(green.transform, matrixCache.green);
     updateMatrix(blue.transform, matrixCache.blue);
 
+    // fit uniform encompassing border
     fitBorder();
 }
 
@@ -359,7 +405,7 @@ border.on('mousedown', (e: InteractionEvent) =>
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
 
-    const { x: localX, y: localY } = getLocalPoint(e);
+    const { x: localX, y: localY } = getLocalPoint(globalX, globalY);
 
     // setPoint('mouseLocal', localX, localY);
 
@@ -368,19 +414,7 @@ border.on('mousedown', (e: InteractionEvent) =>
         if (e.data.originalEvent.shiftKey)
         {
             // move pivot
-            transform.pivotX = localX / bounds.width;
-            transform.pivotY = localY / bounds.height;
-
-            calcTransform();
-
-            const newPoint = getPivotGlobalPos();
-            const deltaX = newPoint.x - globalX;
-            const deltaY = newPoint.y - globalY;
-
-            transform.x += -deltaX;
-            transform.y += -deltaY;
-
-            calcTransform();
+            setPivot(globalX, globalY);
         }
         else if (e.data.originalEvent.metaKey)
         {
@@ -405,12 +439,13 @@ border.on('mousedown', (e: InteractionEvent) =>
 
                 dragInfo.scale.hArea = x;
                 dragInfo.scale.vArea = y;
+                const pivotGlobalPos = getPivotGlobalPos();
 
-                // todo: calculate from vertex area
-                dragInfo.scale.pivotX = 0;
-                dragInfo.scale.pivotY = 0.5;
-
+                setPivotFromScaleMode(x, y);
                 cacheTransformState('scale', e);
+
+                dragInfo.cache.pivotX = pivotGlobalPos.x;
+                dragInfo.cache.pivotY = pivotGlobalPos.y;
             }
             else
             {
@@ -424,7 +459,7 @@ border.on('mousedown', (e: InteractionEvent) =>
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
 
-    const localPoint = getLocalPoint(e);
+    const localPoint = getLocalPoint(globalX, globalY);
     const localX = localPoint.x;
     const localY = localPoint.y;
 
@@ -463,13 +498,8 @@ border.on('mousedown', (e: InteractionEvent) =>
     else if (dragInfo.mode === 'scale')
     {
         // scaling
-        if (dragInfo.scale.vArea === 'center')
-        {
-            const scale = localX / (dragInfo.initial.bounds.width);
-
-            transform.scaleX = scale;
-            // console.log(scale);
-        }
+        transform.scaleX = transform.scaleX + 0.01;
+        transform.scaleY = transform.scaleY + 0.01;
     }
 
     calcTransform();
@@ -477,6 +507,11 @@ border.on('mousedown', (e: InteractionEvent) =>
 
 window.addEventListener('mouseup', () =>
 {
+    if (dragInfo.mode === 'scale')
+    {
+        setPivot(dragInfo.cache.pivotX, dragInfo.cache.pivotY);
+    }
+
     dragInfo.mode = 'none';
 });
 
