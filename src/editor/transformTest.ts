@@ -1,7 +1,7 @@
 import type {  InteractionEvent,  Transform } from 'pixi.js';
 import { Application, Container, Graphics, Matrix, Rectangle, Sprite, Texture } from 'pixi.js';
 
-import type { DragHVertex, DragVVertex, RectSide  } from '../core/util/geom';
+import type { DragHVertex, DragVVertex  } from '../core/util/geom';
 import {
     angleBetween,
     closestEdgeVertexOnRect,
@@ -134,7 +134,7 @@ function createSprite(tint: number, config: SpriteConfig, addToStage = true)
 // create 3 sprites and setup properties
 const spriteConfig: Record<string, SpriteConfig> = {
     red: { x: 100, y: 50, width: 100, height: 50, angle: 0, pivotX: 0, pivotY: 0 },
-    green: { x: 250, y: 50, width: 50, height: 100, angle: 0, pivotX: 0, pivotY: 0 },
+    green: { x: 250, y: 50, width: 50, height: 100, angle: 45, pivotX: 0, pivotY: 0 },
     blue: { x: 150, y: 150, width: 50, height: 50, angle: 0, pivotX: 0, pivotY: 0 },
 };
 
@@ -419,6 +419,36 @@ function calcTransform()
     fitBorder();
 }
 
+function initScaling(e: InteractionEvent)
+{
+    // scaling
+    const globalX = e.data.global.x;
+    const globalY = e.data.global.y;
+
+    const { x: localX, y: localY } = getLocalPoint(globalX, globalY);
+    const { h, v } = closestEdgeVertexOnRect(localX, localY, 0, 0, bounds.width, bounds.height, 0.25);
+
+    // cache extra scale info
+    dragInfo.scale.duplex = false;
+    dragInfo.scale.hVertex = h;
+    dragInfo.scale.vVertex = v;
+    dragInfo.scale.vertex = `${h}-${v}`;
+
+    // override pivot and cache state
+    initDragState('scale', e);
+
+    if (e.data.originalEvent.altKey)
+    {
+        // enabled duplex
+        dragInfo.scale.duplex = true;
+        setPivotFromScaleMode('center', 'center');
+    }
+    else
+    {
+        setPivotFromScaleMode(h, v);
+    }
+}
+
 const onDragStart = (e: InteractionEvent) =>
 {
     const globalX = e.data.global.x;
@@ -453,28 +483,7 @@ const onDragStart = (e: InteractionEvent) =>
 
             if (distance <= edgeDragDistance)
             {
-                // scaling
-                const { h, v } = closestEdgeVertexOnRect(localX, localY, 0, 0, bounds.width, bounds.height, 0.25);
-
-                // cache extra scale info
-                dragInfo.scale.duplex = false;
-                dragInfo.scale.hVertex = h;
-                dragInfo.scale.vVertex = v;
-                dragInfo.scale.vertex = `${h}-${v}`;
-
-                // override pivot and cache state
-                initDragState('scale', e);
-
-                if (e.data.originalEvent.altKey)
-                {
-                    // enabled duplex
-                    dragInfo.scale.duplex = true;
-                    setPivotFromScaleMode('center', 'center');
-                }
-                else
-                {
-                    setPivotFromScaleMode(h, v);
-                }
+                initScaling(e);
             }
             else
             {
@@ -483,6 +492,21 @@ const onDragStart = (e: InteractionEvent) =>
             }
         }
     }
+};
+
+const onDragEnd = () =>
+{
+    if (dragInfo.mode === 'scale')
+    {
+        // restore cached pivot when scaling
+        const localX = bounds.width * dragInfo.cache.pivotX;
+        const localY = bounds.height * dragInfo.cache.pivotY;
+        const p = getGlobalPoint(localX, localY);
+
+        setPivot(p.x, p.y);
+    }
+
+    dragInfo.mode = 'none';
 };
 
 const onDragMove = (e: InteractionEvent) =>
@@ -544,9 +568,15 @@ const onDragMove = (e: InteractionEvent) =>
         {
             if (!dragInfo.scale.duplex)
             {
+                // reset drag scaling state
+                onDragEnd();
+                initScaling(e);
+
                 // enabled duplex
                 dragInfo.scale.duplex = true;
                 setPivotFromScaleMode('center', 'center');
+
+                return;
             }
         }
         else
@@ -554,7 +584,12 @@ const onDragMove = (e: InteractionEvent) =>
         {
             // disable duplex
             dragInfo.scale.duplex = false;
-            setPivotFromScaleMode(dragInfo.scale.hVertex, dragInfo.scale.vVertex);
+
+            // reset drag scaling state
+            onDragEnd();
+            initScaling(e);
+
+            return;
         }
 
         const { vertex } = dragInfo.scale;
@@ -612,21 +647,6 @@ const onDragMove = (e: InteractionEvent) =>
     }
 
     calcTransform();
-};
-
-const onDragEnd = () =>
-{
-    if (dragInfo.mode === 'scale')
-    {
-        // restore cached pivot when scaling
-        const localX = bounds.width * dragInfo.cache.pivotX;
-        const localY = bounds.height * dragInfo.cache.pivotY;
-        const p = getGlobalPoint(localX, localY);
-
-        setPivot(p.x, p.y);
-    }
-
-    dragInfo.mode = 'none';
 };
 
 border
