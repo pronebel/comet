@@ -46,10 +46,7 @@ interface DragInfo
     scale: {
         hVertex: DragHVertex;
         vVertex: DragVVertex;
-        side: RectSide;
         duplex: boolean;
-        centerX: number;
-        centerY: number;
         vertex: string;
     };
     initial: {
@@ -69,10 +66,7 @@ const dragInfo: DragInfo = {
     scale: {
         hVertex: 'center',
         vVertex: 'center',
-        side: 'right',
         duplex: false,
-        centerX: 0,
-        centerY: 0,
         vertex: '',
     },
     initial: {
@@ -448,7 +442,7 @@ const onDragStart = (e: InteractionEvent) =>
         }
         else
         {
-            const { distance, side } = findNearestPointOnRect(
+            const { distance } = findNearestPointOnRect(
                 localX,
                 localY,
                 0,
@@ -466,9 +460,7 @@ const onDragStart = (e: InteractionEvent) =>
                 dragInfo.scale.duplex = false;
                 dragInfo.scale.hVertex = h;
                 dragInfo.scale.vVertex = v;
-                dragInfo.scale.side = side;
                 dragInfo.scale.vertex = `${h}-${v}`;
-                console.log(dragInfo.scale.vertex);
 
                 // override pivot and cache state
                 initDragState('scale', e);
@@ -619,7 +611,6 @@ const onDragMove = (e: InteractionEvent) =>
         }
     }
 
-    console.log(dragInfo.scale.duplex);
     calcTransform();
 };
 
