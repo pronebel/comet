@@ -20,16 +20,10 @@ export function angleBetween(x1: number, y1: number, x2: number, y2: number)
     return deg;
 }
 
-export function distanceBetween(x1: number, y1: number, x2: number, y2: number, abs = true)
+export function distanceBetween(x1: number, y1: number, x2: number, y2: number)
 {
-    let x = x2 - x1;
-    let y = y2 - y1;
-
-    if (abs)
-    {
-        x = Math.abs(x);
-        y = Math.abs(y);
-    }
+    const x = Math.abs(x2 - x1);
+    const y = Math.abs(y2 - y1);
 
     return Math.sqrt((y * y) + (x * x));
 }

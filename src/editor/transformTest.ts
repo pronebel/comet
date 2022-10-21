@@ -1,8 +1,8 @@
 import type {  InteractionEvent,  Transform } from 'pixi.js';
 import { Application, Container, Graphics, Matrix, Rectangle, Sprite, Texture } from 'pixi.js';
 
-import type { DragHVertex, DragVVertex, RectSide } from '../core/util/geom';
-import { angleBetween, closestEdgeVertexOnRect, degToRad, findNearestPointOnRect } from '../core/util/geom';
+import { type DragHVertex, type DragVVertex, type RectSide, rotatePointAround } from '../core/util/geom';
+import { angleBetween, closestEdgeVertexOnRect, degToRad, distanceBetween, findNearestPointOnRect } from '../core/util/geom';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
 
@@ -43,7 +43,8 @@ interface DragInfo
         side: RectSide;
     };
     initial: {
-        bounds: Rectangle;
+        width: number;
+        height: number;
         dragAngle: number;
         dragPointX: number;
         dragPointY: number;
@@ -61,7 +62,8 @@ const dragInfo: DragInfo = {
         side: 'right',
     },
     initial: {
-        bounds: new Rectangle(),
+        width: 0,
+        height: 0,
         dragAngle: 0,
         dragPointX: 0,
         dragPointY: 0,
@@ -260,8 +262,11 @@ function cacheTransformState(mode: DragMode, e: InteractionEvent)
         ...transform,
     };
 
+    console.log('initial scale:', transform.scaleX, transform.scaleY, bounds.width * transform.scaleX);
+
     dragInfo.initial = {
-        bounds: bounds.clone(),
+        width: bounds.width * transform.scaleX,
+        height: bounds.height * transform.scaleY,
         dragAngle: angleBetween(globalPivot.x, globalPivot.y, globalX, globalY),
         dragPointX: globalX,
         dragPointY: globalY,
@@ -521,8 +526,21 @@ border.on('mousedown', (e: InteractionEvent) =>
             setPivotFromScaleMode(dragInfo.scale.hVertex, dragInfo.scale.vVertex);
         }
 
-        transform.scaleX = transform.scaleX + 0.01;
-        transform.scaleY = transform.scaleY + 0.01;
+        if (dragInfo.scale.side === 'right')
+        {
+            const dragPointX = dragInfo.initial.dragPointX;
+            const dragPointY = dragInfo.initial.dragPointY;
+            const p1 = rotatePointAround(globalX, globalY, -transform.rotation, globalPivot.x, globalPivot.y);
+            const p2 = rotatePointAround(dragPointX, dragPointY, -transform.rotation, globalPivot.x, globalPivot.y);
+            const delta = (p1.x - p2.x);
+            const width = dragInfo.initial.width;
+
+            const scale = (((width + delta) / width)) * dragInfo.cache.scaleX;
+
+            console.log({ initialWidth: width, deltaWidth: width + delta, calcScale: scale });
+
+            transform.scaleX = scale;
+        }
     }
 
     calcTransform();
