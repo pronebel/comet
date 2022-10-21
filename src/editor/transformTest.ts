@@ -38,8 +38,8 @@ interface DragInfo
     mode: DragMode;
     cache: typeof transform;
     scale: {
-        hArea: DragHVertex;
-        vArea: DragVVertex;
+        hVertex: DragHVertex;
+        vVertex: DragVVertex;
     };
     initial: {
         bounds: Rectangle;
@@ -55,8 +55,8 @@ const dragInfo: DragInfo = {
     mode: 'none',
     cache: transform,
     scale: {
-        hArea: 'center',
-        vArea: 'center',
+        hVertex: 'center',
+        vVertex: 'center',
     },
     initial: {
         bounds: new Rectangle(),
@@ -283,7 +283,8 @@ function fitBorder()
 
     border.clear();
 
-    border.lineStyle(1, 0xffffff, 1);
+    // draw uniform encompassing border
+    border.lineStyle(1, 0xffffff, 0.6);
     border.beginFill(0xffffff, 0.01);
     border.drawRect(uniformBounds.left, uniformBounds.top, uniformBounds.width, uniformBounds.height);
     border.endFill();
@@ -293,6 +294,7 @@ function fitBorder()
     const p3 = container.worldTransform.apply({ x: bounds.width, y: bounds.height });
     const p4 = container.worldTransform.apply({ x: 0, y: bounds.height });
 
+    // draw transformed border
     const path = [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y];
 
     border.beginFill(0xffffff, 0.1);
@@ -326,25 +328,25 @@ function setPivot(globalX: number, globalY: number)
     calcTransform();
 }
 
-function setPivotFromScaleMode(hArea: DragHVertex, vArea: DragVVertex)
+function setPivotFromScaleMode(hVertex: DragHVertex, vVertex: DragVVertex)
 {
     let h = 0.5; // left
     let v = 0.5; // top
 
-    if (hArea === 'left')
+    if (hVertex === 'left')
     {
         h = 1;
     }
-    else if (hArea === 'right')
+    else if (hVertex === 'right')
     {
         h = 0;
     }
 
-    if (vArea === 'top')
+    if (vVertex === 'top')
     {
         v = 1;
     }
-    else if (vArea === 'bottom')
+    else if (vVertex === 'bottom')
     {
         v = 0;
     }
@@ -435,13 +437,13 @@ border.on('mousedown', (e: InteractionEvent) =>
             if (distance <= edgeDragDistance)
             {
                 // scaling
-                const { x, y } = closestEdgeVertexOnRect(localX, localY, 0, 0, bounds.width, bounds.height, 0.25);
-
-                dragInfo.scale.hArea = x;
-                dragInfo.scale.vArea = y;
+                const { h, v } = closestEdgeVertexOnRect(localX, localY, 0, 0, bounds.width, bounds.height, 0.25);
                 const pivotGlobalPos = getPivotGlobalPos();
 
-                setPivotFromScaleMode(x, y);
+                dragInfo.scale.hVertex = h;
+                dragInfo.scale.vVertex = v;
+
+                setPivotFromScaleMode(h, v);
                 cacheTransformState('scale', e);
 
                 dragInfo.cache.pivotX = pivotGlobalPos.x;
@@ -477,7 +479,7 @@ border.on('mousedown', (e: InteractionEvent) =>
     );
 
     setPoint('nearest', x, y);
-    // setPoint('mouseLocal', localPoint.x, localPoint.y);
+    setPoint('mouseLocal', localPoint.x, localPoint.y);
 
     if (dragInfo.mode === 'rotation')
     {
@@ -498,6 +500,15 @@ border.on('mousedown', (e: InteractionEvent) =>
     else if (dragInfo.mode === 'scale')
     {
         // scaling
+        if (e.data.originalEvent.altKey)
+        {
+            setPivotFromScaleMode('center', 'center');
+        }
+        else
+        {
+            setPivotFromScaleMode(dragInfo.scale.hVertex, dragInfo.scale.vVertex);
+        }
+
         transform.scaleX = transform.scaleX + 0.01;
         transform.scaleY = transform.scaleY + 0.01;
     }
@@ -509,6 +520,7 @@ window.addEventListener('mouseup', () =>
 {
     if (dragInfo.mode === 'scale')
     {
+        // restore cached pivot when scaling
         setPivot(dragInfo.cache.pivotX, dragInfo.cache.pivotY);
     }
 

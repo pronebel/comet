@@ -166,8 +166,8 @@ export function closestEdgeVertexOnRect(
     height: number,
     centerProportion: number,
 ): {
-        x: DragHVertex;
-        y: DragVVertex;
+        h: DragHVertex;
+        v: DragVVertex;
     }
 {
     const near = 0.5 - centerProportion;
@@ -177,30 +177,30 @@ export function closestEdgeVertexOnRect(
     const centerTop = top + (height * near);
     const centerBottom = top + (height * far);
 
-    let hPos: DragHVertex = 'left';
+    let h: DragHVertex = 'left';
 
     if (x >= centerLeft && x <= centerRight)
     {
-        hPos = 'center';
+        h = 'center';
     }
     else if (x > centerRight)
     {
-        hPos = 'right';
+        h = 'right';
     }
 
-    let vPos: DragVVertex = 'top';
+    let v: DragVVertex = 'top';
 
     if (y >= centerTop && y <= centerBottom)
     {
-        vPos = 'center';
+        v = 'center';
     }
     else if (y > centerBottom)
     {
-        vPos = 'bottom';
+        v = 'bottom';
     }
 
     return {
-        x: hPos,
-        y: vPos,
+        h,
+        v,
     };
 }
