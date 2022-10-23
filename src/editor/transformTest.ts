@@ -91,12 +91,12 @@ const pixi = new Application({
     height: canvasHeight,
 });
 
-const sprites = new Container();
-const edit = new Container();
+const spritesLayer = new Container();
+const editLayer = new Container();
 
 pixi.stage.addChild(Grid.createTilingSprite(screen.availWidth, screen.availHeight));
-pixi.stage.addChild(sprites);
-pixi.stage.addChild(edit);
+pixi.stage.addChild(spritesLayer);
+pixi.stage.addChild(editLayer);
 
 function createSprite(tint: number, config: SpriteConfig, addToStage = true)
 {
@@ -113,7 +113,7 @@ function createSprite(tint: number, config: SpriteConfig, addToStage = true)
 
     if (addToStage)
     {
-        sprites.addChild(sprite);
+        spritesLayer.addChild(sprite);
         sprite.updateTransform();
     }
 
@@ -170,10 +170,8 @@ function getBounds()
 
 // create transform display objects
 const border = new Graphics();
-const container = new Container();
 
-edit.addChild(container);
-edit.addChild(border);
+editLayer.addChild(border);
 
 border.interactive = true;
 
@@ -191,7 +189,7 @@ pivotShape.moveTo(pivotSize * -1.5, 0);
 pivotShape.lineTo(pivotSize * 1.5, 0);
 pivotShape.endFill();
 
-edit.addChild(pivot);
+editLayer.addChild(pivot);
 
 const setPivotViewPos = () =>
 {
@@ -208,7 +206,7 @@ function getPivotGlobalPos()
     const localPoint = { x: transform.pivotX * bounds.width, y: transform.pivotY * bounds.height };
     const globalPoint = { x: 0, y: 0 };
 
-    container.worldTransform.apply(localPoint, globalPoint);
+    transform.matrix.apply(localPoint, globalPoint);
 
     return globalPoint;
 }
@@ -216,7 +214,7 @@ function getPivotGlobalPos()
 function getLocalPoint(globalX: number, globalY: number)
 {
     const p = { x: globalX, y: globalY };
-    const localPoint = container.worldTransform.applyInverse(p);
+    const localPoint = transform.matrix.applyInverse(p);
 
     return { x: localPoint.x, y: localPoint.y };
 }
@@ -224,7 +222,7 @@ function getLocalPoint(globalX: number, globalY: number)
 function getGlobalPoint(localX: number, localY: number)
 {
     const p = { x: localX, y: localY };
-    const globalPoint = container.worldTransform.apply(p);
+    const globalPoint = transform.matrix.apply(p);
 
     return { x: globalPoint.x, y: globalPoint.y };
 }
@@ -293,10 +291,10 @@ function fitBorder()
     border.drawRect(uniformBounds.left, uniformBounds.top, uniformBounds.width, uniformBounds.height);
     border.endFill();
 
-    const p1 = container.worldTransform.apply({ x: 0, y: 0 });
-    const p2 = container.worldTransform.apply({ x: bounds.width, y: 0 });
-    const p3 = container.worldTransform.apply({ x: bounds.width, y: bounds.height });
-    const p4 = container.worldTransform.apply({ x: 0, y: bounds.height });
+    const p1 = transform.matrix.apply({ x: 0, y: 0 });
+    const p2 = transform.matrix.apply({ x: bounds.width, y: 0 });
+    const p3 = transform.matrix.apply({ x: bounds.width, y: bounds.height });
+    const p4 = transform.matrix.apply({ x: 0, y: bounds.height });
 
     // draw transformed border
     const path = [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y];
@@ -380,7 +378,7 @@ function calcTransform()
             x: dragInfo.cache.pivotX * bounds.width,
             y: dragInfo.cache.pivotY * bounds.height,
         };
-        const p = container.worldTransform.apply(localPoint);
+        const p = transform.matrix.apply(localPoint);
 
         pivot.x = p.x;
         pivot.y = p.y;
@@ -412,10 +410,6 @@ function calcTransform()
 
     // translate to transform translation position
     matrix.translate(transform.x, transform.y);
-
-    // update transform container with matrix
-    container.transform.setFromMatrix(matrix);
-    container.updateTransform();
 
     // update selection with transformed matrix
     for (let i = 0; i < selection.length; i++)
@@ -667,6 +661,6 @@ window.addEventListener('mouseup', onDragEnd);
 addObjects([red, green, blue]);
 
 // init to calculate bounds
-transform.bounds = sprites.getBounds();
+transform.bounds = spritesLayer.getBounds();
 
 setInterval(calcTransform, 100);
