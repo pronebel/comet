@@ -38,7 +38,7 @@ type SpriteConfig = {
 };
 
 // track drag info
-type DragMode = 'none' | 'translation' | 'rotation' | 'scale';
+type DragMode = 'none' | 'pivot' | 'translation' | 'rotation' | 'scale';
 
 interface DragInfo
 {
@@ -428,6 +428,25 @@ function initScaling(e: InteractionEvent)
     }
 }
 
+function initTranslatePivot(e: InteractionEvent)
+{
+    const globalX = e.data.global.x;
+    const globalY = e.data.global.y;
+
+    initDragState('pivot', e);
+    setPivot(globalX, globalY);
+}
+
+function initRotation(e: InteractionEvent)
+{
+    initDragState('rotation', e);
+}
+
+function initTranslation(e: InteractionEvent)
+{
+    initDragState('translation', e);
+}
+
 const onDragStart = (e: InteractionEvent) =>
 {
     const { bounds } = transform;
@@ -440,13 +459,13 @@ const onDragStart = (e: InteractionEvent) =>
     {
         if (e.data.originalEvent.shiftKey)
         {
-            // move pivot
-            setPivot(globalX, globalY);
+            // translate pivot
+            initTranslatePivot(e);
         }
         else if (e.data.originalEvent.metaKey)
         {
             // rotation
-            initDragState('rotation', e);
+            initRotation(e);
         }
         else
         {
@@ -471,7 +490,7 @@ const onDragStart = (e: InteractionEvent) =>
             else
             {
                 // translation
-                initDragState('translation', e);
+                initTranslation(e);
             }
         }
     }
@@ -649,6 +668,6 @@ window.addEventListener('mouseup', onDragEnd);
 addObjects([red, green, blue]);
 
 // init to calculate bounds
-transform.bounds = spritesLayer.getBounds();
+transform.bounds = getBounds().clone();
 
 setInterval(calcTransform, 100);

@@ -6,7 +6,7 @@ export type NodeSelectionEvent = 'add' | 'remove';
 
 export class NodeSelection extends EventEmitter<NodeSelectionEvent>
 {
-    public nodes: ContainerNode[];
+    protected readonly nodes: ContainerNode[];
 
     constructor()
     {
@@ -34,6 +34,11 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
         this.nodes.splice(index, 1);
 
         this.emit('remove', node);
+    }
+
+    public get length()
+    {
+        return this.nodes.length;
     }
 
     public get hasSelection()
@@ -68,5 +73,10 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
     public isSelected(node: ContainerNode)
     {
         return this.nodes.indexOf(node) > -1;
+    }
+
+    public forEach(fn: (node: ContainerNode, i: number) => void)
+    {
+        this.nodes.forEach(fn);
     }
 }

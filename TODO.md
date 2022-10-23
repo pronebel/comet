@@ -1,6 +1,10 @@
-# Transform Gizom
+# Transform Gizmo
 
-* Experiment first with basic Pixi parent/child setup using worldTransforms to create local transforms
-    - Get a good idea of how parenting might work later
-* Figure out interactive functionality separate to using transforms to control gizmo, but favour transform multiplication for updating selected objects
-* Master pivot!
+* Create different config and modes for transform gizmo
+    - just as selection
+    - show/hide transform handles
+    - allow translation/scale/rotation
+    - add scale from pivot last to finished gizmo
+* Create actions
+    - with shortcuts
+    - indexed by name so callable from anywhere
