@@ -443,7 +443,7 @@ export class TransformGizmo
 
     protected initScale(e: InteractionEvent)
     {
-        const { dragInfo } = this;
+        const { dragInfo, config } = this;
 
         // override pivot and cache state
         this.initDragState('scale', e);
@@ -455,14 +455,16 @@ export class TransformGizmo
             this.setPivotFromScaleMode('center', 'center');
         }
         else
+        if (!config.enableScaleByPivot)
         {
-            // this.setPivotFromScaleMode(dragInfo.hVertex, dragInfo.vVertex);
+            // scale from absolute edges not pivot
+            this.setPivotFromScaleMode(dragInfo.hVertex, dragInfo.vVertex);
         }
     }
 
     protected dragScale(e: InteractionEvent)
     {
-        const { dragInfo, state, cache, bounds } = this;
+        const { dragInfo, state, cache, bounds, config } = this;
         const globalX = e.data.global.x;
         const globalY = e.data.global.y;
         const width = dragInfo.width;
@@ -515,8 +517,9 @@ export class TransformGizmo
             deltaX *= 2;
             deltaY *= 2;
         }
-        else
+        else if (config.enableScaleByPivot)
         {
+            // adjust according to local pos relative to pivot
             if (localX < bounds.width * state.pivotX)
             {
                 deltaX *= 1 / state.pivotX;

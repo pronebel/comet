@@ -29,6 +29,7 @@ export interface TransformGizmoConfig
     showTransformedBorder: boolean;
     showHandles: boolean;
     showPivot: boolean;
+    enableScaleByPivot: boolean;
     enableTranslation: boolean;
     enableRotation: boolean;
     enableScaling: boolean;
@@ -42,6 +43,7 @@ export const defaultTransformGizmoConfig: TransformGizmoConfig = {
     showTransformedBorder: true,
     showHandles: true,
     showPivot: true,
+    enableScaleByPivot: true,
     enableTranslation: true,
     enableRotation: true,
     enableScaling: true,
