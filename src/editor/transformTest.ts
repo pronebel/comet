@@ -53,11 +53,9 @@ interface DragInfo
     initial: {
         width: number;
         height: number;
-        dragAngle: number;
-        dragPointX: number;
-        dragPointY: number;
-        dragScaleEdgeX: number;
-        dragScaleEdgeY: number;
+        angle: number;
+        globalX: number;
+        globalY: number;
     };
 }
 
@@ -73,11 +71,9 @@ const dragInfo: DragInfo = {
     initial: {
         width: 0,
         height: 0,
-        dragAngle: 0,
-        dragPointX: 0,
-        dragPointY: 0,
-        dragScaleEdgeX: 0,
-        dragScaleEdgeY: 0,
+        angle: 0,
+        globalX: 0,
+        globalY: 0,
     },
 };
 
@@ -261,7 +257,6 @@ function initDragState(mode: DragMode, e: InteractionEvent)
     const globalX = e.data.global.x;
     const globalY = e.data.global.y;
     const globalPivot = getPivotGlobalPos();
-    const localPoint = getLocalPoint(globalX, globalY);
 
     dragInfo.mode = mode;
 
@@ -272,11 +267,9 @@ function initDragState(mode: DragMode, e: InteractionEvent)
     dragInfo.initial = {
         width: bounds.width * transform.scaleX,
         height: bounds.height * transform.scaleY,
-        dragAngle: angleBetween(globalPivot.x, globalPivot.y, globalX, globalY),
-        dragPointX: globalX,
-        dragPointY: globalY,
-        dragScaleEdgeX: localPoint.x,
-        dragScaleEdgeY: localPoint.y,
+        angle: angleBetween(globalPivot.x, globalPivot.y, globalX, globalY),
+        globalX,
+        globalY,
     };
 }
 
@@ -507,6 +500,7 @@ const onDragStart = (e: InteractionEvent) =>
 
             if (distance <= edgeDragDistance)
             {
+                // scaling
                 initScaling(e);
             }
             else
@@ -567,15 +561,15 @@ const onDragMove = (e: InteractionEvent) =>
     if (dragInfo.mode === 'rotation')
     {
         // rotation
-        const angle = angleBetween(globalPivot.x, globalPivot.y, globalX, globalY) - dragInfo.initial.dragAngle;
+        const angle = angleBetween(globalPivot.x, globalPivot.y, globalX, globalY) - dragInfo.initial.angle;
 
         transform.rotation = dragInfo.cache.rotation + angle;
     }
     else if (dragInfo.mode === 'translation')
     {
         // translation
-        const deltaX = globalX - dragInfo.initial.dragPointX;
-        const deltaY = globalY - dragInfo.initial.dragPointY;
+        const deltaX = globalX - dragInfo.initial.globalX;
+        const deltaY = globalY - dragInfo.initial.globalY;
 
         transform.x = dragInfo.cache.x + deltaX;
         transform.y = dragInfo.cache.y + deltaY;
@@ -586,8 +580,8 @@ const onDragMove = (e: InteractionEvent) =>
         const { initial } = dragInfo;
         const width = initial.width;
         const height = initial.height;
-        const dragPointX = initial.dragPointX;
-        const dragPointY = initial.dragPointY;
+        const dragPointX = initial.globalX;
+        const dragPointY = initial.globalY;
         const p1 = rotatePointAround(globalX, globalY, -transform.rotation, globalPivot.x, globalPivot.y);
         const p2 = rotatePointAround(dragPointX, dragPointY, -transform.rotation, globalPivot.x, globalPivot.y);
         let deltaX = (p1.x - p2.x);
