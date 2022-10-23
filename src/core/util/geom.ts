@@ -1,3 +1,7 @@
+import { Rectangle } from 'pixi.js';
+
+export type Point = { x: number; y: number };
+
 export function radToDeg(rad: number)
 {
     return rad * (180 / Math.PI);
@@ -64,7 +68,7 @@ export function intersectLines(
     p3y: number,
     p4x: number,
     p4y: number,
-): {x: number; y: number} | undefined
+): Point | undefined
 {
     const c2x = p3x - p4x; // (x3 - x4)
     const c3x = p1x - p2x; // (x1 - x2)
@@ -201,3 +205,22 @@ export function closestEdgeVertexOnRect(
         v,
     };
 }
+
+export function fitRectToPoints(points: Point[])
+{
+    let minX = Number.MAX_VALUE;
+    let minY = Number.MAX_VALUE;
+    let maxX = Number.MIN_VALUE;
+    let maxY = Number.MIN_VALUE;
+
+    for (const p of points)
+    {
+        minX = Math.min(minX, p.x);
+        minY = Math.min(minY, p.y);
+        maxX = Math.max(maxX, p.x);
+        maxY = Math.max(maxY, p.y);
+    }
+
+    return new Rectangle(minX, minY, maxX - minX, maxY - minY);
+}
+

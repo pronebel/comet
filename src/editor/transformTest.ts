@@ -669,5 +669,3 @@ addObjects([red, green, blue]);
 
 // init to calculate bounds
 transform.bounds = getBounds().clone();
-
-setInterval(calcTransform, 100);

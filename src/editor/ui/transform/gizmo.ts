@@ -1,39 +1,40 @@
-import type { DisplayObject, InteractionEvent } from 'pixi.js';
+import type { DisplayObject, InteractionEvent  } from 'pixi.js';
 import { Container, Graphics, Matrix, Rectangle } from 'pixi.js';
 
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
-import type { DragHVertex, DragVVertex } from '../../../core/util/geom';
+import type { DragHVertex, DragVVertex  } from '../../../core/util/geom';
 import {
     angleBetween,
     closestEdgeVertexOnRect,
     degToRad,
     distanceBetween,
     findNearestPointOnRect,
-    rotatePointAround,
-} from '../../../core/util/geom';
+    fitRectToPoints,
+    rotatePointAround } from '../../../core/util/geom';
 import type { NodeSelection } from '../selection';
 import type { TransformDragInfo, TransformGizmoConfig, TransformState } from '.';
 import { defaultTransformDragInfo, defaultTransformGizmoConfig, defaultTransformState } from '.';
 
 export type DragMode = 'none' | 'pivot' | 'translation' | 'rotation' | 'scale';
 
-export class TransformGizmo extends Container
+export class TransformGizmo
 {
-    protected bounds: Rectangle;
-    protected matrix: Matrix;
-    protected matrixCache: Map<ContainerNode, Matrix>;
-    protected state: TransformState;
-    protected cache: TransformState;
-    protected config: TransformGizmoConfig;
-    protected dragInfo: TransformDragInfo;
-    protected mode: DragMode;
-    protected border: Graphics;
-    protected pivotView: DisplayObject;
+    public bounds: Rectangle;
+    public matrix: Matrix;
+    public matrixCache: Map<ContainerNode, Matrix>;
+    public state: TransformState;
+    public cache: TransformState;
+    public config: TransformGizmoConfig;
+    public dragInfo: TransformDragInfo;
+    public mode: DragMode;
+    public border: Graphics;
+    public pivotView: DisplayObject;
+
+    public container: Container;
 
     constructor(public readonly selection: NodeSelection)
     {
-        super();
-
+        this.container = new Container();
         this.matrix = new Matrix();
         this.matrixCache = new Map();
         this.mode = 'none';
@@ -43,7 +44,9 @@ export class TransformGizmo extends Container
         this.dragInfo = { ...defaultTransformDragInfo };
         this.border = new Graphics();
         this.pivotView = this.config.pivotView;
-        this.addChild(this.pivotView);
+
+        this.container.addChild(this.border);
+        this.container.addChild(this.pivotView);
 
         this.border.interactive = true;
 
@@ -59,10 +62,10 @@ export class TransformGizmo extends Container
 
         this.selection.forEach((node) => this.onSelectionAdd(node));
 
-        this.bounds = this.getBounds();
+        this.bounds = this.updateBounds();
     }
 
-    protected calcTotalBounds()
+    protected calcTotalGlobalBounds()
     {
         let rect = new Rectangle();
 
@@ -72,7 +75,7 @@ export class TransformGizmo extends Container
 
             if (rect.width === 0 && rect.height === 0 && rect.x === 0 && rect.y === 0)
             {
-                rect = bounds;
+                rect = bounds.clone();
             }
             else
             {
@@ -83,6 +86,35 @@ export class TransformGizmo extends Container
         return rect;
     }
 
+    // protected calcLocalTotalBounds()
+    // {
+    //     let rect = new Rectangle();
+
+    //     this.selection.forEach((node) =>
+    //     {
+    //         const bounds = node.getBounds().clone();
+
+    //         const { matrix } = this;
+    //         const topLeft = matrix.applyInverse({ x: bounds.left, y: bounds.top });
+    //         const topRight = matrix.applyInverse({ x: bounds.right, y: bounds.top });
+    //         const bottomRight = matrix.applyInverse({ x: bounds.right, y: bounds.bottom });
+    //         const bottomLeft = matrix.applyInverse({ x: bounds.left, y: bounds.bottom });
+
+    //         const transformedBounds = fitRectToPoints([topLeft, topRight, bottomRight, bottomLeft]);
+
+    //         if (rect.width === 0 && rect.height === 0 && rect.x === 0 && rect.y === 0)
+    //         {
+    //             rect = transformedBounds.clone();
+    //         }
+    //         else
+    //         {
+    //             rect.enlarge(transformedBounds);
+    //         }
+    //     });
+
+    //     return rect;
+    // }
+
     public setConfig(config: Partial<TransformGizmoConfig>)
     {
         this.config = {
@@ -92,8 +124,8 @@ export class TransformGizmo extends Container
 
         if (config.pivotView)
         {
-            this.removeChild(this.pivotView);
-            this.addChild(config.pivotView);
+            this.container.removeChild(this.pivotView);
+            this.container.addChild(config.pivotView);
             this.pivotView = config.pivotView;
         }
     }
@@ -108,7 +140,16 @@ export class TransformGizmo extends Container
         // cache view matrix
         this.matrixCache.set(node, view.worldTransform.clone());
 
-        // todo: update bounds
+        this.updateCache();
+
+        // update bounds
+        this.updateBounds();
+
+        this.state = {
+            ...defaultTransformState,
+        };
+
+        this.calcTransform();
     };
 
     // @ts-ignore
@@ -118,16 +159,44 @@ export class TransformGizmo extends Container
         // remove cached matrix
         this.matrixCache.delete(node);
 
-        // todo: update bounds
+        // update bounds
+        this.updateBounds();
     };
+
+    public setState(state: Partial<TransformState>)
+    {
+        this.state = {
+            ...this.state,
+            ...state,
+        };
+
+        this.calcTransform();
+    }
+
+    protected updateCache()
+    {
+        this.selection.forEach((node) =>
+        {
+            const view = node.getView();
+
+            view.updateTransform();
+            this.matrixCache.set(node, view.worldTransform.clone());
+        });
+    }
+
+    protected updateBounds()
+    {
+        this.bounds = this.calcTotalGlobalBounds();
+
+        this.calcTransform();
+
+        return this.bounds;
+    }
 
     protected getPivotGlobalPos()
     {
         const { bounds, state, matrix } = this;
-        const localPoint = { x: state.pivotX * bounds.width, y: state.pivotY * bounds.height };
-        const globalPoint = { x: 0, y: 0 };
-
-        matrix.apply(localPoint, globalPoint);
+        const globalPoint = matrix.apply({ x: state.pivotX * bounds.width, y: state.pivotY * bounds.height });
 
         return globalPoint;
     }
@@ -191,7 +260,7 @@ export class TransformGizmo extends Container
     protected fitBorder()
     {
         const { bounds, border, matrix } = this;
-        const totalBounds = this.getBounds();
+        const totalBounds = this.calcTotalGlobalBounds();
 
         border.clear();
 
@@ -213,7 +282,7 @@ export class TransformGizmo extends Container
         border.drawPolygon(path);
         border.endFill();
 
-        border.lineStyle(1, 0xffffff, 1);
+        border.lineStyle(1, 0x00ffff, 1);
         border.moveTo(p1.x, p1.y); border.lineTo(p2.x, p2.y);
         border.moveTo(p2.x, p2.y); border.lineTo(p3.x, p3.y);
         border.moveTo(p3.x, p3.y); border.lineTo(p4.x, p4.y);
@@ -274,34 +343,12 @@ export class TransformGizmo extends Container
         this.setPivot(p.x, p.y);
     }
 
-    protected calcTransform()
+    public calcTransform()
     {
         const { bounds, matrix, state, mode, cache, pivotView, selection, matrixCache } = this;
 
         const pivotX = bounds.width * state.pivotX;
         const pivotY = bounds.height * state.pivotY;
-
-        if (mode === 'scale')
-        {
-            const localPoint = {
-                x: cache.pivotX * bounds.width,
-                y: cache.pivotY * bounds.height,
-            };
-            const p = matrix.apply(localPoint);
-
-            pivotView.x = p.x;
-            pivotView.y = p.y;
-        }
-        else
-        {
-            const p = this.getPivotGlobalPos();
-
-            pivotView.x = p.x;
-            pivotView.y = p.y;
-        }
-
-        // set pivot angle
-        pivotView.angle = state.rotation;
 
         // reset transform matrix
         matrix.identity();
@@ -338,6 +385,29 @@ export class TransformGizmo extends Container
 
         // fit uniform encompassing border
         this.fitBorder();
+
+        // set pivot position
+        if (mode === 'scale')
+        {
+            const localPoint = {
+                x: cache.pivotX * bounds.width,
+                y: cache.pivotY * bounds.height,
+            };
+            const p = matrix.apply(localPoint);
+
+            pivotView.x = p.x;
+            pivotView.y = p.y;
+        }
+        else
+        {
+            const p = this.getPivotGlobalPos();
+
+            pivotView.x = p.x;
+            pivotView.y = p.y;
+        }
+
+        // set pivot angle
+        pivotView.angle = state.rotation;
     }
 
     protected initScaling(e: InteractionEvent)
