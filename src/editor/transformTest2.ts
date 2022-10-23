@@ -83,18 +83,18 @@ setTimeout(() =>
 {
     gizmo.setState({ rotation: 15 });
     selection.add(green);
-}, 1000);
+}, 100);
 
 setTimeout(() =>
 {
     gizmo.state.rotation = 25;
     selection.add(blue);
-}, 2000);
+}, 200);
 
 setTimeout(() =>
 {
     // gizmo.state.rotation = 35;
     selection.remove(green);
-}, 3000);
+}, 300);
 
 (window as any).gizmo = gizmo;

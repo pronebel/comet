@@ -9,7 +9,6 @@ import {
     degToRad,
     distanceBetween,
     findNearestPointOnRect,
-    fitRectToPoints,
     rotatePointAround } from '../../../core/util/geom';
 import type { NodeSelection } from '../selection';
 import type { TransformDragInfo, TransformGizmoConfig, TransformState } from '.';
@@ -85,35 +84,6 @@ export class TransformGizmo
 
         return rect;
     }
-
-    // protected calcLocalTotalBounds()
-    // {
-    //     let rect = new Rectangle();
-
-    //     this.selection.forEach((node) =>
-    //     {
-    //         const bounds = node.getBounds().clone();
-
-    //         const { matrix } = this;
-    //         const topLeft = matrix.applyInverse({ x: bounds.left, y: bounds.top });
-    //         const topRight = matrix.applyInverse({ x: bounds.right, y: bounds.top });
-    //         const bottomRight = matrix.applyInverse({ x: bounds.right, y: bounds.bottom });
-    //         const bottomLeft = matrix.applyInverse({ x: bounds.left, y: bounds.bottom });
-
-    //         const transformedBounds = fitRectToPoints([topLeft, topRight, bottomRight, bottomLeft]);
-
-    //         if (rect.width === 0 && rect.height === 0 && rect.x === 0 && rect.y === 0)
-    //         {
-    //             rect = transformedBounds.clone();
-    //         }
-    //         else
-    //         {
-    //             rect.enlarge(transformedBounds);
-    //         }
-    //     });
-
-    //     return rect;
-    // }
 
     public setConfig(config: Partial<TransformGizmoConfig>)
     {
@@ -448,6 +418,148 @@ export class TransformGizmo
         this.initDragState('translation', e);
     }
 
+    protected dragPivot(e: InteractionEvent)
+    {
+        const globalX = e.data.global.x;
+        const globalY = e.data.global.y;
+        const localPoint = this.getLocalPoint(globalX, globalY);
+
+        if (e.data.originalEvent.altKey)
+        {
+            const p = this.constrainLocalPoint(localPoint);
+            const gp = this.getGlobalPoint(p.x, p.y);
+
+            this.setPivot(gp.x, gp.y);
+        }
+        else
+        {
+            this.setPivot(globalX, globalY);
+        }
+    }
+
+    protected dragRotation(e: InteractionEvent)
+    {
+        const { dragInfo, state, cache } = this;
+        const globalX = e.data.global.x;
+        const globalY = e.data.global.y;
+        const globalPivot = this.getPivotGlobalPos();
+        const angle = angleBetween(globalPivot.x, globalPivot.y, globalX, globalY) - dragInfo.angle;
+
+        state.rotation = cache.rotation + angle;
+    }
+
+    protected dragTranslation(e: InteractionEvent)
+    {
+        const { dragInfo, state, cache } = this;
+        const globalX = e.data.global.x;
+        const globalY = e.data.global.y;
+        const deltaX = globalX - dragInfo.globalX;
+        const deltaY = globalY - dragInfo.globalY;
+
+        state.x = cache.x + deltaX;
+        state.y = cache.y + deltaY;
+    }
+
+    protected dragScale(e: InteractionEvent)
+    {
+        const { dragInfo, state, cache } = this;
+        const globalX = e.data.global.x;
+        const globalY = e.data.global.y;
+        const width = dragInfo.width;
+        const height = dragInfo.height;
+        const dragPointX = dragInfo.globalX;
+        const dragPointY = dragInfo.globalY;
+        const globalPivot = this.getPivotGlobalPos();
+        const p1 = rotatePointAround(globalX, globalY, -state.rotation, globalPivot.x, globalPivot.y);
+        const p2 = rotatePointAround(dragPointX, dragPointY, -state.rotation, globalPivot.x, globalPivot.y);
+        let deltaX = (p1.x - p2.x);
+        let deltaY = (p1.y - p2.y);
+        let scaleX = 1;
+        let scaleY = 1;
+
+        if (e.data.originalEvent.altKey)
+        {
+            if (!dragInfo.duplex)
+            {
+                // reset drag scaling state
+                this.onDragEnd();
+                this.initScaling(e);
+
+                // enabled duplex
+                dragInfo.duplex = true;
+                this.setPivotFromScaleMode('center', 'center');
+
+                return;
+            }
+        }
+        else
+        if (dragInfo.duplex)
+        {
+            // disable duplex
+            dragInfo.duplex = false;
+
+            // reset drag scaling state
+            this.onDragEnd();
+            this.initScaling(e);
+            this.calcTransform();
+
+            return;
+        }
+
+        const { vertex } = dragInfo;
+
+        if (dragInfo.duplex)
+        {
+            // apply duplex multiplier
+            deltaX *= 2;
+            deltaY *= 2;
+        }
+
+        if (
+            vertex === 'left-top'
+                || vertex === 'left-center'
+                || vertex === 'left-bottom'
+        )
+        {
+            deltaX *= -1;
+        }
+
+        if (
+            vertex === 'left-top'
+                || vertex === 'center-top'
+                || vertex === 'right-top'
+        )
+        {
+            deltaY *= -1;
+        }
+
+        if (
+            vertex === 'left-top'
+                || vertex === 'left-center'
+                || vertex === 'left-bottom'
+                || vertex === 'right-top'
+                || vertex === 'right-center'
+                || vertex === 'right-bottom'
+        )
+        {
+            scaleX = ((width + deltaX) / width) * cache.scaleX;
+            state.scaleX = scaleX;
+        }
+
+        if (
+            vertex === 'left-top'
+                || vertex === 'center-top'
+                || vertex === 'right-top'
+                || vertex === 'left-bottom'
+                || vertex === 'center-bottom'
+                || vertex === 'right-bottom'
+        )
+        {
+            scaleY = ((height + deltaY) / height) * cache.scaleY;
+            state.scaleY = scaleY;
+        }
+    }
+
     protected onDragStart = (e: InteractionEvent) =>
     {
         const { bounds } = this;
@@ -501,141 +613,27 @@ export class TransformGizmo
 
     protected onDragMove = (e: InteractionEvent) =>
     {
-        const { dragInfo, state, cache, mode } = this;
-        const globalX = e.data.global.x;
-        const globalY = e.data.global.y;
-
-        const localPoint = this.getLocalPoint(globalX, globalY);
+        const { mode } = this;
 
         if (e.data.originalEvent.shiftKey && e.data.buttons === 1)
         {
             // move pivot
-            if (e.data.originalEvent.altKey)
-            {
-                const p = this.constrainLocalPoint(localPoint);
-                const gp = this.getGlobalPoint(p.x, p.y);
-
-                this.setPivot(gp.x, gp.y);
-            }
-            else
-            {
-                this.setPivot(globalX, globalY);
-            }
-        }
-
-        const globalPivot = this.getPivotGlobalPos();
-
-        if (mode === 'rotation')
-        {
-            // rotation
-            const angle = angleBetween(globalPivot.x, globalPivot.y, globalX, globalY) - dragInfo.angle;
-
-            state.rotation = cache.rotation + angle;
+            this.dragPivot(e);
         }
         else if (mode === 'translation')
         {
             // translation
-            const deltaX = globalX - dragInfo.globalX;
-            const deltaY = globalY - dragInfo.globalY;
-
-            state.x = cache.x + deltaX;
-            state.y = cache.y + deltaY;
+            this.dragTranslation(e);
+        }
+        else if (mode === 'rotation')
+        {
+            // rotation
+            this.dragRotation(e);
         }
         else if (mode === 'scale')
         {
             // scaling
-            const width = dragInfo.width;
-            const height = dragInfo.height;
-            const dragPointX = dragInfo.globalX;
-            const dragPointY = dragInfo.globalY;
-            const p1 = rotatePointAround(globalX, globalY, -state.rotation, globalPivot.x, globalPivot.y);
-            const p2 = rotatePointAround(dragPointX, dragPointY, -state.rotation, globalPivot.x, globalPivot.y);
-            let deltaX = (p1.x - p2.x);
-            let deltaY = (p1.y - p2.y);
-            let scaleX = 1;
-            let scaleY = 1;
-
-            if (e.data.originalEvent.altKey)
-            {
-                if (!dragInfo.duplex)
-                {
-                    // reset drag scaling state
-                    this.onDragEnd();
-                    this.initScaling(e);
-
-                    // enabled duplex
-                    dragInfo.duplex = true;
-                    this.setPivotFromScaleMode('center', 'center');
-
-                    return;
-                }
-            }
-            else
-            if (dragInfo.duplex)
-            {
-                // disable duplex
-                dragInfo.duplex = false;
-
-                // reset drag scaling state
-                this.onDragEnd();
-                this.initScaling(e);
-                this.calcTransform();
-
-                return;
-            }
-
-            const { vertex } = dragInfo;
-
-            if (dragInfo.duplex)
-            {
-                // apply duplex multiplier
-                deltaX *= 2;
-                deltaY *= 2;
-            }
-
-            if (
-                vertex === 'left-top'
-                || vertex === 'left-center'
-                || vertex === 'left-bottom'
-            )
-            {
-                deltaX *= -1;
-            }
-
-            if (
-                vertex === 'left-top'
-                || vertex === 'center-top'
-                || vertex === 'right-top'
-            )
-            {
-                deltaY *= -1;
-            }
-
-            if (
-                vertex === 'left-top'
-                || vertex === 'left-center'
-                || vertex === 'left-bottom'
-                || vertex === 'right-top'
-                || vertex === 'right-center'
-                || vertex === 'right-bottom'
-            )
-            {
-                scaleX = ((width + deltaX) / width) * cache.scaleX;
-                state.scaleX = scaleX;
-            }
-
-            if (
-                vertex === 'left-top'
-                || vertex === 'center-top'
-                || vertex === 'right-top'
-                || vertex === 'left-bottom'
-                || vertex === 'center-bottom'
-                || vertex === 'right-bottom'
-            )
-            {
-                scaleY = ((height + deltaY) / height) * cache.scaleY;
-                state.scaleY = scaleY;
-            }
+            this.dragScale(e);
         }
 
         this.calcTransform();
