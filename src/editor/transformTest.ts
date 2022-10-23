@@ -1,4 +1,4 @@
-import type { DisplayObject, InteractionEvent, Transform } from 'pixi.js';
+import type { DisplayObject, InteractionEvent } from 'pixi.js';
 import { Application, Container, Graphics, Matrix, Rectangle, Sprite, Texture } from 'pixi.js';
 
 import type { DragHVertex, DragVVertex } from '../core/util/geom';
@@ -191,14 +191,6 @@ pivotShape.endFill();
 
 editLayer.addChild(pivot);
 
-const setPivotViewPos = () =>
-{
-    const p = getPivotGlobalPos();
-
-    pivot.x = p.x;
-    pivot.y = p.y;
-};
-
 // run transform operation
 function getPivotGlobalPos()
 {
@@ -227,7 +219,6 @@ function getGlobalPoint(localX: number, localY: number)
     return { x: globalPoint.x, y: globalPoint.y };
 }
 
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function constrainLocalPoint(localPoint: {x: number; y: number})
 {
     const { bounds } = transform;
@@ -267,16 +258,6 @@ function initDragState(mode: DragMode, e: InteractionEvent)
     dragInfo.globalX = globalX;
     dragInfo.globalY = globalY;
 }
-
-const updateMatrix = (trans: Transform, origMatrix: Matrix) =>
-{
-    const { bounds } = transform;
-    const combinedMatrix = origMatrix.clone();
-
-    combinedMatrix.translate(-bounds.left, -bounds.top);
-    combinedMatrix.prepend(transform.matrix);
-    trans.setFromMatrix(combinedMatrix);
-};
 
 function fitBorder()
 {
@@ -385,7 +366,10 @@ function calcTransform()
     }
     else
     {
-        setPivotViewPos();
+        const p = getPivotGlobalPos();
+
+        pivot.x = p.x;
+        pivot.y = p.y;
     }
 
     pivot.angle = transform.rotation;
@@ -416,8 +400,11 @@ function calcTransform()
     {
         const view = selection[i];
         const cachedMatrix = matrixCache[i];
+        const combinedMatrix = cachedMatrix.clone();
 
-        updateMatrix(view.transform, cachedMatrix);
+        combinedMatrix.translate(-bounds.left, -bounds.top);
+        combinedMatrix.prepend(transform.matrix);
+        view.transform.setFromMatrix(combinedMatrix);
     }
 
     // fit uniform encompassing border
@@ -590,6 +577,7 @@ const onDragMove = (e: InteractionEvent) =>
             // reset drag scaling state
             onDragEnd();
             initScaling(e);
+            calcTransform();
 
             return;
         }
