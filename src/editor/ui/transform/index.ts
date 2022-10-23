@@ -14,8 +14,8 @@ export interface TransformState
 }
 
 export const defaultTransformState: TransformState = {
-    pivotX: 0,
-    pivotY: 0,
+    pivotX: 0.3,
+    pivotY: 0.3,
     x: 0,
     y: 0,
     scaleX: 1,

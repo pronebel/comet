@@ -380,25 +380,6 @@ export class TransformGizmo
         pivotView.angle = state.rotation;
     }
 
-    protected initScaling(e: InteractionEvent)
-    {
-        const { dragInfo } = this;
-
-        // override pivot and cache state
-        this.initDragState('scale', e);
-
-        if (e.data.originalEvent.altKey)
-        {
-            // enabled duplex
-            dragInfo.duplex = true;
-            this.setPivotFromScaleMode('center', 'center');
-        }
-        else
-        {
-            this.setPivotFromScaleMode(dragInfo.hVertex, dragInfo.vVertex);
-        }
-    }
-
     protected initTranslatePivot(e: InteractionEvent)
     {
         const globalX = e.data.global.x;
@@ -408,17 +389,7 @@ export class TransformGizmo
         this.setPivot(globalX, globalY);
     }
 
-    protected initRotation(e: InteractionEvent)
-    {
-        this.initDragState('rotation', e);
-    }
-
-    protected initTranslation(e: InteractionEvent)
-    {
-        this.initDragState('translation', e);
-    }
-
-    protected dragPivot(e: InteractionEvent)
+    protected dragTranslatePivot(e: InteractionEvent)
     {
         const globalX = e.data.global.x;
         const globalY = e.data.global.y;
@@ -437,6 +408,11 @@ export class TransformGizmo
         }
     }
 
+    protected initRotation(e: InteractionEvent)
+    {
+        this.initDragState('rotation', e);
+    }
+
     protected dragRotation(e: InteractionEvent)
     {
         const { dragInfo, state, cache } = this;
@@ -446,6 +422,11 @@ export class TransformGizmo
         const angle = angleBetween(globalPivot.x, globalPivot.y, globalX, globalY) - dragInfo.angle;
 
         state.rotation = cache.rotation + angle;
+    }
+
+    protected initTranslation(e: InteractionEvent)
+    {
+        this.initDragState('translation', e);
     }
 
     protected dragTranslation(e: InteractionEvent)
@@ -460,9 +441,28 @@ export class TransformGizmo
         state.y = cache.y + deltaY;
     }
 
+    protected initScale(e: InteractionEvent)
+    {
+        const { dragInfo } = this;
+
+        // override pivot and cache state
+        this.initDragState('scale', e);
+
+        if (e.data.originalEvent.altKey)
+        {
+            // enabled duplex
+            dragInfo.duplex = true;
+            this.setPivotFromScaleMode('center', 'center');
+        }
+        else
+        {
+            // this.setPivotFromScaleMode(dragInfo.hVertex, dragInfo.vVertex);
+        }
+    }
+
     protected dragScale(e: InteractionEvent)
     {
-        const { dragInfo, state, cache } = this;
+        const { dragInfo, state, cache, bounds } = this;
         const globalX = e.data.global.x;
         const globalY = e.data.global.y;
         const width = dragInfo.width;
@@ -470,6 +470,7 @@ export class TransformGizmo
         const dragPointX = dragInfo.globalX;
         const dragPointY = dragInfo.globalY;
         const globalPivot = this.getPivotGlobalPos();
+        const { x: localX, y: localY } = this.getLocalPoint(globalX, globalY);
         const p1 = rotatePointAround(globalX, globalY, -state.rotation, globalPivot.x, globalPivot.y);
         const p2 = rotatePointAround(dragPointX, dragPointY, -state.rotation, globalPivot.x, globalPivot.y);
         let deltaX = (p1.x - p2.x);
@@ -483,7 +484,7 @@ export class TransformGizmo
             {
                 // reset drag scaling state
                 this.onDragEnd();
-                this.initScaling(e);
+                this.initScale(e);
 
                 // enabled duplex
                 dragInfo.duplex = true;
@@ -500,7 +501,7 @@ export class TransformGizmo
 
             // reset drag scaling state
             this.onDragEnd();
-            this.initScaling(e);
+            this.initScale(e);
             this.calcTransform();
 
             return;
@@ -513,6 +514,25 @@ export class TransformGizmo
             // apply duplex multiplier
             deltaX *= 2;
             deltaY *= 2;
+        }
+        else
+        {
+            if (localX < bounds.width * state.pivotX)
+            {
+                deltaX *= 1 / state.pivotX;
+            }
+            else
+            {
+                deltaX *= 1 / (1.0 - state.pivotX);
+            }
+            if (localY < bounds.height * state.pivotY)
+            {
+                deltaY *= 1 / state.pivotY;
+            }
+            else
+            {
+                deltaY *= 1 / (1.0 - state.pivotY);
+            }
         }
 
         if (
@@ -598,7 +618,7 @@ export class TransformGizmo
                 if (distance <= this.config.edgeDragDistance)
                 {
                     // scaling
-                    this.initScaling(e);
+                    this.initScale(e);
                 }
                 else
                 {
@@ -618,7 +638,7 @@ export class TransformGizmo
         if (e.data.originalEvent.shiftKey && e.data.buttons === 1)
         {
             // move pivot
-            this.dragPivot(e);
+            this.dragTranslatePivot(e);
         }
         else if (mode === 'translation')
         {
