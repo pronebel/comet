@@ -2,7 +2,7 @@ import type { DisplayObject, InteractionEvent  } from 'pixi.js';
 import { Container, Graphics, Matrix, Rectangle } from 'pixi.js';
 
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
-import type { DragHVertex, DragVVertex  } from '../../../core/util/geom';
+import { type DragHVertex, type DragVVertex, polarPoint  } from '../../../core/util/geom';
 import {
     angleBetween,
     closestEdgeVertexOnRect,
@@ -11,8 +11,8 @@ import {
     findNearestPointOnRect,
     rotatePointAround } from '../../../core/util/geom';
 import type { NodeSelection } from '../selection';
-import type { TransformDragInfo, TransformGizmoConfig, TransformState } from './types';
-import { defaultTransformDragInfo, defaultTransformGizmoConfig, defaultTransformState } from './types';
+import type { TransformDragInfo, TransformGizmoConfig, TransformState } from './const';
+import { defaultTransformDragInfo, defaultTransformGizmoConfig, defaultTransformState } from './const';
 
 export type DragMode = 'none' | 'pivot' | 'translation' | 'rotation' | 'scale';
 
@@ -697,12 +697,13 @@ export class TransformGizmo
 
     protected drawHandle(localX: number, localY: number, size: number)
     {
-        const { matrix, border } = this;
-        const halfSize = size * 0.5;
-        const topLeft = matrix.apply({ x: localX - halfSize, y: localY - halfSize });
-        const topRight = matrix.apply({ x: localX + halfSize, y: localY - halfSize });
-        const bottomRight = matrix.apply({ x: localX + halfSize, y: localY + halfSize });
-        const bottomLeft = matrix.apply({ x: localX - halfSize, y: localY + halfSize });
+        const { matrix, border, state: { rotation } } = this;
+        const p = matrix.apply({ x: localX, y: localY });
+
+        const topLeft = polarPoint(rotation + 180 + 45, size, p.x, p.y);
+        const topRight = polarPoint(rotation - 45, size, p.x, p.y);
+        const bottomRight = polarPoint(rotation + 45, size, p.x, p.y);
+        const bottomLeft = polarPoint(rotation + 180 - 45, size, p.x, p.y);
 
         const path = [topLeft, topRight, bottomRight, bottomLeft, topLeft];
 
