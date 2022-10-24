@@ -2,13 +2,14 @@ import type { DisplayObject, InteractionEvent  } from 'pixi.js';
 import { Container, Graphics, Matrix, Rectangle } from 'pixi.js';
 
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
-import { type DragHVertex, type DragVVertex, polarPoint  } from '../../../core/util/geom';
+import type { DragHVertex, DragVVertex } from '../../../core/util/geom';
 import {
     angleBetween,
     closestEdgeVertexOnRect,
     degToRad,
     distanceBetween,
     findNearestPointOnRect,
+    polarPoint,
     rotatePointAround } from '../../../core/util/geom';
 import type { NodeSelection } from '../selection';
 import type { TransformDragInfo, TransformGizmoConfig, TransformState } from './const';
