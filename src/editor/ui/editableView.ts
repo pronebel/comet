@@ -3,7 +3,7 @@ import { Application as PixiApplication, Container } from 'pixi.js';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import Grid from './grid';
 import { NodeSelection } from './selection';
-import { TransformGizmo } from './transformGizmo';
+import { TransformGizmo } from './transform/gizmo';
 
 export class EditableView
 {
@@ -20,7 +20,7 @@ export class EditableView
     {
         this.rootNode = rootNode;
         this.selection = new NodeSelection();
-        this.transformGizmo = new TransformGizmo();
+        this.transformGizmo = new TransformGizmo(this.selection);
 
         const canvas = this.canvas = document.createElement('canvas');
 
@@ -39,7 +39,7 @@ export class EditableView
 
         gridLayer.addChild(Grid.createTilingSprite(screen.availWidth, screen.availHeight));
         nodeLayer.addChild(rootNode.view);
-        editLayer.addChild(this.transformGizmo);
+        editLayer.addChild(this.transformGizmo.container);
 
         this.selection
             .on('add', this.onAddSelection)
