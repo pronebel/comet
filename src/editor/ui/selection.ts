@@ -38,8 +38,13 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
 
     public set(node: ContainerNode)
     {
-        this.nodes.forEach((selectedNode) => this.remove(selectedNode));
+        this.deselect();
         this.add(node);
+    }
+
+    public deselect()
+    {
+        this.nodes.forEach((selectedNode) => this.remove(selectedNode));
     }
 
     public get length()

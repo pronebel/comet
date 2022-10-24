@@ -22,6 +22,7 @@ export class EditableView
         this.selection = new NodeSelection();
         this.transformGizmo = new TransformGizmo(this.selection);
 
+        // create canvas and pixi context
         const canvas = this.canvas = document.createElement('canvas');
 
         const pixi = this.pixi = new PixiApplication({
@@ -29,6 +30,7 @@ export class EditableView
             backgroundColor: 0x111111,
         });
 
+        // create layers
         const gridLayer = this.gridLayer = new Container();
         const nodeLayer = this.nodeLayer = new Container();
         const editLayer = this.editLayer = new Container();
@@ -40,6 +42,13 @@ export class EditableView
         gridLayer.addChild(Grid.createTilingSprite(screen.availWidth, screen.availHeight));
         nodeLayer.addChild(rootNode.view);
         editLayer.addChild(this.transformGizmo.container);
+
+        // set selection
+        pixi.stage.interactive = true;
+        pixi.stage.on('mousedown', () =>
+        {
+            this.selection.deselect();
+        });
 
         this.selection
             .on('add', this.onAddSelection)

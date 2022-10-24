@@ -623,6 +623,8 @@ export class TransformGizmo
         }
 
         this.update();
+
+        e.stopPropagation();
     };
 
     protected onDragMove = (e: InteractionEvent) =>
@@ -651,6 +653,8 @@ export class TransformGizmo
         }
 
         this.update();
+
+        e.stopPropagation();
     };
 
     protected onDragEnd = () =>
