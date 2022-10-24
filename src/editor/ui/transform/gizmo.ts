@@ -657,7 +657,7 @@ export class TransformGizmo
 
     protected onDragStart = (e: InteractionEvent) =>
     {
-        const { bounds } = this;
+        const { bounds, config } = this;
         const globalX = e.data.global.x;
         const globalY = e.data.global.y;
 
@@ -668,12 +668,12 @@ export class TransformGizmo
             if (e.data.originalEvent.shiftKey)
             {
                 // translate pivot
-                this.initTranslatePivot(e);
+                config.enablePivotTranslation && this.initTranslatePivot(e);
             }
             else if (e.data.originalEvent.metaKey)
             {
                 // rotation
-                this.initRotation(e);
+                config.enableRotation && this.initRotation(e);
             }
             else
             {
@@ -693,12 +693,12 @@ export class TransformGizmo
                 if (distance <= this.config.edgeDragDistance)
                 {
                     // scaling
-                    this.initScale(e);
+                    config.enableScaling && this.initScale(e);
                 }
                 else
                 {
                     // translation
-                    this.initTranslation(e);
+                    config.enableTranslation && this.initTranslation(e);
                 }
             }
         }

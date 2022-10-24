@@ -72,11 +72,11 @@ export interface TransformGizmoConfig
     showPrimaryHandles: boolean;
     showSecondaryHandles: boolean;
     showPivot: boolean;
-    enableScaleByPivot: boolean;
+    enablePivotTranslation: boolean;
     enableTranslation: boolean;
     enableRotation: boolean;
     enableScaling: boolean;
-    enablePivotTranslation: boolean;
+    enableScaleByPivot: boolean;
     pivotView: DisplayObject;
     edgeDragDistance: number;
     handlePrimarySize: number;
@@ -88,11 +88,11 @@ export const defaultTransformGizmoConfig: TransformGizmoConfig = {
     showPrimaryHandles: true,
     showSecondaryHandles: true,
     showPivot: true,
-    enableScaleByPivot: false,
+    enablePivotTranslation: true,
     enableTranslation: true,
     enableRotation: true,
     enableScaling: true,
-    enablePivotTranslation: true,
+    enableScaleByPivot: true,
     pivotView: yellowPivot,
     edgeDragDistance: 15,
     handlePrimarySize: 10,
