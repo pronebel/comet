@@ -443,19 +443,20 @@ export class TransformGizmo
 
     protected initScale(e: InteractionEvent)
     {
-        const { dragInfo, config } = this;
+        const { dragInfo, config: { enableScaleByPivot } } = this;
+        const isAltDown = e.data.originalEvent.altKey;
 
         // override pivot and cache state
         this.initDragState('scale', e);
 
-        if (e.data.originalEvent.altKey)
+        if (isAltDown)
         {
             // enabled duplex
             dragInfo.duplex = true;
             this.setPivotFromScaleMode('center', 'center');
         }
         else
-        if (!config.enableScaleByPivot)
+        if (!enableScaleByPivot)
         {
             // scale from absolute edges not pivot
             this.setPivotFromScaleMode(dragInfo.hVertex, dragInfo.vVertex);
@@ -464,7 +465,8 @@ export class TransformGizmo
 
     protected dragScale(e: InteractionEvent)
     {
-        const { dragInfo, state, cache, bounds, config } = this;
+        const { dragInfo, state, cache, bounds, config: { enableScaleByPivot } } = this;
+        const isAltDown = e.data.originalEvent.altKey;
         const globalX = e.data.global.x;
         const globalY = e.data.global.y;
         const width = dragInfo.width;
@@ -480,7 +482,7 @@ export class TransformGizmo
         let scaleX = 1;
         let scaleY = 1;
 
-        if (e.data.originalEvent.altKey)
+        if (isAltDown)
         {
             if (!dragInfo.duplex)
             {
@@ -517,7 +519,7 @@ export class TransformGizmo
             deltaX *= 2;
             deltaY *= 2;
         }
-        else if (config.enableScaleByPivot)
+        else if (enableScaleByPivot)
         {
             // adjust according to local pos relative to pivot
             if (localX < bounds.width * state.pivotX)
@@ -583,6 +585,16 @@ export class TransformGizmo
         }
     }
 
+    protected restoreCachedPivot()
+    {
+        const { bounds, cache } = this;
+        const localX = bounds.width * cache.pivotX;
+        const localY = bounds.height * cache.pivotY;
+        const p = this.getGlobalPoint(localX, localY);
+
+        this.setPivot(p.x, p.y);
+    }
+
     protected onDragStart = (e: InteractionEvent) =>
     {
         const { bounds } = this;
@@ -638,7 +650,7 @@ export class TransformGizmo
     {
         const { mode } = this;
 
-        if (e.data.originalEvent.shiftKey && e.data.buttons === 1)
+        if (mode === 'pivot' && e.data.originalEvent.shiftKey && e.data.buttons === 1)
         {
             // move pivot
             this.dragTranslatePivot(e);
@@ -664,16 +676,12 @@ export class TransformGizmo
 
     protected onDragEnd = () =>
     {
-        const { bounds, cache, mode } = this;
+        const { mode } = this;
 
         if (mode === 'scale')
         {
             // restore cached pivot when scaling
-            const localX = bounds.width * cache.pivotX;
-            const localY = bounds.height * cache.pivotY;
-            const p = this.getGlobalPoint(localX, localY);
-
-            this.setPivot(p.x, p.y);
+            this.restoreCachedPivot();
         }
 
         this.mode = 'none';
