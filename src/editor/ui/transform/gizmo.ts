@@ -13,7 +13,13 @@ import {
     rotatePointAround } from '../../../core/util/geom';
 import type { NodeSelection } from '../selection';
 import type { TransformDragInfo, TransformGizmoConfig, TransformState } from './const';
-import { defaultTransformDragInfo, defaultTransformGizmoConfig, defaultTransformState } from './const';
+import {
+    bluePivot,
+    defaultTransformDragInfo,
+    defaultTransformGizmoConfig,
+    defaultTransformState,
+    yellowPivot,
+} from './const';
 
 export type DragMode = 'none' | 'pivot' | 'translation' | 'rotation' | 'scale';
 
@@ -121,6 +127,9 @@ export class TransformGizmo
 
     protected onSelectionAdd = (node: ContainerNode) =>
     {
+        // configure for single or multiple selection
+        this.configureSelectionMode();
+
         // update view transform
         const view = node.getView();
 
@@ -162,7 +171,28 @@ export class TransformGizmo
         {
             this.hide();
         }
+
+        // configure for single or multiple selection
+        this.configureSelectionMode();
     };
+
+    public configureSelectionMode()
+    {
+        if (this.selection.length === 1)
+        {
+            this.setConfig({
+                enableScaleByPivot: true,
+                pivotView: bluePivot,
+            });
+        }
+        else
+        {
+            this.setConfig({
+                enableScaleByPivot: false,
+                pivotView: yellowPivot,
+            });
+        }
+    }
 
     public setState(state: Partial<TransformState>)
     {

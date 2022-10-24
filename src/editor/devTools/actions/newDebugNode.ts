@@ -6,14 +6,13 @@ import { type AddChildCommandReturn, AddChildCommand } from '../../commands/addC
 export function newDebugNode()
 {
     const app = Application.instance;
-    const { focusEditorView } = app;
 
-    let parentId = 'Scene:1';
+    const parentId = 'Scene:1';
 
-    if (focusEditorView?.selection.lastNode)
-    {
-        parentId = focusEditorView?.selection.lastNode.id;
-    }
+    // if (app.editorView.selection.lastNode)
+    // {
+    //     parentId = app.editorView.selection.lastNode.id;
+    // }
 
     const nodeSchema = createNodeSchema('Debug', {
         parent: parentId,
@@ -28,10 +27,7 @@ export function newDebugNode()
 
     const { nodes } = app.exec<AddChildCommandReturn>(new AddChildCommand({ parentId, nodeSchema }));
 
-    if (focusEditorView)
-    {
-        const node = nodes[0] as unknown as ContainerNode;
+    const node = nodes[0] as unknown as ContainerNode;
 
-        focusEditorView.selection.add(node);
-    }
+    app.editorView.selection.set(node);
 }

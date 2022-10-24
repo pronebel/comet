@@ -46,6 +46,15 @@ export class EditableView
             .on('remove', this.onRemoveSelection);
     }
 
+    public setRoot(rootNode: ContainerNode)
+    {
+        const { nodeLayer } = this;
+
+        nodeLayer.removeChild(this.rootNode.view);
+        this.rootNode = rootNode;
+        nodeLayer.addChild(rootNode.view);
+    }
+
     public setContainer(container: HTMLDivElement)
     {
         this.pixi.resizeTo = container;

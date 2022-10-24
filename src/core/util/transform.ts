@@ -1,13 +1,15 @@
-import { Container, Matrix } from 'pixi.js';
+import { type Container, Matrix } from 'pixi.js';
 
 export function setParent(view: Container, newParentView: Container)
 {
-    const container = new Container();
-
-    container.addChild(view);
-
-    view.updateTransform();
-    newParentView.updateTransform();
+    if (view.parent)
+    {
+        view.updateTransform();
+    }
+    if (newParentView.parent)
+    {
+        newParentView.updateTransform();
+    }
 
     const viewMatrix = view.worldTransform.clone();
 

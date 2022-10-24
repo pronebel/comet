@@ -3,6 +3,7 @@
 import { EventEmitter } from 'eventemitter3';
 
 import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
+import type { ContainerNode } from '../core/nodes/concrete/container';
 import { ProjectNode } from '../core/nodes/concrete/project';
 import { clearInstances, getInstance } from '../core/nodes/instances';
 import { RemoveNodeCommand } from './commands/removeNode';
@@ -20,15 +21,14 @@ const userColor = getUserLogColor(userName);
 const logId = `${userName}`;
 const logStyle = 'color:LightCyan;';
 
-export type AppEvents = 'editorViewCreated';
+export type AppEvents = '';
 
 export class Application extends EventEmitter<AppEvents>
 {
     public datastore: Datastore;
     public nodeUpdater: NodeUpdater;
     public undoStack: UndoStack;
-    public editorViews: EditableView[];
-    public focusEditorView?: EditableView;
+    public editorView: EditableView;
     public project: ProjectNode;
 
     private static _instance: Application;
@@ -55,7 +55,7 @@ export class Application extends EventEmitter<AppEvents>
 
         const datastore = this.datastore = new Datastore();
 
-        this.editorViews = [];
+        this.editorView = new EditableView(this.project as ContainerNode);
 
         this.undoStack = new UndoStack(datastore);
         this.nodeUpdater = new NodeUpdater(datastore);
@@ -101,7 +101,7 @@ export class Application extends EventEmitter<AppEvents>
 
     protected init()
     {
-        this.createEditorView();
+        this.editorView.setRoot(this.project);
     }
 
     protected clear()
@@ -134,18 +134,6 @@ export class Application extends EventEmitter<AppEvents>
         console.groupEnd();
 
         return result as unknown as R;
-    }
-
-    public createEditorView()
-    {
-        const view = new EditableView(this.project);
-
-        this.editorViews.push(view);
-        this.focusEditorView = view;
-
-        this.emit('editorViewCreated', view);
-
-        return view;
     }
 
     public emit<T extends AppEvents>(event: T, ...args: any[]): boolean

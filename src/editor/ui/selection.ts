@@ -36,6 +36,12 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
         this.emit('remove', node);
     }
 
+    public set(node: ContainerNode)
+    {
+        this.nodes.forEach((selectedNode) => this.remove(selectedNode));
+        this.add(node);
+    }
+
     public get length()
     {
         return this.nodes.length;

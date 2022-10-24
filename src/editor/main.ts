@@ -5,13 +5,14 @@ import './style/app.css';
 import './style/theme.css';
 import './style/dark-theme.css';
 import './style/light-theme.css';
-import './transformTest';
-// import App from './views/App.svelte';
 
-// const target = document.getElementById('app') as HTMLElement;
+// import './transformTest';
+import App from './views/App.svelte';
 
-// const app = new App({
-//     target,
-// });
+const target = document.getElementById('app') as HTMLElement;
 
-// export default app;
+const app = new App({
+    target,
+});
+
+export default app;

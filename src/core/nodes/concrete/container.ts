@@ -2,6 +2,7 @@ import { Container } from 'pixi.js';
 
 import type { ModelBase } from '../../model/model';
 import { ModelSchema } from '../../model/schema';
+// import { setParent } from '../../util/transform';
 import type { ClonableNode } from '../abstract/clonableNode';
 import type { DisplayObjectEvents, DisplayObjectModel } from '../abstract/displayObject';
 import { DisplayObjectNode, displayObjectSchema } from '../abstract/displayObject';
@@ -63,6 +64,7 @@ export class ContainerNode<
         const thisView = this.view;
         const parentView = parent.getView<Container>();
 
+        // setParent(thisView, parentView);
         parentView.addChild(thisView);
     }
 
