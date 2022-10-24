@@ -4,6 +4,7 @@ import { ContainerNode } from '../core/nodes/concrete/container';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
 import { NodeSelection } from './ui/selection';
+import { bluePivot } from './ui/transform/const';
 import { TransformGizmo } from './ui/transform/gizmo';
 
 type SpriteConfig = {
@@ -81,22 +82,27 @@ selection.add(red);
 selection.add(green);
 selection.add(blue);
 
-gizmo.setState({ rotation: 15 });
+// gizmo.setState({ rotation: 15 });
+
+// setTimeout(() =>
+// {
+//     gizmo.setConfig({
+//         pivotView: bluePivot,
+//     });
+// }, 1000);
 
 // setTimeout(() =>
 // {
 //     selection.add(green);
-// }, 100);
+// }, 200);
 
 // setTimeout(() =>
 // {
-//     // gizmo.state.rotation = 25;
 //     selection.add(blue);
 // }, 200);
 
 // setTimeout(() =>
 // {
-//     // gizmo.state.rotation = 35;
 //     selection.remove(green);
 // }, 300);
 

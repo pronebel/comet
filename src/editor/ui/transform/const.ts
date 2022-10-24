@@ -14,8 +14,8 @@ export interface TransformState
 }
 
 export const defaultTransformState: TransformState = {
-    pivotX: 0.3,
-    pivotY: 0.3,
+    pivotX: 0.5,
+    pivotY: 0.5,
     x: 0,
     y: 0,
     scaleX: 1,
@@ -92,7 +92,7 @@ export const defaultTransformGizmoConfig: TransformGizmoConfig = {
     enableTranslation: true,
     enableRotation: true,
     enableScaling: true,
-    enableScaleByPivot: true,
+    enableScaleByPivot: false,
     pivotView: yellowPivot,
     edgeDragDistance: 7,
     handlePrimarySize: 7,

@@ -98,6 +98,7 @@ export class TransformGizmo
             this.container.removeChild(this.pivotView);
             this.container.addChild(config.pivotView);
             this.pivotView = config.pivotView;
+            this.updatePivot();
         }
     }
 
@@ -222,39 +223,6 @@ export class TransformGizmo
         this.update();
     }
 
-    protected setPivotFromScaleMode(hVertex: DragHVertex, vVertex: DragVVertex)
-    {
-        const { bounds } = this;
-
-        let h = 0.5;
-        let v = 0.5;
-
-        if (hVertex === 'left')
-        {
-            h = 1;
-        }
-        else if (hVertex === 'right')
-        {
-            h = 0;
-        }
-
-        if (vVertex === 'top')
-        {
-            v = 1;
-        }
-        else if (vVertex === 'bottom')
-        {
-            v = 0;
-        }
-
-        const localX = bounds.width * h;
-        const localY = bounds.height * v;
-
-        const p = this.getGlobalPoint(localX, localY);
-
-        this.setPivot(p.x, p.y);
-    }
-
     protected initDragState(mode: DragMode, e: InteractionEvent)
     {
         const { bounds, dragInfo, state } = this;
@@ -281,6 +249,8 @@ export class TransformGizmo
         dragInfo.globalX = globalX;
         dragInfo.globalY = globalY;
     }
+
+    /* pivot */
 
     protected initTranslatePivot(e: InteractionEvent)
     {
@@ -310,6 +280,8 @@ export class TransformGizmo
         }
     }
 
+    /* rotation */
+
     protected initRotation(e: InteractionEvent)
     {
         this.initDragState('rotation', e);
@@ -325,6 +297,8 @@ export class TransformGizmo
 
         state.rotation = cache.rotation + angle;
     }
+
+    /* translation */
 
     protected initTranslation(e: InteractionEvent)
     {
@@ -343,6 +317,8 @@ export class TransformGizmo
         state.y = cache.y + deltaY;
     }
 
+    /* scale */
+
     protected initScale(e: InteractionEvent)
     {
         const { dragInfo, config: { enableScaleByPivot } } = this;
@@ -355,7 +331,14 @@ export class TransformGizmo
         {
             // enabled duplex
             dragInfo.duplex = true;
-            this.setPivotFromScaleMode('center', 'center');
+            if (enableScaleByPivot)
+            {
+                this.setPivotFromScaleMode(dragInfo.hVertex, dragInfo.vVertex);
+            }
+            else
+            {
+                this.setPivotFromScaleMode('center', 'center');
+            }
         }
         else
         if (!enableScaleByPivot)
@@ -415,7 +398,7 @@ export class TransformGizmo
 
         const { vertex } = dragInfo;
 
-        if (dragInfo.duplex)
+        if (dragInfo.duplex && !enableScaleByPivot)
         {
             // apply duplex multiplier
             deltaX *= 2;
@@ -487,6 +470,39 @@ export class TransformGizmo
         }
     }
 
+    protected setPivotFromScaleMode(hVertex: DragHVertex, vVertex: DragVVertex)
+    {
+        const { bounds } = this;
+
+        let h = 0.5;
+        let v = 0.5;
+
+        if (hVertex === 'left')
+        {
+            h = 1;
+        }
+        else if (hVertex === 'right')
+        {
+            h = 0;
+        }
+
+        if (vVertex === 'top')
+        {
+            v = 1;
+        }
+        else if (vVertex === 'bottom')
+        {
+            v = 0;
+        }
+
+        const localX = bounds.width * h;
+        const localY = bounds.height * v;
+
+        const p = this.getGlobalPoint(localX, localY);
+
+        this.setPivot(p.x, p.y);
+    }
+
     protected restoreCachedPivot()
     {
         const { bounds, cache } = this;
@@ -496,6 +512,8 @@ export class TransformGizmo
 
         this.setPivot(p.x, p.y);
     }
+
+    /* input handlers */
 
     protected onDragStart = (e: InteractionEvent) =>
     {
