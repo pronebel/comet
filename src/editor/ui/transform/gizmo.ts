@@ -119,7 +119,7 @@ export class TransformGizmo
             ...defaultTransformState,
         };
 
-        this.calcTransform();
+        this.update();
     };
 
     // @ts-ignore
@@ -140,7 +140,7 @@ export class TransformGizmo
             ...state,
         };
 
-        this.calcTransform();
+        this.update();
     }
 
     protected updateCache()
@@ -158,7 +158,7 @@ export class TransformGizmo
     {
         this.bounds = this.calcTotalGlobalBounds();
 
-        this.calcTransform();
+        this.update();
 
         return this.bounds;
     }
@@ -200,65 +200,6 @@ export class TransformGizmo
         return p;
     }
 
-    protected initDragState(mode: DragMode, e: InteractionEvent)
-    {
-        const { bounds, dragInfo, state } = this;
-        const globalX = e.data.global.x;
-        const globalY = e.data.global.y;
-        const globalPivot = this.getPivotGlobalPos();
-        const { x: localX, y: localY } = this.getLocalPoint(globalX, globalY);
-        const { h, v } = closestEdgeVertexOnRect(localX, localY, 0, 0, bounds.width, bounds.height, 0.25);
-
-        this.mode = mode;
-
-        dragInfo.duplex = false;
-        dragInfo.hVertex = h;
-        dragInfo.vVertex = v;
-        dragInfo.vertex = `${h}-${v}`;
-
-        this.cache = {
-            ...state,
-        };
-
-        dragInfo.width = bounds.width * state.scaleX;
-        dragInfo.height = bounds.height * state.scaleY;
-        dragInfo.angle = angleBetween(globalPivot.x, globalPivot.y, globalX, globalY);
-        dragInfo.globalX = globalX;
-        dragInfo.globalY = globalY;
-    }
-
-    protected fitBorder()
-    {
-        const { bounds, border, matrix } = this;
-        const totalBounds = this.calcTotalGlobalBounds();
-
-        border.clear();
-
-        // draw uniform encompassing border
-        border.lineStyle(1, 0xffffff, 0.6);
-        border.beginFill(0xffffff, 0.01);
-        border.drawRect(totalBounds.left, totalBounds.top, totalBounds.width, totalBounds.height);
-        border.endFill();
-
-        const p1 = matrix.apply({ x: 0, y: 0 });
-        const p2 = matrix.apply({ x: bounds.width, y: 0 });
-        const p3 = matrix.apply({ x: bounds.width, y: bounds.height });
-        const p4 = matrix.apply({ x: 0, y: bounds.height });
-
-        // draw transformed border
-        const path = [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y];
-
-        border.beginFill(0xffffff, 0.1);
-        border.drawPolygon(path);
-        border.endFill();
-
-        border.lineStyle(1, 0x00ffff, 1);
-        border.moveTo(p1.x, p1.y); border.lineTo(p2.x, p2.y);
-        border.moveTo(p2.x, p2.y); border.lineTo(p3.x, p3.y);
-        border.moveTo(p3.x, p3.y); border.lineTo(p4.x, p4.y);
-        border.moveTo(p4.x, p4.y); border.lineTo(p1.x, p1.y);
-    }
-
     protected setPivot(globalX: number, globalY: number)
     {
         const { bounds, state } = this;
@@ -268,7 +209,7 @@ export class TransformGizmo
         state.pivotX = localX / bounds.width;
         state.pivotY = localY / bounds.height;
 
-        this.calcTransform();
+        this.update();
 
         const newPoint = this.getPivotGlobalPos();
         const deltaX = newPoint.x - globalX;
@@ -277,7 +218,7 @@ export class TransformGizmo
         state.x += -deltaX;
         state.y += -deltaY;
 
-        this.calcTransform();
+        this.update();
     }
 
     protected setPivotFromScaleMode(hVertex: DragHVertex, vVertex: DragVVertex)
@@ -313,9 +254,9 @@ export class TransformGizmo
         this.setPivot(p.x, p.y);
     }
 
-    public calcTransform()
+    public update()
     {
-        const { bounds, matrix, state, mode, cache, pivotView, selection, matrixCache } = this;
+        const { bounds, matrix, state, selection, matrixCache } = this;
 
         const pivotX = bounds.width * state.pivotX;
         const pivotY = bounds.height * state.pivotY;
@@ -353,31 +294,149 @@ export class TransformGizmo
             view.transform.setFromMatrix(combinedMatrix);
         });
 
-        // fit uniform encompassing border
-        this.fitBorder();
+        // update border and pivot appearance
+        this.updateBorder();
+        this.updatePivot();
+    }
 
-        // set pivot position
-        if (mode === 'scale')
+    protected updateBorder()
+    {
+        const { bounds, border, matrix, config } = this;
+
+        border.clear();
+
+        if (config.showEncompassingBorder)
         {
-            const localPoint = {
-                x: cache.pivotX * bounds.width,
-                y: cache.pivotY * bounds.height,
-            };
-            const p = matrix.apply(localPoint);
+            const totalBounds = this.calcTotalGlobalBounds();
 
-            pivotView.x = p.x;
-            pivotView.y = p.y;
+            // draw encompassing encompassing border
+            border.lineStyle(1, 0xffffff, 0.6);
+            border.beginFill(0xffffff, 0.01);
+            border.drawRect(totalBounds.left, totalBounds.top, totalBounds.width, totalBounds.height);
+            border.endFill();
+        }
+
+        const p1 = matrix.apply({ x: 0, y: 0 });
+        const p2 = matrix.apply({ x: bounds.width, y: 0 });
+        const p3 = matrix.apply({ x: bounds.width, y: bounds.height });
+        const p4 = matrix.apply({ x: 0, y: bounds.height });
+
+        // draw transformed border
+        const path = [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y];
+
+        border.beginFill(0xffffff, 0.1);
+        border.drawPolygon(path);
+        border.endFill();
+
+        border.lineStyle(1, 0xffffff, 1);
+        border.moveTo(p1.x, p1.y); border.lineTo(p2.x, p2.y);
+        border.moveTo(p2.x, p2.y); border.lineTo(p3.x, p3.y);
+        border.moveTo(p3.x, p3.y); border.lineTo(p4.x, p4.y);
+        border.moveTo(p4.x, p4.y); border.lineTo(p1.x, p1.y);
+
+        if (config.showPrimaryHandles)
+        {
+            // draw primary handles
+            const size = config.handlePrimarySize;
+
+            this.drawHandle(0, 0, size);
+            this.drawHandle(bounds.width, 0, size);
+            this.drawHandle(bounds.width, bounds.height, size);
+            this.drawHandle(0, bounds.height, size);
+        }
+
+        if (config.showSecondaryHandles)
+        {
+            // draw smaller handles
+            const size = config.handleSecondarySize;
+            const halfWidth = bounds.width * 0.5;
+            const halfHeight = bounds.height * 0.5;
+
+            this.drawHandle(halfWidth, 0, size);
+            this.drawHandle(bounds.width, halfHeight, size);
+            this.drawHandle(halfWidth, bounds.height, size);
+            this.drawHandle(0, halfHeight, size);
+        }
+    }
+
+    protected drawHandle(localX: number, localY: number, size: number)
+    {
+        const { matrix, border } = this;
+        const halfSize = size * 0.5;
+        const topLeft = matrix.apply({ x: localX - halfSize, y: localY - halfSize });
+        const topRight = matrix.apply({ x: localX + halfSize, y: localY - halfSize });
+        const bottomRight = matrix.apply({ x: localX + halfSize, y: localY + halfSize });
+        const bottomLeft = matrix.apply({ x: localX - halfSize, y: localY + halfSize });
+
+        const path = [topLeft, topRight, bottomRight, bottomLeft, topLeft];
+
+        border.beginFill(0xffffff, 0.8);
+        border.drawPolygon(path);
+        border.endFill();
+    }
+
+    protected updatePivot()
+    {
+        const { bounds, matrix, state, mode, cache, pivotView, config } = this;
+
+        if (config.showPivot)
+        {
+            // set pivot position
+            if (mode === 'scale')
+            {
+                const localPoint = {
+                    x: cache.pivotX * bounds.width,
+                    y: cache.pivotY * bounds.height,
+                };
+                const p = matrix.apply(localPoint);
+
+                pivotView.x = p.x;
+                pivotView.y = p.y;
+            }
+            else
+            {
+                const p = this.getPivotGlobalPos();
+
+                pivotView.x = p.x;
+                pivotView.y = p.y;
+            }
+
+            // set pivot angle
+            pivotView.angle = state.rotation;
+
+            pivotView.visible = true;
         }
         else
         {
-            const p = this.getPivotGlobalPos();
-
-            pivotView.x = p.x;
-            pivotView.y = p.y;
+            pivotView.visible = false;
         }
+    }
 
-        // set pivot angle
-        pivotView.angle = state.rotation;
+    protected initDragState(mode: DragMode, e: InteractionEvent)
+    {
+        const { bounds, dragInfo, state } = this;
+        const globalX = e.data.global.x;
+        const globalY = e.data.global.y;
+        const globalPivot = this.getPivotGlobalPos();
+        const { x: localX, y: localY } = this.getLocalPoint(globalX, globalY);
+        const { h, v } = closestEdgeVertexOnRect(localX, localY, 0, 0, bounds.width, bounds.height, 0.25);
+
+        this.mode = mode;
+
+        dragInfo.duplex = false;
+        dragInfo.hVertex = h;
+        dragInfo.vVertex = v;
+        dragInfo.vertex = `${h}-${v}`;
+
+        this.cache = {
+            ...state,
+        };
+
+        dragInfo.width = bounds.width * state.scaleX;
+        dragInfo.height = bounds.height * state.scaleY;
+        dragInfo.angle = angleBetween(globalPivot.x, globalPivot.y, globalX, globalY);
+        dragInfo.globalX = globalX;
+        dragInfo.globalY = globalY;
     }
 
     protected initTranslatePivot(e: InteractionEvent)
@@ -506,7 +565,7 @@ export class TransformGizmo
             // reset drag scaling state
             this.onDragEnd();
             this.initScale(e);
-            this.calcTransform();
+            this.update();
 
             return;
         }
@@ -643,7 +702,7 @@ export class TransformGizmo
             }
         }
 
-        this.calcTransform();
+        this.update();
     };
 
     protected onDragMove = (e: InteractionEvent) =>
@@ -671,7 +730,7 @@ export class TransformGizmo
             this.dragScale(e);
         }
 
-        this.calcTransform();
+        this.update();
     };
 
     protected onDragEnd = () =>
@@ -686,6 +745,6 @@ export class TransformGizmo
 
         this.mode = 'none';
 
-        this.calcTransform();
+        this.update();
     };
 }

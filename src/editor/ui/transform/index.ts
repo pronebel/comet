@@ -25,9 +25,9 @@ export const defaultTransformState: TransformState = {
 
 export interface TransformGizmoConfig
 {
-    showTotalBorder: boolean;
-    showTransformedBorder: boolean;
-    showHandles: boolean;
+    showEncompassingBorder: boolean;
+    showPrimaryHandles: boolean;
+    showSecondaryHandles: boolean;
     showPivot: boolean;
     enableScaleByPivot: boolean;
     enableTranslation: boolean;
@@ -36,12 +36,14 @@ export interface TransformGizmoConfig
     enablePivotTranslation: boolean;
     pivotView: DisplayObject;
     edgeDragDistance: number;
+    handlePrimarySize: number;
+    handleSecondarySize: number;
 }
 
 export const defaultTransformGizmoConfig: TransformGizmoConfig = {
-    showTotalBorder: true,
-    showTransformedBorder: true,
-    showHandles: true,
+    showEncompassingBorder: true,
+    showPrimaryHandles: true,
+    showSecondaryHandles: true,
     showPivot: true,
     enableScaleByPivot: false,
     enableTranslation: true,
@@ -50,6 +52,8 @@ export const defaultTransformGizmoConfig: TransformGizmoConfig = {
     enablePivotTranslation: true,
     pivotView: createDefaultGizmoPivot(),
     edgeDragDistance: 15,
+    handlePrimarySize: 10,
+    handleSecondarySize: 5,
 };
 
 export function createDefaultGizmoPivot()

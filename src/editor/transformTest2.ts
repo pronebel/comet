@@ -78,18 +78,21 @@ const gizmo = new TransformGizmo(selection);
 editLayer.addChild(gizmo.container);
 
 selection.add(red);
+selection.add(green);
+selection.add(blue);
 
-setTimeout(() =>
-{
-    // gizmo.setState({ rotation: 15 });
-    selection.add(green);
-}, 100);
+gizmo.setState({ rotation: 15 });
 
-setTimeout(() =>
-{
-    // gizmo.state.rotation = 25;
-    selection.add(blue);
-}, 200);
+// setTimeout(() =>
+// {
+//     selection.add(green);
+// }, 100);
+
+// setTimeout(() =>
+// {
+//     // gizmo.state.rotation = 25;
+//     selection.add(blue);
+// }, 200);
 
 // setTimeout(() =>
 // {
