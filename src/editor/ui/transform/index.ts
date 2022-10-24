@@ -23,6 +23,49 @@ export const defaultTransformState: TransformState = {
     rotation: 0,
 };
 
+export interface PivotConfig
+{
+    radius: number;
+    lineColor: number;
+    bgColor: number;
+    bgAlpha: number;
+    crosshairSize: number;
+}
+
+export function createPivotShape(config: PivotConfig)
+{
+    const { radius, lineColor, bgColor, bgAlpha, crosshairSize } = config;
+    const pivotShape = new Graphics();
+
+    pivotShape.lineStyle(1, lineColor, 1);
+    pivotShape.beginFill(bgColor, bgAlpha);
+    pivotShape.drawCircle(0, 0, radius);
+    if (crosshairSize > 0)
+    {
+        pivotShape.moveTo(0, crosshairSize * -1); pivotShape.lineTo(0, crosshairSize);
+        pivotShape.moveTo(crosshairSize * -1, 0); pivotShape.lineTo(crosshairSize, 0);
+    }
+    pivotShape.endFill();
+
+    return pivotShape;
+}
+
+export const yellowPivot = createPivotShape({
+    radius: 7,
+    lineColor: 0xffff00,
+    bgColor: 0xffffff,
+    bgAlpha: 0.1,
+    crosshairSize: 12,
+});
+
+export const bluePivot = createPivotShape({
+    radius: 5,
+    lineColor: 0xffffff,
+    bgColor: 0x0000ff,
+    bgAlpha: 1,
+    crosshairSize: 10,
+});
+
 export interface TransformGizmoConfig
 {
     showEncompassingBorder: boolean;
@@ -50,28 +93,11 @@ export const defaultTransformGizmoConfig: TransformGizmoConfig = {
     enableRotation: true,
     enableScaling: true,
     enablePivotTranslation: true,
-    pivotView: createDefaultGizmoPivot(),
+    pivotView: yellowPivot,
     edgeDragDistance: 15,
     handlePrimarySize: 10,
     handleSecondarySize: 5,
 };
-
-export function createDefaultGizmoPivot()
-{
-    const pivotShape = new Graphics();
-    const pivotSize = 10;
-
-    pivotShape.lineStyle(1, 0xffff00, 1);
-    pivotShape.beginFill(0xffffff, 0.001);
-    pivotShape.drawCircle(0, 0, pivotSize);
-    pivotShape.moveTo(0, pivotSize * -1.5);
-    pivotShape.lineTo(0, pivotSize * 1.5);
-    pivotShape.moveTo(pivotSize * -1.5, 0);
-    pivotShape.lineTo(pivotSize * 1.5, 0);
-    pivotShape.endFill();
-
-    return pivotShape;
-}
 
 export interface TransformDragInfo
 {

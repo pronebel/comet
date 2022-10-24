@@ -370,7 +370,8 @@ export class TransformGizmo
 
         const path = [topLeft, topRight, bottomRight, bottomLeft, topLeft];
 
-        border.beginFill(0xffffff, 0.8);
+        border.lineStyle(1, 0x000000, 0.5);
+        border.beginFill(0xffffff, 1);
         border.drawPolygon(path);
         border.endFill();
     }
