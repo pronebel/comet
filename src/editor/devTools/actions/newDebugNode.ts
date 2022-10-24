@@ -7,6 +7,7 @@ export function newDebugNode()
 {
     const app = Application.instance;
     const { focusEditorView } = app;
+
     let parentId = 'Scene:1';
 
     if (focusEditorView?.selection.lastNode)
@@ -19,8 +20,8 @@ export function newDebugNode()
         model: {
             x: 10,
             y: 10,
-            width: 25,
-            height: 25,
+            width: 20,
+            height: 20,
             tint: Math.round(Math.random() * 100000),
         },
     });
@@ -29,7 +30,7 @@ export function newDebugNode()
 
     if (focusEditorView)
     {
-        const node = nodes[0] as ContainerNode;
+        const node = nodes[0] as unknown as ContainerNode;
 
         focusEditorView.selection.add(node);
     }

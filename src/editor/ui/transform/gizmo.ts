@@ -63,6 +63,23 @@ export class TransformGizmo
         this.selection.forEach((node) => this.onSelectionAdd(node));
 
         this.bounds = this.updateBounds();
+
+        this.hide();
+    }
+
+    public show()
+    {
+        this.container.visible = true;
+    }
+
+    public hide()
+    {
+        this.container.visible = false;
+    }
+
+    public get isVisible()
+    {
+        return this.container.visible;
     }
 
     protected calcTotalGlobalBounds()
@@ -122,6 +139,12 @@ export class TransformGizmo
         };
 
         this.update();
+
+        // show if hidden
+        if (!this.isVisible)
+        {
+            this.show();
+        }
     };
 
     // @ts-ignore
@@ -133,6 +156,12 @@ export class TransformGizmo
 
         // update bounds
         this.updateBounds();
+
+        // hide if selection empty
+        if (this.selection.isEmpty)
+        {
+            this.hide();
+        }
     };
 
     public setState(state: Partial<TransformState>)

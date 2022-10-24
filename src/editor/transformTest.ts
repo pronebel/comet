@@ -1,10 +1,11 @@
 import { Application, Container,  Sprite, Texture } from 'pixi.js';
 
 import { ContainerNode } from '../core/nodes/concrete/container';
+import { setParent } from '../core/util/transform';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
 import { NodeSelection } from './ui/selection';
-import { bluePivot } from './ui/transform/const';
+// import { bluePivot } from './ui/transform/const';
 import { TransformGizmo } from './ui/transform/gizmo';
 
 type SpriteConfig = {
@@ -72,6 +73,20 @@ const spriteConfig: Record<string, SpriteConfig> = {
 const red = createNode(0xff0000, spriteConfig.red);
 const green = createNode(0x009900, spriteConfig.green);
 const blue = createNode(0x0000ff, spriteConfig.blue);
+
+const child = new Sprite(Texture.WHITE);
+
+child.tint = 0xffffff;
+child.width = 10;
+child.height = 10;
+child.x = 10;
+child.y = 10;
+
+setParent(child, red.view);
+
+(window as any).red = red.view;
+
+// red.view.addChild(child);
 
 const selection = new NodeSelection();
 const gizmo = new TransformGizmo(selection);

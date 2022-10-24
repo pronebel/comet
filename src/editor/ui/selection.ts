@@ -41,9 +41,9 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
         return this.nodes.length;
     }
 
-    public get hasSelection()
+    public get isEmpty()
     {
-        return this.nodes.length > 0;
+        return this.nodes.length === 0;
     }
 
     public get firstNode(): ContainerNode | undefined
