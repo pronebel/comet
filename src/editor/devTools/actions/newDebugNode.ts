@@ -15,13 +15,13 @@ export function newDebugNode()
         parentId = selectedNode.id;
     }
 
-    const nodeSchema = createNodeSchema('Debug', {
+    const nodeSchema = createNodeSchema('Sprite', {
         parent: parentId,
         model: {
             x: 10,
             y: 10,
-            width: 20,
-            height: 20,
+            scaleX: 1.25,
+            scaleY: 1.25,
             tint: Math.round(Math.random() * 100000),
         },
     });

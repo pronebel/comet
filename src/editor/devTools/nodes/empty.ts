@@ -39,15 +39,15 @@ export class EmptyNode extends ContainerNode<ContainerModel, Container>
         graphics.drawCircle(0, 0, 10);
         graphics.endFill();
 
-        const label = new Text(this.id.replace('Node', ''), {
-            fontSize: 10,
-            fill: 0xffffff,
-        });
+        // const label = new Text(this.id.replace('Node', ''), {
+        //     fontSize: 10,
+        //     fill: 0xffffff,
+        // });
 
-        label.x = 15;
-        label.y = -5;
+        // label.x = 15;
+        // label.y = -5;
 
-        container.addChild(label);
+        // container.addChild(label);
 
         return container;
     }

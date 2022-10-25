@@ -2,23 +2,16 @@ import { Container } from 'pixi.js';
 
 import type { ModelBase } from '../../model/model';
 import { ModelSchema } from '../../model/schema';
-// import { setParent } from '../../util/transform';
 import type { ClonableNode } from '../abstract/clonableNode';
 import type { DisplayObjectEvents, DisplayObjectModel } from '../abstract/displayObject';
 import { DisplayObjectNode, displayObjectSchema } from '../abstract/displayObject';
 
 export type ContainerEvents = DisplayObjectEvents;
 
-export interface ContainerModel extends DisplayObjectModel
-{
-    width: number;
-    height: number;
-}
+export type ContainerModel = DisplayObjectModel;
 
 export const containerSchema = new ModelSchema<ContainerModel>({
     ...displayObjectSchema.defaults,
-    width: 16,
-    height: 16,
 }, displayObjectSchema.constraints);
 
 export class ContainerNode<
@@ -52,24 +45,11 @@ export class ContainerNode<
         return this.view.getBounds();
     }
 
-    // public updateView(): void
-    // {
-    //     const { view, values: {
-    //         width, height,
-    //     } } = this;
-
-    //     super.updateView();
-
-    //     view.width = width;
-    //     view.height = height;
-    // }
-
     protected addViewToParent(parent: ClonableNode<ModelBase, object, string>): void
     {
         const thisView = this.view;
         const parentView = parent.getView<Container>();
 
-        // setParent(thisView, parentView);
         parentView.addChild(thisView);
     }
 

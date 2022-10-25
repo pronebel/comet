@@ -1,21 +1,34 @@
-// import { Application } from '../application';
+import { createNodeSchema } from '../../../core/nodes/schema';
+import { Application } from '../../application';
+import { type AddChildCommandReturn, AddChildCommand } from '../../commands/addChild';
+import type { EmptyNode } from '../nodes/empty';
 
-export function undo()
+export function newEmptyNode()
 {
-    // const app = Application.instance;
+    const app = Application.instance;
+    const selectedNode = app.editorView.selection.lastNode;
 
-    // if (this.project && this.selected)
-    // {
-    //     const parentId = this.selected.id;
+    let parentId = 'Scene:1';
 
-    //     const nodeSchema = createNodeSchema('Empty', {
-    //         parent: parentId,
-    //         model: {
-    //             x: 20,
-    //             y: 20,
-    //         },
-    //     });
+    if (selectedNode)
+    {
+        parentId = selectedNode.id;
+    }
 
-    //     this.exec(new AddChildCommand({ parentId, nodeSchema }));
-    // }
+    const nodeSchema = createNodeSchema('Empty', {
+        parent: parentId,
+        model: {
+            x: 10,
+            y: 10,
+            tint: Math.round(Math.random() * 100000),
+        },
+    });
+
+    const { nodes } = app.exec<AddChildCommandReturn>(new AddChildCommand({ parentId, nodeSchema }));
+
+    const node = nodes[0] as unknown as EmptyNode;
+
+    app.editorView.selection.set(node);
+
+    console.log(node);
 }

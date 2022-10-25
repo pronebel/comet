@@ -15,6 +15,7 @@ import { Datastore } from './sync/datastore';
 import { NodeUpdater } from './sync/nodeUpdater';
 import { getUserLogColor, getUserName } from './sync/user';
 import { EditableView } from './ui/editableView';
+import { getUrlParam } from './util';
 
 const userName = getUserName();
 const userColor = getUserLogColor(userName);
@@ -55,7 +56,7 @@ export class Application extends EventEmitter<AppEvents>
 
         const datastore = this.datastore = new Datastore();
 
-        this.editorView = new EditableView(this.project as ContainerNode);
+        this.editorView = new EditableView(this.project.cast<ContainerNode>());
 
         this.undoStack = new UndoStack(datastore);
         this.nodeUpdater = new NodeUpdater(datastore);
@@ -70,10 +71,14 @@ export class Application extends EventEmitter<AppEvents>
     {
         await this.datastore.connect();
 
-        setTimeout(() =>
+        if (getUrlParam<number>('open') === 1)
         {
-            this.createProject('Test', 'test');
-        }, 100);
+            await this.openProject('test');
+        }
+        else
+        {
+            await this.createProject('Test', 'test');
+        }
     }
 
     public async createProject(name: string, id: string)

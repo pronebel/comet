@@ -11,6 +11,8 @@ import {
     findNearestPointOnRect,
     polarPoint,
     rotatePointAround } from '../../../core/util/geom';
+import { Application } from '../../application';
+import { ModifyModelCommand } from '../../commands/modifyModel';
 import type { NodeSelection } from '../selection';
 import type { TransformDragInfo, TransformGizmoConfig, TransformState } from './const';
 import {
@@ -145,7 +147,7 @@ export class TransformGizmo
         });
     }
 
-    public updateSelectedObjects()
+    public updateSelectedObjects(updateModel = false)
     {
         const { bounds, matrix, selection, matrixCache } = this;
 
@@ -159,7 +161,43 @@ export class TransformGizmo
             combinedMatrix.translate(-bounds.left, -bounds.top);
             combinedMatrix.prepend(matrix);
             view.transform.setFromMatrix(combinedMatrix);
-            console.log(view.transform.toString());
+
+            if (updateModel)
+            {
+                const localMatrix = view.transform.localTransform;
+
+                const p0 = localMatrix.apply({ x: 0, y: 0 });
+                const p1 = localMatrix.apply({ x: 10, y: 0 });
+                const angle = angleBetween(p0.x, p0.y, p1.x, p1.y);
+                const x = localMatrix.tx;
+                const y = localMatrix.ty;
+                const scaleX = localMatrix.a;
+                const scaleY = localMatrix.d;
+
+                // determine whether changes present
+                const values = node.model.values;
+                const isXDifferent = x !== values.x;
+                const isYDifferent = y !== values.y;
+                const isAngleDifferent = angle !== values.angle;
+                const isScaleXDifferent = scaleX !== values.scaleX;
+                const isScaleYDifferent = scaleY !== values.scaleY;
+
+                if (isXDifferent || isYDifferent || isAngleDifferent || isScaleXDifferent || isScaleYDifferent)
+                {
+                    Application.instance.exec(new ModifyModelCommand({
+                        nodeId: node.id,
+                        values:
+                    {
+                        x,
+                        y,
+                        angle,
+                        scaleX,
+                        scaleY,
+                    },
+
+                    }));
+                }
+            }
         });
     }
 
@@ -627,106 +665,6 @@ export class TransformGizmo
         this.setPivot(p.x, p.y);
     }
 
-    /* input handlers */
-
-    public onDragStart = (e: InteractionEvent) =>
-    {
-        const { bounds, config } = this;
-        const globalX = e.data.global.x;
-        const globalY = e.data.global.y;
-
-        const { x: localX, y: localY } = this.getLocalPoint(globalX, globalY);
-
-        if (e.data.buttons === 1)
-        {
-            if (e.data.originalEvent.shiftKey)
-            {
-                // translate pivot
-                config.enablePivotTranslation && this.initTranslatePivot(e);
-            }
-            else if (e.data.originalEvent.metaKey)
-            {
-                // rotation
-                config.enableRotation && this.initRotation(e);
-            }
-            else
-            {
-                const { x, y } = findNearestPointOnRect(
-                    localX,
-                    localY,
-                    0,
-                    0,
-                    bounds.width,
-                    bounds.height,
-                );
-
-                const p = this.getGlobalPoint(x, y);
-
-                const distance = distanceBetween(p.x, p.y, globalX, globalY);
-
-                if (distance <= this.config.edgeDragDistance)
-                {
-                    // scaling
-                    config.enableScaling && this.initScale(e);
-                }
-                else
-                {
-                    // translation
-                    config.enableTranslation && this.initTranslation(e);
-                }
-            }
-        }
-
-        this.update();
-
-        e.stopPropagation();
-    };
-
-    public onDragMove = (e: InteractionEvent) =>
-    {
-        const { mode } = this;
-
-        if (mode === 'pivot' && e.data.originalEvent.shiftKey && e.data.buttons === 1)
-        {
-            // move pivot
-            this.dragTranslatePivot(e);
-        }
-        else if (mode === 'translation')
-        {
-            // translation
-            this.dragTranslation(e);
-        }
-        else if (mode === 'rotation')
-        {
-            // rotation
-            this.dragRotation(e);
-        }
-        else if (mode === 'scale')
-        {
-            // scaling
-            this.dragScale(e);
-        }
-
-        this.update();
-
-        e.stopPropagation();
-    };
-
-    public onDragEnd = () =>
-    {
-        const { mode } = this;
-
-        if (mode === 'scale')
-        {
-            // restore cached pivot when scaling
-            this.restoreCachedPivot();
-        }
-
-        this.mode = 'none';
-
-        this.update();
-    };
-
     protected updateBorder()
     {
         const { bounds, border, matrix, config } = this;
@@ -852,4 +790,109 @@ export class TransformGizmo
         this.updateBorder();
         this.updatePivot();
     }
+
+    public onDragStart = (e: InteractionEvent) =>
+    {
+        const { bounds, config } = this;
+        const globalX = e.data.global.x;
+        const globalY = e.data.global.y;
+
+        const { x: localX, y: localY } = this.getLocalPoint(globalX, globalY);
+
+        if (e.data.buttons === 1)
+        {
+            if (e.data.originalEvent.shiftKey)
+            {
+                // translate pivot
+                config.enablePivotTranslation && this.initTranslatePivot(e);
+            }
+            else if (e.data.originalEvent.metaKey)
+            {
+                // rotation
+                config.enableRotation && this.initRotation(e);
+            }
+            else
+            {
+                const { x, y } = findNearestPointOnRect(
+                    localX,
+                    localY,
+                    0,
+                    0,
+                    bounds.width,
+                    bounds.height,
+                );
+
+                const p = this.getGlobalPoint(x, y);
+
+                const distance = distanceBetween(p.x, p.y, globalX, globalY);
+
+                if (distance <= this.config.edgeDragDistance)
+                {
+                    // scaling
+                    config.enableScaling && this.initScale(e);
+                }
+                else
+                {
+                    // translation
+                    config.enableTranslation && this.initTranslation(e);
+                }
+            }
+        }
+
+        this.update();
+
+        e.stopPropagation();
+    };
+
+    public onDragMove = (e: InteractionEvent) =>
+    {
+        const { mode } = this;
+
+        if (mode === 'pivot' && e.data.originalEvent.shiftKey && e.data.buttons === 1)
+        {
+            // move pivot
+            this.dragTranslatePivot(e);
+        }
+        else if (mode === 'translation')
+        {
+            // translation
+            this.dragTranslation(e);
+        }
+        else if (mode === 'rotation')
+        {
+            // rotation
+            this.dragRotation(e);
+        }
+        else if (mode === 'scale')
+        {
+            // scaling
+            this.dragScale(e);
+        }
+
+        if (mode !== 'none')
+        {
+            this.update();
+
+            e.stopPropagation();
+        }
+    };
+
+    public onDragEnd = () =>
+    {
+        const { mode } = this;
+
+        if (mode !== 'none')
+        {
+            if (mode === 'scale')
+            {
+                // restore cached pivot when scaling
+                this.restoreCachedPivot();
+            }
+
+            this.mode = 'none';
+
+            // this.update();
+            this.updateSelectedObjects(true);
+        }
+    };
 }

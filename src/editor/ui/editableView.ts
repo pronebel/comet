@@ -64,6 +64,11 @@ export class EditableView
 
             underCursor.reverse();
 
+            if (underCursor.length > 0)
+            {
+                console.log(underCursor.map((node) => node.id));
+            }
+
             if (underCursor.length === 0)
             {
                 this.selection.deselect();

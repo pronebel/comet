@@ -1,8 +1,10 @@
 <script lang="ts">
   import { newDebugNode } from "../devTools/actions/newDebugNode";
+  import { newEmptyNode } from "../devTools/actions/newEmptyNode";
 </script>
 
 <div data-section="menubar" class="fill flex-container-center">
+  <button on:click={() => newEmptyNode()}>New Container</button>
   <button on:click={() => newDebugNode()}>New Node</button>
 </div>
 
