@@ -5,6 +5,8 @@ import Grid from './grid';
 import { NodeSelection } from './selection';
 import { TransformGizmo } from './transform/gizmo';
 
+export const dblClickMsThreshold = 250;
+
 export class EditableView
 {
     public rootNode: ContainerNode;
@@ -16,11 +18,14 @@ export class EditableView
     public nodeLayer: Container;
     public editLayer: Container;
 
+    protected lastClick: number;
+
     constructor(rootNode: ContainerNode)
     {
         this.rootNode = rootNode;
         this.selection = new NodeSelection();
         this.transformGizmo = new TransformGizmo(this.selection);
+        this.lastClick = -1;
 
         // create canvas and pixi context
         const canvas = this.canvas = document.createElement('canvas');
@@ -45,58 +50,82 @@ export class EditableView
 
         // set selection
         pixi.stage.interactive = true;
-        pixi.stage.on('mousedown', (e) =>
-        {
-            const globalX = e.data.global.x;
-            const globalY = e.data.global.y;
-
-            const underCursor: ContainerNode[] = [];
-
-            this.rootNode.walk<ContainerNode>((node) =>
+        pixi.stage
+            .on('mousedown', (e) =>
             {
-                const bounds = node.getBounds();
+                const globalX = e.data.global.x;
+                const globalY = e.data.global.y;
 
-                if (bounds.contains(globalX, globalY) && !this.selection.isSelected(node) && !node.isMetaNode)
+                const underCursor = this.getUnderCursor(globalX, globalY);
+
+                let wasDoubleClick = false;
+
+                if (this.lastClick > -1)
                 {
-                    underCursor.push(node);
-                }
-            });
+                    const delta = Date.now() - this.lastClick;
 
-            underCursor.reverse();
-
-            if (underCursor.length > 0)
-            {
-                console.log(underCursor.map((node) => node.id));
-            }
-
-            if (underCursor.length === 0)
-            {
-                this.selection.deselect();
-            }
-            else
-            {
-                const selectedNode = underCursor[0];
-
-                if (e.data.originalEvent.shiftKey)
-                {
-                    this.selection.add(selectedNode);
-                }
-                else
-                {
-                    this.selection.set(selectedNode);
-                    if (this.transformGizmo.config.enableTranslation)
+                    if (delta < dblClickMsThreshold)
                     {
-                        this.transformGizmo.onDragStart(e);
+                        wasDoubleClick = true;
                     }
                 }
-            }
-        });
+
+                if (wasDoubleClick)
+                {
+                    this.selection.set(underCursor[0]);
+                }
+                else if (!this.transformGizmo.getGlobalBounds().contains(globalX, globalY))
+                {
+                    if (underCursor.length === 0)
+                    {
+                        this.selection.deselect();
+                    }
+                    else
+                    {
+                        const selectedNode = underCursor[0].getCloneRoot().cast<ContainerNode>();
+
+                        if (e.data.originalEvent.shiftKey)
+                        {
+                            this.selection.add(selectedNode);
+                        }
+                        else
+                        {
+                            this.selection.set(selectedNode);
+                            if (this.transformGizmo.config.enableTranslation)
+                            {
+                                this.transformGizmo.onDragStart(e);
+                            }
+                        }
+                    }
+                }
+
+                this.lastClick = Date.now();
+            });
 
         this.selection
             .on('add', this.onAddSelection)
             .on('remove', this.onRemoveSelection);
 
         (window as any).sel = this.selection;
+    }
+
+    protected getUnderCursor(globalX: number, globalY: number)
+    {
+        const underCursor: ContainerNode[] = [];
+
+        this.rootNode.walk<ContainerNode>((node) =>
+        {
+            const bounds = node.getBounds();
+
+            if (bounds.contains(globalX, globalY) && !node.isMetaNode)
+            {
+                underCursor.push(node);
+            }
+        });
+
+        underCursor.reverse();
+
+        return underCursor;
     }
 
     public setRoot(rootNode: ContainerNode)

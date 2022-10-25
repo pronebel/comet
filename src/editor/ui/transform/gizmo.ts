@@ -160,6 +160,7 @@ export class TransformGizmo
 
             combinedMatrix.translate(-bounds.left, -bounds.top);
             combinedMatrix.prepend(matrix);
+
             view.transform.setFromMatrix(combinedMatrix);
 
             if (updateModel)
@@ -245,7 +246,7 @@ export class TransformGizmo
         return this.container.visible;
     }
 
-    protected calcTotalGlobalBounds()
+    public getGlobalBounds()
     {
         let rect = new Rectangle();
 
@@ -312,7 +313,7 @@ export class TransformGizmo
 
     protected updateBounds()
     {
-        this.bounds = this.calcTotalGlobalBounds();
+        this.bounds = this.getGlobalBounds();
 
         return this.bounds;
     }
@@ -673,7 +674,7 @@ export class TransformGizmo
 
         if (config.showEncompassingBorder)
         {
-            const totalBounds = this.calcTotalGlobalBounds();
+            const totalBounds = this.getGlobalBounds();
 
             // draw encompassing encompassing border
             border.lineStyle(1, 0xffffff, 0.6);
@@ -840,8 +841,6 @@ export class TransformGizmo
         }
 
         this.update();
-
-        e.stopPropagation();
     };
 
     public onDragMove = (e: InteractionEvent) =>
