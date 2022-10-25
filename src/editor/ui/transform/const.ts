@@ -95,7 +95,7 @@ export const defaultTransformGizmoConfig: TransformGizmoConfig = {
     enableScaleByPivot: true,
     pivotView: yellowPivot,
     edgeDragDistance: 5,
-    handlePrimarySize: 7,
+    handlePrimarySize: 5,
     handleSecondarySize: 4,
 };
 

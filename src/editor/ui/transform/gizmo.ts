@@ -1,6 +1,7 @@
 import type { DisplayObject, InteractionEvent  } from 'pixi.js';
 import { Container, Graphics, Matrix, Rectangle } from 'pixi.js';
 
+import { displayObjectSchema } from '../../../core/nodes/abstract/displayObject';
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
 import type { DragHVertex, DragVVertex } from '../../../core/util/geom';
 import {
@@ -84,15 +85,15 @@ export class TransformGizmo
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onSelectionAdd = (node: ContainerNode) =>
     {
-        // configure for single or multiple selection
-        this.configureSelectionMode();
-
         // cache view matrix
         this.updateCache();
 
         this.state = {
             ...defaultTransformState,
         };
+
+        // configure for single or multiple selection
+        this.configureSelectionMode();
 
         // update bounds
         this.bounds = this.getGlobalBounds();
@@ -149,7 +150,7 @@ export class TransformGizmo
 
     public updateSelectedObjects(updateModel = false)
     {
-        const { bounds, matrix, selection, matrixCache } = this;
+        const { bounds, matrix, selection, matrixCache, state: { pivotX, pivotY } } = this;
 
         // update selection with transformed matrix
         selection.forEach((node) =>
@@ -176,26 +177,32 @@ export class TransformGizmo
                 const scaleY = localMatrix.d;
 
                 // determine whether changes present
-                const values = node.model.values;
-                const isXDifferent = x !== values.x;
-                const isYDifferent = y !== values.y;
-                const isAngleDifferent = angle !== values.angle;
-                const isScaleXDifferent = scaleX !== values.scaleX;
-                const isScaleYDifferent = scaleY !== values.scaleY;
+                const ownValues = node.model.ownValues;
+                const values: Record<string, number> = {};
 
-                if (isXDifferent || isYDifferent || isAngleDifferent || isScaleXDifferent || isScaleYDifferent)
+                (selection.length === 1 && pivotX !== ownValues.pivotX) && (values['pivotX'] = pivotX);
+                (selection.length === 1 && pivotY !== ownValues.pivotY) && (values['pivotY'] = pivotY);
+                (x !== ownValues.x) && (values['x'] = x);
+                (y !== ownValues.y) && (values['y'] = y);
+                (angle !== ownValues.angle) && (values['angle'] = angle);
+                (scaleX !== ownValues.scaleX) && (values['scaleX'] = scaleX);
+                (scaleY !== ownValues.scaleY) && (values['scaleY'] = scaleY);
+
+                for (const [k, v] of Object.entries(values))
                 {
+                    if (displayObjectSchema.defaults[k] === v)
+                    {
+                        delete values[k];
+                    }
+                }
+
+                // update if changed
+                if (Object.keys(values).length > 0)
+                {
+                    console.log(values);
                     Application.instance.exec(new ModifyModelCommand({
                         nodeId: node.id,
-                        values:
-                    {
-                        x,
-                        y,
-                        angle,
-                        scaleX,
-                        scaleY,
-                    },
-
+                        values,
                     }));
                 }
             }
@@ -291,6 +298,14 @@ export class TransformGizmo
                 enableScaleByPivot: true,
                 pivotView: bluePivot,
             });
+
+            const node = this.selection.firstNode as ContainerNode;
+
+            this.state.pivotX = node.model.pivotX;
+            this.state.pivotY = node.model.pivotY;
+            this.state.rotation = node.model.angle;
+
+            this.updateMatrix();
         }
         else
         {
@@ -613,6 +628,16 @@ export class TransformGizmo
         {
             scaleY = ((height + deltaY) / height) * cache.scaleY;
             state.scaleY = scaleY;
+        }
+
+        if (isNaN(state.scaleX))
+        {
+            state.scaleX = 0;
+        }
+
+        if (isNaN(state.scaleY))
+        {
+            state.scaleY = 0;
         }
     }
 
