@@ -85,15 +85,15 @@ export class TransformGizmo
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onSelectionAdd = (node: ContainerNode) =>
     {
-        // cache view matrix
-        this.updateCache();
-
         this.state = {
             ...defaultTransformState,
         };
 
         // configure for single or multiple selection
         this.configureSelectionMode();
+
+        // cache view matrix
+        this.updateCache();
 
         // update bounds
         this.bounds = this.getGlobalBounds();
@@ -140,17 +140,47 @@ export class TransformGizmo
         {
             if (!this.matrixCache.has(node))
             {
+                const { bounds } = this;
                 const view = node.getView();
 
                 view.updateTransform();
+
+                view.localTransform.translate(-bounds.left, -bounds.top);
+
                 this.matrixCache.set(node, view.localTransform.clone());
             }
         });
     }
 
+    public configureSelectionMode()
+    {
+        if (this.selection.length === 1)
+        {
+            this.setConfig({
+                enableScaleByPivot: true,
+                pivotView: bluePivot,
+            });
+
+            const node = this.selection.firstNode as ContainerNode;
+
+            this.state.pivotX = node.model.pivotX;
+            this.state.pivotY = node.model.pivotY;
+            this.state.rotation = node.model.angle;
+
+            this.updateMatrix();
+        }
+        else
+        {
+            this.setConfig({
+                enableScaleByPivot: false,
+                pivotView: yellowPivot,
+            });
+        }
+    }
+
     public updateSelectedObjects(updateModel = false)
     {
-        const { bounds, matrix, selection, matrixCache, state: { pivotX, pivotY } } = this;
+        const { matrix, selection, matrixCache, state } = this;
 
         // update selection with transformed matrix
         selection.forEach((node) =>
@@ -159,7 +189,7 @@ export class TransformGizmo
             const cachedMatrix = matrixCache.get(node) as Matrix;
             const combinedMatrix = cachedMatrix.clone();
 
-            combinedMatrix.translate(-bounds.left, -bounds.top);
+            // combinedMatrix.translate(-bounds.left, -bounds.top);
             combinedMatrix.prepend(matrix);
 
             view.transform.setFromMatrix(combinedMatrix);
@@ -167,21 +197,23 @@ export class TransformGizmo
             if (updateModel)
             {
                 const localMatrix = view.transform.localTransform;
+                const ownValues = node.model.ownValues;
 
                 const p0 = localMatrix.apply({ x: 0, y: 0 });
                 const p1 = localMatrix.apply({ x: 10, y: 0 });
                 const angle = angleBetween(p0.x, p0.y, p1.x, p1.y);
                 const x = localMatrix.tx;
                 const y = localMatrix.ty;
-                const scaleX = localMatrix.a;
-                const scaleY = localMatrix.d;
+                // const scaleX = localMatrix.a;
+                // const scaleY = localMatrix.d;
+                const scaleX = state.scaleX;
+                const scaleY = state.scaleY;
 
                 // determine whether changes present
-                const ownValues = node.model.ownValues;
                 const values: Record<string, number> = {};
 
-                (selection.length === 1 && pivotX !== ownValues.pivotX) && (values['pivotX'] = pivotX);
-                (selection.length === 1 && pivotY !== ownValues.pivotY) && (values['pivotY'] = pivotY);
+                (selection.length === 1 && state.pivotX !== ownValues.pivotX) && (values['pivotX'] = state.pivotX);
+                (selection.length === 1 && state.pivotY !== ownValues.pivotY) && (values['pivotY'] = state.pivotY);
                 (x !== ownValues.x) && (values['x'] = x);
                 (y !== ownValues.y) && (values['y'] = y);
                 (angle !== ownValues.angle) && (values['angle'] = angle);
@@ -199,7 +231,8 @@ export class TransformGizmo
                 // update if changed
                 if (Object.keys(values).length > 0)
                 {
-                    console.log(values);
+                    console.log('CHANGED:', values);
+
                     Application.instance.exec(new ModifyModelCommand({
                         nodeId: node.id,
                         values,
@@ -287,32 +320,6 @@ export class TransformGizmo
             this.container.addChild(config.pivotView);
             this.pivotView = config.pivotView;
             this.updatePivot();
-        }
-    }
-
-    public configureSelectionMode()
-    {
-        if (this.selection.length === 1)
-        {
-            this.setConfig({
-                enableScaleByPivot: true,
-                pivotView: bluePivot,
-            });
-
-            const node = this.selection.firstNode as ContainerNode;
-
-            this.state.pivotX = node.model.pivotX;
-            this.state.pivotY = node.model.pivotY;
-            this.state.rotation = node.model.angle;
-
-            this.updateMatrix();
-        }
-        else
-        {
-            this.setConfig({
-                enableScaleByPivot: false,
-                pivotView: yellowPivot,
-            });
         }
     }
 
@@ -632,12 +639,12 @@ export class TransformGizmo
 
         if (isNaN(state.scaleX))
         {
-            state.scaleX = 0;
+            state.scaleX = cache.scaleX;
         }
 
         if (isNaN(state.scaleY))
         {
-            state.scaleY = 0;
+            state.scaleY = cache.scaleY;
         }
     }
 
