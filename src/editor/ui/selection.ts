@@ -44,7 +44,9 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
 
     public deselect()
     {
-        this.nodes.forEach((selectedNode) => this.remove(selectedNode));
+        const nodes = [...this.nodes];
+
+        nodes.forEach((selectedNode) => this.remove(selectedNode));
     }
 
     public get length()

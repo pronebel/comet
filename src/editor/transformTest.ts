@@ -1,7 +1,7 @@
 import { Application, Container,  Sprite, Texture } from 'pixi.js';
 
 import { ContainerNode } from '../core/nodes/concrete/container';
-import { setParent } from '../core/util/transform';
+// import { setParent } from '../core/util/transform';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
 import { NodeSelection } from './ui/selection';
@@ -9,6 +9,7 @@ import { NodeSelection } from './ui/selection';
 import { TransformGizmo } from './ui/transform/gizmo';
 
 type SpriteConfig = {
+    tint: number;
     x: number;
     y: number;
     width: number;
@@ -43,11 +44,11 @@ pixi.stage.addChild(Grid.createTilingSprite(screen.availWidth, screen.availHeigh
 pixi.stage.addChild(nodesLayer);
 pixi.stage.addChild(editLayer);
 
-function createNode(tint: number, config: SpriteConfig)
+function createSprite(config: SpriteConfig)
 {
     const view = new Sprite(Texture.WHITE);
 
-    view.tint = tint;
+    view.tint = config.tint;
     view.width = config.width;
     view.height = config.height;
     view.x = config.x;
@@ -55,6 +56,13 @@ function createNode(tint: number, config: SpriteConfig)
     view.angle = config.angle;
     view.pivot.x = config.pivotX;
     view.pivot.y = config.pivotY;
+
+    return view;
+}
+
+function createNode(config: SpriteConfig)
+{
+    const view = createSprite(config);
 
     const node = new ContainerNode();
 
@@ -64,25 +72,16 @@ function createNode(tint: number, config: SpriteConfig)
     return node;
 }
 
-const spriteConfig: Record<string, SpriteConfig> = {
-    red: { x: 100, y: 50, width: 100, height: 50, angle: 0, pivotX: 0, pivotY: 0 },
-    green: { x: 250, y: 50, width: 50, height: 100, angle: 45, pivotX: 0, pivotY: 0 },
-    blue: { x: 150, y: 150, width: 50, height: 50, angle: 0, pivotX: 0, pivotY: 0 },
-};
+const red = createNode({ tint: 0xff0000, x: 100, y: 50, width: 100, height: 50, angle: 0, pivotX: 0, pivotY: 0 });
+const green = createNode({ tint: 0x00ff00, x: 250, y: 50, width: 50, height: 100, angle: 45, pivotX: 0, pivotY: 0 });
+const blue = createNode({ tint: 0x0000ff, x: 150, y: 150, width: 50, height: 50, angle: 0, pivotX: 0, pivotY: 0 });
 
-const red = createNode(0xff0000, spriteConfig.red);
-const green = createNode(0x009900, spriteConfig.green);
-const blue = createNode(0x0000ff, spriteConfig.blue);
+// setParent(child, red.view);
+const child1 = createSprite({ tint: 0xffffff, x: 10, y: 10, width: 10, height: 10, angle: 0, pivotX: 0, pivotY: 0 });
+const child2 = createSprite({ tint: 0xcccccc, x: 10, y: 10, width: 10, height: 10, angle: 0, pivotX: 0, pivotY: 0 });
 
-const child = new Sprite(Texture.WHITE);
-
-child.tint = 0xffffff;
-child.width = 10;
-child.height = 10;
-child.x = 10;
-child.y = 10;
-
-setParent(child, red.view);
+blue.view.addChild(child1);
+child1.addChild(child2);
 
 (window as any).red = red.view;
 
@@ -90,6 +89,23 @@ setParent(child, red.view);
 
 const selection = new NodeSelection();
 const gizmo = new TransformGizmo(selection);
+
+window.addEventListener('keyup', (e: KeyboardEvent) =>
+{
+    if (e.key === ' ')
+    {
+        if (!selection.isEmpty)
+        {
+            selection.deselect();
+        }
+        else
+        {
+            selection.add(red);
+            selection.add(green);
+            selection.add(blue);
+        }
+    }
+});
 
 editLayer.addChild(gizmo.container);
 

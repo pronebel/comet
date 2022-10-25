@@ -70,7 +70,126 @@ export class TransformGizmo
 
         this.bounds = this.updateBounds();
 
-        this.hide();
+        this.update();
+
+        if (this.selection.isEmpty)
+        {
+            this.hide();
+        }
+    }
+
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onSelectionAdd = (node: ContainerNode) =>
+    {
+        // configure for single or multiple selection
+        this.configureSelectionMode();
+
+        // cache view matrix
+        this.updateCache();
+
+        this.state = {
+            ...defaultTransformState,
+        };
+
+        // update bounds
+        this.updateBounds();
+
+        // full update
+        this.update();
+
+        // show if hidden
+        if (!this.isVisible)
+        {
+            this.show();
+        }
+    };
+
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onSelectionRemove = (node: ContainerNode) =>
+    {
+        // remove cached matrix
+        this.matrixCache.delete(node);
+
+        // update bounds
+        this.updateBounds();
+
+        // hide if selection empty
+        if (this.selection.isEmpty)
+        {
+            this.hide();
+        }
+        else
+        {
+            // update visuals
+            this.updateBorder();
+            this.updatePivot();
+        }
+
+        // configure for single or multiple selection
+        this.configureSelectionMode();
+    };
+
+    protected updateCache()
+    {
+        this.selection.forEach((node) =>
+        {
+            if (!this.matrixCache.has(node))
+            {
+                const view = node.getView();
+
+                view.updateTransform();
+                this.matrixCache.set(node, view.localTransform.clone());
+            }
+        });
+    }
+
+    public updateSelectedObjects()
+    {
+        const { bounds, matrix, selection, matrixCache } = this;
+
+        // update selection with transformed matrix
+        selection.forEach((node) =>
+        {
+            const view = node.getView();
+            const cachedMatrix = matrixCache.get(node) as Matrix;
+            const combinedMatrix = cachedMatrix.clone();
+
+            combinedMatrix.translate(-bounds.left, -bounds.top);
+            combinedMatrix.prepend(matrix);
+            view.transform.setFromMatrix(combinedMatrix);
+            console.log(view.transform.toString());
+        });
+    }
+
+    public updateMatrix()
+    {
+        const { bounds, matrix, state } = this;
+
+        const pivotX = bounds.width * state.pivotX;
+        const pivotY = bounds.height * state.pivotY;
+
+        // reset transform matrix
+        matrix.identity();
+
+        // apply negative pivot
+        matrix.translate(-pivotX, -pivotY);
+
+        // scale
+        matrix.scale(state.scaleX, state.scaleY);
+
+        // rotate
+        matrix.rotate(degToRad(state.rotation));
+
+        // move pivot back
+        matrix.translate(pivotX, pivotY);
+
+        // translate to transform bounds position
+        matrix.translate(bounds.left, bounds.top);
+
+        // translate to transform translation position
+        matrix.translate(state.x, state.y);
     }
 
     public show()
@@ -125,57 +244,6 @@ export class TransformGizmo
         }
     }
 
-    protected onSelectionAdd = (node: ContainerNode) =>
-    {
-        // configure for single or multiple selection
-        this.configureSelectionMode();
-
-        // update view transform
-        const view = node.getView();
-
-        view.updateTransform();
-
-        // cache view matrix
-        this.matrixCache.set(node, view.worldTransform.clone());
-
-        this.updateCache();
-
-        // update bounds
-        this.updateBounds();
-
-        this.state = {
-            ...defaultTransformState,
-        };
-
-        this.update();
-
-        // show if hidden
-        if (!this.isVisible)
-        {
-            this.show();
-        }
-    };
-
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onSelectionRemove = (node: ContainerNode) =>
-    {
-        // remove cached matrix
-        this.matrixCache.delete(node);
-
-        // update bounds
-        this.updateBounds();
-
-        // hide if selection empty
-        if (this.selection.isEmpty)
-        {
-            this.hide();
-        }
-
-        // configure for single or multiple selection
-        this.configureSelectionMode();
-    };
-
     public configureSelectionMode()
     {
         if (this.selection.length === 1)
@@ -204,22 +272,9 @@ export class TransformGizmo
         this.update();
     }
 
-    protected updateCache()
-    {
-        this.selection.forEach((node) =>
-        {
-            const view = node.getView();
-
-            view.updateTransform();
-            this.matrixCache.set(node, view.worldTransform.clone());
-        });
-    }
-
     protected updateBounds()
     {
         this.bounds = this.calcTotalGlobalBounds();
-
-        this.update();
 
         return this.bounds;
     }
@@ -574,7 +629,7 @@ export class TransformGizmo
 
     /* input handlers */
 
-    protected onDragStart = (e: InteractionEvent) =>
+    public onDragStart = (e: InteractionEvent) =>
     {
         const { bounds, config } = this;
         const globalX = e.data.global.x;
@@ -627,7 +682,7 @@ export class TransformGizmo
         e.stopPropagation();
     };
 
-    protected onDragMove = (e: InteractionEvent) =>
+    public onDragMove = (e: InteractionEvent) =>
     {
         const { mode } = this;
 
@@ -657,7 +712,7 @@ export class TransformGizmo
         e.stopPropagation();
     };
 
-    protected onDragEnd = () =>
+    public onDragEnd = () =>
     {
         const { mode } = this;
 
@@ -671,51 +726,6 @@ export class TransformGizmo
 
         this.update();
     };
-
-    public update()
-    {
-        const { bounds, matrix, state, selection, matrixCache } = this;
-
-        const pivotX = bounds.width * state.pivotX;
-        const pivotY = bounds.height * state.pivotY;
-
-        // reset transform matrix
-        matrix.identity();
-
-        // apply negative pivot
-        matrix.translate(-pivotX, -pivotY);
-
-        // scale
-        matrix.scale(state.scaleX, state.scaleY);
-
-        // rotate
-        matrix.rotate(degToRad(state.rotation));
-
-        // move pivot back
-        matrix.translate(pivotX, pivotY);
-
-        // translate to transform bounds position
-        matrix.translate(bounds.left, bounds.top);
-
-        // translate to transform translation position
-        matrix.translate(state.x, state.y);
-
-        // update selection with transformed matrix
-        selection.forEach((node) =>
-        {
-            const view = node.getView();
-            const cachedMatrix = matrixCache.get(node) as Matrix;
-            const combinedMatrix = cachedMatrix.clone();
-
-            combinedMatrix.translate(-bounds.left, -bounds.top);
-            combinedMatrix.prepend(matrix);
-            view.transform.setFromMatrix(combinedMatrix);
-        });
-
-        // update border and pivot appearance
-        this.updateBorder();
-        this.updatePivot();
-    }
 
     protected updateBorder()
     {
@@ -830,5 +840,16 @@ export class TransformGizmo
         {
             pivotView.visible = false;
         }
+    }
+
+    public update(updateObjects = true)
+    {
+        this.updateMatrix();
+        if (updateObjects)
+        {
+            this.updateSelectedObjects();
+        }
+        this.updateBorder();
+        this.updatePivot();
     }
 }

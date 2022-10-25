@@ -71,6 +71,7 @@ export abstract class ClonableNode<
 
         this.view = this.createView();
 
+        this.initView();
         this.initModel();
         this.initCloning();
         this.init();
@@ -79,6 +80,11 @@ export abstract class ClonableNode<
         registerNewNode(this.cast<ClonableNode>());
 
         this.emit('created', this);
+    }
+
+    protected initView()
+    {
+        // subclasses
     }
 
     protected initModel()

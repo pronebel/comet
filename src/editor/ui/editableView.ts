@@ -45,14 +45,53 @@ export class EditableView
 
         // set selection
         pixi.stage.interactive = true;
-        pixi.stage.on('mousedown', () =>
+        pixi.stage.on('mousedown', (e) =>
         {
-            this.selection.deselect();
+            const globalX = e.data.global.x;
+            const globalY = e.data.global.y;
+
+            const underCursor: ContainerNode[] = [];
+
+            this.rootNode.walk<ContainerNode>((node) =>
+            {
+                const bounds = node.getBounds();
+
+                if (bounds.contains(globalX, globalY) && !this.selection.isSelected(node) && !node.isMetaNode)
+                {
+                    underCursor.push(node);
+                }
+            });
+
+            underCursor.reverse();
+
+            if (underCursor.length === 0)
+            {
+                this.selection.deselect();
+            }
+            else
+            {
+                const selectedNode = underCursor[0];
+
+                if (e.data.originalEvent.shiftKey)
+                {
+                    this.selection.add(selectedNode);
+                }
+                else
+                {
+                    this.selection.set(selectedNode);
+                    if (this.transformGizmo.config.enableTranslation)
+                    {
+                        this.transformGizmo.onDragStart(e);
+                    }
+                }
+            }
         });
 
         this.selection
             .on('add', this.onAddSelection)
             .on('remove', this.onRemoveSelection);
+
+        (window as any).sel = this.selection;
     }
 
     public setRoot(rootNode: ContainerNode)

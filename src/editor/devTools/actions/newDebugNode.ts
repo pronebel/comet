@@ -6,13 +6,14 @@ import { type AddChildCommandReturn, AddChildCommand } from '../../commands/addC
 export function newDebugNode()
 {
     const app = Application.instance;
+    const selectedNode = app.editorView.selection.lastNode;
 
-    const parentId = 'Scene:1';
+    let parentId = 'Scene:1';
 
-    // if (app.editorView.selection.lastNode)
-    // {
-    //     parentId = app.editorView.selection.lastNode.id;
-    // }
+    if (selectedNode)
+    {
+        parentId = selectedNode.id;
+    }
 
     const nodeSchema = createNodeSchema('Debug', {
         parent: parentId,
@@ -30,4 +31,6 @@ export function newDebugNode()
     const node = nodes[0] as unknown as ContainerNode;
 
     app.editorView.selection.set(node);
+
+    console.log(node);
 }

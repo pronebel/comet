@@ -42,6 +42,11 @@ export class ContainerNode<
         return new Container() as V;
     }
 
+    protected initView()
+    {
+        (this.view as any).id = this.id;
+    }
+
     public getBounds()
     {
         return this.view.getBounds();
