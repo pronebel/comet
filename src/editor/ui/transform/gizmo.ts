@@ -70,7 +70,7 @@ export class TransformGizmo
 
         this.selection.forEach((node) => this.onSelectionAdd(node));
 
-        this.bounds = this.updateBounds();
+        this.bounds = this.getGlobalBounds();
 
         this.update();
 
@@ -95,7 +95,7 @@ export class TransformGizmo
         };
 
         // update bounds
-        this.updateBounds();
+        this.bounds = this.getGlobalBounds();
 
         // full update
         this.update();
@@ -115,7 +115,7 @@ export class TransformGizmo
         this.matrixCache.delete(node);
 
         // update bounds
-        this.updateBounds();
+        this.bounds = this.getGlobalBounds();
 
         // hide if selection empty
         if (this.selection.isEmpty)
@@ -309,13 +309,6 @@ export class TransformGizmo
         };
 
         this.update();
-    }
-
-    protected updateBounds()
-    {
-        this.bounds = this.getGlobalBounds();
-
-        return this.bounds;
     }
 
     protected getPivotGlobalPos()

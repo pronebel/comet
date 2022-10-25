@@ -1,11 +1,9 @@
 import { Application, Container,  Sprite, Texture } from 'pixi.js';
 
 import { ContainerNode } from '../core/nodes/concrete/container';
-// import { setParent } from '../core/util/transform';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
 import { NodeSelection } from './ui/selection';
-// import { bluePivot } from './ui/transform/const';
 import { TransformGizmo } from './ui/transform/gizmo';
 
 type SpriteConfig = {
@@ -19,6 +17,7 @@ type SpriteConfig = {
     pivotY: number;
 };
 
+const win = window as any;
 const canvasWidth = 500;
 const canvasHeight = 500;
 const painter = new Canvas2DPainter(canvasWidth, canvasHeight, '#ccc');
@@ -83,10 +82,6 @@ const child2 = createSprite({ tint: 0xcccccc, x: 10, y: 10, width: 10, height: 1
 blue.view.addChild(child1);
 child1.addChild(child2);
 
-(window as any).red = red.view;
-
-// red.view.addChild(child);
-
 const selection = new NodeSelection();
 const gizmo = new TransformGizmo(selection);
 
@@ -113,28 +108,7 @@ selection.add(red);
 selection.add(green);
 selection.add(blue);
 
-// gizmo.setState({ rotation: 15 });
-
-// setTimeout(() =>
-// {
-//     gizmo.setConfig({
-//         pivotView: bluePivot,
-//     });
-// }, 1000);
-
-// setTimeout(() =>
-// {
-//     selection.add(green);
-// }, 200);
-
-// setTimeout(() =>
-// {
-//     selection.add(blue);
-// }, 200);
-
-// setTimeout(() =>
-// {
-//     selection.remove(green);
-// }, 300);
-
-(window as any).gizmo = gizmo;
+win.gizmo = gizmo;
+win.red = red;
+win.green = green;
+win.blue = blue;
