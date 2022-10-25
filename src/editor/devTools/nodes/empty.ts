@@ -1,7 +1,16 @@
-import { type DisplayObject, Container, Graphics, Text } from 'pixi.js';
+import { type DisplayObject, Container } from 'pixi.js';
 
 import type { ModelSchema } from '../../../core/model/schema';
 import { type ContainerModel, ContainerNode, containerSchema } from '../../../core/nodes/concrete/container';
+import { createPivotShape } from '../../ui/transform/const';
+
+export const yellowPivot = createPivotShape({
+    radius: 7,
+    lineColor: 0xffff00,
+    bgColor: 0xffffff,
+    bgAlpha: 0.1,
+    crosshairSize: 12,
+});
 
 export class EmptyNode extends ContainerNode<ContainerModel, Container>
 {
@@ -30,24 +39,8 @@ export class EmptyNode extends ContainerNode<ContainerModel, Container>
     public createView(): Container<DisplayObject>
     {
         const container = new Container();
-        const graphics = new Graphics();
 
-        container.addChild(graphics);
-
-        graphics.lineStyle(1, 0xFEEB77, 1);
-        graphics.beginFill(0x650A5A, 0.01);
-        graphics.drawCircle(0, 0, 10);
-        graphics.endFill();
-
-        // const label = new Text(this.id.replace('Node', ''), {
-        //     fontSize: 10,
-        //     fill: 0xffffff,
-        // });
-
-        // label.x = 15;
-        // label.y = -5;
-
-        // container.addChild(label);
+        container.addChild(yellowPivot);
 
         return container;
     }

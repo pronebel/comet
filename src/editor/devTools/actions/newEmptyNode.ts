@@ -18,8 +18,8 @@ export function newEmptyNode()
     const nodeSchema = createNodeSchema('Empty', {
         parent: parentId,
         model: {
-            x: 10,
-            y: 10,
+            x: 100,
+            y: 100,
             tint: Math.round(Math.random() * 100000),
         },
     });
