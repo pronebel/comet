@@ -97,6 +97,9 @@ export class TransformGizmo
         // cache view matrix
         this.updateCache();
 
+        // setup correct state from selection
+        this.initState();
+
         // full update
         this.update();
 
@@ -142,21 +145,6 @@ export class TransformGizmo
                 enableScaleByPivot: true,
                 pivotView: bluePivot,
             });
-
-            const node = this.selection.firstNode as ContainerNode;
-
-            node.view.updateTransform();
-
-            // this.state.pivotX = node.model.pivotX;
-            // this.state.pivotY = node.model.pivotY;
-            // this.state.rotation = node.model.angle;
-
-            // this.bounds = node.view.getLocalBounds();
-            // this.bounds.x += node.view.worldTransform.tx;
-            // this.bounds.y += node.view.worldTransform.ty;
-            // this.bounds.width *= node.model.scaleX;
-            // this.bounds.height *= node.model.scaleY;
-            // this.bounds = this.getGlobalBounds();
         }
         else
         {
@@ -165,8 +153,6 @@ export class TransformGizmo
                 enableScaleByPivot: false,
                 pivotView: yellowPivot,
             });
-
-            // this.bounds = this.getGlobalBounds();
         }
     }
 
@@ -191,7 +177,22 @@ export class TransformGizmo
         });
     }
 
-    public updateSelectedObjects(updateModel = false)
+    protected initState()
+    {
+        const { bounds, state } = this;
+
+        if (this.selection.length === 1)
+        {
+            //
+        }
+        else
+        {
+            state.pivotX = bounds.width * 0.5;
+            state.pivotY = bounds.height * 0.5;
+        }
+    }
+
+    protected updateSelectedObjects(updateModel = false)
     {
         const { matrix, selection, matrixCache, state } = this;
 
@@ -214,49 +215,50 @@ export class TransformGizmo
 
             view.transform.setFromMatrix(cachedMatrix);
 
-            // if (updateModel)
-            // {
-            //     const localMatrix = view.transform.localTransform;
-            //     const ownValues = node.model.ownValues;
+            // eslint-disable-next-line no-constant-condition
+            if (updateModel && false)
+            {
+                const localMatrix = view.transform.localTransform;
+                const ownValues = node.model.ownValues;
 
-            //     const angle = getMatrixRotation(localMatrix);
-            //     const x = localMatrix.tx;
-            //     const y = localMatrix.ty;
-            //     // const scaleX = localMatrix.a;
-            //     // const scaleY = localMatrix.d;
-            //     // const scaleX = state.scaleX;
-            //     // const scaleY = state.scaleY;
+                const angle = getMatrixRotation(localMatrix);
+                const x = localMatrix.tx;
+                const y = localMatrix.ty;
+                // const scaleX = localMatrix.a;
+                // const scaleY = localMatrix.d;
+                // const scaleX = state.scaleX;
+                // const scaleY = state.scaleY;
 
-            //     // determine whether changes present
-            //     const values: Record<string, number> = {};
+                // determine whether changes present
+                const values: Record<string, number> = {};
 
-            //     (selection.length === 1 && state.pivotX !== ownValues.pivotX) && (values['pivotX'] = state.pivotX);
-            //     (selection.length === 1 && state.pivotY !== ownValues.pivotY) && (values['pivotY'] = state.pivotY);
-            //     (x !== ownValues.x) && (values['x'] = x);
-            //     (y !== ownValues.y) && (values['y'] = y);
-            //     (angle !== ownValues.angle) && (values['angle'] = angle);
-            //     // (scaleX !== ownValues.scaleX) && (values['scaleX'] = scaleX);
-            //     // (scaleY !== ownValues.scaleY) && (values['scaleY'] = scaleY);
+                (selection.length === 1 && state.pivotX !== ownValues.pivotX) && (values['pivotX'] = state.pivotX);
+                (selection.length === 1 && state.pivotY !== ownValues.pivotY) && (values['pivotY'] = state.pivotY);
+                (x !== ownValues.x) && (values['x'] = x);
+                (y !== ownValues.y) && (values['y'] = y);
+                (angle !== ownValues.angle) && (values['angle'] = angle);
+                // (scaleX !== ownValues.scaleX) && (values['scaleX'] = scaleX);
+                // (scaleY !== ownValues.scaleY) && (values['scaleY'] = scaleY);
 
-            //     for (const [k, v] of Object.entries(values))
-            //     {
-            //         if (displayObjectSchema.defaults[k] === v)
-            //         {
-            //             delete values[k];
-            //         }
-            //     }
+                for (const [k, v] of Object.entries(values))
+                {
+                    if (displayObjectSchema.defaults[k] === v)
+                    {
+                        delete values[k];
+                    }
+                }
 
-            //     // update if changed
-            //     if (Object.keys(values).length > 0)
-            //     {
-            //         console.log('CHANGED:', values);
+                // update if changed
+                if (Object.keys(values).length > 0)
+                {
+                    console.log('CHANGED:', values);
 
-            //         Application.instance.exec(new ModifyModelCommand({
-            //             nodeId: node.id,
-            //             values,
-            //         }));
-            //     }
-            // }
+                    Application.instance.exec(new ModifyModelCommand({
+                        nodeId: node.id,
+                        values,
+                    }));
+                }
+            }
         });
     }
 
