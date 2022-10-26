@@ -1,3 +1,4 @@
+import type { InteractionEvent } from 'pixi.js';
 import { Application as PixiApplication, Container } from 'pixi.js';
 
 import type { ContainerNode } from '../../core/nodes/concrete/container';
@@ -51,7 +52,7 @@ export class EditableView
         // set selection
         pixi.stage.interactive = true;
         pixi.stage
-            .on('mousedown', (e) =>
+            .on('mousedown', (e: InteractionEvent) =>
             {
                 const globalX = e.data.global.x;
                 const globalY = e.data.global.y;
@@ -72,7 +73,7 @@ export class EditableView
 
                 if (wasDoubleClick)
                 {
-                    this.selection.set(underCursor[0]);
+                    this.selectWithDrag(underCursor[0], e);
                 }
                 else if (!this.transformGizmo.getGlobalBounds().contains(globalX, globalY))
                 {
@@ -90,11 +91,7 @@ export class EditableView
                         }
                         else
                         {
-                            this.selection.set(selectedNode);
-                            if (this.transformGizmo.config.enableTranslation)
-                            {
-                                this.transformGizmo.onDragStart(e);
-                            }
+                            this.selectWithDrag(selectedNode, e);
                         }
                     }
                 }
@@ -107,6 +104,15 @@ export class EditableView
             .on('remove', this.onRemoveSelection);
 
         (window as any).sel = this.selection;
+    }
+
+    protected selectWithDrag(selectedNode: ContainerNode, e: InteractionEvent)
+    {
+        this.selection.set(selectedNode);
+        if (this.transformGizmo.config.enableTranslation)
+        {
+            this.transformGizmo.onDragStart(e);
+        }
     }
 
     protected getUnderCursor(globalX: number, globalY: number)

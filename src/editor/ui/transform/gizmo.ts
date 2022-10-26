@@ -1,6 +1,7 @@
 import type { DisplayObject, InteractionEvent  } from 'pixi.js';
 import { Container, Graphics, Matrix, Rectangle } from 'pixi.js';
 
+import { displayObjectSchema } from '../../../core/nodes/abstract/displayObject';
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
 import type{ DragHVertex,  DragVVertex } from '../../../core/util/geom';
 import {
@@ -13,6 +14,8 @@ import {
     polarPoint,
     rotatePointAround,
 } from '../../../core/util/geom';
+import { Application } from '../../application';
+import { ModifyModelCommand } from '../../commands/modifyModel';
 import type { NodeSelection } from '../selection';
 import type { TransformDragInfo, TransformGizmoConfig, TransformState } from './const';
 import {
@@ -134,6 +137,7 @@ export class TransformGizmo
     {
         if (this.selection.length === 1)
         {
+            // single mode
             this.setConfig({
                 enableScaleByPivot: true,
                 pivotView: bluePivot,
@@ -141,22 +145,28 @@ export class TransformGizmo
 
             const node = this.selection.firstNode as ContainerNode;
 
-            const b = node.view.getLocalBounds();
-            const px = b.width * node.model.pivotX;
-            const py = b.height * node.model.pivotY;
+            node.view.updateTransform();
 
-            console.log(px, py);
-
-            this.state.pivotX = node.model.pivotX;
-            this.state.pivotY = node.model.pivotY;
+            // this.state.pivotX = node.model.pivotX;
+            // this.state.pivotY = node.model.pivotY;
             // this.state.rotation = node.model.angle;
+
+            // this.bounds = node.view.getLocalBounds();
+            // this.bounds.x += node.view.worldTransform.tx;
+            // this.bounds.y += node.view.worldTransform.ty;
+            // this.bounds.width *= node.model.scaleX;
+            // this.bounds.height *= node.model.scaleY;
+            // this.bounds = this.getGlobalBounds();
         }
         else
         {
+            // multimode
             this.setConfig({
                 enableScaleByPivot: false,
                 pivotView: yellowPivot,
             });
+
+            // this.bounds = this.getGlobalBounds();
         }
     }
 
@@ -183,7 +193,7 @@ export class TransformGizmo
 
     public updateSelectedObjects(updateModel = false)
     {
-        const { matrix, selection, matrixCache, state, bounds } = this;
+        const { matrix, selection, matrixCache, state } = this;
 
         // update selection with transformed matrix
         selection.forEach((node) =>
@@ -191,50 +201,11 @@ export class TransformGizmo
             const view = node.getView();
             const cachedMatrix = (matrixCache.get(node) as Matrix).clone();
 
-            // let rotation = 0;
-
-            // if (view.parent)
-            // {
-            //     const parentTransform = view.parent.worldTransform;
-
-            //     rotation = getMatrixRotation(parentTransform);
-            // }
-
-            // const m = new Matrix();
-
-            // m.translate(state.pivotX, state.pivotY);
-            // m.invert();
-
-            // const m = new Matrix();
-
-            // // reset transform matrix
-            // m.identity();
-
-            // // apply negative pivot
-            // m.translate(-state.pivotX, -state.pivotY);
-
-            // // // scale
-            // m.scale(state.scaleX, state.scaleY);
-
-            // // // rotate
-            // m.rotate(degToRad(state.rotation));
-
-            // // // move pivot back
-            // m.translate(state.pivotX, state.pivotY);
-
-            // // // translate to transform bounds position
-            // // m.translate(bounds.left, bounds.top);
-
-            // // translate to transform translation position
-            // m.translate(state.x, state.y);
-
-            // cachedMatrix.append(m);
-            // cachedMatrix.prepend(m);
-
             cachedMatrix.prepend(matrix);
 
             if (view.parent)
             {
+                view.parent.updateTransform();
                 const parentMatrix = view.parent.worldTransform.clone();
 
                 parentMatrix.invert();
@@ -248,15 +219,13 @@ export class TransformGizmo
             //     const localMatrix = view.transform.localTransform;
             //     const ownValues = node.model.ownValues;
 
-            //     const p0 = localMatrix.apply({ x: 0, y: 0 });
-            //     const p1 = localMatrix.apply({ x: 10, y: 0 });
-            //     const angle = angleBetween(p0.x, p0.y, p1.x, p1.y);
+            //     const angle = getMatrixRotation(localMatrix);
             //     const x = localMatrix.tx;
             //     const y = localMatrix.ty;
             //     // const scaleX = localMatrix.a;
             //     // const scaleY = localMatrix.d;
-            //     const scaleX = state.scaleX;
-            //     const scaleY = state.scaleY;
+            //     // const scaleX = state.scaleX;
+            //     // const scaleY = state.scaleY;
 
             //     // determine whether changes present
             //     const values: Record<string, number> = {};
@@ -266,8 +235,8 @@ export class TransformGizmo
             //     (x !== ownValues.x) && (values['x'] = x);
             //     (y !== ownValues.y) && (values['y'] = y);
             //     (angle !== ownValues.angle) && (values['angle'] = angle);
-            //     (scaleX !== ownValues.scaleX) && (values['scaleX'] = scaleX);
-            //     (scaleY !== ownValues.scaleY) && (values['scaleY'] = scaleY);
+            //     // (scaleX !== ownValues.scaleX) && (values['scaleX'] = scaleX);
+            //     // (scaleY !== ownValues.scaleY) && (values['scaleY'] = scaleY);
 
             //     for (const [k, v] of Object.entries(values))
             //     {
@@ -295,14 +264,11 @@ export class TransformGizmo
     {
         const { bounds, matrix, state } = this;
 
-        const pivotX = bounds.width * state.pivotX;
-        const pivotY = bounds.height * state.pivotY;
-
         // reset transform matrix
         matrix.identity();
 
         // apply negative pivot
-        matrix.translate(-pivotX, -pivotY);
+        matrix.translate(-state.pivotX, -state.pivotY);
 
         // scale
         matrix.scale(state.scaleX, state.scaleY);
@@ -311,7 +277,7 @@ export class TransformGizmo
         matrix.rotate(degToRad(state.rotation));
 
         // move pivot back
-        matrix.translate(pivotX, pivotY);
+        matrix.translate(state.pivotX, state.pivotY);
 
         // translate to transform bounds position
         matrix.translate(bounds.left, bounds.top);
@@ -386,8 +352,8 @@ export class TransformGizmo
 
     protected getPivotGlobalPos()
     {
-        const { bounds, state, matrix } = this;
-        const globalPoint = matrix.apply({ x: state.pivotX * bounds.width, y: state.pivotY * bounds.height });
+        const { state, matrix } = this;
+        const globalPoint = matrix.apply({ x: state.pivotX, y: state.pivotY });
 
         return globalPoint;
     }
@@ -423,12 +389,12 @@ export class TransformGizmo
 
     protected setPivot(globalX: number, globalY: number)
     {
-        const { bounds, state } = this;
+        const { state } = this;
         const { x: localX, y: localY } = this.getLocalPoint(globalX, globalY);
 
         // move pivot
-        state.pivotX = localX / bounds.width;
-        state.pivotY = localY / bounds.height;
+        state.pivotX = localX;
+        state.pivotY = localY;
 
         this.update();
 
@@ -569,7 +535,7 @@ export class TransformGizmo
 
     protected dragScale(e: InteractionEvent)
     {
-        const { dragInfo, state, cache, bounds, config: { enableScaleByPivot } } = this;
+        const { dragInfo, state, cache, config: { enableScaleByPivot } } = this;
         const isAltDown = e.data.originalEvent.altKey;
         const globalX = e.data.global.x;
         const globalY = e.data.global.y;
@@ -626,7 +592,7 @@ export class TransformGizmo
         else if (enableScaleByPivot)
         {
             // adjust according to local pos relative to pivot
-            if (localX < bounds.width * state.pivotX)
+            if (localX < state.pivotX)
             {
                 deltaX *= 1 / state.pivotX;
             }
@@ -634,7 +600,7 @@ export class TransformGizmo
             {
                 deltaX *= 1 / (1.0 - state.pivotX);
             }
-            if (localY < bounds.height * state.pivotY)
+            if (localY < state.pivotY)
             {
                 deltaY *= 1 / state.pivotY;
             }
@@ -734,9 +700,9 @@ export class TransformGizmo
 
     protected restoreCachedPivot()
     {
-        const { bounds, cache } = this;
-        const localX = bounds.width * cache.pivotX;
-        const localY = bounds.height * cache.pivotY;
+        const { cache } = this;
+        const localX = cache.pivotX;
+        const localY = cache.pivotY;
         const p = this.getGlobalPoint(localX, localY);
 
         this.setPivot(p.x, p.y);
@@ -823,16 +789,15 @@ export class TransformGizmo
 
     protected updatePivot()
     {
-        const { bounds, matrix, state, mode, cache, pivotView, config } = this;
+        const { matrix, state, mode, cache, pivotView, config } = this;
 
         if (config.showPivot)
         {
-            // set pivot position
             if (mode === 'scale')
             {
                 const localPoint = {
-                    x: cache.pivotX * bounds.width,
-                    y: cache.pivotY * bounds.height,
+                    x: cache.pivotX,
+                    y: cache.pivotY,
                 };
                 const p = matrix.apply(localPoint);
 
@@ -847,9 +812,7 @@ export class TransformGizmo
                 pivotView.y = p.y;
             }
 
-            // set pivot angle
             pivotView.angle = state.rotation;
-
             pivotView.visible = true;
         }
         else
