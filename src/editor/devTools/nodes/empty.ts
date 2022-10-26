@@ -44,7 +44,7 @@ export class EmptyNode extends ContainerNode<ContainerModel, Container>
 
         container.addChild(yellowPivot);
 
-        const bounds = yellowPivot.getLocalBounds();
+        // const bounds = yellowPivot.getLocalBounds();
 
         // adjust to fit
         // yellowPivot.x = bounds.width - (radius * 2);
