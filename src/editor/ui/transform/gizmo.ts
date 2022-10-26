@@ -1,19 +1,18 @@
 import type { DisplayObject, InteractionEvent  } from 'pixi.js';
 import { Container, Graphics, Matrix, Rectangle } from 'pixi.js';
 
-import { displayObjectSchema } from '../../../core/nodes/abstract/displayObject';
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
-import type { DragHVertex, DragVVertex } from '../../../core/util/geom';
+import type{ DragHVertex,  DragVVertex } from '../../../core/util/geom';
 import {
     angleBetween,
     closestEdgeVertexOnRect,
     degToRad,
     distanceBetween,
     findNearestPointOnRect,
+    getMatrixRotation,
     polarPoint,
-    rotatePointAround } from '../../../core/util/geom';
-import { Application } from '../../application';
-import { ModifyModelCommand } from '../../commands/modifyModel';
+    rotatePointAround,
+} from '../../../core/util/geom';
 import type { NodeSelection } from '../selection';
 import type { TransformDragInfo, TransformGizmoConfig, TransformState } from './const';
 import {
@@ -53,6 +52,7 @@ export class TransformGizmo
         this.dragInfo = { ...defaultTransformDragInfo };
         this.border = new Graphics();
         this.pivotView = this.config.pivotView;
+        this.bounds = new Rectangle();
 
         this.container.addChild(this.border);
         this.container.addChild(this.pivotView);
@@ -71,10 +71,6 @@ export class TransformGizmo
 
         this.selection.forEach((node) => this.onSelectionAdd(node));
 
-        this.bounds = this.getGlobalBounds();
-
-        this.update();
-
         if (this.selection.isEmpty)
         {
             this.hide();
@@ -92,11 +88,11 @@ export class TransformGizmo
         // configure for single or multiple selection
         this.configureSelectionMode();
 
-        // cache view matrix
-        this.updateCache();
-
         // update bounds
         this.bounds = this.getGlobalBounds();
+
+        // cache view matrix
+        this.updateCache();
 
         // full update
         this.update();
@@ -115,6 +111,9 @@ export class TransformGizmo
         // remove cached matrix
         this.matrixCache.delete(node);
 
+        // configure for single or multiple selection
+        this.configureSelectionMode();
+
         // update bounds
         this.bounds = this.getGlobalBounds();
 
@@ -129,28 +128,7 @@ export class TransformGizmo
             this.updateBorder();
             this.updatePivot();
         }
-
-        // configure for single or multiple selection
-        this.configureSelectionMode();
     };
-
-    protected updateCache()
-    {
-        this.selection.forEach((node) =>
-        {
-            if (!this.matrixCache.has(node))
-            {
-                const { bounds } = this;
-                const view = node.getView();
-
-                view.updateTransform();
-
-                view.localTransform.translate(-bounds.left, -bounds.top);
-
-                this.matrixCache.set(node, view.localTransform.clone());
-            }
-        });
-    }
 
     public configureSelectionMode()
     {
@@ -163,11 +141,15 @@ export class TransformGizmo
 
             const node = this.selection.firstNode as ContainerNode;
 
+            const b = node.view.getLocalBounds();
+            const px = b.width * node.model.pivotX;
+            const py = b.height * node.model.pivotY;
+
+            console.log(px, py);
+
             this.state.pivotX = node.model.pivotX;
             this.state.pivotY = node.model.pivotY;
-            this.state.rotation = node.model.angle;
-
-            this.updateMatrix();
+            // this.state.rotation = node.model.angle;
         }
         else
         {
@@ -178,67 +160,134 @@ export class TransformGizmo
         }
     }
 
+    protected updateCache()
+    {
+        this.matrixCache.clear();
+
+        this.updateMatrix();
+
+        this.selection.forEach((node) =>
+        {
+            const { matrix } = this;
+            const view = node.getView();
+
+            view.updateTransform();
+
+            const cachedMatrix = view.worldTransform.clone();
+
+            cachedMatrix.prepend(matrix.clone().invert());
+
+            this.matrixCache.set(node, cachedMatrix);
+        });
+    }
+
     public updateSelectedObjects(updateModel = false)
     {
-        const { matrix, selection, matrixCache, state } = this;
+        const { matrix, selection, matrixCache, state, bounds } = this;
 
         // update selection with transformed matrix
         selection.forEach((node) =>
         {
             const view = node.getView();
-            const cachedMatrix = matrixCache.get(node) as Matrix;
-            const combinedMatrix = cachedMatrix.clone();
+            const cachedMatrix = (matrixCache.get(node) as Matrix).clone();
 
-            // combinedMatrix.translate(-bounds.left, -bounds.top);
-            combinedMatrix.prepend(matrix);
+            // let rotation = 0;
 
-            view.transform.setFromMatrix(combinedMatrix);
+            // if (view.parent)
+            // {
+            //     const parentTransform = view.parent.worldTransform;
 
-            if (updateModel)
+            //     rotation = getMatrixRotation(parentTransform);
+            // }
+
+            // const m = new Matrix();
+
+            // m.translate(state.pivotX, state.pivotY);
+            // m.invert();
+
+            // const m = new Matrix();
+
+            // // reset transform matrix
+            // m.identity();
+
+            // // apply negative pivot
+            // m.translate(-state.pivotX, -state.pivotY);
+
+            // // // scale
+            // m.scale(state.scaleX, state.scaleY);
+
+            // // // rotate
+            // m.rotate(degToRad(state.rotation));
+
+            // // // move pivot back
+            // m.translate(state.pivotX, state.pivotY);
+
+            // // // translate to transform bounds position
+            // // m.translate(bounds.left, bounds.top);
+
+            // // translate to transform translation position
+            // m.translate(state.x, state.y);
+
+            // cachedMatrix.append(m);
+            // cachedMatrix.prepend(m);
+
+            cachedMatrix.prepend(matrix);
+
+            if (view.parent)
             {
-                const localMatrix = view.transform.localTransform;
-                const ownValues = node.model.ownValues;
+                const parentMatrix = view.parent.worldTransform.clone();
 
-                const p0 = localMatrix.apply({ x: 0, y: 0 });
-                const p1 = localMatrix.apply({ x: 10, y: 0 });
-                const angle = angleBetween(p0.x, p0.y, p1.x, p1.y);
-                const x = localMatrix.tx;
-                const y = localMatrix.ty;
-                // const scaleX = localMatrix.a;
-                // const scaleY = localMatrix.d;
-                const scaleX = state.scaleX;
-                const scaleY = state.scaleY;
-
-                // determine whether changes present
-                const values: Record<string, number> = {};
-
-                (selection.length === 1 && state.pivotX !== ownValues.pivotX) && (values['pivotX'] = state.pivotX);
-                (selection.length === 1 && state.pivotY !== ownValues.pivotY) && (values['pivotY'] = state.pivotY);
-                (x !== ownValues.x) && (values['x'] = x);
-                (y !== ownValues.y) && (values['y'] = y);
-                (angle !== ownValues.angle) && (values['angle'] = angle);
-                (scaleX !== ownValues.scaleX) && (values['scaleX'] = scaleX);
-                (scaleY !== ownValues.scaleY) && (values['scaleY'] = scaleY);
-
-                for (const [k, v] of Object.entries(values))
-                {
-                    if (displayObjectSchema.defaults[k] === v)
-                    {
-                        delete values[k];
-                    }
-                }
-
-                // update if changed
-                if (Object.keys(values).length > 0)
-                {
-                    console.log('CHANGED:', values);
-
-                    Application.instance.exec(new ModifyModelCommand({
-                        nodeId: node.id,
-                        values,
-                    }));
-                }
+                parentMatrix.invert();
+                cachedMatrix.prepend(parentMatrix);
             }
+
+            view.transform.setFromMatrix(cachedMatrix);
+
+            // if (updateModel)
+            // {
+            //     const localMatrix = view.transform.localTransform;
+            //     const ownValues = node.model.ownValues;
+
+            //     const p0 = localMatrix.apply({ x: 0, y: 0 });
+            //     const p1 = localMatrix.apply({ x: 10, y: 0 });
+            //     const angle = angleBetween(p0.x, p0.y, p1.x, p1.y);
+            //     const x = localMatrix.tx;
+            //     const y = localMatrix.ty;
+            //     // const scaleX = localMatrix.a;
+            //     // const scaleY = localMatrix.d;
+            //     const scaleX = state.scaleX;
+            //     const scaleY = state.scaleY;
+
+            //     // determine whether changes present
+            //     const values: Record<string, number> = {};
+
+            //     (selection.length === 1 && state.pivotX !== ownValues.pivotX) && (values['pivotX'] = state.pivotX);
+            //     (selection.length === 1 && state.pivotY !== ownValues.pivotY) && (values['pivotY'] = state.pivotY);
+            //     (x !== ownValues.x) && (values['x'] = x);
+            //     (y !== ownValues.y) && (values['y'] = y);
+            //     (angle !== ownValues.angle) && (values['angle'] = angle);
+            //     (scaleX !== ownValues.scaleX) && (values['scaleX'] = scaleX);
+            //     (scaleY !== ownValues.scaleY) && (values['scaleY'] = scaleY);
+
+            //     for (const [k, v] of Object.entries(values))
+            //     {
+            //         if (displayObjectSchema.defaults[k] === v)
+            //         {
+            //             delete values[k];
+            //         }
+            //     }
+
+            //     // update if changed
+            //     if (Object.keys(values).length > 0)
+            //     {
+            //         console.log('CHANGED:', values);
+
+            //         Application.instance.exec(new ModifyModelCommand({
+            //             nodeId: node.id,
+            //             values,
+            //         }));
+            //     }
+            // }
         });
     }
 
@@ -292,6 +341,8 @@ export class TransformGizmo
 
         this.selection.forEach((node) =>
         {
+            node.view.updateTransform();
+
             const bounds = node.getBounds();
 
             if (rect.width === 0 && rect.height === 0 && rect.x === 0 && rect.y === 0)
@@ -699,6 +750,7 @@ export class TransformGizmo
 
         if (config.showEncompassingBorder)
         {
+            // todo: can use bounds without recalc?
             const totalBounds = this.getGlobalBounds();
 
             // draw encompassing encompassing border

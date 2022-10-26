@@ -1,5 +1,6 @@
 import type { ModelBase } from '../../core/model/model';
 import { Command } from '../core/command';
+import { getUrlParam } from '../util';
 
 export interface ModifyModelCommandParams<M>
 {
@@ -25,7 +26,10 @@ export class ModifyModelCommand<M extends ModelBase>
         const nodeId = node.id;
 
         // update datastore
-        datastore.modifyNodeModel(nodeId, values);
+        if (getUrlParam<number>('readonly') !== 1)
+        {
+            datastore.modifyNodeModel(nodeId, values);
+        }
 
         // update graph node
         const prevValues = node.model.setValues(values) as Partial<M>;

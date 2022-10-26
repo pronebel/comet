@@ -485,6 +485,8 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         this.trackNodeElementRemoteEvents(nodeId);
     }
 
+    // API Start
+
     public createNode(nodeSchema: NodeSchema)
     {
         console.log(
@@ -643,6 +645,8 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
         assignedCustomProps.remove(modelKey);
     }
+
+    // API End
 
     public async disconnect()
     {

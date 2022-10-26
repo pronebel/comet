@@ -1,3 +1,4 @@
+import type { Matrix } from 'pixi.js';
 import { Rectangle } from 'pixi.js';
 
 export type Point = { x: number; y: number };
@@ -224,3 +225,11 @@ export function fitRectToPoints(points: Point[])
     return new Rectangle(minX, minY, maxX - minX, maxY - minY);
 }
 
+export function getMatrixRotation(matrix: Matrix)
+{
+    const p0 = matrix.apply({ x: 0, y: 0 });
+    const p1 = matrix.apply({ x: 10, y: 0 });
+    const angle = angleBetween(p0.x, p0.y, p1.x, p1.y);
+
+    return angle;
+}

@@ -4,13 +4,7 @@ import type { ModelSchema } from '../../../core/model/schema';
 import { type ContainerModel, ContainerNode, containerSchema } from '../../../core/nodes/concrete/container';
 import { createPivotShape } from '../../ui/transform/const';
 
-export const yellowPivot = createPivotShape({
-    radius: 7,
-    lineColor: 0xffff00,
-    bgColor: 0xffffff,
-    bgAlpha: 0.1,
-    crosshairSize: 12,
-});
+const radius = 10;
 
 export class EmptyNode extends ContainerNode<ContainerModel, Container>
 {
@@ -40,7 +34,21 @@ export class EmptyNode extends ContainerNode<ContainerModel, Container>
     {
         const container = new Container();
 
+        const yellowPivot = createPivotShape({
+            radius,
+            lineColor: 0xffff00,
+            bgColor: 0xffffff,
+            bgAlpha: 0.1,
+            crosshairSize: 8,
+        });
+
         container.addChild(yellowPivot);
+
+        const bounds = yellowPivot.getLocalBounds();
+
+        // adjust to fit
+        // yellowPivot.x = bounds.width - (radius * 2);
+        // yellowPivot.y = bounds.height - (radius * 2);
 
         return container;
     }
