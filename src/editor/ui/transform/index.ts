@@ -1,3 +1,4 @@
+import { EventEmitter } from 'eventemitter3';
 import { type Container, type InteractionEvent, Transform } from 'pixi.js';
 
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
@@ -11,7 +12,9 @@ import { TranslateOperation } from './translate';
 import { TranslatePivotOperation } from './translatePivot';
 import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
 
-export class BaseTransformGizmo
+export type TransformGizmoEvent = 'changed';
+
+export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEvent>
 {
     public config: TransformGizmoConfig;
 
@@ -28,6 +31,8 @@ export class BaseTransformGizmo
 
     constructor(config?: TransformGizmoConfig)
     {
+        super();
+
         this.config = config ?? { ...defaultTransformGizmoConfig };
 
         this.naturalWidth = 1;
@@ -36,6 +41,8 @@ export class BaseTransformGizmo
         this.transform = new Transform();
         this.frame = new TransformGizmoFrame(this);
         this.vertex = { h: 'none', v: 'none' };
+
+        this.hide();
 
         this.initFrame();
     }
@@ -52,6 +59,31 @@ export class BaseTransformGizmo
             })
             .on('mousemove', this.onMouseMove)
             .on('mouseup', this.onMouseUp);
+    }
+
+    public show()
+    {
+        const { frame: { container } } = this;
+
+        if (!container.visible)
+        {
+            container.visible = true;
+        }
+    }
+
+    public hide()
+    {
+        const { frame: { container } } = this;
+
+        if (container.visible)
+        {
+            container.visible = false;
+        }
+    }
+
+    public get isVisible()
+    {
+        return this.frame.container.visible;
     }
 
     public setContainer(container: Container)
@@ -213,6 +245,8 @@ export class BaseTransformGizmo
         }
 
         this.update();
+
+        event.stopPropagation();
     };
 
     // @ts-ignore
@@ -234,8 +268,6 @@ export class BaseTransformGizmo
     {
         if (this.operation && this.dragInfo)
         {
-            console.log('mouseup');
-
             this.operation.end(this.dragInfo);
 
             this.update();
@@ -243,6 +275,11 @@ export class BaseTransformGizmo
 
         // reset
         this.clearOperation();
+
+        const values = this.values;
+
+        console.log('CHANGED', values);
+        this.emit('changed', values);
     };
 
     public clearOperation()
@@ -371,6 +408,23 @@ export class BaseTransformGizmo
         this.transform.scale.y = y;
     }
 
+    get values()
+    {
+        const { x, y, rotation, pivotX: px, pivotY: py, scaleX, scaleY, naturalWidth, naturalHeight } = this;
+        const pivotX = px;
+        const pivotY = py;
+
+        return {
+            x,
+            y,
+            scaleX,
+            scaleY,
+            angle: rotation,
+            pivotX: pivotX / naturalWidth,
+            pivotY: pivotY / naturalHeight,
+        };
+    }
+
     public updateTransform()
     {
         this.transform.updateLocalTransform();
@@ -382,4 +436,6 @@ export class BaseTransformGizmo
 
         this.frame.update();
     }
+
+    public abstract deselect(): void;
 }

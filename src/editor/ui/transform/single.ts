@@ -35,6 +35,14 @@ export class SingleObjectTransformGizmo extends BaseTransformGizmo
         this.rotation = angle;
 
         this.update();
+
+        this.show();
+    }
+
+    public deselect(): void
+    {
+        delete this.node;
+        this.hide();
     }
 
     public update(): void
@@ -43,21 +51,7 @@ export class SingleObjectTransformGizmo extends BaseTransformGizmo
 
         if (this.node)
         {
-            const { x, y, rotation, pivotX: px, pivotY: py, scaleX, scaleY, naturalWidth, naturalHeight } = this;
-            const pivotX = px;
-            const pivotY = py;
-
-            console.log(pivotX, pivotY);
-
-            this.node.model.setValues({
-                x,
-                y,
-                scaleX,
-                scaleY,
-                angle: rotation,
-                pivotX: pivotX / naturalWidth,
-                pivotY: pivotY / naturalHeight,
-            });
+            this.node.model.setValues(this.values);
         }
     }
 }
