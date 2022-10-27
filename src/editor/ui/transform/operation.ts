@@ -1,6 +1,6 @@
 import type { BaseTransformGizmo } from '.';
 
-export abstract class TransformOperation<K extends string>
+export abstract class TransformOperation<K extends string = string>
 {
     public cache: Map<K, number>;
 

@@ -4,6 +4,7 @@ import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
 import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';
+import { TranslateOperation } from './translate';
 import { TranslatePivotOperation } from './translatePivot';
 import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
 
@@ -19,7 +20,7 @@ export class BaseTransformGizmo
     public frame: TransformGizmoFrame;
 
     public vertex: HandleVertex;
-    public operation?: TransformOperation<any>;
+    public operation?: TransformOperation;
     public dragInfo?: DragInfo;
 
     constructor(config?: TransformGizmoConfig)
@@ -133,8 +134,6 @@ export class BaseTransformGizmo
 
         this.x -= deltaX;
         this.y -= deltaY;
-
-        this.update();
     }
 
     protected updateDragInfoFromEvent(e: InteractionEvent)
@@ -167,9 +166,27 @@ export class BaseTransformGizmo
 
         this.updateDragInfoFromEvent(e);
 
-        this.operation = new TranslatePivotOperation(this);
-        this.operation.init(this.dragInfo);
-        this.operation.drag(this.dragInfo);
+        if (this.isVertexDrag)
+        {
+            //
+        }
+        else
+        if (this.dragInfo.isShiftDown)
+        {
+            this.operation = new TranslatePivotOperation(this);
+        }
+        else
+        {
+            this.operation = new TranslateOperation(this);
+        }
+
+        if (this.operation)
+        {
+            this.operation.init(this.dragInfo);
+            this.operation.drag(this.dragInfo);
+        }
+
+        this.update();
     };
 
     // @ts-ignore
@@ -180,6 +197,8 @@ export class BaseTransformGizmo
         {
             this.updateDragInfoFromEvent(e);
             this.operation.drag(this.dragInfo);
+
+            this.update();
         }
     };
 
@@ -198,6 +217,16 @@ export class BaseTransformGizmo
         delete this.operation;
         delete this.dragInfo;
     };
+
+    get isVertexDrag()
+    {
+        if (this.vertex)
+        {
+            return this.vertex.h !== 'none' && this.vertex.v !== 'none';
+        }
+
+        return false;
+    }
 
     get matrix()
     {

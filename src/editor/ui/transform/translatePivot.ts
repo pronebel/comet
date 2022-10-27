@@ -1,20 +1,26 @@
 import { type DragInfo, TransformOperation } from './operation';
 
-export class TranslatePivotOperation extends TransformOperation<'pivotX' | 'pivotY'>
+export class TranslatePivotOperation extends TransformOperation
 {
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public init(dragInfo: DragInfo): void
     {
-        this.writeCache('pivotX', this.gizmo.pivotX);
-        this.writeCache('pivotY', this.gizmo.pivotY);
+        // unused
     }
 
     public drag(dragInfo: DragInfo): void
     {
-        this.gizmo.setPivotFromGlobalPoint(dragInfo.globalX, dragInfo.globalY, dragInfo.isAltDown);
+        if (dragInfo.isShiftDown)
+        {
+            this.gizmo.setPivotFromGlobalPoint(dragInfo.globalX, dragInfo.globalY, dragInfo.isAltDown);
+        }
     }
 
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public end(dragInfo: DragInfo): void
     {
-        //
+        // unused
     }
 }
