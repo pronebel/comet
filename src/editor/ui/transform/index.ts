@@ -278,7 +278,7 @@ export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEven
 
         const values = this.values;
 
-        console.log('CHANGED', values);
+        // console.log('CHANGED', values);
         this.emit('changed', values);
     };
 

@@ -270,6 +270,7 @@ export abstract class ClonableNode<
         if (this.view)
         {
             this.updateView();
+            this.postUpdateView();
         }
 
         if (recursive)
@@ -725,6 +726,11 @@ export abstract class ClonableNode<
     public abstract createView(): V;
 
     public abstract updateView(): void;
+
+    public postUpdateView()
+    {
+        //
+    }
 }
 
 function getAllCloned(node: ClonableNode, array: ClonableNode[] = []): ClonableNode[]

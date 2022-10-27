@@ -76,11 +76,13 @@ function setup()
         return node;
     }
 
-    const red = createNode({ tint: 0xff0000, x: 100, y: 50, width: 100, height: 50, angle: 0, pivotX: 0, pivotY: 0 });
+    const red = createNode({ tint: 0xff0000, x: 10, y: 10, width: 20, height: 20, angle: 0, pivotX: 0, pivotY: 0 });
     const green = createNode({
-        tint: 0x006600, x: 250, y: 100, width: 50, height: 70, angle: 15, pivotX: 0.5, pivotY: 0.25,
+        tint: 0x006600, x: 100, y: 10, width: 20, height: 20, angle: 15, pivotX: 0.5, pivotY: 0,
     });
-    const blue = createNode({ tint: 0x0000ff, x: 150, y: 150, width: 50, height: 50, angle: 0, pivotX: 0, pivotY: 0 });
+    const blue = createNode({ tint: 0x0000ff, x: 10, y: 10, width: 20, height: 20, angle: 0, pivotX: 0, pivotY: 0 });
+
+    red.addChild(blue);
 
     return { win, editLayer, red, green, blue, gizmo, pixi };
 }
