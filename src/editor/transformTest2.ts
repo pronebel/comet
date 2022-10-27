@@ -1,4 +1,4 @@
-import { Application, Container, Sprite, Texture } from 'pixi.js';
+import { Application, Container } from 'pixi.js';
 
 import { SpriteNode } from '../core/nodes/concrete/sprite';
 import Canvas2DPainter from './ui/2dPainter';
@@ -43,28 +43,28 @@ function setup()
     pixi.stage.addChild(nodesLayer);
     pixi.stage.addChild(editLayer);
 
-    function createSprite(config: SpriteConfig, applyConfig = false)
-    {
-        const view = new Sprite(Texture.WHITE);
+    // function createSprite(config: SpriteConfig, applyConfig = false)
+    // {
+    //     const view = new Sprite(Texture.WHITE);
 
-        view.tint = config.tint;
+    //     view.tint = config.tint;
 
-        if (applyConfig)
-        {
-            view.width = config.width;
-            view.height = config.height;
-            view.x = config.x;
-            view.y = config.y;
-            view.angle = config.angle;
-            view.pivot.x = config.pivotX;
-            view.pivot.y = config.pivotY;
-        }
+    //     if (applyConfig)
+    //     {
+    //         view.width = config.width;
+    //         view.height = config.height;
+    //         view.x = config.x;
+    //         view.y = config.y;
+    //         view.angle = config.angle;
+    //         view.pivot.x = config.pivotX;
+    //         view.pivot.y = config.pivotY;
+    //     }
 
-        // pivot is relative to local bounds
-        view.getLocalBounds();
+    //     // pivot is relative to local bounds
+    //     view.getLocalBounds();
 
-        return view;
-    }
+    //     return view;
+    // }
 
     function createNode(config: SpriteConfig)
     {
@@ -90,7 +90,9 @@ function setup()
     }
 
     // const red = createNode({ tint: 0xff0000, x: 100, y: 50, width: 100, height: 50, angle: 0, pivotX: 0, pivotY: 0 });
-    const green = createNode({ tint: 0x006600, x: 100, y: 100, width: 50, height: 70, angle: 15, pivotX: 0.5, pivotY: 0.25 });
+    const green = createNode({
+        tint: 0x006600, x: 100, y: 100, width: 50, height: 70, angle: 15, pivotX: 0.5, pivotY: 0.25,
+    });
     // const blue = createNode({ tint: 0x0000ff, x: 150, y: 150, width: 50, height: 50, angle: 0, pivotX: 0, pivotY: 0 });
 
     // const size = 32;

@@ -1,9 +1,20 @@
 // import { EventEmitter } from 'eventemitter3';
 import { Graphics } from 'pixi.js';
 
+export type HandleVertexHorizontal = 'none' | 'left' | 'center' | 'right';
+export type HandleVertexVertical = 'none' | 'top' | 'center' | 'bottom';
+
+export interface HandleVertex
+{
+    h: HandleVertexHorizontal;
+    v: HandleVertexVertical;
+}
+
 export class TransformGizmoHandle extends Graphics
 {
-    constructor(size: number)
+    public vertex: HandleVertex;
+
+    constructor(size: number, vertex: HandleVertex)
     {
         super();
 
@@ -18,5 +29,7 @@ export class TransformGizmoHandle extends Graphics
         this.pivot.y = size * 0.5;
 
         this.cursor = 'crosshair';
+
+        this.vertex = vertex;
     }
 }

@@ -2,10 +2,14 @@ import { type Container, type InteractionEvent, Transform } from 'pixi.js';
 
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { TransformGizmoFrame } from './frame';
+import type { HandleVertex } from './handle';
 import type { TransformOperation } from './operation';
+import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
 
 export class BaseTransformGizmo
 {
+    public config: TransformGizmoConfig;
+
     public naturalWidth: number;
     public naturalHeight: number;
     public pivot?: Point;
@@ -13,14 +17,18 @@ export class BaseTransformGizmo
     public transform: Transform;
     public frame: TransformGizmoFrame;
     public operation?: TransformOperation;
+    public vertex: HandleVertex;
 
-    constructor()
+    constructor(config?: TransformGizmoConfig)
     {
+        this.config = config ?? { ...defaultTransformGizmoConfig };
+
         this.naturalWidth = 1;
         this.naturalHeight = 1;
 
         this.transform = new Transform();
         this.frame = new TransformGizmoFrame(this);
+        this.vertex = { h: 'none', v: 'none' };
 
         this.initFrame();
     }
@@ -58,25 +66,46 @@ export class BaseTransformGizmo
         this.update();
     }
 
+    public setConfig(config: Partial<TransformGizmoConfig>)
+    {
+        this.config = {
+            ...this.config,
+            ...config,
+        };
+
+        if (config.pivotView)
+        {
+            this.frame.setPivotView(config.pivotView);
+        }
+    }
+
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public onMouseDown = (e: InteractionEvent) =>
     {
-        //
+        console.log(this.vertex);
+        console.log('mousedown');
     };
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public onMouseMove = (e: InteractionEvent) =>
     {
-        //
+        if (this.operation)
+        {
+            console.log('mousemove');
+        }
     };
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public onMouseUp = (e: MouseEvent) =>
     {
-        //
+        if (this.operation)
+        {
+            console.log('mouseup');
+        }
+        this.vertex = { h: 'none', v: 'none' };
     };
 
     get matrix()
@@ -171,5 +200,10 @@ export class BaseTransformGizmo
         this.transform.updateLocalTransform();
 
         this.frame.update();
+    }
+
+    public setActiveVertex(vertex: HandleVertex)
+    {
+        this.vertex = vertex;
     }
 }

@@ -1,8 +1,9 @@
 import { EventEmitter } from 'eventemitter3';
+import type { DisplayObject, InteractionEvent } from 'pixi.js';
 import { Container, Graphics } from 'pixi.js';
 
 import type { BaseTransformGizmo } from '.';
-import { TransformGizmoHandle } from './handle';
+import { type HandleVertexHorizontal, type HandleVertexVertical, TransformGizmoHandle } from './handle';
 import { yellowPivot } from './util';
 
 const primaryHandleSize = 10;
@@ -15,7 +16,7 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
     public container: Container;
     public handles: Container;
     public border: Graphics;
-    public pivotShape: Graphics;
+    public pivotView: DisplayObject;
 
     public topLeftHandle: TransformGizmoHandle;
     public topRightHandle: TransformGizmoHandle;
@@ -35,33 +36,38 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         this.handles = new Container();
         this.border = new Graphics();
 
-        this.pivotShape = yellowPivot;
+        this.pivotView = yellowPivot;
 
         this.container.addChild(this.border);
-        this.container.addChild(this.pivotShape);
+        this.container.addChild(this.pivotView);
         this.container.addChild(this.handles);
 
-        this.topLeftHandle = this.createHandle(primaryHandleSize);
-        this.topRightHandle = this.createHandle(primaryHandleSize);
-        this.bottomRightHandle = this.createHandle(primaryHandleSize);
-        this.bottomLeftHandle = this.createHandle(primaryHandleSize);
+        this.topLeftHandle = this.createHandle(primaryHandleSize, 'left', 'top');
+        this.topRightHandle = this.createHandle(primaryHandleSize, 'right', 'top');
+        this.bottomRightHandle = this.createHandle(primaryHandleSize, 'right', 'bottom');
+        this.bottomLeftHandle = this.createHandle(primaryHandleSize, 'left', 'bottom');
 
-        this.topCenterHandle = this.createHandle(secondaryHandleSize);
-        this.rightCenterHandle = this.createHandle(secondaryHandleSize);
-        this.bottomCenterHandle = this.createHandle(secondaryHandleSize);
-        this.leftCenterHandle = this.createHandle(secondaryHandleSize);
+        this.topCenterHandle = this.createHandle(secondaryHandleSize, 'center', 'top');
+        this.rightCenterHandle = this.createHandle(secondaryHandleSize, 'right', 'center');
+        this.bottomCenterHandle = this.createHandle(secondaryHandleSize, 'center', 'bottom');
+        this.leftCenterHandle = this.createHandle(secondaryHandleSize, 'left', 'center');
 
         this.initEvents();
     }
 
-    protected createHandle(size: number)
+    protected createHandle(size: number, h: HandleVertexHorizontal, v: HandleVertexVertical)
     {
-        const handle = new TransformGizmoHandle(size);
+        const vertex = { h, v };
+        const handle = new TransformGizmoHandle(size, vertex);
 
         this.handles.addChild(handle);
 
         handle
-            .on('mousedown', this.gizmo.onMouseDown)
+            .on('mousedown', (e: InteractionEvent) =>
+            {
+                this.gizmo.setActiveVertex(vertex);
+                this.gizmo.onMouseDown(e);
+            })
             .on('mousemove', this.gizmo.onMouseMove);
 
         return handle;
@@ -106,10 +112,8 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
 
     protected drawPivot()
     {
-        const { gizmo, pivotShape } = this;
+        const { gizmo, pivotView: pivotShape } = this;
         const { pivotGlobalPos, rotation } = gizmo;
-
-        console.log(pivotGlobalPos);
 
         pivotShape.x = pivotGlobalPos.x;
         pivotShape.y = pivotGlobalPos.y;
@@ -161,5 +165,13 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         this.drawBorder();
         this.drawPivot();
         this.drawHandles();
+    }
+
+    public setPivotView(pivotView: DisplayObject)
+    {
+        this.container.removeChild(this.pivotView);
+        this.container.addChild(pivotView);
+        this.pivotView = pivotView;
+        this.drawPivot();
     }
 }

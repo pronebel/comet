@@ -3,31 +3,6 @@ import type { DisplayObject } from 'pixi.js';
 import type { DragHVertex, DragVVertex } from '../../../core/util/geom';
 import { yellowPivot } from './util';
 
-export interface TransformState
-{
-    pivotX: number;
-    pivotY: number;
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    scaleX: number;
-    scaleY: number;
-    rotation: number;
-}
-
-export const defaultTransformState: TransformState = {
-    pivotX: 0.5,
-    pivotY: 0.5,
-    x: 0,
-    y: 0,
-    width: 0,
-    height: 0,
-    scaleX: 1,
-    scaleY: 1,
-    rotation: 0,
-};
-
 export interface TransformGizmoConfig
 {
     showEncompassingBorder: boolean;
