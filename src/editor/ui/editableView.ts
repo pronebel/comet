@@ -121,7 +121,7 @@ export class EditableView
 
         this.rootNode.walk<ContainerNode>((node) =>
         {
-            const bounds = node.getBounds();
+            const bounds = node.getGlobalBounds();
 
             if (bounds.contains(globalX, globalY) && !node.isMetaNode)
             {

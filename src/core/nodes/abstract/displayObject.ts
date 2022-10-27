@@ -74,4 +74,19 @@ export abstract class DisplayObjectNode<
         view.alpha = alpha;
         view.visible = visible;
     }
+
+    public getGlobalBounds()
+    {
+        return this.view.getBounds();
+    }
+
+    public get naturalWidth()
+    {
+        return this.view.getLocalBounds().width;
+    }
+
+    public get naturalHeight()
+    {
+        return this.view.getLocalBounds().height;
+    }
 }

@@ -40,11 +40,6 @@ export class ContainerNode<
         (this.view as any).id = this.id;
     }
 
-    public getBounds()
-    {
-        return this.view.getBounds();
-    }
-
     protected addViewToParent(parent: ClonableNode<ModelBase, object, string>): void
     {
         const thisView = this.view;

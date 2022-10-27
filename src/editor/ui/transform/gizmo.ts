@@ -10,7 +10,7 @@ import {
     degToRad,
     distanceBetween,
     findNearestPointOnRect,
-    getMatrixRotation,
+    // getMatrixRotation,
     polarPoint,
     rotatePointAround,
 } from '../../../core/util/geom';
@@ -184,7 +184,7 @@ export class TransformGizmo
 
     protected initState()
     {
-        const { bounds, state, selection, matrix } = this;
+        const { bounds, state, selection } = this;
 
         if (selection.length === 1)
         {
@@ -192,13 +192,6 @@ export class TransformGizmo
             const globalPivot = node.view.worldTransform.apply({ x: node.model.pivotX, y: node.model.pivotY });
 
             this.setPivot(globalPivot.x, globalPivot.y);
-
-            // const localBounds = node.view.getLocalBounds();
-
-            // bounds.width = localBounds.width;
-            // bounds.height = localBounds.height;
-
-            // state.rotation = node.model.angle;
         }
         else
         {
@@ -234,6 +227,8 @@ export class TransformGizmo
 
     protected updateNodeModels()
     {
+        return;
+
         const { selection, state } = this;
 
         if (selection.length === 1)
@@ -354,7 +349,7 @@ export class TransformGizmo
         {
             node.view.updateTransform();
 
-            const bounds = node.getBounds();
+            const bounds = node.getGlobalBounds();
 
             if (rect.width === 0 && rect.height === 0 && rect.x === 0 && rect.y === 0)
             {
