@@ -6,8 +6,8 @@ import type { TransformOperation } from './operation';
 
 export class BaseTransformGizmo
 {
-    public width: number;
-    public height: number;
+    public naturalWidth: number;
+    public naturalHeight: number;
     public pivot?: Point;
 
     public transform: Transform;
@@ -16,8 +16,8 @@ export class BaseTransformGizmo
 
     constructor()
     {
-        this.width = 1;
-        this.height = 1;
+        this.naturalWidth = 1;
+        this.naturalHeight = 1;
 
         this.transform = new Transform();
         this.frame = new TransformGizmoFrame(this);
@@ -42,8 +42,8 @@ export class BaseTransformGizmo
 
     public setSize(width: number, height: number)
     {
-        this.width = width;
-        this.height = height;
+        this.naturalWidth = width;
+        this.naturalHeight = height;
 
         this.update();
     }
@@ -92,7 +92,6 @@ export class BaseTransformGizmo
     set x(x: number)
     {
         this.transform.position.x = x;
-        this.update();
     }
 
     get y()
@@ -103,7 +102,6 @@ export class BaseTransformGizmo
     set y(y: number)
     {
         this.transform.position.y = y;
-        this.update();
     }
 
     get pivotX()
@@ -111,10 +109,9 @@ export class BaseTransformGizmo
         return this.transform.pivot.x;
     }
 
-    set pivotX(x: number)
+    set pivotX(xFraction: number)
     {
-        this.transform.pivot.x = x;
-        this.update();
+        this.transform.pivot.x = this.naturalWidth * xFraction;
     }
 
     get pivotY()
@@ -122,10 +119,21 @@ export class BaseTransformGizmo
         return this.transform.pivot.y;
     }
 
-    set pivotY(y: number)
+    set pivotY(yFraction: number)
     {
-        this.transform.pivot.y = y;
-        this.update();
+        this.transform.pivot.y = this.naturalHeight * yFraction;
+    }
+
+    get pivotGlobalPos()
+    {
+        const { matrix, transform, pivot, naturalWidth, naturalHeight } = this;
+
+        if (pivot)
+        {
+            return matrix.apply({ x: naturalWidth * pivot.x, y: naturalHeight * pivot.y });
+        }
+
+        return matrix.apply({ x: transform.pivot.x, y: transform.pivot.y });
     }
 
     get rotation()
@@ -136,7 +144,6 @@ export class BaseTransformGizmo
     set rotation(deg: number)
     {
         this.transform.rotation = degToRad(deg);
-        this.update();
     }
 
     get scaleX()
@@ -147,7 +154,6 @@ export class BaseTransformGizmo
     set scaleX(x: number)
     {
         this.transform.scale.x = x;
-        this.update();
     }
 
     get scaleY()
@@ -158,19 +164,6 @@ export class BaseTransformGizmo
     set scaleY(y: number)
     {
         this.transform.scale.y = y;
-        this.update();
-    }
-
-    get pivotGlobalPos()
-    {
-        const { matrix, transform, pivot } = this;
-
-        if (pivot)
-        {
-            return matrix.apply({ x: pivot.x, y: pivot.y });
-        }
-
-        return matrix.apply({ x: transform.pivot.x, y: transform.pivot.y });
     }
 
     protected update()

@@ -82,7 +82,7 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
     protected drawBorder()
     {
         const { border, gizmo } = this;
-        const { matrix, width, height } = gizmo;
+        const { matrix, naturalWidth: width, naturalHeight: height } = gizmo;
 
         border.clear();
 
@@ -109,6 +109,8 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         const { gizmo, pivotShape } = this;
         const { pivotGlobalPos, rotation } = gizmo;
 
+        console.log(pivotGlobalPos);
+
         pivotShape.x = pivotGlobalPos.x;
         pivotShape.y = pivotGlobalPos.y;
         pivotShape.angle = rotation;
@@ -120,7 +122,7 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
             topLeftHandle, topRightHandle, bottomRightHandle, bottomLeftHandle,
             topCenterHandle, rightCenterHandle, bottomCenterHandle, leftCenterHandle,
         } = this;
-        const { matrix, width, height } = gizmo;
+        const { matrix, naturalWidth: width, naturalHeight: height } = gizmo;
 
         const p1 = matrix.apply({ x: 0, y: 0 });
         const p2 = matrix.apply({ x: width, y: 0 });

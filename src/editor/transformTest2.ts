@@ -68,8 +68,6 @@ function setup()
 
     function createNode(config: SpriteConfig)
     {
-        // const view = createSprite(config);
-
         const scaleX = config.width / 16;
         const scaleY = config.height / 16;
 
@@ -80,36 +78,34 @@ function setup()
                 y: config.y,
                 scaleX,
                 scaleY,
-                // pivotX: config.pivotX,
-                // pivotY: config.pivotY,
+                pivotX: config.pivotX,
+                pivotY: config.pivotY,
                 angle: config.angle,
             },
         });
 
-        // node.view = view;
-        // node.updateView();
         nodesLayer.addChild(node.view);
 
         return node;
     }
 
-    const red = createNode({ tint: 0xff0000, x: 100, y: 50, width: 100, height: 50, angle: 0, pivotX: 0, pivotY: 0 });
-    const green = createNode({ tint: 0x00ff00, x: 100, y: 0, width: 50, height: 100, angle: 0, pivotX: 0, pivotY: 0 });
-    const blue = createNode({ tint: 0x0000ff, x: 150, y: 150, width: 50, height: 50, angle: 0, pivotX: 0, pivotY: 0 });
+    // const red = createNode({ tint: 0xff0000, x: 100, y: 50, width: 100, height: 50, angle: 0, pivotX: 0, pivotY: 0 });
+    const green = createNode({ tint: 0x006600, x: 100, y: 100, width: 50, height: 70, angle: 15, pivotX: 0.5, pivotY: 0.25 });
+    // const blue = createNode({ tint: 0x0000ff, x: 150, y: 150, width: 50, height: 50, angle: 0, pivotX: 0, pivotY: 0 });
 
-    const size = 32;
-    const test = createSprite({
-        tint: 0xffff00,
-        x: 50,
-        y: 50,
-        width: size,
-        height: size,
-        angle: 0,
-        pivotX: 8, // 16 * 0.5
-        pivotY: 8,
-    }, true);
+    // const size = 32;
+    // const test = createSprite({
+    //     tint: 0xffff00,
+    //     x: 50,
+    //     y: 50,
+    //     width: size,
+    //     height: size,
+    //     angle: 0,
+    //     pivotX: 8, // 16 * 0.5
+    //     pivotY: 8,
+    // }, true);
 
-    nodesLayer.addChild(test);
+    // nodesLayer.addChild(test);
 
     // setParent(child, red.view);
     // const child1 = createSprite({ tint: 0xffffff, x: 10, y: 10, width: 10, height: 10, angle: 0, pivotX: 0, pivotY: 0 });
@@ -118,7 +114,7 @@ function setup()
     // blue.view.addChild(child1);
     // child1.addChild(child2);
 
-    return { win, editLayer, red, green, blue };
+    return { win, editLayer, green };
 }
 
 const { win, editLayer, green } = setup();
@@ -126,18 +122,18 @@ const { win, editLayer, green } = setup();
 const gizmo = new SingleObjectTransformGizmo();
 
 gizmo.setContainer(editLayer);
-// gizmo.select(green);
+gizmo.select(green);
 
 win.test = gizmo;
 
-// frame.setSize(100, 100);
-// frame.x = 100;
-// frame.y = 100;
-// frame.pivotX = 0;
-// frame.pivotY = 50;
-// // frame.rotation = 30;
-// // frame.scaleX = 2;
-// frame.setPivot(50, 50);
+// gizmo.setSize(50, 50);
+// gizmo.x = 100;
+// gizmo.y = 100;
+// gizmo.pivotX = 0;
+// gizmo.pivotY = 0;
+// gizmo.rotation = 30;
+// gizmo.scaleX = 2;
+// gizmo.setPivot(1, 1);
 
 // setInterval(() =>
 // {
