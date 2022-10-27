@@ -5,6 +5,8 @@ import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
 import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';
 import { RotateOperation } from './rotate';
+import { ScaleByEdgeOperation } from './scaleByEdge';
+import { ScaleByPivotOperation } from './scaleByPivot';
 import { TranslateOperation } from './translate';
 import { TranslatePivotOperation } from './translatePivot';
 import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
@@ -94,7 +96,7 @@ export class BaseTransformGizmo
         return this.matrix.applyInverse({ x: globalX, y: globalY });
     }
 
-    protected getGlobalPoint(localX: number, localY: number)
+    public getGlobalPoint(localX: number, localY: number)
     {
         return this.matrix.apply({ x: localX, y: localY });
     }
@@ -109,7 +111,7 @@ export class BaseTransformGizmo
 
     public setPivotFromGlobalPoint(globalX: number, globalY: number, constrain = false)
     {
-        this.transform.updateLocalTransform();
+        this.updateTransform();
 
         const globalPoint = { x: globalX, y: globalY };
         const localPoint = this.getLocalPoint(globalX, globalY);
@@ -126,7 +128,7 @@ export class BaseTransformGizmo
         this.transform.pivot.x = localPoint.x;
         this.transform.pivot.y = localPoint.y;
 
-        this.transform.updateLocalTransform();
+        this.updateTransform();
 
         const p = this.getGlobalPoint(localPoint.x, localPoint.y);
 
@@ -137,39 +139,45 @@ export class BaseTransformGizmo
         this.y -= deltaY;
     }
 
-    protected updateDragInfoFromEvent(e: InteractionEvent)
+    protected updateDragInfoFromEvent(event: InteractionEvent)
     {
         const { dragInfo } = this;
 
         if (dragInfo)
         {
-            const globalX = e.data.global.x;
-            const globalY = e.data.global.y;
+            const globalX = event.data.global.x;
+            const globalY = event.data.global.y;
             const { x: localX, y: localY } = this.getLocalPoint(globalX, globalY);
 
             dragInfo.globalX = globalX;
             dragInfo.globalY = globalY;
             dragInfo.localX = localX;
             dragInfo.localY = localY;
-            dragInfo.isShiftDown = e.data.originalEvent.shiftKey;
-            dragInfo.isAltDown = e.data.originalEvent.altKey;
-            dragInfo.isMetaDown = e.data.originalEvent.metaKey;
-            dragInfo.isControlDown = e.data.originalEvent.ctrlKey;
-            dragInfo.buttons = e.data.buttons;
+            dragInfo.isShiftDown = event.data.originalEvent.shiftKey;
+            dragInfo.isAltDown = event.data.originalEvent.altKey;
+            dragInfo.isMetaDown = event.data.originalEvent.metaKey;
+            dragInfo.isControlDown = event.data.originalEvent.ctrlKey;
+            dragInfo.buttons = event.data.buttons;
+            dragInfo.event = event;
         }
     }
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onMouseDown = (e: InteractionEvent) =>
+    public onMouseDown = (event: InteractionEvent) =>
     {
         this.dragInfo = {
             ...defaultDragInfo,
+            event,
         };
 
-        this.updateDragInfoFromEvent(e);
+        this.updateDragInfoFromEvent(event);
 
-        const { dragInfo: { isMetaDown, isShiftDown }, isVertexDrag } = this;
+        const {
+            dragInfo: { isMetaDown, isShiftDown },
+            isVertexDrag,
+            config,
+        } = this;
 
         // select operation
         if (isMetaDown)
@@ -178,7 +186,14 @@ export class BaseTransformGizmo
         }
         else if (isVertexDrag)
         {
-            // todo: scale
+            if (config.enableScaleByPivot)
+            {
+                this.operation = new ScaleByPivotOperation(this);
+            }
+            else
+            {
+                this.operation = new ScaleByEdgeOperation(this);
+            }
         }
         else
         if (isShiftDown)
@@ -202,11 +217,11 @@ export class BaseTransformGizmo
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onMouseMove = (e: InteractionEvent) =>
+    public onMouseMove = (event: InteractionEvent) =>
     {
         if (this.operation && this.dragInfo)
         {
-            this.updateDragInfoFromEvent(e);
+            this.updateDragInfoFromEvent(event);
             this.operation.drag(this.dragInfo);
 
             this.update();
@@ -215,19 +230,27 @@ export class BaseTransformGizmo
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onMouseUp = (e: MouseEvent) =>
+    public onMouseUp = (event: MouseEvent) =>
     {
         if (this.operation && this.dragInfo)
         {
             console.log('mouseup');
+
             this.operation.end(this.dragInfo);
+
+            this.update();
         }
 
         // reset
+        this.clearOperation();
+    };
+
+    public clearOperation()
+    {
         this.vertex = { h: 'none', v: 'none' };
         delete this.operation;
         delete this.dragInfo;
-    };
+    }
 
     get isVertexDrag()
     {
@@ -338,9 +361,14 @@ export class BaseTransformGizmo
         this.transform.scale.y = y;
     }
 
-    public update()
+    public updateTransform()
     {
         this.transform.updateLocalTransform();
+    }
+
+    public update()
+    {
+        this.updateTransform();
 
         this.frame.update();
     }

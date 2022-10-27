@@ -1,3 +1,5 @@
+import type { InteractionEvent } from 'pixi.js';
+
 import type { BaseTransformGizmo } from '.';
 
 export abstract class TransformOperation<K extends string = string>
@@ -24,6 +26,16 @@ export abstract class TransformOperation<K extends string = string>
         return this.cache.get(key) as number;
     }
 
+    protected hasCache(key: K)
+    {
+        return this.cache.has(key);
+    }
+
+    protected get isCached()
+    {
+        return this.cache.size > 0;
+    }
+
     public abstract init(dragInfo: DragInfo): void;
 
     public abstract drag(dragInfo: DragInfo): void;
@@ -42,9 +54,10 @@ export interface DragInfo
     isControlDown: boolean;
     isMetaDown: boolean;
     buttons: number;
+    event: InteractionEvent;
 }
 
-export const defaultDragInfo: DragInfo = {
+export const defaultDragInfo: Omit<DragInfo, 'event'> = {
     globalX: 0,
     globalY: 0,
     localX: 0,

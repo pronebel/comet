@@ -28,7 +28,7 @@ export const defaultTransformGizmoConfig: TransformGizmoConfig = {
     enableTranslation: true,
     enableRotation: true,
     enableScaling: true,
-    enableScaleByPivot: true,
+    enableScaleByPivot: false,
     pivotView: yellowPivot,
     edgeDragDistance: 5,
     handlePrimarySize: 5,
