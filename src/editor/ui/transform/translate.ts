@@ -1,7 +1,6 @@
 import { type DragInfo, TransformOperation } from './operation';
 
-export class TranslateOperation extends TransformOperation<
-'x' | 'y' | 'globalX' | 'globalY'>
+export class TranslateOperation extends TransformOperation<'x' | 'y' | 'globalX' | 'globalY'>
 {
     public init(dragInfo: DragInfo): void
     {

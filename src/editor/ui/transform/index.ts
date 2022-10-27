@@ -4,6 +4,7 @@ import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
 import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';
+import { RotateOperation } from './rotate';
 import { TranslateOperation } from './translate';
 import { TranslatePivotOperation } from './translatePivot';
 import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
@@ -152,6 +153,8 @@ export class BaseTransformGizmo
             dragInfo.localY = localY;
             dragInfo.isShiftDown = e.data.originalEvent.shiftKey;
             dragInfo.isAltDown = e.data.originalEvent.altKey;
+            dragInfo.isMetaDown = e.data.originalEvent.metaKey;
+            dragInfo.isControlDown = e.data.originalEvent.ctrlKey;
             dragInfo.buttons = e.data.buttons;
         }
     }
@@ -166,12 +169,19 @@ export class BaseTransformGizmo
 
         this.updateDragInfoFromEvent(e);
 
-        if (this.isVertexDrag)
+        const { dragInfo: { isMetaDown, isShiftDown }, isVertexDrag } = this;
+
+        // select operation
+        if (isMetaDown)
         {
-            //
+            this.operation = new RotateOperation(this);
+        }
+        else if (isVertexDrag)
+        {
+            // todo: scale
         }
         else
-        if (this.dragInfo.isShiftDown)
+        if (isShiftDown)
         {
             this.operation = new TranslatePivotOperation(this);
         }
@@ -180,6 +190,7 @@ export class BaseTransformGizmo
             this.operation = new TranslateOperation(this);
         }
 
+        // init and start operation
         if (this.operation)
         {
             this.operation.init(this.dragInfo);
