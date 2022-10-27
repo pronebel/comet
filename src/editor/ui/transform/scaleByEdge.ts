@@ -21,9 +21,43 @@ export class ScaleByEdgeOperation extends ScaleOperation
         }
     }
 
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected calcDelta(dragInfo: DragInfo, delta: Point): boolean
     {
-        const result = super.calcDelta(dragInfo, delta);
+        const { duplex } = this;
+        const { isAltDown } = dragInfo;
+
+        if (isAltDown)
+        {
+            if (!duplex)
+            {
+                // reset drag scaling state
+                this.end(dragInfo);
+                this.gizmo.updateTransform();
+                this.init(dragInfo);
+
+                // enable duplex
+                this.duplex = true;
+
+                this.setPivot(0.5, 0.5);
+
+                return false;
+            }
+        }
+        else
+        if (duplex)
+        {
+            // disable duplex
+            this.duplex = false;
+
+            // reset drag scaling state
+            this.end(dragInfo);
+            this.gizmo.updateTransform();
+            this.init(dragInfo);
+
+            return false;
+        }
 
         if (this.duplex)
         {
@@ -31,6 +65,6 @@ export class ScaleByEdgeOperation extends ScaleOperation
             delta.y *= 2;
         }
 
-        return result;
+        return true;
     }
 }
