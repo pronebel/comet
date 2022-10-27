@@ -3,7 +3,8 @@ import { type Container, type InteractionEvent, Transform } from 'pixi.js';
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
-import type { TransformOperation } from './operation';
+import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';
+import { TranslatePivotOperation } from './translatePivot';
 import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
 
 export class BaseTransformGizmo
@@ -12,12 +13,14 @@ export class BaseTransformGizmo
 
     public naturalWidth: number;
     public naturalHeight: number;
-    public pivot?: Point;
+    public visualPivot?: Point;
 
     public transform: Transform;
     public frame: TransformGizmoFrame;
-    public operation?: TransformOperation;
+
     public vertex: HandleVertex;
+    public operation?: TransformOperation<any>;
+    public dragInfo?: DragInfo;
 
     constructor(config?: TransformGizmoConfig)
     {
@@ -38,7 +41,11 @@ export class BaseTransformGizmo
         const { frame } = this;
 
         frame
-            .on('mousedown', this.onMouseDown)
+            .on('mousedown', (e: InteractionEvent) =>
+            {
+                this.setActiveVertex({ h: 'none', v: 'none' });
+                this.onMouseDown(e);
+            })
             .on('mousemove', this.onMouseMove)
             .on('mouseup', this.onMouseUp);
     }
@@ -52,18 +59,14 @@ export class BaseTransformGizmo
     {
         this.naturalWidth = width;
         this.naturalHeight = height;
-
-        this.update();
     }
 
-    public setPivot(x: number, y: number)
+    public setVisualPivot(xFrac: number, yFrac: number)
     {
-        this.pivot = {
-            x,
-            y,
+        this.visualPivot = {
+            x: xFrac,
+            y: yFrac,
         };
-
-        this.update();
     }
 
     public setConfig(config: Partial<TransformGizmoConfig>)
@@ -79,21 +82,104 @@ export class BaseTransformGizmo
         }
     }
 
+    public setActiveVertex(vertex: HandleVertex)
+    {
+        this.vertex = vertex;
+    }
+
+    public getLocalPoint(globalX: number, globalY: number)
+    {
+        return this.matrix.applyInverse({ x: globalX, y: globalY });
+    }
+
+    protected getGlobalPoint(localX: number, localY: number)
+    {
+        return this.matrix.apply({ x: localX, y: localY });
+    }
+
+    public constrainLocalPoint(localPoint: {x: number; y: number})
+    {
+        const { naturalWidth, naturalHeight } = this;
+
+        localPoint.x = Math.min(naturalWidth, Math.max(0, localPoint.x));
+        localPoint.y = Math.min(naturalHeight, Math.max(0, localPoint.y));
+    }
+
+    public setPivotFromGlobalPoint(globalX: number, globalY: number, constrain = false)
+    {
+        this.transform.updateLocalTransform();
+
+        const globalPoint = { x: globalX, y: globalY };
+        const localPoint = this.getLocalPoint(globalX, globalY);
+
+        if (constrain)
+        {
+            this.constrainLocalPoint(localPoint);
+            const p = this.getGlobalPoint(localPoint.x, localPoint.y);
+
+            globalPoint.x = p.x;
+            globalPoint.y = p.y;
+        }
+
+        this.transform.pivot.x = localPoint.x;
+        this.transform.pivot.y = localPoint.y;
+
+        this.transform.updateLocalTransform();
+
+        const p = this.getGlobalPoint(localPoint.x, localPoint.y);
+
+        const deltaX = p.x - globalPoint.x;
+        const deltaY = p.y - globalPoint.y;
+
+        this.x -= deltaX;
+        this.y -= deltaY;
+
+        this.update();
+    }
+
+    protected updateDragInfoFromEvent(e: InteractionEvent)
+    {
+        const { dragInfo } = this;
+
+        if (dragInfo)
+        {
+            const globalX = e.data.global.x;
+            const globalY = e.data.global.y;
+            const { x: localX, y: localY } = this.getLocalPoint(globalX, globalY);
+
+            dragInfo.globalX = globalX;
+            dragInfo.globalY = globalY;
+            dragInfo.localX = localX;
+            dragInfo.localY = localY;
+            dragInfo.isShiftDown = e.data.originalEvent.shiftKey;
+            dragInfo.isAltDown = e.data.originalEvent.altKey;
+            dragInfo.buttons = e.data.buttons;
+        }
+    }
+
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public onMouseDown = (e: InteractionEvent) =>
     {
-        console.log(this.vertex);
-        console.log('mousedown');
+        this.dragInfo = {
+            ...defaultDragInfo,
+        };
+
+        this.updateDragInfoFromEvent(e);
+
+        this.operation = new TranslatePivotOperation(this);
+        this.operation.init(this.dragInfo);
+        this.operation.drag(this.dragInfo);
     };
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public onMouseMove = (e: InteractionEvent) =>
     {
-        if (this.operation)
+        if (this.operation && this.dragInfo)
         {
-            console.log('mousemove');
+            this.updateDragInfoFromEvent(e);
+            this.operation.drag(this.dragInfo);
         }
     };
 
@@ -101,11 +187,16 @@ export class BaseTransformGizmo
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public onMouseUp = (e: MouseEvent) =>
     {
-        if (this.operation)
+        if (this.operation && this.dragInfo)
         {
             console.log('mouseup');
+            this.operation.end(this.dragInfo);
         }
+
+        // reset
         this.vertex = { h: 'none', v: 'none' };
+        delete this.operation;
+        delete this.dragInfo;
     };
 
     get matrix()
@@ -125,7 +216,7 @@ export class BaseTransformGizmo
 
     get y()
     {
-        return this.transform.position.x;
+        return this.transform.position.y;
     }
 
     set y(y: number)
@@ -153,16 +244,28 @@ export class BaseTransformGizmo
         this.transform.pivot.y = this.naturalHeight * yFraction;
     }
 
-    get pivotGlobalPos()
+    get visualPivotGlobalPos()
     {
-        const { matrix, transform, pivot, naturalWidth, naturalHeight } = this;
+        const { matrix, visualPivot, naturalWidth, naturalHeight } = this;
 
-        if (pivot)
+        if (visualPivot)
         {
-            return matrix.apply({ x: naturalWidth * pivot.x, y: naturalHeight * pivot.y });
+            return matrix.apply({ x: naturalWidth * visualPivot.x, y: naturalHeight * visualPivot.y });
         }
 
+        return this.transformPivotGlobalPos;
+    }
+
+    get transformPivotGlobalPos()
+    {
+        const { matrix, transform } = this;
+
         return matrix.apply({ x: transform.pivot.x, y: transform.pivot.y });
+    }
+
+    get pivotGlobalPos()
+    {
+        return this.visualPivot ? this.visualPivotGlobalPos : this.transformPivotGlobalPos;
     }
 
     get rotation()
@@ -195,15 +298,10 @@ export class BaseTransformGizmo
         this.transform.scale.y = y;
     }
 
-    protected update()
+    public update()
     {
         this.transform.updateLocalTransform();
 
         this.frame.update();
-    }
-
-    public setActiveVertex(vertex: HandleVertex)
-    {
-        this.vertex = vertex;
     }
 }
