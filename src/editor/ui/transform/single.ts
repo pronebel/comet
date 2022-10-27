@@ -3,6 +3,8 @@ import { BaseTransformGizmo } from '.';
 
 export class SingleObjectTransformGizmo extends BaseTransformGizmo
 {
+    public node?: ContainerNode;
+
     public select(node: ContainerNode)
     {
         const { model, naturalWidth, naturalHeight } = node;
@@ -15,6 +17,8 @@ export class SingleObjectTransformGizmo extends BaseTransformGizmo
             scaleX,
             scaleY,
         } = model;
+
+        this.node = node;
 
         node.view.updateTransform();
 
@@ -31,5 +35,29 @@ export class SingleObjectTransformGizmo extends BaseTransformGizmo
         this.rotation = angle;
 
         this.update();
+    }
+
+    public update(): void
+    {
+        super.update();
+
+        if (this.node)
+        {
+            const { x, y, rotation, pivotX: px, pivotY: py, scaleX, scaleY, naturalWidth, naturalHeight } = this;
+            const pivotX = px;
+            const pivotY = py;
+
+            console.log(pivotX, pivotY);
+
+            this.node.model.setValues({
+                x,
+                y,
+                scaleX,
+                scaleY,
+                angle: rotation,
+                pivotX: pivotX / naturalWidth,
+                pivotY: pivotY / naturalHeight,
+            });
+        }
     }
 }
