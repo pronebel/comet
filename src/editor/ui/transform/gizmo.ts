@@ -640,6 +640,7 @@ export class TransformGizmo
             {
                 deltaX *= 1 / (1.0 - state.pivotX);
             }
+
             if (localY < state.pivotY)
             {
                 deltaY *= 1 / state.pivotY;

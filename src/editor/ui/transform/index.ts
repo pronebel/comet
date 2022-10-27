@@ -297,6 +297,11 @@ export class BaseTransformGizmo
         this.transform.pivot.x = this.naturalWidth * xFraction;
     }
 
+    get pivotXFrac()
+    {
+        return this.transform.pivot.x / this.naturalWidth;
+    }
+
     get pivotY()
     {
         return this.transform.pivot.y;
@@ -305,6 +310,11 @@ export class BaseTransformGizmo
     set pivotY(yFraction: number)
     {
         this.transform.pivot.y = this.naturalHeight * yFraction;
+    }
+
+    get pivotYFrac()
+    {
+        return this.transform.pivot.y / this.naturalHeight;
     }
 
     get visualPivotGlobalPos()
