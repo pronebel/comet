@@ -1,5 +1,5 @@
-import type { Matrix } from 'pixi.js';
-import { type DisplayObject, Application, Container, Graphics, Sprite, Texture, Transform } from 'pixi.js';
+import type { DisplayObject, Matrix } from 'pixi.js';
+import { Application, Container, Graphics, Rectangle, Sprite, Texture, Transform } from 'pixi.js';
 
 import { angleBetween, degToRad } from '../core/util/geom';
 import Canvas2DPainter from './ui/2dPainter';
@@ -149,6 +149,41 @@ function getGizmoInitialTransformFromView(view: DisplayObject): InitialGizmoTran
     };
 }
 
+function getGizmoInitialTransformFromViews(views: DisplayObject[])
+{
+    let rect: Rectangle = new Rectangle();
+
+    views.forEach((view, i) =>
+    {
+        if (i === 0)
+        {
+            rect = view.getBounds().clone();
+        }
+        else
+        {
+            rect.enlarge(view.getBounds());
+        }
+    });
+
+    const transform = new Transform();
+
+    transform.position.x = rect.left;
+    transform.position.y = rect.top;
+
+    transform.updateLocalTransform();
+
+    return {
+        matrix: transform.localTransform,
+        width: rect.width,
+        height: rect.height,
+        rotation: 0,
+        x: rect.left,
+        y: rect.top,
+        pivotX: rect.width * 0.5,
+        pivotY: rect.height * 0.5,
+    };
+}
+
 interface InitialGizmoTransform
 {
     pivotX: number;
@@ -219,7 +254,8 @@ function getLocalTransform(view: DisplayObject)
 
 const view = blue;
 
-const transform = getGizmoInitialTransformFromView(view);
+// const transform = getGizmoInitialTransformFromView(view);
+const transform = getGizmoInitialTransformFromViews([red, green, blue]);
 
 drawBounds(transform);
 
