@@ -7,7 +7,7 @@ import './style/dark-theme.css';
 import './style/light-theme.css';
 
 // test
-// import './transformTest2';
+// import './transformTest3';
 import App from './views/App.svelte';
 
 const target = document.getElementById('app') as HTMLElement;

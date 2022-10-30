@@ -3,7 +3,7 @@ import type { Container, InteractionEvent } from 'pixi.js';
 import { Matrix, Rectangle, Transform } from 'pixi.js';
 
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
-import { type Point, degToRad, getMatrixRotation, radToDeg } from '../../../core/util/geom';
+import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
 import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';
@@ -18,7 +18,6 @@ import type { InitialGizmoTransform } from './util';
 import {
     defaultInitialGizmoTransform,
     getGizmoInitialTransformFromView,
-    getLocalTransform,
     getTotalGlobalBounds,
     updateTransforms,
 } from './util';

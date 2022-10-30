@@ -64,7 +64,7 @@ function setup()
     }
 
     const red = createSprite({ tint: 0xff0000, x: 50, y: 50, angle: 20, pivotX: 8, pivotY: 8 });
-    const green = createSprite({ tint: 0x006600, x: 10, y: 10, angle: 20 });
+    const green = createSprite({ tint: 0x006600, x: 10, y: 10, angle: 20, width: 40 });
     const blue = createSprite({ tint: 0x0000ff, x: 10, y: 10, angle: 45, width: 64, height: 8, pivotY: 8 });
 
     const white = createSprite({ tint: 0xffff00, x: 0, y: 0 });
@@ -102,6 +102,8 @@ function updateTransforms(view: DisplayObject)
     }
 }
 
+// @ts-ignore
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 function getGizmoInitialTransformFromView(view: DisplayObject): InitialGizmoTransform
 {
     const { worldTransform } = view;
@@ -251,7 +253,7 @@ function getLocalTransform(view: DisplayObject, pivot?: Point)
     white.pivot.x = pivot ? pivot.x : view.pivot.x;
     white.pivot.y = pivot ? pivot.y : view.pivot.y;
 
-    console.log(deltaX, deltaY);
+    console.log(white.transform);
 }
 
 const view = blue;
@@ -263,7 +265,7 @@ drawBounds(transform);
 
 console.log(JSON.stringify(transform, null, 4));
 
-const localTransform = getLocalTransform(view);
+getLocalTransform(view);
 
 /**
  - need to be given any view and get global transform values for setting gizmo initial transform
