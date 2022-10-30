@@ -117,7 +117,7 @@ export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGi
     };
 }
 
-export function getLocalTransform(view: DisplayObject, pivot?: Point)
+export function getLocalTransform(view: DisplayObject)
 {
     updateTransforms(view);
 
@@ -138,12 +138,6 @@ export function getLocalTransform(view: DisplayObject, pivot?: Point)
     const deltaY = p2.y - p1.y;
 
     viewMatrix.translate(deltaX, deltaY);
-
-    if (pivot)
-    {
-        view.pivot.x = pivot.x;
-        view.pivot.y = pivot.y;
-    }
 
     return viewMatrix;
 }

@@ -1,9 +1,9 @@
 import { EventEmitter } from 'eventemitter3';
-import { Matrix } from 'pixi.js';
-import { type Container, type InteractionEvent, Rectangle, Transform } from 'pixi.js';
+import type { Container, InteractionEvent } from 'pixi.js';
+import { Matrix, Rectangle, Transform } from 'pixi.js';
 
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
-import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
+import { type Point, degToRad, getMatrixRotation, radToDeg } from '../../../core/util/geom';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
 import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';
@@ -13,8 +13,14 @@ import { ScaleByPivotOperation } from './scaleByPivot';
 import { TranslateOperation } from './translate';
 import { TranslatePivotOperation } from './translatePivot';
 import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
-import { type InitialGizmoTransform, getLocalTransform, getTotalGlobalBounds } from './util';
-import { defaultInitialGizmoTransform, getGizmoInitialTransformFromView, updateTransforms } from './util';
+import type { InitialGizmoTransform } from './util';
+import {
+    defaultInitialGizmoTransform,
+    getGizmoInitialTransformFromView,
+    getLocalTransform,
+    getTotalGlobalBounds,
+    updateTransforms,
+} from './util';
 
 export type TransformGizmoEvent = 'changed';
 
@@ -244,12 +250,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         }
 
         this.update();
-
-        // event.stopPropagation();
     };
 
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public onMouseMove = (event: InteractionEvent) =>
     {
         if (this.operation && this.dragInfo)
@@ -421,6 +423,11 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.updateTransform();
         this.updateSelected();
         this.frame.update();
+
+        if (!this.isVisible)
+        {
+            this.show();
+        }
     }
 
     protected updateSelected()
@@ -460,10 +467,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         return this.transform.localTransform.clone();
     }
 
-    public select<T extends ContainerNode>(node: T)
+    protected initTransform(transform: InitialGizmoTransform)
     {
-        const transform = getGizmoInitialTransformFromView(node);
-
         this.initialTransform = transform;
 
         this.transform = new Transform();
@@ -474,17 +479,18 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.transform.rotation = degToRad(transform.rotation);
         this.transform.scale.x = transform.scaleX;
         this.transform.scale.y = transform.scaleY;
+    }
 
-        this.selected = [node];
-
+    protected initNode(node: ContainerNode)
+    {
         const view = node.view;
 
-        view.interactive = true;
         updateTransforms(view);
+        view.interactive = true;
 
         const cachedMatrix = view.worldTransform.clone();
 
-        if (view.parent)
+        if (view.parent && this.selected.length === 1)
         {
             const parentMatrix = view.parent.worldTransform.clone();
 
@@ -493,12 +499,20 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         }
 
         this.matrixCache.set(node, cachedMatrix);
-
-        this.update();
-        this.show();
     }
 
-    public multiSelect<T extends ContainerNode>(nodes: T[])
+    public selectSingleNode<T extends ContainerNode>(node: T)
+    {
+        this.initTransform(getGizmoInitialTransformFromView(node));
+
+        this.selected = [node];
+
+        this.initNode(node);
+
+        this.update();
+    }
+
+    public selectMultipleNodes<T extends ContainerNode>(nodes: T[])
     {
         const rect = getTotalGlobalBounds(nodes);
         const centerX = rect.width * 0.5;
@@ -508,7 +522,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         matrix.translate(rect.left, rect.top);
 
-        const transform: InitialGizmoTransform = {
+        this.initTransform({
             ...defaultInitialGizmoTransform,
             matrix,
             width: rect.width,
@@ -519,37 +533,25 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             y: rect.top + centerY,
             pivotX: centerX,
             pivotY: centerY,
-        };
-
-        this.initialTransform = transform;
-
-        this.transform = new Transform();
-        this.transform.pivot.x = transform.pivotX;
-        this.transform.pivot.y = transform.pivotY;
-        this.transform.position.x = transform.x;
-        this.transform.position.y = transform.y;
-        this.transform.scale.x = transform.scaleX;
-        this.transform.scale.y = transform.scaleY;
+        });
 
         this.selected = [...nodes];
         this.selected.forEach((node) =>
         {
-            const view = node.view;
-
-            view.interactive = true;
-            updateTransforms(view);
-
-            const cachedMatrix = view.worldTransform.clone();
-
-            this.matrixCache.set(node, cachedMatrix);
+            this.initNode(node);
         });
 
         this.update();
-        this.show();
     }
 
     public deselect()
     {
+        this.selected.forEach((node) =>
+        {
+            const view = node.view;
+
+            view.interactive = false;
+        });
         this.selected.length = 0;
         this.matrixCache.clear();
         this.hide();
@@ -557,10 +559,48 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
     protected updateSelectedModels()
     {
-        // this.selected.forEach((node) =>
-        // {
-        //     const view = node.view;
-        //     const matrix = getLocalTransform(view);
-        // });
+        if (this.selected.length === 1)
+        {
+            const node = this.selected[0];
+            const { x, y, rotation, pivotX, pivotY, scaleX, scaleY } = this;
+
+            const values = {
+                pivotX,
+                pivotY,
+                x,
+                y,
+                angle: rotation,
+                scaleX,
+                scaleY,
+            };
+
+            node.model.setValues(values);
+        }
+        else
+        {
+            this.selected.forEach((node) =>
+            {
+                const view = node.view;
+                const matrix = getLocalTransform(view);
+
+                const x = matrix.tx;
+                const y = matrix.ty;
+                const angle = getMatrixRotation(matrix);
+                const scaleX = matrix.a;
+                const scaleY = matrix.d;
+
+                const values = {
+                    x,
+                    y,
+                    angle,
+                    scaleX,
+                    scaleY,
+                };
+
+                console.log(values);
+
+                node.model.setValues(values);
+            });
+        }
     }
 }

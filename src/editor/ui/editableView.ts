@@ -157,11 +157,11 @@ export class EditableView
     {
         if (this.selection.isSingle)
         {
-            this.transformGizmo.select(node);
+            this.transformGizmo.selectSingleNode(node);
         }
         else
         {
-            this.transformGizmo.multiSelect(this.selection.nodes);
+            this.transformGizmo.selectMultipleNodes(this.selection.nodes);
         }
     };
 

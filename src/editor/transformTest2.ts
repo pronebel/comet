@@ -69,7 +69,7 @@ function setup()
         node.view.interactive = true;
         node.view.on('mousedown', (e: InteractionEvent) =>
         {
-            gizmo.select(node);
+            gizmo.selectSingleNode(node);
             gizmo.onMouseDown(e);
         });
 
@@ -91,7 +91,7 @@ function setup()
 const { editLayer, gizmo, pixi, green } = setup();
 
 gizmo.setContainer(editLayer);
-gizmo.select(green);
+gizmo.selectSingleNode(green);
 
 pixi.stage.interactive = true;
 pixi.stage.on('mousedown', () =>
