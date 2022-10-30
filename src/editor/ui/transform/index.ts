@@ -13,7 +13,8 @@ import { ScaleByPivotOperation } from './scaleByPivot';
 import { TranslateOperation } from './translate';
 import { TranslatePivotOperation } from './translatePivot';
 import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
-import { type InitialGizmoTransform, defaultInitialGizmoTransform, getGizmoInitialTransformFromView, getLocalTransform, updateTransforms } from './util';
+import type { InitialGizmoTransform } from './util';
+import { defaultInitialGizmoTransform, getGizmoInitialTransformFromView, updateTransforms } from './util';
 
 export type TransformGizmoEvent = 'changed';
 
@@ -412,12 +413,10 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             const view = node.getView();
             const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
 
-            const m = this.matrix;
+            const thisMatrix = this.matrix;
 
-            m.prepend(this.initialTransform.matrix.clone().invert());
-
-            // m.append(this.initialTransform.matrix.clone().invert());
-            cachedMatrix.append(m);
+            thisMatrix.prepend(this.initialTransform.matrix.clone().invert());
+            cachedMatrix.append(thisMatrix);
 
             view.transform.setFromMatrix(cachedMatrix);
         });
@@ -443,12 +442,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.transform.scale.x = transform.scaleX;
         this.transform.scale.y = transform.scaleY;
 
-        this.updateTransform();
-        this.initialTransform.matrix = this.matrix;
-
         this.selected = [node];
-
-        this.updateTransform();
 
         const view = node.view;
 
