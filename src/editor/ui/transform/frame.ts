@@ -2,9 +2,9 @@ import { EventEmitter } from 'eventemitter3';
 import type { DisplayObject, InteractionEvent } from 'pixi.js';
 import { Container, Graphics } from 'pixi.js';
 
-import type { BaseTransformGizmo } from '.';
+import type { TransformGizmo } from '.';
 import { type HandleVertexHorizontal, type HandleVertexVertical, TransformGizmoHandle } from './handle';
-import { yellowPivot } from './util';
+import { yellowPivot } from './pivot';
 
 const primaryHandleSize = 10;
 const secondaryHandleSize = 7;
@@ -28,7 +28,7 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
     public bottomCenterHandle: TransformGizmoHandle;
     public leftCenterHandle: TransformGizmoHandle;
 
-    constructor(public readonly gizmo: BaseTransformGizmo)
+    constructor(public readonly gizmo: TransformGizmo)
     {
         super();
 
@@ -85,10 +85,15 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         window.addEventListener('mouseup', this.gizmo.onMouseUp);
     }
 
+    protected get matrix()
+    {
+        return this.gizmo.matrix;
+    }
+
     protected drawBorder()
     {
-        const { border, gizmo } = this;
-        const { matrix, naturalWidth: width, naturalHeight: height } = gizmo;
+        const { border, gizmo, matrix } = this;
+        const { initialTransform: { width, height } } = gizmo;
 
         border.clear();
 
@@ -112,21 +117,22 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
 
     protected drawPivot()
     {
-        const { gizmo, pivotView: pivotShape } = this;
+        const { gizmo, pivotView } = this;
         const { pivotGlobalPos, rotation } = gizmo;
 
-        pivotShape.x = pivotGlobalPos.x;
-        pivotShape.y = pivotGlobalPos.y;
-        pivotShape.angle = rotation;
+        pivotView.x = pivotGlobalPos.x;
+        pivotView.y = pivotGlobalPos.y;
+        pivotView.angle = rotation;
     }
 
     protected drawHandles()
     {
-        const { gizmo,
+        const {
+            gizmo, matrix,
             topLeftHandle, topRightHandle, bottomRightHandle, bottomLeftHandle,
             topCenterHandle, rightCenterHandle, bottomCenterHandle, leftCenterHandle,
         } = this;
-        const { matrix, naturalWidth: width, naturalHeight: height } = gizmo;
+        const { initialTransform: { width, height } } = gizmo;
 
         const p1 = matrix.apply({ x: 0, y: 0 });
         const p2 = matrix.apply({ x: width, y: 0 });

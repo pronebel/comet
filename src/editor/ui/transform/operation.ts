@@ -1,12 +1,12 @@
 import type { InteractionEvent } from 'pixi.js';
 
-import type { BaseTransformGizmo } from '.';
+import type { TransformGizmo } from '.';
 
 export abstract class TransformOperation<K extends string = string>
 {
     public cache: Map<K, number>;
 
-    constructor(public readonly gizmo: BaseTransformGizmo)
+    constructor(public readonly gizmo: TransformGizmo)
     {
         this.cache = new Map();
     }

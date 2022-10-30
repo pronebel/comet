@@ -4,7 +4,7 @@ import { Application, Container } from 'pixi.js';
 import { SpriteNode } from '../core/nodes/concrete/sprite';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
-import { SingleObjectTransformGizmo } from './ui/transform/single';
+import { TransformGizmo } from './ui/transform';
 
 function setup()
 {
@@ -20,7 +20,7 @@ function setup()
     };
 
     const win = window as any;
-    const canvasWidth = 350;
+    const canvasWidth = 250;
     const canvasHeight = 350;
     const painter = new Canvas2DPainter(canvasWidth, canvasHeight, '#ccc');
 
@@ -44,7 +44,7 @@ function setup()
     pixi.stage.addChild(nodesLayer);
     pixi.stage.addChild(editLayer);
 
-    const gizmo = new SingleObjectTransformGizmo();
+    const gizmo = new TransformGizmo();
 
     function createNode(config: SpriteConfig)
     {
@@ -76,20 +76,21 @@ function setup()
         return node;
     }
 
-    const red = createNode({ tint: 0xff0000, x: 10, y: 10, width: 20, height: 20, angle: 0, pivotX: 0, pivotY: 0 });
+    const red = createNode({ tint: 0xff0000, x: 10, y: 10, width: 16, height: 16, angle: 0, pivotX: 0, pivotY: 0 });
     const green = createNode({
-        tint: 0x006600, x: 100, y: 10, width: 20, height: 20, angle: 15, pivotX: 0.5, pivotY: 0,
+        tint: 0x006600, x: 100, y: 50, width: 30, height: 20, angle: 15, pivotX: 8, pivotY: 8,
     });
-    const blue = createNode({ tint: 0x0000ff, x: 10, y: 10, width: 20, height: 20, angle: 0, pivotX: 0, pivotY: 0 });
+    const blue = createNode({ tint: 0x0000ff, x: 10, y: 10, width: 16, height: 16, angle: 0, pivotX: 0, pivotY: 0 });
 
     red.addChild(blue);
 
     return { win, editLayer, red, green, blue, gizmo, pixi };
 }
 
-const { editLayer, gizmo, pixi } = setup();
+const { editLayer, gizmo, pixi, green } = setup();
 
 gizmo.setContainer(editLayer);
+gizmo.select(green);
 
 pixi.stage.interactive = true;
 pixi.stage.on('mousedown', () =>

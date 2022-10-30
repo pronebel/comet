@@ -1,6 +1,6 @@
 import type { DisplayObject } from 'pixi.js';
 
-import { yellowPivot } from './util';
+import { yellowPivot } from './pivot';
 
 export interface TransformGizmoConfig
 {

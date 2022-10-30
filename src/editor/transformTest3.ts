@@ -1,6 +1,7 @@
 import type { DisplayObject, Matrix } from 'pixi.js';
 import { Application, Container, Graphics, Rectangle, Sprite, Texture, Transform } from 'pixi.js';
 
+import type { Point } from '../core/util/geom';
 import { angleBetween, degToRad } from '../core/util/geom';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
@@ -224,7 +225,7 @@ function drawBounds(transform: InitialGizmoTransform)
     selection.endFill();
 }
 
-function getLocalTransform(view: DisplayObject)
+function getLocalTransform(view: DisplayObject, pivot?: Point)
 {
     updateTransforms(view);
 
@@ -246,8 +247,9 @@ function getLocalTransform(view: DisplayObject)
 
     viewMatrix.translate(deltaX, deltaY);
     white.transform.setFromMatrix(viewMatrix);
-    white.pivot.x = view.pivot.x;
-    white.pivot.y = view.pivot.y;
+
+    white.pivot.x = pivot ? pivot.x : view.pivot.x;
+    white.pivot.y = pivot ? pivot.y : view.pivot.y;
 
     console.log(deltaX, deltaY);
 }

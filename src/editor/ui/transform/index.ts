@@ -1,6 +1,8 @@
 import { EventEmitter } from 'eventemitter3';
-import { type Container, type InteractionEvent, Transform } from 'pixi.js';
+import type { Matrix } from 'pixi.js';
+import { type Container, type InteractionEvent, Rectangle, Transform } from 'pixi.js';
 
+import type { ContainerNode } from '../../../core/nodes/concrete/container';
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
@@ -11,19 +13,21 @@ import { ScaleByPivotOperation } from './scaleByPivot';
 import { TranslateOperation } from './translate';
 import { TranslatePivotOperation } from './translatePivot';
 import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
+import { type InitialGizmoTransform, defaultInitialGizmoTransform, getGizmoInitialTransformFromView, getLocalTransform } from './util';
 
 export type TransformGizmoEvent = 'changed';
 
-export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEvent>
+export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 {
     public config: TransformGizmoConfig;
 
-    public naturalWidth: number;
-    public naturalHeight: number;
     public visualPivot?: Point;
 
+    public initialTransform: InitialGizmoTransform;
     public transform: Transform;
     public frame: TransformGizmoFrame;
+    public selected: ContainerNode[];
+    public matrixCache: Map<ContainerNode, Matrix>;
 
     public vertex: HandleVertex;
     public operation?: TransformOperation;
@@ -35,12 +39,12 @@ export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEven
 
         this.config = config ?? { ...defaultTransformGizmoConfig };
 
-        this.naturalWidth = 1;
-        this.naturalHeight = 1;
-
+        this.initialTransform = defaultInitialGizmoTransform;
         this.transform = new Transform();
         this.frame = new TransformGizmoFrame(this);
         this.vertex = { h: 'none', v: 'none' };
+        this.selected = [];
+        this.matrixCache = new Map();
 
         this.hide();
 
@@ -91,12 +95,6 @@ export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEven
         container.addChild(this.frame.container);
     }
 
-    public setSize(width: number, height: number)
-    {
-        this.naturalWidth = width;
-        this.naturalHeight = height;
-    }
-
     public setVisualPivot(xFrac: number, yFrac: number)
     {
         this.visualPivot = {
@@ -135,10 +133,10 @@ export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEven
 
     public constrainLocalPoint(localPoint: {x: number; y: number})
     {
-        const { naturalWidth, naturalHeight } = this;
+        const { initialTransform: { width, height } } = this;
 
-        localPoint.x = Math.min(naturalWidth, Math.max(0, localPoint.x));
-        localPoint.y = Math.min(naturalHeight, Math.max(0, localPoint.y));
+        localPoint.x = Math.min(width, Math.max(0, localPoint.x));
+        localPoint.y = Math.min(height, Math.max(0, localPoint.y));
     }
 
     public setPivotFromGlobalPoint(globalX: number, globalY: number, constrain = false)
@@ -276,10 +274,7 @@ export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEven
         // reset
         this.clearOperation();
 
-        const values = this.values;
-
-        // console.log('CHANGED', values);
-        this.emit('changed', values);
+        // this.emit('changed', values);
     };
 
     public clearOperation()
@@ -297,11 +292,6 @@ export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEven
         }
 
         return false;
-    }
-
-    get matrix()
-    {
-        return this.transform.localTransform;
     }
 
     get x()
@@ -329,14 +319,9 @@ export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEven
         return this.transform.pivot.x;
     }
 
-    set pivotX(xFraction: number)
+    set pivotX(x: number)
     {
-        this.transform.pivot.x = this.naturalWidth * xFraction;
-    }
-
-    get pivotXFrac()
-    {
-        return this.transform.pivot.x / this.naturalWidth;
+        this.transform.pivot.x = x;
     }
 
     get pivotY()
@@ -344,23 +329,18 @@ export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEven
         return this.transform.pivot.y;
     }
 
-    set pivotY(yFraction: number)
+    set pivotY(y: number)
     {
-        this.transform.pivot.y = this.naturalHeight * yFraction;
-    }
-
-    get pivotYFrac()
-    {
-        return this.transform.pivot.y / this.naturalHeight;
+        this.transform.pivot.y = y;
     }
 
     get visualPivotGlobalPos()
     {
-        const { matrix, visualPivot, naturalWidth, naturalHeight } = this;
+        const { matrix, visualPivot } = this;
 
         if (visualPivot)
         {
-            return matrix.apply({ x: naturalWidth * visualPivot.x, y: naturalHeight * visualPivot.y });
+            return matrix.apply({ x: visualPivot.x, y: visualPivot.y });
         }
 
         return this.transformPivotGlobalPos;
@@ -408,21 +388,9 @@ export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEven
         this.transform.scale.y = y;
     }
 
-    get values()
+    public getGlobalBounds()
     {
-        const { x, y, rotation, pivotX: px, pivotY: py, scaleX, scaleY, naturalWidth, naturalHeight } = this;
-        const pivotX = px;
-        const pivotY = py;
-
-        return {
-            x,
-            y,
-            scaleX,
-            scaleY,
-            angle: rotation,
-            pivotX: pivotX / naturalWidth,
-            pivotY: pivotY / naturalHeight,
-        };
+        return new Rectangle();
     }
 
     public updateTransform()
@@ -433,9 +401,60 @@ export abstract class BaseTransformGizmo extends EventEmitter<TransformGizmoEven
     public update()
     {
         this.updateTransform();
-
+        this.updateSelected();
         this.frame.update();
     }
 
-    public abstract deselect(): void;
+    protected updateSelected()
+    {
+        this.selected.forEach((node) =>
+        {
+            const view = node.getView();
+            const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
+
+            cachedMatrix.prepend(this.matrix);
+
+            view.transform.setFromMatrix(cachedMatrix);
+        });
+    }
+
+    get matrix()
+    {
+        return this.transform.localTransform.clone();
+    }
+
+    public select<T extends ContainerNode>(node: T)
+    {
+        const transform = getGizmoInitialTransformFromView(node);
+
+        this.initialTransform = transform;
+
+        this.transform = new Transform();
+        this.transform.pivot.x = transform.pivotX;
+        this.transform.pivot.y = transform.pivotY;
+        this.transform.position.x = transform.x;
+        this.transform.position.y = transform.y;
+        this.transform.rotation = degToRad(transform.rotation);
+        this.transform.scale.x = transform.scaleX;
+        this.transform.scale.y = transform.scaleY;
+
+        this.selected = [node];
+
+        this.updateTransform();
+
+        const cachedMatrix = node.view.worldTransform.clone();
+
+        cachedMatrix.prepend(this.matrix.invert());
+        this.matrixCache.set(node, cachedMatrix);
+
+        this.update();
+        this.show();
+    }
+
+    public deselect()
+    {
+        this.selected.length = 0;
+        this.matrixCache.clear();
+        this.hide();
+    }
 }

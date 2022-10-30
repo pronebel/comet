@@ -46,5 +46,15 @@ export class SpriteNode<M extends SpriteModel, V extends Sprite> extends Contain
         view.anchor.y = anchorY;
         view.tint = tint;
     }
+
+    public get naturalWidth(): number
+    {
+        return this.view.texture.width;
+    }
+
+    public get naturalHeight(): number
+    {
+        return this.view.texture.height;
+    }
 }
 

@@ -59,6 +59,16 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
         return this.nodes.length === 0;
     }
 
+    public get isSingle()
+    {
+        return this.nodes.length === 1;
+    }
+
+    public get isMulti()
+    {
+        return this.nodes.length > 1;
+    }
+
     public get firstNode(): ContainerNode | undefined
     {
         const { nodes } = this;

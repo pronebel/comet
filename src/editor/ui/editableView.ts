@@ -4,7 +4,7 @@ import { Application as PixiApplication, Container } from 'pixi.js';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import Grid from './grid';
 import { NodeSelection } from './selection';
-import { TransformGizmo } from './transform/gizmo';
+import { TransformGizmo } from './transform';
 
 export const dblClickMsThreshold = 250;
 
@@ -25,7 +25,7 @@ export class EditableView
     {
         this.rootNode = rootNode;
         this.selection = new NodeSelection();
-        this.transformGizmo = new TransformGizmo(this.selection);
+        this.transformGizmo = new TransformGizmo();
         this.lastClick = -1;
 
         // create canvas and pixi context
@@ -47,7 +47,7 @@ export class EditableView
 
         gridLayer.addChild(Grid.createTilingSprite(screen.availWidth, screen.availHeight));
         nodeLayer.addChild(rootNode.view);
-        editLayer.addChild(this.transformGizmo.container);
+        editLayer.addChild(this.transformGizmo.frame.container);
 
         // set selection
         pixi.stage.interactive = true;
@@ -109,9 +109,10 @@ export class EditableView
     protected selectWithDrag(selectedNode: ContainerNode, e: InteractionEvent)
     {
         this.selection.set(selectedNode);
+
         if (this.transformGizmo.config.enableTranslation)
         {
-            this.transformGizmo.onDragStart(e);
+            this.transformGizmo.onMouseDown(e);
         }
     }
 
@@ -153,7 +154,10 @@ export class EditableView
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onAddSelection = (node: ContainerNode) =>
     {
-        //
+        if (this.selection.isSingle)
+        {
+            this.transformGizmo.select(node);
+        }
     };
 
     // @ts-ignore

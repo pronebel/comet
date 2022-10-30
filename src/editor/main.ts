@@ -6,7 +6,7 @@ import './style/theme.css';
 import './style/dark-theme.css';
 import './style/light-theme.css';
 // test
-import './transformTest3';
+import './transformTest2';
 // import App from './views/App.svelte';
 
 // const target = document.getElementById('app') as HTMLElement;

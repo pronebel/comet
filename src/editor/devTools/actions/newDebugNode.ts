@@ -20,8 +20,8 @@ export function newDebugNode()
         model: {
             x: 10,
             y: 10,
-            scaleX: 3.25,
-            scaleY: 3.25,
+            scaleX: 3,
+            scaleY: 3,
             tint: Math.round(Math.random() * 100000),
         },
     });

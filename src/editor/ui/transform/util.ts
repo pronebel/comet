@@ -1,77 +1,148 @@
-import type { Container } from 'pixi.js';
-import { Graphics } from 'pixi.js';
+import type { DisplayObject, Point } from 'pixi.js';
+import { Matrix, Transform } from 'pixi.js';
 
-import { angleBetween, distanceBetween } from '../../../core/util/geom';
+import type { ContainerNode } from '../../../core/nodes/concrete/container';
+import { angleBetween, degToRad } from '../../../core/util/geom';
 
 export function round(num: number)
 {
     return Math.round((num + Number.EPSILON) * 1000) / 1000;
 }
 
-export interface PivotConfig
+export function updateTransforms(view: DisplayObject)
 {
-    radius: number;
-    lineColor: number;
-    bgColor: number;
-    bgAlpha: number;
-    crosshairSize: number;
-}
+    const views: DisplayObject[] = [view];
+    let ref = view;
 
-export function createPivotShape(config: PivotConfig)
-{
-    const { radius, lineColor, bgColor, bgAlpha, crosshairSize } = config;
-    const pivotShape = new Graphics();
-
-    pivotShape.lineStyle(1, lineColor, 1);
-    pivotShape.beginFill(bgColor, bgAlpha);
-    pivotShape.drawCircle(0, 0, radius);
-    if (crosshairSize > 0)
+    while (ref.parent)
     {
-        pivotShape.moveTo(0, crosshairSize * -1); pivotShape.lineTo(0, crosshairSize);
-        pivotShape.moveTo(crosshairSize * -1, 0); pivotShape.lineTo(crosshairSize, 0);
+        views.push(ref);
+        ref = ref.parent;
     }
-    pivotShape.endFill();
 
-    return pivotShape;
+    views.reverse();
+
+    for (const obj of views)
+    {
+        obj.updateTransform();
+    }
 }
 
-export const yellowPivot = createPivotShape({
-    radius: 7,
-    lineColor: 0xffff00,
-    bgColor: 0xffffff,
-    bgAlpha: 0.1,
-    crosshairSize: 12,
-});
-
-export const bluePivot = createPivotShape({
-    radius: 5,
-    lineColor: 0xffffff,
-    bgColor: 0x0000ff,
-    bgAlpha: 1,
-    crosshairSize: 10,
-});
-
-export function getViewGlobalTransform(view: Container)
+export interface InitialGizmoTransform
 {
-    const matrix = view.worldTransform;
-    const { width, height } = view.getLocalBounds();
+    pivotX: number;
+    pivotY: number;
+    x: number;
+    y: number;
+    rotation: number;
+    naturalWidth: number;
+    naturalHeight: number;
+    width: number;
+    height: number;
+    scaleX: number;
+    scaleY: number;
+    matrix: Matrix;
+}
 
-    const p0 = matrix.apply({ x: view.pivot.x, y: view.pivot.y });
+export const defaultInitialGizmoTransform: InitialGizmoTransform = {
+    pivotX: 0,
+    pivotY: 0,
+    x: 0,
+    y: 0,
+    rotation: 0,
+    naturalWidth: 0,
+    naturalHeight: 0,
+    width: 0,
+    height: 0,
+    scaleX: 1,
+    scaleY: 1,
+    matrix: Matrix.IDENTITY,
+};
+
+export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGizmoTransform
+{
+    const view = node.view;
+    const { worldTransform } = view;
+
+    updateTransforms(view);
+
+    const matrix = worldTransform.clone();
+
+    const localBounds = view.getLocalBounds();
+
+    const width = localBounds.width;
+    const height = localBounds.height;
+
     const p1 = matrix.apply({ x: 0, y: 0 });
     const p2 = matrix.apply({ x: width, y: 0 });
-    const p3 = matrix.apply({ x: width, y: height });
-    const p4 = matrix.apply({ x: 0, y: height });
 
-    const w = distanceBetween(p1.x, p1.y, p2.x, p2.y);
-    const h = distanceBetween(p1.x, p1.y, p4.x, p4.y);
+    const p0 = matrix.apply({ x: view.pivot.x, y: view.pivot.y });
+
     const rotation = angleBetween(p1.x, p1.y, p2.x, p2.y);
+    const x = p0.x;
+    const y = p0.y;
+    const pivotX = view.pivot.x;
+    const pivotY = view.pivot.y;
+    const scaleX = view.scale.x;
+    const scaleY = view.scale.y;
+    const naturalWidth = node.naturalWidth;
+    const naturalHeight = node.naturalHeight;
+
+    const transform = new Transform();
+
+    transform.scale.x = scaleX;
+    transform.scale.y = scaleY;
+    transform.rotation = degToRad(rotation);
+    transform.pivot.x = pivotX;
+    transform.pivot.y = pivotY;
+    transform.position.x = x;
+    transform.position.y = y;
+
+    transform.updateLocalTransform();
 
     return {
-        quad: [p1, p2, p3, p4],
-        x: p0.x,
-        y: p0.y,
-        width: w,
-        height: h,
+        matrix: transform.localTransform,
+        naturalWidth,
+        naturalHeight,
+        width,
+        height,
         rotation,
+        x,
+        y,
+        pivotX,
+        pivotY,
+        scaleX,
+        scaleY,
     };
+}
+
+export function getLocalTransform(view: DisplayObject, pivot?: Point)
+{
+    updateTransforms(view);
+
+    const parentMatrix = view.parent.worldTransform.clone();
+    const viewMatrix = view.worldTransform.clone();
+    const transform = new Transform();
+
+    const p1 = viewMatrix.apply({ x: 0, y: 0 });
+    const p2 = viewMatrix.apply({ x: view.pivot.x, y: view.pivot.y });
+
+    parentMatrix.invert();
+    viewMatrix.prepend(parentMatrix);
+
+    transform.setFromMatrix(viewMatrix);
+    transform.updateLocalTransform();
+
+    const deltaX = p2.x - p1.x;
+    const deltaY = p2.y - p1.y;
+
+    viewMatrix.translate(deltaX, deltaY);
+
+    if (pivot)
+    {
+        view.pivot.x = pivot.x;
+        view.pivot.y = pivot.y;
+    }
+
+    return viewMatrix;
 }

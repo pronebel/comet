@@ -55,20 +55,19 @@ export abstract class DisplayObjectNode<
         const {
             values: {
                 x, y,
+                pivotX, pivotY,
                 scaleX, scaleY,
                 angle,
                 alpha,
                 visible,
             },
-            pivotLocalX,
-            pivotLocalY,
             view,
         } = this;
 
         view.x = x;
         view.y = y;
-        view.pivot.x = pivotLocalX;
-        view.pivot.y = pivotLocalY;
+        view.pivot.x = pivotX;
+        view.pivot.y = pivotY;
         view.scale.x = scaleX;
         view.scale.y = scaleY;
         view.angle = angle;
@@ -79,25 +78,5 @@ export abstract class DisplayObjectNode<
     public getGlobalBounds()
     {
         return this.view.getBounds();
-    }
-
-    public get naturalWidth()
-    {
-        return this.view.getLocalBounds().width;
-    }
-
-    public get naturalHeight()
-    {
-        return this.view.getLocalBounds().height;
-    }
-
-    public get pivotLocalX()
-    {
-        return this.naturalWidth * this.model.pivotX;
-    }
-
-    public get pivotLocalY()
-    {
-        return this.naturalHeight * this.model.pivotY;
     }
 }

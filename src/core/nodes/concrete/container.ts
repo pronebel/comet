@@ -2,7 +2,6 @@ import { Container } from 'pixi.js';
 
 import type { ModelBase } from '../../model/model';
 import { ModelSchema } from '../../model/schema';
-import { setParent } from '../../util/transform';
 import type { ClonableNode } from '../abstract/clonableNode';
 import type { DisplayObjectEvents, DisplayObjectModel } from '../abstract/displayObject';
 import { DisplayObjectNode, displayObjectSchema } from '../abstract/displayObject';
@@ -15,7 +14,7 @@ export const containerSchema = new ModelSchema<ContainerModel>({
     ...displayObjectSchema.defaults,
 }, displayObjectSchema.constraints);
 
-export class ContainerNode<
+export abstract class ContainerNode<
     M extends ContainerModel = ContainerModel,
     V extends Container = Container,
     E extends string = ContainerEvents,
@@ -47,8 +46,6 @@ export class ContainerNode<
         const parentView = parent.getView<Container>();
 
         parentView.addChild(thisView);
-
-        this.postUpdateView();
     }
 
     protected removeViewFromParent(parent: ClonableNode<ModelBase, object, string>): void
@@ -57,29 +54,6 @@ export class ContainerNode<
         const parentView = parent.getView<Container>();
 
         parentView.removeChild(thisView);
-
-        this.postUpdateView();
-    }
-
-    public postUpdateView(): void
-    {
-        const view = this.view;
-
-        if (view.parent)
-        {
-            // setParent(view, view.parent);
-            //     view.updateTransform();
-
-            //     const matrix = view.worldTransform.clone();
-
-            //     view.parent.updateTransform();
-            //     const parentMatrix = view.parent.worldTransform.clone();
-
-            //     parentMatrix.invert();
-            //     matrix.prepend(parentMatrix);
-
-        //     view.transform.setFromMatrix(matrix);
-        }
     }
 
     protected onCloaked(): void
@@ -91,5 +65,9 @@ export class ContainerNode<
     {
         this.addViewToParent(this.getParent<ClonableNode>());
     }
+
+    // not the localBounds (which includes the children, but the single local dimension of this view)
+    public abstract get naturalWidth(): number;
+    public abstract get naturalHeight(): number;
 }
 

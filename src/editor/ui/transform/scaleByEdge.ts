@@ -6,7 +6,7 @@ export class ScaleByEdgeOperation extends ScaleOperation
 {
     public init(dragInfo: DragInfo): void
     {
-        const { gizmo: { vertex } } = this;
+        const { gizmo: { vertex, initialTransform: { width, height } } } = this;
         const { isAltDown } = dragInfo;
 
         super.init(dragInfo);
