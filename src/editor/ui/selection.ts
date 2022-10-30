@@ -6,7 +6,7 @@ export type NodeSelectionEvent = 'add' | 'remove';
 
 export class NodeSelection extends EventEmitter<NodeSelectionEvent>
 {
-    protected readonly nodes: ContainerNode[];
+    public readonly nodes: ContainerNode[];
 
     constructor()
     {

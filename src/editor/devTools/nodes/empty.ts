@@ -1,13 +1,30 @@
 import { type DisplayObject, Container } from 'pixi.js';
 
-import type { ModelSchema } from '../../../core/model/schema';
-import { type ContainerModel, ContainerNode, containerSchema } from '../../../core/nodes/concrete/container';
+import { ModelSchema } from '../../../core/model/schema';
+import { displayObjectSchema } from '../../../core/nodes/abstract/displayObject';
+import { type ContainerModel, ContainerNode } from '../../../core/nodes/concrete/container';
 import { createPivotShape } from '../../ui/transform/const';
 
 const radius = 10;
 
+export const emptySchema = new ModelSchema<ContainerModel>({
+    ...displayObjectSchema.defaults,
+    pivotX: radius,
+    pivotY: radius,
+}, displayObjectSchema.constraints);
+
 export class EmptyNode extends ContainerNode<ContainerModel, Container>
 {
+    public get naturalWidth(): number
+    {
+        return radius * 2;
+    }
+
+    public get naturalHeight(): number
+    {
+        return radius * 2;
+    }
+
     public nodeType()
     {
         return 'Empty';
@@ -15,7 +32,7 @@ export class EmptyNode extends ContainerNode<ContainerModel, Container>
 
     public modelSchema(): ModelSchema<ContainerModel>
     {
-        return containerSchema;
+        return emptySchema;
     }
 
     public updateView(): void
@@ -42,13 +59,10 @@ export class EmptyNode extends ContainerNode<ContainerModel, Container>
             crosshairSize: 8,
         });
 
+        yellowPivot.x = radius;
+        yellowPivot.y = radius;
+
         container.addChild(yellowPivot);
-
-        // const bounds = yellowPivot.getLocalBounds();
-
-        // adjust to fit
-        // yellowPivot.x = bounds.width - (radius * 2);
-        // yellowPivot.y = bounds.height - (radius * 2);
 
         return container;
     }

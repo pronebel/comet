@@ -78,11 +78,12 @@ function setup()
 
     const red = createNode({ tint: 0xff0000, x: 10, y: 10, width: 16, height: 16, angle: 0, pivotX: 0, pivotY: 0 });
     const green = createNode({
-        tint: 0x006600, x: 100, y: 50, width: 30, height: 20, angle: 15, pivotX: 8, pivotY: 8,
+        tint: 0x006600, x: 10, y: 50, width: 16, height: 16, angle: 15, pivotX: 8, pivotY: 8,
     });
     const blue = createNode({ tint: 0x0000ff, x: 10, y: 10, width: 16, height: 16, angle: 0, pivotX: 0, pivotY: 0 });
 
     red.addChild(blue);
+    blue.addChild(green);
 
     return { win, editLayer, red, green, blue, gizmo, pixi };
 }

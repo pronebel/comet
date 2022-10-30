@@ -1,5 +1,5 @@
 import { EventEmitter } from 'eventemitter3';
-import type { Matrix } from 'pixi.js';
+import { Matrix } from 'pixi.js';
 import { type Container, type InteractionEvent, Rectangle, Transform } from 'pixi.js';
 
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
@@ -13,7 +13,7 @@ import { ScaleByPivotOperation } from './scaleByPivot';
 import { TranslateOperation } from './translate';
 import { TranslatePivotOperation } from './translatePivot';
 import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
-import type { InitialGizmoTransform } from './util';
+import { type InitialGizmoTransform, getLocalTransform, getTotalGlobalBounds } from './util';
 import { defaultInitialGizmoTransform, getGizmoInitialTransformFromView, updateTransforms } from './util';
 
 export type TransformGizmoEvent = 'changed';
@@ -245,7 +245,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         this.update();
 
-        event.stopPropagation();
+        // event.stopPropagation();
     };
 
     // @ts-ignore
@@ -275,7 +275,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         // reset
         this.clearOperation();
 
-        // this.emit('changed', values);
+        this.updateSelectedModels();
     };
 
     public clearOperation()
@@ -391,7 +391,24 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
     public getGlobalBounds()
     {
-        return new Rectangle();
+        if (this.selected.length === 0)
+        {
+            return new Rectangle();
+        }
+
+        const { matrix, initialTransform: { width, height } } = this;
+        const p1 = matrix.apply({ x: 0, y: 0 });
+        const p2 = matrix.apply({ x: width, y: 0 });
+        const p3 = matrix.apply({ x: width, y: height });
+        const p4 = matrix.apply({ x: 0, y: height });
+        const minX = Math.min(p1.x, p2.x, p3.x, p4.x);
+        const minY = Math.min(p1.y, p2.y, p3.y, p4.y);
+        const maxX = Math.max(p1.x, p2.x, p3.x, p4.x);
+        const maxY = Math.max(p1.y, p2.y, p3.y, p4.y);
+
+        const rect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+
+        return rect;
     }
 
     public updateTransform()
@@ -408,8 +425,9 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
     protected updateSelected()
     {
-        this.selected.forEach((node) =>
+        if (this.selected.length === 1)
         {
+            const node = this.selected[0];
             const view = node.getView();
             const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
 
@@ -419,7 +437,22 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             cachedMatrix.append(thisMatrix);
 
             view.transform.setFromMatrix(cachedMatrix);
-        });
+        }
+        else
+        {
+            this.selected.forEach((node) =>
+            {
+                const view = node.getView();
+                const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
+
+                const thisMatrix = this.matrix;
+
+                cachedMatrix.prepend(this.initialTransform.matrix.clone().invert());
+                cachedMatrix.prepend(thisMatrix);
+
+                view.transform.setFromMatrix(cachedMatrix);
+            });
+        }
     }
 
     get matrix()
@@ -446,6 +479,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         const view = node.view;
 
+        view.interactive = true;
         updateTransforms(view);
 
         const cachedMatrix = view.worldTransform.clone();
@@ -464,10 +498,69 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.show();
     }
 
+    public multiSelect<T extends ContainerNode>(nodes: T[])
+    {
+        const rect = getTotalGlobalBounds(nodes);
+        const centerX = rect.width * 0.5;
+        const centerY = rect.height * 0.5;
+
+        const matrix = new Matrix();
+
+        matrix.translate(rect.left, rect.top);
+
+        const transform: InitialGizmoTransform = {
+            ...defaultInitialGizmoTransform,
+            matrix,
+            width: rect.width,
+            height: rect.height,
+            naturalWidth: rect.width,
+            naturalHeight: rect.height,
+            x: rect.left + centerX,
+            y: rect.top + centerY,
+            pivotX: centerX,
+            pivotY: centerY,
+        };
+
+        this.initialTransform = transform;
+
+        this.transform = new Transform();
+        this.transform.pivot.x = transform.pivotX;
+        this.transform.pivot.y = transform.pivotY;
+        this.transform.position.x = transform.x;
+        this.transform.position.y = transform.y;
+        this.transform.scale.x = transform.scaleX;
+        this.transform.scale.y = transform.scaleY;
+
+        this.selected = [...nodes];
+        this.selected.forEach((node) =>
+        {
+            const view = node.view;
+
+            view.interactive = true;
+            updateTransforms(view);
+
+            const cachedMatrix = view.worldTransform.clone();
+
+            this.matrixCache.set(node, cachedMatrix);
+        });
+
+        this.update();
+        this.show();
+    }
+
     public deselect()
     {
         this.selected.length = 0;
         this.matrixCache.clear();
         this.hide();
+    }
+
+    protected updateSelectedModels()
+    {
+        // this.selected.forEach((node) =>
+        // {
+        //     const view = node.view;
+        //     const matrix = getLocalTransform(view);
+        // });
     }
 }

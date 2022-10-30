@@ -71,7 +71,7 @@ export class EditableView
                     }
                 }
 
-                if (wasDoubleClick)
+                if (wasDoubleClick && underCursor.length > 0)
                 {
                     this.selectWithDrag(underCursor[0], e);
                 }
@@ -80,6 +80,7 @@ export class EditableView
                     if (underCursor.length === 0)
                     {
                         this.selection.deselect();
+                        this.transformGizmo.deselect();
                     }
                     else
                     {
@@ -157,6 +158,10 @@ export class EditableView
         if (this.selection.isSingle)
         {
             this.transformGizmo.select(node);
+        }
+        else
+        {
+            this.transformGizmo.multiSelect(this.selection.nodes);
         }
     };
 

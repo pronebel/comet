@@ -1,7 +1,8 @@
-import type { DisplayObject, Point } from 'pixi.js';
-import { Matrix, Transform } from 'pixi.js';
+import type { DisplayObject } from 'pixi.js';
+import { Matrix, Rectangle, Transform } from 'pixi.js';
 
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
+import type { Point } from '../../../core/util/geom';
 import { angleBetween, degToRad } from '../../../core/util/geom';
 
 export function round(num: number)
@@ -145,4 +146,27 @@ export function getLocalTransform(view: DisplayObject, pivot?: Point)
     }
 
     return viewMatrix;
+}
+
+export function getTotalGlobalBounds<T extends ContainerNode>(nodes: T[])
+{
+    let rect = new Rectangle();
+
+    nodes.forEach((node) =>
+    {
+        node.view.updateTransform();
+
+        const bounds = node.getGlobalBounds();
+
+        if (rect.width === 0 && rect.height === 0 && rect.x === 0 && rect.y === 0)
+        {
+            rect = bounds.clone();
+        }
+        else
+        {
+            rect.enlarge(bounds);
+        }
+    });
+
+    return rect;
 }

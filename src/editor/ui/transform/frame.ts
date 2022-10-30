@@ -67,6 +67,7 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
             {
                 this.gizmo.setActiveVertex(vertex);
                 this.gizmo.onMouseDown(e);
+                e.stopPropagation();
             })
             .on('mousemove', this.gizmo.onMouseMove);
 
@@ -113,6 +114,12 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         border.moveTo(p2.x, p2.y); border.lineTo(p3.x, p3.y);
         border.moveTo(p3.x, p3.y); border.lineTo(p4.x, p4.y);
         border.moveTo(p4.x, p4.y); border.lineTo(p1.x, p1.y);
+
+        const rect = gizmo.getGlobalBounds();
+
+        border.beginFill(0xffffff, 0.1);
+        border.drawRect(rect.left, rect.top, rect.width, rect.height);
+        border.endFill();
     }
 
     protected drawPivot()
