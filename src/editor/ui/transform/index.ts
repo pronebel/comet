@@ -13,7 +13,7 @@ import { ScaleByPivotOperation } from './scaleByPivot';
 import { TranslateOperation } from './translate';
 import { TranslatePivotOperation } from './translatePivot';
 import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
-import { type InitialGizmoTransform, defaultInitialGizmoTransform, getGizmoInitialTransformFromView, getLocalTransform } from './util';
+import { type InitialGizmoTransform, defaultInitialGizmoTransform, getGizmoInitialTransformFromView, getLocalTransform, updateTransforms } from './util';
 
 export type TransformGizmoEvent = 'changed';
 
@@ -412,7 +412,12 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             const view = node.getView();
             const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
 
-            cachedMatrix.prepend(this.matrix);
+            const m = this.matrix;
+
+            m.prepend(this.initialTransform.matrix.clone().invert());
+
+            // m.append(this.initialTransform.matrix.clone().invert());
+            cachedMatrix.append(m);
 
             view.transform.setFromMatrix(cachedMatrix);
         });
@@ -438,13 +443,27 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.transform.scale.x = transform.scaleX;
         this.transform.scale.y = transform.scaleY;
 
+        this.updateTransform();
+        this.initialTransform.matrix = this.matrix;
+
         this.selected = [node];
 
         this.updateTransform();
 
-        const cachedMatrix = node.view.worldTransform.clone();
+        const view = node.view;
 
-        cachedMatrix.prepend(this.matrix.invert());
+        updateTransforms(view);
+
+        const cachedMatrix = view.worldTransform.clone();
+
+        if (view.parent)
+        {
+            const parentMatrix = view.parent.worldTransform.clone();
+
+            parentMatrix.invert();
+            cachedMatrix.prepend(parentMatrix);
+        }
+
         this.matrixCache.set(node, cachedMatrix);
 
         this.update();
