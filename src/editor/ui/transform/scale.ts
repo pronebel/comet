@@ -10,10 +10,10 @@ export abstract class ScaleOperation extends TransformOperation<
 
     public init(dragInfo: DragInfo): void
     {
-        const { gizmo: { initialTransform: { width, height, naturalWidth, naturalHeight } }, gizmo } = this;
+        const { gizmo: { initialTransform: { width, height } }, gizmo } = this;
 
-        this.writeCache('pivotX', gizmo.pivotX / naturalWidth);
-        this.writeCache('pivotY', gizmo.pivotY / naturalHeight);
+        this.writeCache('pivotX', gizmo.pivotX / width);
+        this.writeCache('pivotY', gizmo.pivotY / height);
         this.writeCache('globalX', dragInfo.globalX);
         this.writeCache('globalY', dragInfo.globalY);
         this.writeCache('width', width * gizmo.scaleX);
@@ -85,9 +85,9 @@ export abstract class ScaleOperation extends TransformOperation<
 
     protected setPivot(xFrac: number, yFrac: number)
     {
-        const { gizmo: { initialTransform: { naturalWidth, naturalHeight } }, gizmo } = this;
-        const localX = naturalWidth * xFrac;
-        const localY = naturalHeight * yFrac;
+        const { gizmo: { initialTransform: { width, height } }, gizmo } = this;
+        const localX = width * xFrac;
+        const localY = height * yFrac;
 
         const globalPoint = gizmo.getGlobalPoint(localX, localY);
 

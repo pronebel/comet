@@ -11,9 +11,9 @@ export class TranslatePivotOperation extends TransformOperation
 
     public drag(dragInfo: DragInfo): void
     {
-        if (dragInfo.isShiftDown)
+        if (dragInfo.isAltDown)
         {
-            this.gizmo.setPivotFromGlobalPoint(dragInfo.globalX, dragInfo.globalY, dragInfo.isAltDown);
+            this.gizmo.setPivotFromGlobalPoint(dragInfo.globalX, dragInfo.globalY, dragInfo.isControlDown);
         }
     }
 

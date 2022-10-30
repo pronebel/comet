@@ -7,6 +7,7 @@ import { type Point, degToRad, getMatrixRotation, radToDeg } from '../../../core
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
 import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';
+import { bluePivot, yellowPivot } from './pivot';
 import { RotateOperation } from './rotate';
 import { ScaleByEdgeOperation } from './scaleByEdge';
 import { ScaleByPivotOperation } from './scaleByPivot';
@@ -211,7 +212,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.updateDragInfoFromEvent(event);
 
         const {
-            dragInfo: { isMetaDown, isShiftDown },
+            dragInfo: { isMetaDown, isAltDown },
             isVertexDrag,
             config,
         } = this;
@@ -233,7 +234,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             }
         }
         else
-        if (isShiftDown)
+        if (isAltDown && config.enablePivotTranslation)
         {
             this.operation = new TranslatePivotOperation(this);
         }
@@ -509,6 +510,22 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         this.initNode(node);
 
+        if (node.nodeType() === 'Empty')
+        {
+            this.setConfig({
+                enablePivotTranslation: false,
+                showPivot: false,
+            });
+        }
+        else
+        {
+            this.setConfig({
+                pivotView: bluePivot,
+                enablePivotTranslation: true,
+                showPivot: true,
+            });
+        }
+
         this.update();
     }
 
@@ -540,6 +557,11 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         {
             this.initNode(node);
         });
+        this.setConfig({
+            pivotView: yellowPivot,
+            enablePivotTranslation: true,
+            showPivot: true,
+        });
 
         this.update();
     }
@@ -559,48 +581,46 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
     protected updateSelectedModels()
     {
-        if (this.selected.length === 1)
-        {
-            const node = this.selected[0];
-            const { x, y, rotation, pivotX, pivotY, scaleX, scaleY } = this;
+        // if (this.selected.length === 1)
+        // {
+        //     const node = this.selected[0];
+        //     const { x, y, rotation, pivotX, pivotY, scaleX, scaleY } = this;
 
-            const values = {
-                pivotX,
-                pivotY,
-                x,
-                y,
-                angle: rotation,
-                scaleX,
-                scaleY,
-            };
+        //     const values = {
+        //         pivotX,
+        //         pivotY,
+        //         x,
+        //         y,
+        //         angle: rotation,
+        //         scaleX,
+        //         scaleY,
+        //     };
 
-            node.model.setValues(values);
-        }
-        else
-        {
-            this.selected.forEach((node) =>
-            {
-                const view = node.view;
-                const matrix = getLocalTransform(view);
+        //     node.model.setValues(values);
+        // }
+        // else
+        // {
+        //     this.selected.forEach((node) =>
+        //     {
+        //         const view = node.view;
+        //         const matrix = getLocalTransform(view);
 
-                const x = matrix.tx;
-                const y = matrix.ty;
-                const angle = getMatrixRotation(matrix);
-                const scaleX = matrix.a;
-                const scaleY = matrix.d;
+        //         const x = matrix.tx;
+        //         const y = matrix.ty;
+        //         const angle = getMatrixRotation(matrix);
+        //         const scaleX = view.scale.x;
+        //         const scaleY = view.scale.y;
 
-                const values = {
-                    x,
-                    y,
-                    angle,
-                    scaleX,
-                    scaleY,
-                };
+        //         const values = {
+        //             x,
+        //             y,
+        //             angle,
+        //             scaleX,
+        //             scaleY,
+        //         };
 
-                console.log(values);
-
-                node.model.setValues(values);
-            });
-        }
+        //         node.model.setValues(values);
+        //     });
+        // }
     }
 }

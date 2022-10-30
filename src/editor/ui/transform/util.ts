@@ -2,7 +2,6 @@ import type { DisplayObject } from 'pixi.js';
 import { Matrix, Rectangle, Transform } from 'pixi.js';
 
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
-import type { Point } from '../../../core/util/geom';
 import { angleBetween, degToRad } from '../../../core/util/geom';
 
 export function round(num: number)
