@@ -2,6 +2,7 @@ import { EventEmitter } from 'eventemitter3';
 import type { Container, InteractionEvent } from 'pixi.js';
 import { Matrix, Rectangle, Transform } from 'pixi.js';
 
+import type { DisplayObjectModel } from '../../../core/nodes/abstract/displayObject';
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { Application } from '../../application';
@@ -58,235 +59,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.hide();
 
         this.initFrame();
-    }
-
-    protected initFrame()
-    {
-        const { frame } = this;
-
-        frame
-            .on('mousedown', (e: InteractionEvent) =>
-            {
-                this.setActiveVertex({ h: 'none', v: 'none' });
-                this.onMouseDown(e);
-            })
-            .on('mousemove', this.onMouseMove)
-            .on('mouseup', this.onMouseUp);
-    }
-
-    public show()
-    {
-        const { frame: { container } } = this;
-
-        if (!container.visible)
-        {
-            container.visible = true;
-        }
-    }
-
-    public hide()
-    {
-        const { frame: { container } } = this;
-
-        if (container.visible)
-        {
-            container.visible = false;
-        }
-    }
-
-    public get isVisible()
-    {
-        return this.frame.container.visible;
-    }
-
-    public setContainer(container: Container)
-    {
-        container.addChild(this.frame.container);
-    }
-
-    public setVisualPivot(xFrac: number, yFrac: number)
-    {
-        this.visualPivot = {
-            x: xFrac,
-            y: yFrac,
-        };
-    }
-
-    public setConfig(config: Partial<TransformGizmoConfig>)
-    {
-        this.config = {
-            ...this.config,
-            ...config,
-        };
-
-        if (config.pivotView)
-        {
-            this.frame.setPivotView(config.pivotView);
-        }
-    }
-
-    public setActiveVertex(vertex: HandleVertex)
-    {
-        this.vertex = vertex;
-    }
-
-    public getLocalPoint(globalX: number, globalY: number)
-    {
-        return this.matrix.applyInverse({ x: globalX, y: globalY });
-    }
-
-    public getGlobalPoint(localX: number, localY: number)
-    {
-        return this.matrix.apply({ x: localX, y: localY });
-    }
-
-    public constrainLocalPoint(localPoint: {x: number; y: number})
-    {
-        const { initialTransform: { width, height } } = this;
-
-        localPoint.x = Math.min(width, Math.max(0, localPoint.x));
-        localPoint.y = Math.min(height, Math.max(0, localPoint.y));
-    }
-
-    public setPivotFromGlobalPoint(globalX: number, globalY: number, constrain = false)
-    {
-        this.updateTransform();
-
-        const globalPoint = { x: globalX, y: globalY };
-        const localPoint = this.getLocalPoint(globalX, globalY);
-
-        if (constrain)
-        {
-            this.constrainLocalPoint(localPoint);
-            const p = this.getGlobalPoint(localPoint.x, localPoint.y);
-
-            globalPoint.x = p.x;
-            globalPoint.y = p.y;
-        }
-
-        this.transform.pivot.x = localPoint.x;
-        this.transform.pivot.y = localPoint.y;
-
-        this.updateTransform();
-
-        const p = this.getGlobalPoint(localPoint.x, localPoint.y);
-
-        const deltaX = globalPoint.x - p.x;
-        const deltaY = globalPoint.y - p.y;
-
-        this.x += deltaX;
-        this.y += deltaY;
-    }
-
-    protected updateDragInfoFromEvent(event: InteractionEvent)
-    {
-        const { dragInfo } = this;
-
-        if (dragInfo)
-        {
-            const globalX = event.data.global.x;
-            const globalY = event.data.global.y;
-            const { x: localX, y: localY } = this.getLocalPoint(globalX, globalY);
-
-            dragInfo.globalX = globalX;
-            dragInfo.globalY = globalY;
-            dragInfo.localX = localX;
-            dragInfo.localY = localY;
-            dragInfo.isShiftDown = event.data.originalEvent.shiftKey;
-            dragInfo.isAltDown = event.data.originalEvent.altKey;
-            dragInfo.isMetaDown = event.data.originalEvent.metaKey;
-            dragInfo.isControlDown = event.data.originalEvent.ctrlKey;
-            dragInfo.buttons = event.data.buttons;
-            dragInfo.event = event;
-        }
-    }
-
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onMouseDown = (event: InteractionEvent) =>
-    {
-        this.dragInfo = {
-            ...defaultDragInfo,
-            event,
-        };
-
-        this.updateDragInfoFromEvent(event);
-
-        const {
-            dragInfo: { isMetaDown, isAltDown },
-            isVertexDrag,
-            config,
-        } = this;
-
-        // select operation
-        if (isMetaDown)
-        {
-            this.operation = new RotateOperation(this);
-        }
-        else if (isVertexDrag)
-        {
-            if (config.enableScaleByPivot)
-            {
-                this.operation = new ScaleByPivotOperation(this);
-            }
-            else
-            {
-                this.operation = new ScaleByEdgeOperation(this);
-            }
-        }
-        else
-        if (isAltDown && config.enablePivotTranslation)
-        {
-            this.operation = new TranslatePivotOperation(this);
-        }
-        else
-        {
-            this.operation = new TranslateOperation(this);
-        }
-
-        // init and start operation
-        if (this.operation)
-        {
-            this.operation.init(this.dragInfo);
-            this.operation.drag(this.dragInfo);
-        }
-
-        this.update();
-    };
-
-    public onMouseMove = (event: InteractionEvent) =>
-    {
-        if (this.operation && this.dragInfo)
-        {
-            this.updateDragInfoFromEvent(event);
-            this.operation.drag(this.dragInfo);
-
-            this.update();
-        }
-    };
-
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onMouseUp = (event: MouseEvent) =>
-    {
-        if (this.operation && this.dragInfo)
-        {
-            this.operation.end(this.dragInfo);
-
-            this.update();
-        }
-
-        // reset
-        this.clearOperation();
-
-        this.updateSelectedModels();
-    };
-
-    public clearOperation()
-    {
-        this.vertex = { h: 'none', v: 'none' };
-        delete this.operation;
-        delete this.dragInfo;
     }
 
     get isVertexDrag()
@@ -393,6 +165,238 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.transform.scale.y = y;
     }
 
+    get matrix()
+    {
+        return this.transform.localTransform.clone();
+    }
+
+    public get isVisible()
+    {
+        return this.frame.container.visible;
+    }
+
+    protected initFrame()
+    {
+        const { frame } = this;
+
+        frame
+            .on('mousedown', (e: InteractionEvent) =>
+            {
+                this.setActiveVertex({ h: 'none', v: 'none' });
+                this.onMouseDown(e);
+            })
+            .on('mousemove', this.onMouseMove)
+            .on('mouseup', this.onMouseUp);
+    }
+
+    public show()
+    {
+        const { frame: { container } } = this;
+
+        if (!container.visible)
+        {
+            container.visible = true;
+        }
+    }
+
+    public hide()
+    {
+        const { frame: { container } } = this;
+
+        if (container.visible)
+        {
+            container.visible = false;
+        }
+    }
+
+    public setContainer(container: Container)
+    {
+        container.addChild(this.frame.container);
+    }
+
+    public setVisualPivot(x: number, y: number)
+    {
+        this.visualPivot = {
+            x,
+            y,
+        };
+    }
+
+    public setConfig(config: Partial<TransformGizmoConfig>)
+    {
+        this.config = {
+            ...this.config,
+            ...config,
+        };
+
+        if (config.pivotView)
+        {
+            this.frame.setPivotView(config.pivotView);
+        }
+    }
+
+    public setActiveVertex(vertex: HandleVertex)
+    {
+        this.vertex = vertex;
+    }
+
+    public getLocalPoint(globalX: number, globalY: number)
+    {
+        return this.matrix.applyInverse({ x: globalX, y: globalY });
+    }
+
+    public getGlobalPoint(localX: number, localY: number)
+    {
+        return this.matrix.apply({ x: localX, y: localY });
+    }
+
+    public constrainLocalPoint(localPoint: {x: number; y: number})
+    {
+        const { initialTransform: { width, height } } = this;
+
+        localPoint.x = Math.min(width, Math.max(0, localPoint.x));
+        localPoint.y = Math.min(height, Math.max(0, localPoint.y));
+    }
+
+    public setPivotFromGlobalPoint(globalX: number, globalY: number, constrain = false)
+    {
+        this.updateTransform();
+
+        const globalPoint = { x: globalX, y: globalY };
+        const localPoint = this.getLocalPoint(globalX, globalY);
+
+        if (constrain)
+        {
+            this.constrainLocalPoint(localPoint);
+            const p = this.getGlobalPoint(localPoint.x, localPoint.y);
+
+            globalPoint.x = p.x;
+            globalPoint.y = p.y;
+        }
+
+        this.transform.pivot.x = localPoint.x;
+        this.transform.pivot.y = localPoint.y;
+
+        this.updateTransform();
+
+        const p = this.getGlobalPoint(localPoint.x, localPoint.y);
+
+        const deltaX = globalPoint.x - p.x;
+        const deltaY = globalPoint.y - p.y;
+
+        this.x += deltaX;
+        this.y += deltaY;
+    }
+
+    protected updateDragInfoFromEvent(event: InteractionEvent)
+    {
+        const { dragInfo } = this;
+
+        if (dragInfo)
+        {
+            const globalX = event.data.global.x;
+            const globalY = event.data.global.y;
+            const { x: localX, y: localY } = this.getLocalPoint(globalX, globalY);
+
+            dragInfo.globalX = globalX;
+            dragInfo.globalY = globalY;
+            dragInfo.localX = localX;
+            dragInfo.localY = localY;
+            dragInfo.isShiftDown = event.data.originalEvent.shiftKey;
+            dragInfo.isAltDown = event.data.originalEvent.altKey;
+            dragInfo.isMetaDown = event.data.originalEvent.metaKey;
+            dragInfo.isControlDown = event.data.originalEvent.ctrlKey;
+            dragInfo.buttons = event.data.buttons;
+            dragInfo.event = event;
+        }
+    }
+
+    public onMouseDown = (event: InteractionEvent) =>
+    {
+        this.dragInfo = {
+            ...defaultDragInfo,
+            event,
+        };
+
+        this.updateDragInfoFromEvent(event);
+
+        const {
+            dragInfo: { isMetaDown, isAltDown, isShiftDown },
+            isVertexDrag,
+            config,
+        } = this;
+
+        // select operation
+        if (isMetaDown)
+        {
+            this.operation = new RotateOperation(this);
+        }
+        else if (isVertexDrag)
+        {
+            if (isShiftDown)
+            {
+                this.operation = new ScaleByEdgeOperation(this);
+            }
+            else
+            {
+                this.operation = new ScaleByPivotOperation(this);
+            }
+        }
+        else
+        if (isAltDown && config.enablePivotTranslation)
+        {
+            this.operation = new TranslatePivotOperation(this);
+        }
+        else
+        {
+            this.operation = new TranslateOperation(this);
+        }
+
+        // init and start operation
+        if (this.operation)
+        {
+            this.operation.init(this.dragInfo);
+            this.operation.drag(this.dragInfo);
+        }
+
+        this.update();
+    };
+
+    public onMouseMove = (event: InteractionEvent) =>
+    {
+        if (this.operation && this.dragInfo)
+        {
+            this.updateDragInfoFromEvent(event);
+            this.operation.drag(this.dragInfo);
+
+            this.update();
+        }
+    };
+
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public onMouseUp = (event: MouseEvent) =>
+    {
+        if (this.operation && this.dragInfo)
+        {
+            this.operation.end(this.dragInfo);
+
+            this.update();
+        }
+
+        // reset
+        this.clearOperation();
+
+        this.updateSelectedModels();
+    };
+
+    public clearOperation()
+    {
+        this.vertex = { h: 'none', v: 'none' };
+        delete this.operation;
+        delete this.dragInfo;
+    }
+
     public getGlobalBounds()
     {
         if (this.selected.length === 0)
@@ -415,11 +419,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         return rect;
     }
 
-    public updateTransform()
-    {
-        this.transform.updateLocalTransform();
-    }
-
     public update()
     {
         this.updateTransform();
@@ -430,6 +429,11 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         {
             this.show();
         }
+    }
+
+    public updateTransform()
+    {
+        this.transform.updateLocalTransform();
     }
 
     protected updateSelected()
@@ -462,45 +466,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 view.transform.setFromMatrix(cachedMatrix);
             });
         }
-    }
-
-    get matrix()
-    {
-        return this.transform.localTransform.clone();
-    }
-
-    protected initTransform(transform: InitialGizmoTransform)
-    {
-        this.initialTransform = transform;
-
-        this.transform = new Transform();
-        this.transform.pivot.x = transform.pivotX;
-        this.transform.pivot.y = transform.pivotY;
-        this.transform.position.x = transform.x;
-        this.transform.position.y = transform.y;
-        this.transform.rotation = degToRad(transform.rotation);
-        this.transform.scale.x = transform.scaleX;
-        this.transform.scale.y = transform.scaleY;
-    }
-
-    protected initNode(node: ContainerNode)
-    {
-        const view = node.view;
-
-        updateTransforms(view);
-        view.interactive = true;
-
-        const cachedMatrix = view.worldTransform.clone();
-
-        if (view.parent && this.selected.length === 1)
-        {
-            const parentMatrix = view.parent.worldTransform.clone();
-
-            parentMatrix.invert();
-            cachedMatrix.prepend(parentMatrix);
-        }
-
-        this.matrixCache.set(node, cachedMatrix);
     }
 
     public selectSingleNode<T extends ContainerNode>(node: T)
@@ -580,95 +545,92 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.hide();
     }
 
+    protected initTransform(transform: InitialGizmoTransform)
+    {
+        this.initialTransform = transform;
+
+        this.transform = new Transform();
+        this.transform.pivot.x = transform.pivotX;
+        this.transform.pivot.y = transform.pivotY;
+        this.transform.position.x = transform.x;
+        this.transform.position.y = transform.y;
+        this.transform.rotation = degToRad(transform.rotation);
+        this.transform.scale.x = transform.scaleX;
+        this.transform.scale.y = transform.scaleY;
+    }
+
+    protected initNode(node: ContainerNode)
+    {
+        const view = node.view;
+
+        updateTransforms(view);
+        view.interactive = true;
+
+        const cachedMatrix = view.worldTransform.clone();
+
+        if (view.parent && this.selected.length === 1)
+        {
+            const parentMatrix = view.parent.worldTransform.clone();
+
+            parentMatrix.invert();
+            cachedMatrix.prepend(parentMatrix);
+        }
+
+        this.matrixCache.set(node, cachedMatrix);
+    }
+
     protected updateSelectedModels()
     {
-        // if (this.selected.length === 1)
-        // {
-        //     const node = this.selected[0];
-        //     const { x, y, rotation, pivotX, pivotY, scaleX, scaleY } = this;
-
-        //     const values = {
-        //         pivotX,
-        //         pivotY,
-        //         x,
-        //         y,
-        //         angle: rotation,
-        //         scaleX,
-        //         scaleY,
-        //     };
-
-        //     node.model.setValues(values);
-        // }
-        // else
-        // {
-        //     this.selected.forEach((node) =>
-        //     {
-        //         const view = node.view;
-        //         const matrix = getLocalTransform(view);
-
-        //         const x = matrix.tx;
-        //         const y = matrix.ty;
-        //         const angle = getMatrixRotation(matrix);
-        //         const scaleX = view.scale.x;
-        //         const scaleY = view.scale.y;
-
-        //         const values = {
-        //             x,
-        //             y,
-        //             angle,
-        //             scaleX,
-        //             scaleY,
-        //         };
-
-        //         node.model.setValues(values);
-        //     });
-        // }
-
         this.selected.forEach((node) =>
         {
             const view = node.view;
 
             view.updateTransform();
 
-            let x = view.x;
-            let y = view.y;
+            const x = view.x;
+            const y = view.y;
             const angle = view.angle;
             const pivotX = this.pivotX;
             const pivotY = this.pivotY;
             const scaleX = view.scale.x;
             const scaleY = view.scale.y;
 
-            const matrix = view.worldTransform;
-            const p1 = matrix.apply({
-                x: pivotX,
-                y: pivotY,
-            });
-
-            view.pivot.x = pivotX;
-            view.pivot.y = pivotY;
-
-            view.updateTransform();
-
-            const p2 = matrix.apply({
-                x: pivotX,
-                y: pivotY,
-            });
-
-            const deltaX = p1.x - p2.x;
-            const deltaY = p1.y - p2.y;
-
-            x += deltaX;
-            y += deltaY;
-
-            const values = {
+            const values: Partial<DisplayObjectModel> = {
                 x,
                 y,
                 angle,
-                pivotX,
-                pivotY,
                 scaleX,
                 scaleY,
             };
+
+            // only set pivot for single mode
+            if (this.selected.length === 1 && node.nodeType() !== 'Empty')
+            {
+                const matrix = view.worldTransform;
+                const p1 = matrix.apply({
+                    x: pivotX,
+                    y: pivotY,
+                });
+
+                view.pivot.x = pivotX;
+                view.pivot.y = pivotY;
+
+                view.updateTransform();
+
+                const p2 = matrix.apply({
+                    x: pivotX,
+                    y: pivotY,
+                });
+
+                const deltaX = p1.x - p2.x;
+                const deltaY = p1.y - p2.y;
+
+                values.x = (values.x as number) + deltaX;
+                values.y = (values.y as number) + deltaY;
+
+                values.pivotX = pivotX;
+                values.pivotY = pivotY;
+            }
 
             Application.instance.exec(new ModifyModelCommand({
                 nodeId: node.id,

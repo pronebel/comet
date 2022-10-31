@@ -12,7 +12,7 @@ export interface TransformGizmoConfig
     enableTranslation: boolean;
     enableRotation: boolean;
     enableScaling: boolean;
-    enableScaleByPivot: boolean;
+    defaultScaleMode: 'edge' | 'pivot';
     pivotView: DisplayObject;
     edgeDragDistance: number;
     handlePrimarySize: number;
@@ -28,7 +28,7 @@ export const defaultTransformGizmoConfig: TransformGizmoConfig = {
     enableTranslation: true,
     enableRotation: true,
     enableScaling: true,
-    enableScaleByPivot: false,
+    defaultScaleMode: 'edge',
     pivotView: yellowPivot,
     edgeDragDistance: 5,
     handlePrimarySize: 5,

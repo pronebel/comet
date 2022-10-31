@@ -1,7 +1,11 @@
+import Color from 'color';
+
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
 import { createNodeSchema } from '../../../core/nodes/schema';
 import { Application } from '../../application';
 import { type AddChildCommandReturn, AddChildCommand } from '../../commands/addChild';
+
+const rnd = () => Math.random() * 255;
 
 export function newDebugNode()
 {
@@ -15,6 +19,10 @@ export function newDebugNode()
         parentId = selectedNode.id;
     }
 
+    const tint = Color.rgb(rnd(), rnd(), rnd());
+
+    tint.lighten(0.5);
+
     const nodeSchema = createNodeSchema('Sprite', {
         parent: parentId,
         model: {
@@ -22,7 +30,7 @@ export function newDebugNode()
             y: 10,
             scaleX: 1,
             scaleY: 1,
-            tint: Math.round(Math.random() * 100000),
+            tint: tint.rgbNumber(),
         },
     });
 

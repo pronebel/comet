@@ -12,8 +12,8 @@ export abstract class ScaleOperation extends TransformOperation<
     {
         const { gizmo: { initialTransform: { width, height } }, gizmo } = this;
 
-        this.writeCache('pivotX', gizmo.pivotX / width);
-        this.writeCache('pivotY', gizmo.pivotY / height);
+        this.writeCache('pivotX', gizmo.pivotX);
+        this.writeCache('pivotY', gizmo.pivotY);
         this.writeCache('globalX', dragInfo.globalX);
         this.writeCache('globalY', dragInfo.globalY);
         this.writeCache('width', width * gizmo.scaleX);
@@ -156,8 +156,9 @@ export abstract class ScaleOperation extends TransformOperation<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public end(dragInfo: DragInfo): void
     {
-        const origPivotX = this.readCache('pivotX');
-        const origPivotY = this.readCache('pivotY');
+        const { gizmo: { initialTransform: { width, height } } } = this;
+        const origPivotX = this.readCache('pivotX') / width;
+        const origPivotY = this.readCache('pivotY') / height;
 
         this.setPivot(origPivotX, origPivotY);
     }

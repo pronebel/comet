@@ -19,6 +19,8 @@ export class ScaleByEdgeOperation extends ScaleOperation
         {
             this.setPivotFromVertex(vertex);
         }
+
+        // this.gizmo.setVisualPivot();
     }
 
     // @ts-ignore

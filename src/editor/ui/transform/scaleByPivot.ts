@@ -20,7 +20,10 @@ export class ScaleByPivotOperation extends ScaleOperation
     protected calcDelta(dragInfo: DragInfo, delta: Point): boolean
     {
         const { localX, localY } = dragInfo;
-        const { pivotX, pivotY, pivotXFrac, pivotYFrac } = this.gizmo;
+        const { gizmo: { pivotX, pivotY, initialTransform: { width, height } } } = this;
+
+        const pivotXFrac = pivotX / width;
+        const pivotYFrac = pivotY / height;
 
         const result = super.calcDelta(dragInfo, delta);
 
