@@ -52,53 +52,7 @@ export class EditableView
         // set selection
         pixi.stage.interactive = true;
         pixi.stage
-            .on('mousedown', (e: InteractionEvent) =>
-            {
-                const globalX = e.data.global.x;
-                const globalY = e.data.global.y;
-
-                const underCursor = this.getUnderCursor(globalX, globalY);
-
-                let wasDoubleClick = false;
-
-                if (this.lastClick > -1)
-                {
-                    const delta = Date.now() - this.lastClick;
-
-                    if (delta < dblClickMsThreshold)
-                    {
-                        wasDoubleClick = true;
-                    }
-                }
-
-                if (wasDoubleClick && underCursor.length > 0)
-                {
-                    this.selectWithDrag(underCursor[0], e);
-                }
-                else if (!this.transformGizmo.getGlobalBounds().contains(globalX, globalY))
-                {
-                    if (underCursor.length === 0)
-                    {
-                        this.selection.deselect();
-                        this.transformGizmo.deselect();
-                    }
-                    else
-                    {
-                        const selectedNode = underCursor[0].getCloneRoot().cast<ContainerNode>();
-
-                        if (e.data.originalEvent.shiftKey)
-                        {
-                            this.selection.add(underCursor[0]);
-                        }
-                        else
-                        {
-                            this.selectWithDrag(selectedNode, e);
-                        }
-                    }
-                }
-
-                this.lastClick = Date.now();
-            });
+            .on('mousedown', this.onMouseDown);
 
         this.selection
             .on('add', this.onAddSelection)
@@ -106,6 +60,57 @@ export class EditableView
 
         (window as any).sel = this.selection;
     }
+
+    protected onMouseDown = (e: InteractionEvent) =>
+    {
+        const globalX = e.data.global.x;
+        const globalY = e.data.global.y;
+
+        const underCursor = this.getUnderCursor(globalX, globalY)
+            .filter((node) => !this.selection.isSelected(node));
+
+        // console.log(underCursor.map((node) => node.id));
+
+        let wasDoubleClick = false;
+
+        if (this.lastClick > -1)
+        {
+            const delta = Date.now() - this.lastClick;
+
+            if (delta < dblClickMsThreshold)
+            {
+                wasDoubleClick = true;
+            }
+        }
+
+        if (wasDoubleClick && underCursor.length > 0)
+        {
+            this.selectWithDrag(underCursor[0], e);
+        }
+        else if (!this.transformGizmo.getGlobalBounds().contains(globalX, globalY))
+        {
+            if (underCursor.length === 0)
+            {
+                this.selection.deselect();
+                this.transformGizmo.deselect();
+            }
+            else
+            {
+                const selectedNode = underCursor[0].getCloneRoot().cast<ContainerNode>();
+
+                if (e.data.originalEvent.shiftKey)
+                {
+                    this.selection.add(underCursor[0]);
+                }
+                else
+                {
+                    this.selectWithDrag(selectedNode, e);
+                }
+            }
+        }
+
+        this.lastClick = Date.now();
+    };
 
     protected selectWithDrag(selectedNode: ContainerNode, e: InteractionEvent)
     {

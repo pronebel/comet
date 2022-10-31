@@ -4,7 +4,7 @@ import { Matrix, Rectangle, Transform } from 'pixi.js';
 
 import type { DisplayObjectModel } from '../../../core/nodes/abstract/displayObject';
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
-import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
+import { type Point, degToRad, getMatrixRotation, radToDeg } from '../../../core/util/geom';
 import { Application } from '../../application';
 import { ModifyModelCommand } from '../../commands/modifyModel';
 import { TransformGizmoFrame } from './frame';
@@ -360,6 +360,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         }
 
         this.update();
+
+        // event.stopPropagation();
     };
 
     public onMouseMove = (event: InteractionEvent) =>
@@ -592,7 +594,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
     protected updateSelectedModels()
     {
-        // return;
         this.selected.forEach((node) =>
         {
             const view = node.view;
@@ -614,6 +615,22 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 scaleX,
                 scaleY,
             };
+
+            const matrix = view.worldTransform;
+            const rotation = getMatrixRotation(matrix);
+            const transform = new Transform();
+
+            // const x = view.x;
+            // const y = view.y;
+            matrix.decompose(transform);
+
+            console.log({
+                id: node.id,
+                angle: view.angle,
+                rotation,
+                transRot: radToDeg(transform.rotation),
+                matrix: matrix.toString(),
+            });
 
             // only set pivot for single mode
             if (this.selected.length === 1 && node.nodeType() !== 'Empty')

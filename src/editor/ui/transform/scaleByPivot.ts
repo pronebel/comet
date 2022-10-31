@@ -28,16 +28,20 @@ export class ScaleByPivotOperation extends ScaleOperation
         const result = super.calcDelta(dragInfo, delta);
 
         // adjust according to local pos relative to pivot
-        if (localX < pivotX)
+        const h = 1 / pivotXFrac;
+
+        if (localX < pivotX && !isNaN(h) && (h !== Infinity))
         {
-            delta.x *= 1 / pivotXFrac;
+            delta.x *= h;
         }
         else
         {
             delta.x *= 1 / (1.0 - pivotXFrac);
         }
 
-        if (localY < pivotY)
+        const v = 1 / pivotYFrac;
+
+        if (localY < pivotY && !isNaN(v) && (v !== Infinity))
         {
             delta.y *= 1 / pivotYFrac;
         }
