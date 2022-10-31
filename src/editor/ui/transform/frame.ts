@@ -93,15 +93,16 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
 
     protected drawBorder()
     {
-        const { border, gizmo, matrix } = this;
-        const { initialTransform: { width, height } } = gizmo;
+        const { border, gizmo, matrix, gizmo: { initialTransform: { localBounds } } } = this;
 
         border.clear();
 
-        const p1 = matrix.apply({ x: 0, y: 0 });
-        const p2 = matrix.apply({ x: width, y: 0 });
-        const p3 = matrix.apply({ x: width, y: height });
-        const p4 = matrix.apply({ x: 0, y: height });
+        const { left, top, width, height } = localBounds;
+
+        const p1 = matrix.apply({ x: left, y: top });
+        const p2 = matrix.apply({ x: width + left, y: top });
+        const p3 = matrix.apply({ x: width + left, y: height + top });
+        const p4 = matrix.apply({ x: left, y: height + top });
 
         const path = [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y];
 
@@ -117,8 +118,9 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
 
         const rect = gizmo.getGlobalBounds();
 
-        border.beginFill(0xffffff, 0.1);
-        border.drawRect(rect.left, rect.top, rect.width, rect.height);
+        border.lineStyle(1, 0xffffff, 0.3);
+        border.beginFill(0xffffff, 0.05);
+        border.drawRect(rect.left, rect.top, rect.width + left, rect.height + top);
         border.endFill();
     }
 
@@ -139,24 +141,26 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
             topLeftHandle, topRightHandle, bottomRightHandle, bottomLeftHandle,
             topCenterHandle, rightCenterHandle, bottomCenterHandle, leftCenterHandle,
         } = this;
-        const { initialTransform: { width, height } } = gizmo;
+        const { initialTransform: { localBounds } } = gizmo;
 
-        const p1 = matrix.apply({ x: 0, y: 0 });
-        const p2 = matrix.apply({ x: width, y: 0 });
-        const p3 = matrix.apply({ x: width, y: height });
-        const p4 = matrix.apply({ x: 0, y: height });
+        const { left, top, width, height } = localBounds;
+        const centerX = width * 0.5;
+        const centerY = height * 0.5;
+
+        const p1 = matrix.apply({ x: left, y: top });
+        const p2 = matrix.apply({ x: width + left, y: top });
+        const p3 = matrix.apply({ x: width + left, y: height + top });
+        const p4 = matrix.apply({ x: left, y: height + top });
 
         this.drawHandle(topLeftHandle, p1.x, p1.y);
         this.drawHandle(topRightHandle, p2.x, p2.y);
         this.drawHandle(bottomRightHandle, p3.x, p3.y);
         this.drawHandle(bottomLeftHandle, p4.x, p4.y);
 
-        const centerX = width * 0.5;
-        const centerY = height * 0.5;
-        const p5 = matrix.apply({ x: centerX, y: 0 });
-        const p6 = matrix.apply({ x: width, y: centerY });
-        const p7 = matrix.apply({ x: centerX, y: height });
-        const p8 = matrix.apply({ x: 0, y: centerY });
+        const p5 = matrix.apply({ x: centerX + left, y: top });
+        const p6 = matrix.apply({ x: width + left, y: centerY + top });
+        const p7 = matrix.apply({ x: centerX + left, y: height + top });
+        const p8 = matrix.apply({ x: left, y: centerY + top });
 
         this.drawHandle(topCenterHandle, p5.x, p5.y);
         this.drawHandle(rightCenterHandle, p6.x, p6.y);

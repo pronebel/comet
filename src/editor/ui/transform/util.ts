@@ -30,6 +30,7 @@ export function updateTransforms(view: DisplayObject)
 
 export interface InitialGizmoTransform
 {
+    localBounds: Rectangle;
     pivotX: number;
     pivotY: number;
     x: number;
@@ -45,6 +46,7 @@ export interface InitialGizmoTransform
 }
 
 export const defaultInitialGizmoTransform: InitialGizmoTransform = {
+    localBounds: Rectangle.EMPTY,
     pivotX: 0,
     pivotY: 0,
     x: 0,
@@ -75,16 +77,11 @@ export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGi
 
     const p1 = matrix.apply({ x: 0, y: 0 });
     const p2 = matrix.apply({ x: width, y: 0 });
-    // const p3 = matrix.apply({ x: width, y: height });
-
-    // width = p2.x - p1.x;
-    // height = p3.y - p2.y;
-
     const p0 = matrix.apply({ x: view.pivot.x, y: view.pivot.y });
 
     const rotation = angleBetween(p1.x, p1.y, p2.x, p2.y);
-    const x = p0.x;
-    const y = p0.y;
+    const x = p0.x + 0;
+    const y = p0.y + 0;
     const pivotX = view.pivot.x;
     const pivotY = view.pivot.y;
     const scaleX = view.scale.x;
@@ -105,6 +102,7 @@ export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGi
     transform.updateLocalTransform();
 
     return {
+        localBounds,
         matrix: transform.localTransform,
         naturalWidth,
         naturalHeight,

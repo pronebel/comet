@@ -461,8 +461,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         }
 
         this.update();
-
-        console.log(node.id);
     }
 
     public selectMultipleNodes<T extends ContainerNode>(nodes: T[])
@@ -477,6 +475,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         this.initTransform({
             ...defaultInitialGizmoTransform,
+            localBounds: new Rectangle(0, 0, rect.width, rect.height),
             matrix,
             width: rect.width,
             height: rect.height,
@@ -489,7 +488,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         });
 
         this.selected = [...nodes];
-        console.log(nodes.map((node) => node.id));
 
         this.selected.forEach((node) =>
         {
@@ -594,12 +592,12 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
     protected updateSelectedModels()
     {
-        return;
+        // return;
         this.selected.forEach((node) =>
         {
             const view = node.view;
 
-            view.updateTransform();
+            updateTransforms(view);
 
             const x = view.x;
             const y = view.y;
