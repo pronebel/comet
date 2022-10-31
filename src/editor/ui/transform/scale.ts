@@ -159,10 +159,6 @@ export abstract class ScaleOperation extends TransformOperation<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public end(dragInfo: DragInfo): void
     {
-        const { gizmo: { initialTransform: { width, height } } } = this;
-        const origPivotX = this.readCache('pivotX') / width;
-        const origPivotY = this.readCache('pivotY') / height;
-
-        this.setPivot(origPivotX, origPivotY);
+        //
     }
 }

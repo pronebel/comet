@@ -75,8 +75,6 @@ export class CloneCommand
 
             if (clonerId)
             {
-                // this.app.assertNode(clonerId);
-
                 const cloner = this.getInstance(clonerId);
                 const cloneInfoSchema = getCloneInfoSchema(cloner);
 

@@ -93,7 +93,7 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
 
     protected drawBorder()
     {
-        const { border, gizmo, matrix, gizmo: { initialTransform: { localBounds } } } = this;
+        const { border, matrix, gizmo: { initialTransform: { localBounds } } } = this;
 
         border.clear();
 
@@ -115,13 +115,6 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         border.moveTo(p2.x, p2.y); border.lineTo(p3.x, p3.y);
         border.moveTo(p3.x, p3.y); border.lineTo(p4.x, p4.y);
         border.moveTo(p4.x, p4.y); border.lineTo(p1.x, p1.y);
-
-        const rect = gizmo.getGlobalBounds();
-
-        border.lineStyle(1, 0xffffff, 0.3);
-        border.beginFill(0xffffff, 0.05);
-        border.drawRect(rect.left, rect.top, rect.width + left, rect.height + top);
-        border.endFill();
     }
 
     protected drawPivot()
