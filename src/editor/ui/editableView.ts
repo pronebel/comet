@@ -88,7 +88,7 @@ export class EditableView
 
                         if (e.data.originalEvent.shiftKey)
                         {
-                            this.selection.add(selectedNode);
+                            this.selection.add(underCursor[0]);
                         }
                         else
                         {

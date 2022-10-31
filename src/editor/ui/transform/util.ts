@@ -75,6 +75,10 @@ export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGi
 
     const p1 = matrix.apply({ x: 0, y: 0 });
     const p2 = matrix.apply({ x: width, y: 0 });
+    // const p3 = matrix.apply({ x: width, y: height });
+
+    // width = p2.x - p1.x;
+    // height = p3.y - p2.y;
 
     const p0 = matrix.apply({ x: view.pivot.x, y: view.pivot.y });
 

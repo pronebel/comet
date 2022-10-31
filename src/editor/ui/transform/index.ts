@@ -436,38 +436,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.transform.updateLocalTransform();
     }
 
-    protected updateSelected()
-    {
-        if (this.selected.length === 1)
-        {
-            const node = this.selected[0];
-            const view = node.getView();
-            const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
-
-            const thisMatrix = this.matrix;
-
-            thisMatrix.prepend(this.initialTransform.matrix.clone().invert());
-            cachedMatrix.append(thisMatrix);
-
-            view.transform.setFromMatrix(cachedMatrix);
-        }
-        else
-        {
-            this.selected.forEach((node) =>
-            {
-                const view = node.getView();
-                const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
-
-                const thisMatrix = this.matrix;
-
-                cachedMatrix.prepend(this.initialTransform.matrix.clone().invert());
-                cachedMatrix.prepend(thisMatrix);
-
-                view.transform.setFromMatrix(cachedMatrix);
-            });
-        }
-    }
-
     public selectSingleNode<T extends ContainerNode>(node: T)
     {
         this.initTransform(getGizmoInitialTransformFromView(node));
@@ -493,6 +461,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         }
 
         this.update();
+
+        console.log(node.id);
     }
 
     public selectMultipleNodes<T extends ContainerNode>(nodes: T[])
@@ -519,10 +489,13 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         });
 
         this.selected = [...nodes];
+        console.log(nodes.map((node) => node.id));
+
         this.selected.forEach((node) =>
         {
             this.initNode(node);
         });
+
         this.setConfig({
             pivotView: yellowPivot,
             enablePivotTranslation: true,
@@ -530,19 +503,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         });
 
         this.update();
-    }
-
-    public deselect()
-    {
-        this.selected.forEach((node) =>
-        {
-            const view = node.view;
-
-            view.interactive = false;
-        });
-        this.selected.length = 0;
-        this.matrixCache.clear();
-        this.hide();
     }
 
     protected initTransform(transform: InitialGizmoTransform)
@@ -568,7 +528,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         const cachedMatrix = view.worldTransform.clone();
 
-        if (view.parent && this.selected.length === 1)
+        if (view.parent)
         {
             const parentMatrix = view.parent.worldTransform.clone();
 
@@ -579,8 +539,54 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.matrixCache.set(node, cachedMatrix);
     }
 
+    protected updateSelected()
+    {
+        if (this.selected.length === 1)
+        {
+            const node = this.selected[0];
+            const view = node.getView();
+            const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
+
+            const thisMatrix = this.matrix;
+
+            thisMatrix.prepend(this.initialTransform.matrix.clone().invert());
+            cachedMatrix.prepend(thisMatrix);
+
+            view.transform.setFromMatrix(cachedMatrix);
+        }
+        else
+        {
+            this.selected.forEach((node) =>
+            {
+                const view = node.getView();
+                const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
+
+                const thisMatrix = this.matrix;
+
+                cachedMatrix.prepend(this.initialTransform.matrix.clone().invert());
+                cachedMatrix.prepend(thisMatrix);
+
+                view.transform.setFromMatrix(cachedMatrix);
+            });
+        }
+    }
+
+    public deselect()
+    {
+        this.selected.forEach((node) =>
+        {
+            const view = node.view;
+
+            view.interactive = false;
+        });
+        this.selected.length = 0;
+        this.matrixCache.clear();
+        this.hide();
+    }
+
     protected updateSelectedModels()
     {
+        return;
         this.selected.forEach((node) =>
         {
             const view = node.view;
