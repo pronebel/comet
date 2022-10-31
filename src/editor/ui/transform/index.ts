@@ -4,7 +4,7 @@ import { Matrix, Rectangle, Transform } from 'pixi.js';
 
 import type { DisplayObjectModel } from '../../../core/nodes/abstract/displayObject';
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
-import { type Point, degToRad, getMatrixRotation, radToDeg } from '../../../core/util/geom';
+import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { Application } from '../../application';
 import { ModifyModelCommand } from '../../commands/modifyModel';
 import { TransformGizmoFrame } from './frame';
@@ -19,6 +19,7 @@ import { TranslatePivotOperation } from './translatePivot';
 import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
 import type { InitialGizmoTransform } from './util';
 import {
+    decomposeTransform,
     defaultInitialGizmoTransform,
     getGizmoInitialTransformFromView,
     getTotalGlobalBounds,
@@ -600,39 +601,34 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
             updateTransforms(view);
 
-            const x = view.x;
-            const y = view.y;
-            const angle = view.angle;
             const pivotX = this.pivotX;
             const pivotY = this.pivotY;
-            const scaleX = view.scale.x;
-            const scaleY = view.scale.y;
+
+            const x = view.x;
+            const y = view.y;
+
+            const matrix = view.worldTransform;
+            const transform = new Transform();
+
+            decomposeTransform(transform, matrix, undefined, { x: pivotX, y: pivotY } as any);
+
+            const scaleX = transform.scale.x;
+            const scaleY = transform.scale.y;
+            const angle = radToDeg(transform.rotation);
+            const skewX = transform.skew.x;
+            const skewY = transform.skew.y;
 
             const values: Partial<DisplayObjectModel> = {
                 x,
                 y,
-                angle,
                 scaleX,
                 scaleY,
+                angle,
+                skewX,
+                skewY,
             };
 
-            const matrix = view.worldTransform;
-            const rotation = getMatrixRotation(matrix);
-            const transform = new Transform();
-
-            // const x = view.x;
-            // const y = view.y;
-            matrix.decompose(transform);
-
-            console.log({
-                id: node.id,
-                angle: view.angle,
-                rotation,
-                transRot: radToDeg(transform.rotation),
-                matrix: matrix.toString(),
-            });
-
-            // only set pivot for single mode
+            // only set pivot for single selection (and not containers)
             if (this.selected.length === 1 && node.nodeType() !== 'Empty')
             {
                 const matrix = view.worldTransform;

@@ -42,6 +42,8 @@ export interface InitialGizmoTransform
     height: number;
     scaleX: number;
     scaleY: number;
+    skewX: number;
+    skewY: number;
     matrix: Matrix;
 }
 
@@ -58,6 +60,8 @@ export const defaultInitialGizmoTransform: InitialGizmoTransform = {
     height: 0,
     scaleX: 1,
     scaleY: 1,
+    skewX: 0,
+    skewY: 0,
     matrix: Matrix.IDENTITY,
 };
 
@@ -86,10 +90,14 @@ export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGi
     const pivotY = view.pivot.y;
     const scaleX = view.scale.x;
     const scaleY = view.scale.y;
+    const skewX = view.skew.x;
+    const skewY = view.skew.y;
     const naturalWidth = node.naturalWidth;
     const naturalHeight = node.naturalHeight;
 
     const transform = new Transform();
+
+    decomposeTransform(transform, matrix, undefined, view.pivot);
 
     transform.scale.x = scaleX;
     transform.scale.y = scaleY;
@@ -115,6 +123,8 @@ export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGi
         pivotY,
         scaleX,
         scaleY,
+        skewX,
+        skewY,
     };
 }
 
@@ -164,4 +174,40 @@ export function getTotalGlobalBounds<T extends ContainerNode>(nodes: T[])
     });
 
     return rect;
+}
+
+export function decomposeTransform(
+    transform: Transform,
+    matrix: Matrix,
+    rotation?: number,
+    pivot = transform.pivot,
+): Transform
+{
+    const a = matrix.a;
+    const b = matrix.b;
+    const c = matrix.c;
+    const d = matrix.d;
+
+    const skewX = -Math.atan2(-c, d);
+    const skewY = Math.atan2(b, a);
+
+    rotation = rotation !== undefined && rotation !== null ? rotation : skewY;
+
+    // set pivot
+    transform.pivot.set(pivot.x, pivot.y);
+
+    // next set rotation, skew angles
+    transform.rotation = rotation;
+    transform.skew.x = rotation + skewX;
+    transform.skew.y = -rotation + skewY;
+
+    // next set scale
+    transform.scale.x = Math.sqrt((a * a) + (b * b));
+    transform.scale.y = Math.sqrt((c * c) + (d * d));
+
+    // next set position
+    transform.position.x = matrix.tx + ((pivot.x * matrix.a) + (pivot.y * matrix.c));
+    transform.position.y = matrix.ty + ((pivot.x * matrix.b) + (pivot.y * matrix.d));
+
+    return transform;
 }

@@ -27,8 +27,8 @@ export const displayObjectSchema = new ModelSchema<DisplayObjectModel>({
     y: 0,
     pivotX: 0,
     pivotY: 0,
-    skewX: 1,
-    skewY: 1,
+    skewX: 0,
+    skewY: 0,
     scaleX: 1,
     scaleY: 1,
     angle: 0,
@@ -57,6 +57,7 @@ export abstract class DisplayObjectNode<
                 x, y,
                 pivotX, pivotY,
                 scaleX, scaleY,
+                skewX, skewY,
                 angle,
                 alpha,
                 visible,
@@ -64,12 +65,10 @@ export abstract class DisplayObjectNode<
             view,
         } = this;
 
-        view.x = x;
-        view.y = y;
-        view.pivot.x = pivotX;
-        view.pivot.y = pivotY;
-        view.scale.x = scaleX;
-        view.scale.y = scaleY;
+        view.x = x; view.y = y;
+        view.pivot.x = pivotX; view.pivot.y = pivotY;
+        view.scale.x = scaleX; view.scale.y = scaleY;
+        view.skew.x = skewX; view.skew.y = skewY;
         view.angle = angle;
         view.alpha = alpha;
         view.visible = visible;
