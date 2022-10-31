@@ -4,6 +4,8 @@ import { Matrix, Rectangle, Transform } from 'pixi.js';
 
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
+import { Application } from '../../application';
+import { ModifyModelCommand } from '../../commands/modifyModel';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
 import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';
@@ -169,11 +171,11 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         const p = this.getGlobalPoint(localPoint.x, localPoint.y);
 
-        const deltaX = p.x - globalPoint.x;
-        const deltaY = p.y - globalPoint.y;
+        const deltaX = globalPoint.x - p.x;
+        const deltaY = globalPoint.y - p.y;
 
-        this.x -= deltaX;
-        this.y -= deltaY;
+        this.x += deltaX;
+        this.y += deltaY;
     }
 
     protected updateDragInfoFromEvent(event: InteractionEvent)
@@ -621,5 +623,57 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         //         node.model.setValues(values);
         //     });
         // }
+
+        this.selected.forEach((node) =>
+        {
+            const view = node.view;
+
+            view.updateTransform();
+
+            let x = view.x;
+            let y = view.y;
+            const angle = view.angle;
+            const pivotX = this.pivotX;
+            const pivotY = this.pivotY;
+            const scaleX = view.scale.x;
+            const scaleY = view.scale.y;
+
+            const matrix = view.worldTransform;
+            const p1 = matrix.apply({
+                x: pivotX,
+                y: pivotY,
+            });
+
+            view.pivot.x = pivotX;
+            view.pivot.y = pivotY;
+
+            view.updateTransform();
+
+            const p2 = matrix.apply({
+                x: pivotX,
+                y: pivotY,
+            });
+
+            const deltaX = p1.x - p2.x;
+            const deltaY = p1.y - p2.y;
+
+            x += deltaX;
+            y += deltaY;
+
+            const values = {
+                x,
+                y,
+                angle,
+                pivotX,
+                pivotY,
+                scaleX,
+                scaleY,
+            };
+
+            Application.instance.exec(new ModifyModelCommand({
+                nodeId: node.id,
+                values,
+            }));
+        });
     }
 }
