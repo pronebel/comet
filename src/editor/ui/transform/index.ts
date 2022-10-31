@@ -528,7 +528,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         const cachedMatrix = view.worldTransform.clone();
 
-        if (view.parent)
+        if (view.parent && this.selected.length === 1)
         {
             const parentMatrix = view.parent.worldTransform.clone();
 
@@ -565,6 +565,14 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
                 cachedMatrix.prepend(this.initialTransform.matrix.clone().invert());
                 cachedMatrix.prepend(thisMatrix);
+
+                if (view.parent)
+                {
+                    const parentMatrix = view.parent.worldTransform.clone();
+
+                    parentMatrix.invert();
+                    cachedMatrix.prepend(parentMatrix);
+                }
 
                 view.transform.setFromMatrix(cachedMatrix);
             });
