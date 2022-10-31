@@ -550,7 +550,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             const thisMatrix = this.matrix;
 
             thisMatrix.prepend(this.initialTransform.matrix.clone().invert());
-            cachedMatrix.prepend(thisMatrix);
+            cachedMatrix.append(thisMatrix);
 
             view.transform.setFromMatrix(cachedMatrix);
         }
