@@ -4,19 +4,6 @@ import { ScaleOperation } from './scale';
 
 export class ScaleByPivotOperation extends ScaleOperation
 {
-    public init(dragInfo: DragInfo): void
-    {
-        const { gizmo: { vertex } } = this;
-        const { isAltDown } = dragInfo;
-
-        super.init(dragInfo);
-
-        if (isAltDown)
-        {
-            this.setPivotFromVertex(vertex);
-        }
-    }
-
     protected calcDelta(dragInfo: DragInfo, delta: Point): boolean
     {
         const { localX, localY } = dragInfo;

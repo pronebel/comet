@@ -35,18 +35,6 @@ export class EmptyNode extends ContainerNode<ContainerModel, Container>
         return emptySchema;
     }
 
-    public updateView(): void
-    {
-        const view = this.view;
-
-        super.updateView();
-
-        const bounds = view.getLocalBounds();
-
-        view.width = bounds.width;
-        view.height = bounds.height;
-    }
-
     public createView(): Container<DisplayObject>
     {
         const container = new Container();

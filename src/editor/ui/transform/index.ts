@@ -312,6 +312,11 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         }
     }
 
+    protected setOperation(operation: TransformOperation)
+    {
+        this.operation = operation;
+    }
+
     public onMouseDown = (event: InteractionEvent) =>
     {
         this.dragInfo = {
@@ -327,7 +332,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             config,
         } = this;
 
-        // select operation
         if (isMetaDown)
         {
             this.operation = new RotateOperation(this);
@@ -343,17 +347,15 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 this.operation = new ScaleByPivotOperation(this);
             }
         }
-        else
-        if (isAltDown && config.enablePivotTranslation)
+        else if (isAltDown)
         {
-            this.operation = new TranslatePivotOperation(this);
+            config.enablePivotTranslation && this.setOperation(new TranslatePivotOperation(this));
         }
         else
         {
             this.operation = new TranslateOperation(this);
         }
 
-        // init and start operation
         if (this.operation)
         {
             this.operation.init(this.dragInfo);
@@ -361,8 +363,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         }
 
         this.update();
-
-        // event.stopPropagation();
     };
 
     public onMouseMove = (event: InteractionEvent) =>
@@ -383,13 +383,10 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         if (this.operation && this.dragInfo)
         {
             this.operation.end(this.dragInfo);
-
             this.update();
         }
 
-        // reset
         this.clearOperation();
-
         this.updateSelectedModels();
     };
 
@@ -447,21 +444,11 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         this.initNode(node);
 
-        if (node.nodeType() === 'Empty')
-        {
-            this.setConfig({
-                enablePivotTranslation: false,
-                showPivot: false,
-            });
-        }
-        else
-        {
-            this.setConfig({
-                pivotView: bluePivot,
-                enablePivotTranslation: true,
-                showPivot: true,
-            });
-        }
+        this.setConfig({
+            pivotView: bluePivot,
+            enablePivotTranslation: true,
+            showPivot: true,
+        });
 
         this.update();
     }
@@ -597,6 +584,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
     protected updateSelectedModels()
     {
+        console.clear();
+
         this.selected.forEach((node) =>
         {
             const view = node.view;
@@ -639,24 +628,27 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 skewY,
             };
 
-            // only set pivot for single selection (and not containers)
-            if (this.selected.length === 1 && node.nodeType() !== 'Empty')
+            if (this.selected.length === 1)
             {
                 const p1 = matrix.apply({
-                    x: pivotX,
-                    y: pivotY,
+                    x: view.pivot.x,
+                    y: view.pivot.y,
                 });
 
                 view.pivot.x = pivotX;
                 view.pivot.y = pivotY;
+
+                updateTransforms(view);
 
                 const p2 = matrix.apply({
                     x: pivotX,
                     y: pivotY,
                 });
 
-                const deltaX = p1.x - p2.x;
-                const deltaY = p1.y - p2.y;
+                const deltaX = p2.x - p1.x;
+                const deltaY = p2.y - p1.y;
+
+                console.log(deltaX, deltaY);
 
                 values.x = (values.x as number) + deltaX;
                 values.y = (values.y as number) + deltaY;
@@ -664,6 +656,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 values.pivotX = pivotX;
                 values.pivotY = pivotY;
             }
+
+            console.log(node.id, values);
 
             Application.instance.exec(new ModifyModelCommand({
                 nodeId: node.id,
