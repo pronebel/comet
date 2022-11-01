@@ -157,7 +157,7 @@ export function getLocalTransform(view: DisplayObject)
 
 export function getTotalGlobalBounds<T extends ContainerNode>(nodes: T[])
 {
-    let rect = new Rectangle();
+    let rect = Rectangle.EMPTY;
 
     nodes.forEach((node) =>
     {

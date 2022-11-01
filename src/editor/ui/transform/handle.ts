@@ -25,6 +25,11 @@ export class TransformGizmoHandle extends Graphics
         this.drawRect(0, 0, size, size);
         this.endFill();
 
+        this.lineStyle(1, 0x000000, 0);
+        this.beginFill(0x000000, 0.35);
+        this.drawRect(2, 2, size - 2, size - 2);
+        this.endFill();
+
         this.pivot.x = size * 0.5;
         this.pivot.y = size * 0.5;
 

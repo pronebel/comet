@@ -30,6 +30,8 @@ export class ScaleByEdgeOperation extends ScaleOperation
         const { duplex } = this;
         const { isAltDown } = dragInfo;
 
+        console.log('!');
+
         if (isAltDown)
         {
             if (!duplex)

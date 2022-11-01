@@ -1,6 +1,6 @@
 import { EventEmitter } from 'eventemitter3';
 import type { DisplayObject, InteractionEvent } from 'pixi.js';
-import { Container, Graphics } from 'pixi.js';
+import { Container, Graphics, Rectangle } from 'pixi.js';
 
 import type { TransformGizmo } from '.';
 import { type HandleVertexHorizontal, type HandleVertexVertical, TransformGizmoHandle } from './handle';
@@ -91,6 +91,30 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         return this.gizmo.matrix;
     }
 
+    public getGlobalBounds()
+    {
+        const { gizmo } = this;
+
+        if (gizmo.selected.length === 0)
+        {
+            return Rectangle.EMPTY;
+        }
+
+        const { matrix, initialTransform: { width, height } } = gizmo;
+        const p1 = matrix.apply({ x: 0, y: 0 });
+        const p2 = matrix.apply({ x: width, y: 0 });
+        const p3 = matrix.apply({ x: width, y: height });
+        const p4 = matrix.apply({ x: 0, y: height });
+        const minX = Math.min(p1.x, p2.x, p3.x, p4.x);
+        const minY = Math.min(p1.y, p2.y, p3.y, p4.y);
+        const maxX = Math.max(p1.x, p2.x, p3.x, p4.x);
+        const maxY = Math.max(p1.y, p2.y, p3.y, p4.y);
+
+        const rect = new Rectangle(minX, minY, maxX - minX, maxY - minY);
+
+        return rect;
+    }
+
     protected drawBorder()
     {
         const { border, matrix, gizmo: { initialTransform: { localBounds } } } = this;
@@ -106,7 +130,7 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
 
         const path = [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y];
 
-        border.beginFill(0xffffff, 0.1);
+        border.beginFill(0xffffff, 0.05);
         border.drawPolygon(path);
         border.endFill();
 
@@ -115,6 +139,13 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         border.moveTo(p2.x, p2.y); border.lineTo(p3.x, p3.y);
         border.moveTo(p3.x, p3.y); border.lineTo(p4.x, p4.y);
         border.moveTo(p4.x, p4.y); border.lineTo(p1.x, p1.y);
+
+        const globalBounds = this.gizmo.getContentGlobalBounds();
+
+        border.lineStyle(1, 0xffffff, 0.3);
+        border.beginFill(0xffffff, 0.05);
+        border.drawRect(globalBounds.left, globalBounds.top, globalBounds.width, globalBounds.height);
+        border.endFill();
     }
 
     protected drawPivot()

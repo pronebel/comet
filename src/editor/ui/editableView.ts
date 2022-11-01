@@ -87,7 +87,7 @@ export class EditableView
         {
             this.selectWithDrag(underCursor[0], e);
         }
-        else if (!this.transformGizmo.getGlobalBounds().contains(globalX, globalY))
+        else if (!this.transformGizmo.frame.getGlobalBounds().contains(globalX, globalY))
         {
             if (underCursor.length === 0)
             {

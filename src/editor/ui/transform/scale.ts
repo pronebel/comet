@@ -90,8 +90,6 @@ export abstract class ScaleOperation extends TransformOperation<
         const localX = (width * xFrac) + left;
         const localY = (height * yFrac) + top;
 
-        console.log(localBounds);
-
         const globalPoint = gizmo.getGlobalPoint(localX, localY);
 
         gizmo.setPivotFromGlobalPoint(globalPoint.x, globalPoint.y);
