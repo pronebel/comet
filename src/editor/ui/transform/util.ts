@@ -213,3 +213,8 @@ export function decomposeTransform(
 
     return transform;
 }
+
+export function snapToIncrement(val: number, increment: number)
+{
+    return Math.round(val / increment) * increment;
+}

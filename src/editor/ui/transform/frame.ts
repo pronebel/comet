@@ -14,7 +14,8 @@ export type TransformGizmoFrameEvent = 'mousedown' | 'mousemove' | 'mouseup';
 export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
 {
     public container: Container;
-    public handles: Container;
+    public primaryHandles: Container;
+    public secondaryHandles: Container;
     public border: Graphics;
     public pivotView: DisplayObject;
 
@@ -33,34 +34,43 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         super();
 
         this.container = new Container();
-        this.handles = new Container();
+        this.primaryHandles = new Container();
+        this.secondaryHandles = new Container();
         this.border = new Graphics();
 
         this.pivotView = yellowPivot;
 
         this.container.addChild(this.border);
         this.container.addChild(this.pivotView);
-        this.container.addChild(this.handles);
+        this.container.addChild(this.primaryHandles);
+        this.container.addChild(this.secondaryHandles);
 
         this.topLeftHandle = this.createHandle(primaryHandleSize, 'left', 'top');
         this.topRightHandle = this.createHandle(primaryHandleSize, 'right', 'top');
         this.bottomRightHandle = this.createHandle(primaryHandleSize, 'right', 'bottom');
         this.bottomLeftHandle = this.createHandle(primaryHandleSize, 'left', 'bottom');
 
-        this.topCenterHandle = this.createHandle(secondaryHandleSize, 'center', 'top');
-        this.rightCenterHandle = this.createHandle(secondaryHandleSize, 'right', 'center');
-        this.bottomCenterHandle = this.createHandle(secondaryHandleSize, 'center', 'bottom');
-        this.leftCenterHandle = this.createHandle(secondaryHandleSize, 'left', 'center');
+        this.topCenterHandle = this.createHandle(secondaryHandleSize, 'center', 'top', false);
+        this.rightCenterHandle = this.createHandle(secondaryHandleSize, 'right', 'center', false);
+        this.bottomCenterHandle = this.createHandle(secondaryHandleSize, 'center', 'bottom', false);
+        this.leftCenterHandle = this.createHandle(secondaryHandleSize, 'left', 'center', false);
 
         this.initEvents();
     }
 
-    protected createHandle(size: number, h: HandleVertexHorizontal, v: HandleVertexVertical)
+    protected createHandle(size: number, h: HandleVertexHorizontal, v: HandleVertexVertical, isPrimary = true)
     {
         const vertex = { h, v };
         const handle = new TransformGizmoHandle(size, vertex);
 
-        this.handles.addChild(handle);
+        if (isPrimary)
+        {
+            this.primaryHandles.addChild(handle);
+        }
+        else
+        {
+            this.secondaryHandles.addChild(handle);
+        }
 
         handle
             .on('mousedown', (e: InteractionEvent) =>
@@ -117,45 +127,61 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
 
     protected drawBorder()
     {
-        const { border, matrix, gizmo: { initialTransform: { localBounds } } } = this;
+        const { border, matrix, gizmo: { initialTransform: { localBounds }, config } } = this;
 
         border.clear();
 
-        const { left, top, width, height } = localBounds;
+        if (config.showTransformBorder)
+        {
+            const { left, top, width, height } = localBounds;
+            const p1 = matrix.apply({ x: left, y: top });
+            const p2 = matrix.apply({ x: width + left, y: top });
+            const p3 = matrix.apply({ x: width + left, y: height + top });
+            const p4 = matrix.apply({ x: left, y: height + top });
 
-        const p1 = matrix.apply({ x: left, y: top });
-        const p2 = matrix.apply({ x: width + left, y: top });
-        const p3 = matrix.apply({ x: width + left, y: height + top });
-        const p4 = matrix.apply({ x: left, y: height + top });
+            const path = [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y];
 
-        const path = [p1.x, p1.y, p2.x, p2.y, p3.x, p3.y, p4.x, p4.y];
+            border.beginFill(0xffffff, 0.05);
+            border.drawPolygon(path);
+            border.endFill();
 
-        border.beginFill(0xffffff, 0.05);
-        border.drawPolygon(path);
-        border.endFill();
+            border.lineStyle(1, 0xffffff, 1);
+            border.moveTo(p1.x, p1.y); border.lineTo(p2.x, p2.y);
+            border.moveTo(p2.x, p2.y); border.lineTo(p3.x, p3.y);
+            border.moveTo(p3.x, p3.y); border.lineTo(p4.x, p4.y);
+            border.moveTo(p4.x, p4.y); border.lineTo(p1.x, p1.y);
+        }
 
-        border.lineStyle(1, 0xffffff, 1);
-        border.moveTo(p1.x, p1.y); border.lineTo(p2.x, p2.y);
-        border.moveTo(p2.x, p2.y); border.lineTo(p3.x, p3.y);
-        border.moveTo(p3.x, p3.y); border.lineTo(p4.x, p4.y);
-        border.moveTo(p4.x, p4.y); border.lineTo(p1.x, p1.y);
+        if (config.showEncompassingBorder)
+        {
+            const globalBounds = this.gizmo.getContentGlobalBounds();
 
-        const globalBounds = this.gizmo.getContentGlobalBounds();
-
-        border.lineStyle(1, 0xffffff, 0.3);
-        border.beginFill(0xffffff, 0.05);
-        border.drawRect(globalBounds.left, globalBounds.top, globalBounds.width, globalBounds.height);
-        border.endFill();
+            border.lineStyle(1, 0xffffff, 0.3);
+            border.beginFill(0xffffff, 0.05);
+            border.drawRect(globalBounds.left, globalBounds.top, globalBounds.width, globalBounds.height);
+            border.endFill();
+        }
     }
 
     protected drawPivot()
     {
         const { gizmo, pivotView } = this;
-        const { pivotGlobalPos, rotation } = gizmo;
+        const { pivotGlobalPos, rotation, config } = gizmo;
 
-        pivotView.x = pivotGlobalPos.x;
-        pivotView.y = pivotGlobalPos.y;
-        pivotView.angle = rotation;
+        if (config.showPivot)
+        {
+            if (!pivotView.visible)
+            {
+                pivotView.visible = true;
+            }
+            pivotView.x = pivotGlobalPos.x;
+            pivotView.y = pivotGlobalPos.y;
+            pivotView.angle = rotation;
+        }
+        else if (pivotView.visible)
+        {
+            pivotView.visible = false;
+        }
     }
 
     protected drawHandles()
@@ -164,32 +190,57 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
             gizmo, matrix,
             topLeftHandle, topRightHandle, bottomRightHandle, bottomLeftHandle,
             topCenterHandle, rightCenterHandle, bottomCenterHandle, leftCenterHandle,
+            primaryHandles, secondaryHandles,
         } = this;
-        const { initialTransform: { localBounds } } = gizmo;
+        const { initialTransform: { localBounds }, config } = gizmo;
 
         const { left, top, width, height } = localBounds;
         const centerX = width * 0.5;
         const centerY = height * 0.5;
 
-        const p1 = matrix.apply({ x: left, y: top });
-        const p2 = matrix.apply({ x: width + left, y: top });
-        const p3 = matrix.apply({ x: width + left, y: height + top });
-        const p4 = matrix.apply({ x: left, y: height + top });
+        if (config.showPrimaryHandles)
+        {
+            const p1 = matrix.apply({ x: left, y: top });
+            const p2 = matrix.apply({ x: width + left, y: top });
+            const p3 = matrix.apply({ x: width + left, y: height + top });
+            const p4 = matrix.apply({ x: left, y: height + top });
 
-        this.drawHandle(topLeftHandle, p1.x, p1.y);
-        this.drawHandle(topRightHandle, p2.x, p2.y);
-        this.drawHandle(bottomRightHandle, p3.x, p3.y);
-        this.drawHandle(bottomLeftHandle, p4.x, p4.y);
+            this.drawHandle(topLeftHandle, p1.x, p1.y);
+            this.drawHandle(topRightHandle, p2.x, p2.y);
+            this.drawHandle(bottomRightHandle, p3.x, p3.y);
+            this.drawHandle(bottomLeftHandle, p4.x, p4.y);
 
-        const p5 = matrix.apply({ x: centerX + left, y: top });
-        const p6 = matrix.apply({ x: width + left, y: centerY + top });
-        const p7 = matrix.apply({ x: centerX + left, y: height + top });
-        const p8 = matrix.apply({ x: left, y: centerY + top });
+            if (!primaryHandles.visible)
+            {
+                primaryHandles.visible = true;
+            }
+        }
+        else if (primaryHandles.visible)
+        {
+            primaryHandles.visible = false;
+        }
 
-        this.drawHandle(topCenterHandle, p5.x, p5.y);
-        this.drawHandle(rightCenterHandle, p6.x, p6.y);
-        this.drawHandle(bottomCenterHandle, p7.x, p7.y);
-        this.drawHandle(leftCenterHandle, p8.x, p8.y);
+        if (config.showSecondaryHandles)
+        {
+            const p5 = matrix.apply({ x: centerX + left, y: top });
+            const p6 = matrix.apply({ x: width + left, y: centerY + top });
+            const p7 = matrix.apply({ x: centerX + left, y: height + top });
+            const p8 = matrix.apply({ x: left, y: centerY + top });
+
+            this.drawHandle(topCenterHandle, p5.x, p5.y);
+            this.drawHandle(rightCenterHandle, p6.x, p6.y);
+            this.drawHandle(bottomCenterHandle, p7.x, p7.y);
+            this.drawHandle(leftCenterHandle, p8.x, p8.y);
+
+            if (!secondaryHandles.visible)
+            {
+                secondaryHandles.visible = true;
+            }
+        }
+        else if (secondaryHandles.visible)
+        {
+            secondaryHandles.visible = false;
+        }
     }
 
     protected drawHandle(handle: TransformGizmoHandle, x: number, y: number)

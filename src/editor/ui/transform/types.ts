@@ -5,6 +5,7 @@ import { yellowPivot } from './pivot';
 export interface TransformGizmoConfig
 {
     showEncompassingBorder: boolean;
+    showTransformBorder: boolean;
     showPrimaryHandles: boolean;
     showSecondaryHandles: boolean;
     showPivot: boolean;
@@ -14,13 +15,13 @@ export interface TransformGizmoConfig
     enableScaling: boolean;
     defaultScaleMode: 'edge' | 'pivot';
     pivotView: DisplayObject;
-    edgeDragDistance: number;
     handlePrimarySize: number;
     handleSecondarySize: number;
 }
 
 export const defaultTransformGizmoConfig: TransformGizmoConfig = {
     showEncompassingBorder: true,
+    showTransformBorder: true,
     showPrimaryHandles: true,
     showSecondaryHandles: true,
     showPivot: true,
@@ -30,7 +31,6 @@ export const defaultTransformGizmoConfig: TransformGizmoConfig = {
     enableScaling: true,
     defaultScaleMode: 'edge',
     pivotView: yellowPivot,
-    edgeDragDistance: 5,
     handlePrimarySize: 5,
     handleSecondarySize: 4,
 };

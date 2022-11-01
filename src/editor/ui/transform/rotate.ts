@@ -1,5 +1,6 @@
 import { angleBetween } from '../../../core/util/geom';
 import { type DragInfo, TransformOperation } from './operation';
+import { snapToIncrement } from './util';
 
 export class RotateOperation extends TransformOperation<'rotation' | 'dragAngle'>
 {
@@ -18,7 +19,14 @@ export class RotateOperation extends TransformOperation<'rotation' | 'dragAngle'
         const dragAngle = angleBetween(p.x, p.y, dragInfo.globalX, dragInfo.globalY);
         const delta = dragAngle - this.readCache('dragAngle');
 
-        this.gizmo.rotation = this.readCache('rotation') + delta;
+        let rotation = this.readCache('rotation') + delta;
+
+        if (dragInfo.isShiftDown)
+        {
+            rotation = snapToIncrement(rotation, 15);
+        }
+
+        this.gizmo.rotation = rotation;
     }
 
     // @ts-ignore

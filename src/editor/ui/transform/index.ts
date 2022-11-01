@@ -334,17 +334,21 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         if (isMetaDown)
         {
-            this.operation = new RotateOperation(this);
+            config.enableRotation && this.setOperation(new RotateOperation(this));
         }
         else if (isVertexDrag)
         {
+            const { defaultScaleMode } = config;
+            const PrimaryScaleOperation = defaultScaleMode === 'edge' ? ScaleByEdgeOperation : ScaleByPivotOperation;
+            const SecondaryScaleOperation = defaultScaleMode === 'edge' ? ScaleByPivotOperation : ScaleByEdgeOperation;
+
             if (isShiftDown)
             {
-                this.operation = new ScaleByEdgeOperation(this);
+                config.enableScaling && this.setOperation(new SecondaryScaleOperation(this));
             }
             else
             {
-                this.operation = new ScaleByPivotOperation(this);
+                config.enableScaling && this.setOperation(new PrimaryScaleOperation(this));
             }
         }
         else if (isAltDown)
@@ -353,7 +357,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         }
         else
         {
-            this.operation = new TranslateOperation(this);
+            config.enableTranslation && this.setOperation(new TranslateOperation(this));
         }
 
         if (this.operation)
@@ -405,7 +409,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
     public update()
     {
         this.updateTransform();
-        this.updateSelected();
+        this.updateSelectedTransforms();
         this.frame.update();
 
         if (!this.isVisible)
@@ -429,8 +433,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         this.setConfig({
             pivotView: bluePivot,
-            enablePivotTranslation: true,
-            showPivot: true,
         });
 
         this.update();
@@ -469,8 +471,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         this.setConfig({
             pivotView: yellowPivot,
-            enablePivotTranslation: true,
-            showPivot: true,
         });
 
         this.update();
@@ -512,7 +512,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.matrixCache.set(node, cachedMatrix);
     }
 
-    protected updateSelected()
+    protected updateSelectedTransforms()
     {
         if (this.selected.length === 1)
         {
