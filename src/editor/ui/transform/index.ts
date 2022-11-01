@@ -565,7 +565,9 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
     protected updateSelectedModels()
     {
-        this.selected.forEach((node) =>
+        const { selected } = this;
+
+        selected.forEach((node) =>
         {
             const view = node.view;
 
@@ -573,6 +575,11 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
             const pivotX = this.pivotX;
             const pivotY = this.pivotY;
+
+            const x = view.x;
+            const y = view.y;
+            const scaleX = view.scale.x;
+            const scaleY = view.scale.y;
 
             const matrix = view.worldTransform.clone();
 
@@ -588,10 +595,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
             decomposeTransform(transform, matrix, undefined, { x: pivotX, y: pivotY } as any);
 
-            const x = transform.position.x;
-            const y = transform.position.y;
-            const scaleX = transform.scale.x;
-            const scaleY = transform.scale.y;
             const angle = radToDeg(transform.rotation);
             const skewX = transform.skew.x;
             const skewY = transform.skew.y;
@@ -604,16 +607,39 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 angle,
                 skewX,
                 skewY,
-                pivotX,
-                pivotY,
             };
+
+            if (selected.length === 1)
+            {
+                const p1 = matrix.apply({
+                    x: view.pivot.x,
+                    y: view.pivot.y,
+                });
+
+                view.pivot.x = pivotX;
+                view.pivot.y = pivotY;
+
+                updateTransforms(view);
+
+                const p2 = matrix.apply({
+                    x: pivotX,
+                    y: pivotY,
+                });
+
+                const deltaX = p2.x - p1.x;
+                const deltaY = p2.y - p1.y;
+
+                values.x = (values.x as number) + deltaX;
+                values.y = (values.y as number) + deltaY;
+
+                values.pivotX = pivotX;
+                values.pivotY = pivotY;
+            }
 
             Application.instance.exec(new ModifyModelCommand({
                 nodeId: node.id,
                 values,
             }));
-
-            console.log(JSON.stringify(values, null, 4));
         });
     }
 }
