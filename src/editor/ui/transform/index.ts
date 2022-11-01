@@ -567,8 +567,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
     protected updateSelectedModels()
     {
-        console.clear();
-
         this.selected.forEach((node) =>
         {
             const view = node.view;
@@ -631,16 +629,12 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 const deltaX = p2.x - p1.x;
                 const deltaY = p2.y - p1.y;
 
-                console.log(deltaX, deltaY);
-
                 values.x = (values.x as number) + deltaX;
                 values.y = (values.y as number) + deltaY;
 
                 values.pivotX = pivotX;
                 values.pivotY = pivotY;
             }
-
-            console.log(node.id, values);
 
             Application.instance.exec(new ModifyModelCommand({
                 nodeId: node.id,
