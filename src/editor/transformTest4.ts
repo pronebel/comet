@@ -6,6 +6,7 @@ import { type Point, radToDeg } from '../core/util/geom';
 import { angleBetween, degToRad } from '../core/util/geom';
 import Canvas2DPainter from './ui/2dPainter';
 import Grid from './ui/grid';
+import { decomposeTransform } from './ui/transform/util';
 
 function setup()
 {
@@ -65,11 +66,13 @@ function setup()
         return view;
     }
 
-    const red = createSprite({ tint: 0xff0000, x: 50, y: 50, angle: 20, pivotX: 8, pivotY: 8 });
-    const green = createSprite({ tint: 0x006600, x: 10, y: 10, angle: 20, width: 40 });
-    const blue = createSprite({ tint: 0x0000ff, x: 10, y: 10, angle: 45, width: 64, height: 8, pivotY: 8 });
+    const red = createSprite({ tint: 0xff0000, x: 50, y: 50, angle: 0, width: 64 });
+    const green = createSprite({ tint: 0x006600, x: 10, y: 10, angle: 20 });
+    const blue = createSprite({ tint: 0x0000ff, x: 10, y: 10, angle: 0 });
 
-    const white = createSprite({ tint: 0x666666, x: 0, y: 0 });
+    const white = createSprite({ tint: 0x999999, x: 0, y: 0 });
+
+    white.alpha = 0.5;
 
     nodesLayer.addChild(white);
 
@@ -80,7 +83,7 @@ function setup()
     return { win, editLayer, red, green, blue, pixi, selection, white, container };
 }
 
-const { red, green, blue, selection, white, container } = setup();
+const { red, green, blue, selection, white, container, win } = setup();
 
 container.addChild(red);
 red.addChild(green);
@@ -118,44 +121,30 @@ red.updateTransform();
 green.updateTransform();
 blue.updateTransform();
 
-// drawBorder(blue.worldTransform, blue.texture.width, blue.texture.height);
+win.red = red;
+win.green = green;
+win.blue = blue;
 
-// test blue local transform
-let matrix = blue.worldTransform.clone();
+win.drawBorder = (view: Sprite) =>
+{
+    drawBorder(view.worldTransform, view.texture.width, view.texture.height);
+};
 
-matrix.prepend(green.worldTransform.clone().invert());
-white.transform.setFromMatrix(matrix);
+win.decomposeTransform = (view: Sprite) =>
+{
+    const transform = new Transform();
 
-const viewMatrix = blue.localTransform.clone();
-const transform = new Transform();
+    decomposeTransform(transform, view.worldTransform, undefined, view.pivot);
 
-viewMatrix.decompose(transform);
-console.log(radToDeg(transform.rotation));
+    console.log({
+        x: transform.position.x,
+        y: transform.position.y,
+        angle: radToDeg(transform.rotation),
+        scaleX: transform.scale.x,
+        scaleY: transform.scale.y,
+        skewX: transform.skew.x,
+        skewY: transform.skew.y,
+    });
 
-// fit bounds around blue and transform
-// const viewMatrix = blue.worldTransform.clone();
-const bounds = blue.getBounds();
-const centerX = (bounds.width * 0.5);
-const centerY = (bounds.height * 0.5);
-
-matrix = blue.localTransform;
-
-// matrix.identity();
-
-matrix.translate(-bounds.left, -bounds.top);
-// matrix.translate(-centerX, -centerY);
-
-matrix.rotate(degToRad(45));
-
-// matrix.translate(centerX, centerY);
-matrix.translate(bounds.left, bounds.top);
-
-// drawBorder(matrix, bounds.width, bounds.height);
-drawBorder(matrix, 16, 16);
-
-// update blue with transform
-
-// viewMatrix.prepend(matrix.clone().invert());
-
-// blue.transform.setFromMatrix(matrix);
-
+    white.transform.setFromMatrix(view.worldTransform);
+};

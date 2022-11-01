@@ -518,6 +518,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.transform.rotation = degToRad(transform.rotation);
         this.transform.scale.x = transform.scaleX;
         this.transform.scale.y = transform.scaleY;
+        this.transform.skew.x = transform.skewX;
+        this.transform.skew.y = transform.skewY;
     }
 
     protected initNode(node: ContainerNode)
@@ -606,14 +608,23 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
             const x = view.x;
             const y = view.y;
+            const scaleX = view.scale.x;
+            const scaleY = view.scale.y;
 
-            const matrix = view.worldTransform;
+            const matrix = view.worldTransform.clone();
+
+            if (view.parent)
+            {
+                const parentMatrix = view.parent.worldTransform.clone();
+
+                parentMatrix.invert();
+                matrix.prepend(parentMatrix);
+            }
+
             const transform = new Transform();
 
             decomposeTransform(transform, matrix, undefined, { x: pivotX, y: pivotY } as any);
 
-            const scaleX = transform.scale.x;
-            const scaleY = transform.scale.y;
             const angle = radToDeg(transform.rotation);
             const skewX = transform.skew.x;
             const skewY = transform.skew.y;
@@ -631,7 +642,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             // only set pivot for single selection (and not containers)
             if (this.selected.length === 1 && node.nodeType() !== 'Empty')
             {
-                const matrix = view.worldTransform;
                 const p1 = matrix.apply({
                     x: pivotX,
                     y: pivotY,
@@ -639,8 +649,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
                 view.pivot.x = pivotX;
                 view.pivot.y = pivotY;
-
-                view.updateTransform();
 
                 const p2 = matrix.apply({
                     x: pivotX,

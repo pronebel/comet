@@ -74,6 +74,10 @@ export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGi
 
     const matrix = worldTransform.clone();
 
+    const transform = new Transform();
+
+    decomposeTransform(transform, matrix, undefined, view.pivot);
+
     const localBounds = view.getLocalBounds();
 
     const width = localBounds.width;
@@ -88,16 +92,12 @@ export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGi
     const y = p0.y + 0;
     const pivotX = view.pivot.x;
     const pivotY = view.pivot.y;
-    const scaleX = view.scale.x;
-    const scaleY = view.scale.y;
-    const skewX = view.skew.x;
-    const skewY = view.skew.y;
+    const scaleX = transform.scale.x;
+    const scaleY = transform.scale.y;
+    const skewX = transform.skew.x;
+    const skewY = transform.skew.y;
     const naturalWidth = node.naturalWidth;
     const naturalHeight = node.naturalHeight;
-
-    const transform = new Transform();
-
-    decomposeTransform(transform, matrix, undefined, view.pivot);
 
     transform.scale.x = scaleX;
     transform.scale.y = scaleY;
@@ -106,6 +106,8 @@ export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGi
     transform.pivot.y = pivotY;
     transform.position.x = x;
     transform.position.y = y;
+    transform.skew.x = skewX;
+    transform.skew.y = skewY;
 
     transform.updateLocalTransform();
 
