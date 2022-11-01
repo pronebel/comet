@@ -1,4 +1,5 @@
 import { type DragInfo, TransformOperation } from './operation';
+import { snapToIncrement } from './util';
 
 export class TranslateOperation extends TransformOperation<'x' | 'y' | 'globalX' | 'globalY'>
 {
@@ -15,8 +16,17 @@ export class TranslateOperation extends TransformOperation<'x' | 'y' | 'globalX'
         const deltaX = dragInfo.globalX - this.readCache('globalX');
         const deltaY = dragInfo.globalY - this.readCache('globalY');
 
-        this.gizmo.x = this.readCache('x') + deltaX;
-        this.gizmo.y = this.readCache('y') + deltaY;
+        let x = this.readCache('x') + deltaX;
+        let y = this.readCache('y') + deltaY;
+
+        if (dragInfo.isShiftDown)
+        {
+            x = snapToIncrement(x, 10);
+            y = snapToIncrement(y, 10);
+        }
+
+        this.gizmo.x = x;
+        this.gizmo.y = y;
     }
 
     // @ts-ignore

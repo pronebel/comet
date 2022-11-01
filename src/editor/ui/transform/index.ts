@@ -514,13 +514,13 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
     protected updateSelectedTransforms()
     {
+        const thisMatrix = this.matrix;
+
         if (this.selected.length === 1)
         {
             const node = this.selected[0];
             const view = node.getView();
             const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
-
-            const thisMatrix = this.matrix;
 
             thisMatrix.prepend(this.initialTransform.matrix.clone().invert());
             cachedMatrix.append(thisMatrix);
@@ -533,8 +533,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             {
                 const view = node.getView();
                 const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
-
-                const thisMatrix = this.matrix;
 
                 cachedMatrix.prepend(this.initialTransform.matrix.clone().invert());
                 cachedMatrix.prepend(thisMatrix);
@@ -576,10 +574,10 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             const pivotX = this.pivotX;
             const pivotY = this.pivotY;
 
-            const x = view.x;
-            const y = view.y;
-            const scaleX = view.scale.x;
-            const scaleY = view.scale.y;
+            // const x = view.x;
+            // const y = view.y;
+            // const scaleX = view.scale.x;
+            // const scaleY = view.scale.y;
 
             const matrix = view.worldTransform.clone();
 
@@ -595,6 +593,10 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
             decomposeTransform(transform, matrix, undefined, { x: pivotX, y: pivotY } as any);
 
+            const x = transform.position.x;
+            const y = transform.position.y;
+            const scaleX = transform.scale.x;
+            const scaleY = transform.scale.y;
             const angle = radToDeg(transform.rotation);
             const skewX = transform.skew.x;
             const skewY = transform.skew.y;
@@ -607,13 +609,15 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 angle,
                 skewX,
                 skewY,
+                pivotX,
+                pivotY,
             };
 
             if (this.selected.length === 1)
             {
                 const p1 = matrix.apply({
-                    x: view.pivot.x,
-                    y: view.pivot.y,
+                    x: 0,
+                    y: 0,
                 });
 
                 view.pivot.x = pivotX;
@@ -622,8 +626,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 updateTransforms(view);
 
                 const p2 = matrix.apply({
-                    x: pivotX,
-                    y: pivotY,
+                    x: 0,
+                    y: 0,
                 });
 
                 const deltaX = p2.x - p1.x;
@@ -634,6 +638,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
                 values.pivotX = pivotX;
                 values.pivotY = pivotY;
+
+                console.log(deltaX, deltaY);
             }
 
             Application.instance.exec(new ModifyModelCommand({

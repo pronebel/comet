@@ -156,8 +156,8 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         {
             const globalBounds = this.gizmo.getContentGlobalBounds();
 
-            border.lineStyle(1, 0xffffff, 0.3);
-            border.beginFill(0xffffff, 0.05);
+            border.lineStyle(1, 0xffffff, 0.4);
+            border.beginFill(0xffffff, 0.025);
             border.drawRect(globalBounds.left, globalBounds.top, globalBounds.width, globalBounds.height);
             border.endFill();
         }
