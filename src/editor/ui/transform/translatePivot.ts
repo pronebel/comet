@@ -13,7 +13,7 @@ export class TranslatePivotOperation extends TransformOperation
     {
         if (dragInfo.isAltDown)
         {
-            this.gizmo.setPivotFromGlobalPoint(dragInfo.globalX, dragInfo.globalY, dragInfo.isControlDown);
+            this.gizmo.setPivotFromGlobalPoint(dragInfo.globalX, dragInfo.globalY, false);
         }
     }
 

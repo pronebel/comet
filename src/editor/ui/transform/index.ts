@@ -574,11 +574,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             const pivotX = this.pivotX;
             const pivotY = this.pivotY;
 
-            // const x = view.x;
-            // const y = view.y;
-            // const scaleX = view.scale.x;
-            // const scaleY = view.scale.y;
-
             const matrix = view.worldTransform.clone();
 
             if (view.parent)
@@ -613,39 +608,12 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 pivotY,
             };
 
-            if (this.selected.length === 1)
-            {
-                const p1 = matrix.apply({
-                    x: 0,
-                    y: 0,
-                });
-
-                view.pivot.x = pivotX;
-                view.pivot.y = pivotY;
-
-                updateTransforms(view);
-
-                const p2 = matrix.apply({
-                    x: 0,
-                    y: 0,
-                });
-
-                const deltaX = p2.x - p1.x;
-                const deltaY = p2.y - p1.y;
-
-                values.x = (values.x as number) + deltaX;
-                values.y = (values.y as number) + deltaY;
-
-                values.pivotX = pivotX;
-                values.pivotY = pivotY;
-
-                console.log(deltaX, deltaY);
-            }
-
             Application.instance.exec(new ModifyModelCommand({
                 nodeId: node.id,
                 values,
             }));
+
+            console.log(JSON.stringify(values, null, 4));
         });
     }
 }
