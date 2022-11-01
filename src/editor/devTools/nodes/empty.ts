@@ -3,7 +3,7 @@ import { type DisplayObject, Container } from 'pixi.js';
 import { ModelSchema } from '../../../core/model/schema';
 import { displayObjectSchema } from '../../../core/nodes/abstract/displayObject';
 import { type ContainerModel, ContainerNode } from '../../../core/nodes/concrete/container';
-import { createPivotShape } from '../../ui/transform/const';
+import { createPivotShape } from '../../ui/transform/pivot';
 
 const radius = 10;
 
@@ -45,6 +45,7 @@ export class EmptyNode extends ContainerNode<ContainerModel, Container>
             bgColor: 0xffffff,
             bgAlpha: 0.1,
             crosshairSize: 8,
+            showCircle: false,
         });
 
         yellowPivot.x = radius;

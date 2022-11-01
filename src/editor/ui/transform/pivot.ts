@@ -7,6 +7,7 @@ export interface PivotConfig
     bgColor: number;
     bgAlpha: number;
     crosshairSize: number;
+    showCircle: boolean;
 }
 
 export function createPivotShape(config: PivotConfig)
@@ -15,13 +16,16 @@ export function createPivotShape(config: PivotConfig)
     const pivotShape = new Graphics();
 
     pivotShape.lineStyle(1, lineColor, 1);
+
     pivotShape.beginFill(bgColor, bgAlpha);
-    pivotShape.drawCircle(0, 0, radius);
+    config.showCircle && pivotShape.drawCircle(0, 0, radius);
+
     if (crosshairSize > 0)
     {
         pivotShape.moveTo(0, crosshairSize * -1); pivotShape.lineTo(0, crosshairSize);
         pivotShape.moveTo(crosshairSize * -1, 0); pivotShape.lineTo(crosshairSize, 0);
     }
+
     pivotShape.endFill();
 
     return pivotShape;
@@ -33,6 +37,7 @@ export const yellowPivot = createPivotShape({
     bgColor: 0xffffff,
     bgAlpha: 0.1,
     crosshairSize: 12,
+    showCircle: true,
 });
 
 export const bluePivot = createPivotShape({
@@ -41,4 +46,5 @@ export const bluePivot = createPivotShape({
     bgColor: 0x0000ff,
     bgAlpha: 1,
     crosshairSize: 10,
+    showCircle: true,
 });
