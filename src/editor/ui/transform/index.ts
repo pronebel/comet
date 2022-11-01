@@ -611,27 +611,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
             if (selected.length === 1)
             {
-                const p1 = matrix.apply({
-                    x: view.pivot.x,
-                    y: view.pivot.y,
-                });
-
-                view.pivot.x = pivotX;
-                view.pivot.y = pivotY;
-
-                updateTransforms(view);
-
-                const p2 = matrix.apply({
-                    x: pivotX,
-                    y: pivotY,
-                });
-
-                const deltaX = p2.x - p1.x;
-                const deltaY = p2.y - p1.y;
-
-                values.x = (values.x as number) + deltaX;
-                values.y = (values.y as number) + deltaY;
-
                 values.pivotX = pivotX;
                 values.pivotY = pivotY;
             }
@@ -640,6 +619,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 nodeId: node.id,
                 values,
             }));
+
+            view.transform.setFromMatrix(matrix);
         });
     }
 }
