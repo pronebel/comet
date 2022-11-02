@@ -328,12 +328,12 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         this.updateDragInfoFromEvent(event);
 
         const {
-            dragInfo: { isMetaDown, isAltDown, isShiftDown },
+            dragInfo: { isMetaDown, isAltDown },
             isVertexDrag,
             config,
         } = this;
 
-        if (isMetaDown)
+        if (isMetaDown && !isAltDown)
         {
             config.enableRotation && this.setOperation(new RotateOperation(this));
         }
@@ -343,7 +343,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             const PrimaryScaleOperation = defaultScaleMode === 'edge' ? ScaleByEdgeOperation : ScaleByPivotOperation;
             const SecondaryScaleOperation = defaultScaleMode === 'edge' ? ScaleByPivotOperation : ScaleByEdgeOperation;
 
-            if (isShiftDown)
+            if (isMetaDown && isAltDown)
             {
                 config.enableScaling && this.setOperation(new SecondaryScaleOperation(this));
             }

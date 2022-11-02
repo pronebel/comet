@@ -1,6 +1,7 @@
 import { type Point, rotatePointAround } from '../../../../core/util/geom';
 import type { HandleVertex } from '../handle';
 import { type DragInfo, TransformOperation } from '../operation';
+import { snapToIncrement } from '../util';
 
 export abstract class ScaleOperation extends TransformOperation<
 'pivotX' | 'pivotY' | 'globalX' | 'globalY' | 'width' | 'height' | 'scaleX' | 'scaleY'
@@ -101,7 +102,7 @@ export abstract class ScaleOperation extends TransformOperation<
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected setScale(dragInfo: DragInfo, delta: Point)
     {
-        const { gizmo, gizmo: { vertex: v } } = this;
+        const { gizmo, gizmo: { vertex: v, initialTransform } } = this;
         const vertex = `${v.h}-${v.v}`;
         const width = this.readCache('width');
         const height = this.readCache('height');
@@ -149,6 +150,19 @@ export abstract class ScaleOperation extends TransformOperation<
         )
         {
             scaleY = ((height + delta.y) / height) * this.readCache('scaleY');
+        }
+
+        if (dragInfo.isShiftDown)
+        {
+            const w = initialTransform.naturalWidth * scaleX;
+            const h = initialTransform.naturalHeight * scaleY;
+            const snappedW = snapToIncrement(w, 10);
+            const snappedH = snapToIncrement(h, 10);
+            const deltaH = snappedW / w;
+            const deltaV = snappedH / h;
+
+            scaleX *= deltaH;
+            scaleY *= deltaV;
         }
 
         gizmo.scaleX = scaleX;
