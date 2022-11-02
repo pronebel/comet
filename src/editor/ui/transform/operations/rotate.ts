@@ -1,6 +1,6 @@
-import { angleBetween } from '../../../core/util/geom';
-import { type DragInfo, TransformOperation } from './operation';
-import { snapToIncrement } from './util';
+import { angleBetween } from '../../../../core/util/geom';
+import { type DragInfo, TransformOperation } from '../operation';
+import { snapToIncrement } from '../util';
 
 export class RotateOperation extends TransformOperation<'rotation' | 'dragAngle'>
 {

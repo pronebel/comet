@@ -79,6 +79,6 @@ export default class Grid
         // eslint-disable-next-line no-nested-ternary
         const alpha = num % 100 === 0 ? light : num % 50 === 0 ? inBetween : dark;
 
-        return green.darken(alpha).hex() as string;
+        return green.darken(alpha).hex();
     }
 }

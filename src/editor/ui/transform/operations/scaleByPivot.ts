@@ -1,5 +1,5 @@
-import type { Point } from '../../../core/util/geom';
-import type { DragInfo } from './operation';
+import type { Point } from '../../../../core/util/geom';
+import type { DragInfo } from '../operation';
 import { ScaleOperation } from './scale';
 
 export class ScaleByPivotOperation extends ScaleOperation

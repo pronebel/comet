@@ -1,8 +1,27 @@
 import type { DisplayObject } from 'pixi.js';
-import { Matrix, Rectangle, Transform } from 'pixi.js';
+import { Graphics, Matrix, Rectangle, Transform } from 'pixi.js';
 
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
 import { angleBetween, degToRad } from '../../../core/util/geom';
+
+export interface InitialGizmoTransform
+{
+    localBounds: Rectangle;
+    pivotX: number;
+    pivotY: number;
+    x: number;
+    y: number;
+    rotation: number;
+    naturalWidth: number;
+    naturalHeight: number;
+    width: number;
+    height: number;
+    scaleX: number;
+    scaleY: number;
+    skewX: number;
+    skewY: number;
+    matrix: Matrix;
+}
 
 export function round(num: number)
 {
@@ -27,43 +46,6 @@ export function updateTransforms(view: DisplayObject)
         obj.updateTransform();
     }
 }
-
-export interface InitialGizmoTransform
-{
-    localBounds: Rectangle;
-    pivotX: number;
-    pivotY: number;
-    x: number;
-    y: number;
-    rotation: number;
-    naturalWidth: number;
-    naturalHeight: number;
-    width: number;
-    height: number;
-    scaleX: number;
-    scaleY: number;
-    skewX: number;
-    skewY: number;
-    matrix: Matrix;
-}
-
-export const defaultInitialGizmoTransform: InitialGizmoTransform = {
-    localBounds: Rectangle.EMPTY,
-    pivotX: 0,
-    pivotY: 0,
-    x: 0,
-    y: 0,
-    rotation: 0,
-    naturalWidth: 0,
-    naturalHeight: 0,
-    width: 0,
-    height: 0,
-    scaleX: 1,
-    scaleY: 1,
-    skewX: 0,
-    skewY: 0,
-    matrix: Matrix.IDENTITY,
-};
 
 export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGizmoTransform
 {
@@ -130,31 +112,6 @@ export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGi
     };
 }
 
-export function getLocalTransform(view: DisplayObject)
-{
-    updateTransforms(view);
-
-    const parentMatrix = view.parent.worldTransform.clone();
-    const viewMatrix = view.worldTransform.clone();
-    const transform = new Transform();
-
-    const p1 = viewMatrix.apply({ x: 0, y: 0 });
-    const p2 = viewMatrix.apply({ x: view.pivot.x, y: view.pivot.y });
-
-    parentMatrix.invert();
-    viewMatrix.prepend(parentMatrix);
-
-    transform.setFromMatrix(viewMatrix);
-    transform.updateLocalTransform();
-
-    const deltaX = p2.x - p1.x;
-    const deltaY = p2.y - p1.y;
-
-    viewMatrix.translate(deltaX, deltaY);
-
-    return viewMatrix;
-}
-
 export function getTotalGlobalBounds<T extends ContainerNode>(nodes: T[])
 {
     let rect = Rectangle.EMPTY;
@@ -218,3 +175,70 @@ export function snapToIncrement(val: number, increment: number)
 {
     return Math.round(val / increment) * increment;
 }
+
+export interface PivotConfig
+{
+    radius: number;
+    lineColor: number;
+    bgColor: number;
+    bgAlpha: number;
+    crosshairSize: number;
+    showCircle: boolean;
+}
+
+export function createPivotShape(config: PivotConfig)
+{
+    const { radius, lineColor, bgColor, bgAlpha, crosshairSize } = config;
+    const pivotShape = new Graphics();
+
+    pivotShape.lineStyle(1, lineColor, 1);
+
+    pivotShape.beginFill(bgColor, bgAlpha);
+    config.showCircle && pivotShape.drawCircle(0, 0, radius);
+
+    if (crosshairSize > 0)
+    {
+        pivotShape.moveTo(0, crosshairSize * -1); pivotShape.lineTo(0, crosshairSize);
+        pivotShape.moveTo(crosshairSize * -1, 0); pivotShape.lineTo(crosshairSize, 0);
+    }
+
+    pivotShape.endFill();
+
+    return pivotShape;
+}
+
+export const yellowPivot = createPivotShape({
+    radius: 7,
+    lineColor: 0xffff00,
+    bgColor: 0xffffff,
+    bgAlpha: 0.1,
+    crosshairSize: 12,
+    showCircle: true,
+});
+
+export const bluePivot = createPivotShape({
+    radius: 5,
+    lineColor: 0xffffff,
+    bgColor: 0x0000ff,
+    bgAlpha: 1,
+    crosshairSize: 10,
+    showCircle: true,
+});
+
+export const defaultInitialGizmoTransform: InitialGizmoTransform = {
+    localBounds: Rectangle.EMPTY,
+    pivotX: 0,
+    pivotY: 0,
+    x: 0,
+    y: 0,
+    rotation: 0,
+    naturalWidth: 0,
+    naturalHeight: 0,
+    width: 0,
+    height: 0,
+    scaleX: 1,
+    scaleY: 1,
+    skewX: 0,
+    skewY: 0,
+    matrix: Matrix.IDENTITY,
+};

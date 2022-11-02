@@ -4,7 +4,7 @@ import { Container, Graphics, Rectangle } from 'pixi.js';
 
 import type { TransformGizmo } from '.';
 import { type HandleVertexHorizontal, type HandleVertexVertical, TransformGizmoHandle } from './handle';
-import { yellowPivot } from './pivot';
+import { yellowPivot } from './util';
 
 const primaryHandleSize = 10;
 const secondaryHandleSize = 7;

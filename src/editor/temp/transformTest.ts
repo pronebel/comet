@@ -1,9 +1,9 @@
 import { Application, Container,  Sprite, Texture } from 'pixi.js';
 
-import { ContainerNode } from '../core/nodes/concrete/container';
-import Canvas2DPainter from './ui/2dPainter';
-import Grid from './ui/grid';
-import { NodeSelection } from './ui/selection';
+import { ContainerNode } from '../../core/nodes/concrete/container';
+import Canvas2DPainter from '../ui/2dPainter';
+import Grid from '../ui/grid';
+import { NodeSelection } from '../ui/selection';
 import { TransformGizmo } from './ui/transform/gizmo';
 
 type SpriteConfig = {

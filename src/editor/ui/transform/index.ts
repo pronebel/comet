@@ -10,20 +10,21 @@ import { ModifyModelCommand } from '../../commands/modifyModel';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
 import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';
-import { bluePivot, yellowPivot } from './pivot';
-import { RotateOperation } from './rotate';
-import { ScaleByEdgeOperation } from './scaleByEdge';
-import { ScaleByPivotOperation } from './scaleByPivot';
-import { TranslateOperation } from './translate';
-import { TranslatePivotOperation } from './translatePivot';
-import { type TransformGizmoConfig, defaultTransformGizmoConfig } from './types';
+import { RotateOperation } from './operations/rotate';
+import { ScaleByEdgeOperation } from './operations/scaleByEdge';
+import { ScaleByPivotOperation } from './operations/scaleByPivot';
+import { TranslateOperation } from './operations/translate';
+import { TranslatePivotOperation } from './operations/translatePivot';
+import type { TransformGizmoConfig } from './types';
+import { defaultTransformGizmoConfig } from './types';
 import type { InitialGizmoTransform } from './util';
 import {
-    decomposeTransform,
+    bluePivot,     decomposeTransform,
     defaultInitialGizmoTransform,
     getGizmoInitialTransformFromView,
     getTotalGlobalBounds,
     updateTransforms,
+    yellowPivot,
 } from './util';
 
 export type TransformGizmoEvent = 'changed';

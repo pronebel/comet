@@ -1,4 +1,4 @@
-import { type DragInfo, TransformOperation } from './operation';
+import { type DragInfo, TransformOperation } from '../operation';
 
 export class TranslatePivotOperation extends TransformOperation
 {

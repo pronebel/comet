@@ -1,5 +1,5 @@
-import { type DragInfo, TransformOperation } from './operation';
-import { snapToIncrement } from './util';
+import { type DragInfo, TransformOperation } from '../operation';
+import { snapToIncrement } from '../util';
 
 export class TranslateOperation extends TransformOperation<'x' | 'y' | 'globalX' | 'globalY'>
 {

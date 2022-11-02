@@ -1,6 +1,6 @@
-import { type Point, rotatePointAround } from '../../../core/util/geom';
-import type { HandleVertex } from './handle';
-import { type DragInfo, TransformOperation } from './operation';
+import { type Point, rotatePointAround } from '../../../../core/util/geom';
+import type { HandleVertex } from '../handle';
+import { type DragInfo, TransformOperation } from '../operation';
 
 export abstract class ScaleOperation extends TransformOperation<
 'pivotX' | 'pivotY' | 'globalX' | 'globalY' | 'width' | 'height' | 'scaleX' | 'scaleY'
