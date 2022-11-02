@@ -34,7 +34,7 @@ export function newDebugNode()
         },
     });
 
-    const { nodes } = app.exec<AddChildCommandReturn>(new AddChildCommand({ parentId, nodeSchema }));
+    const { nodes } = app.undoStack.exec<AddChildCommandReturn>(new AddChildCommand({ parentId, nodeSchema }));
 
     const node = nodes[0] as unknown as ContainerNode;
 

@@ -260,7 +260,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         localPoint.y = Math.min(height, Math.max(0, localPoint.y));
     }
 
-    public setPivotFromGlobalPoint(localX: number, localY: number)
+    public setPivot(localX: number, localY: number)
     {
         this.updateTransform();
 
@@ -611,7 +611,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
                 values.pivotY = pivotY;
             }
 
-            Application.instance.exec(new ModifyModelCommand({
+            Application.instance.undoStack.exec(new ModifyModelCommand({
                 nodeId: node.id,
                 values,
             }));

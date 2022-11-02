@@ -47,6 +47,7 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         this.container.addChild(this.pivotView);
         this.container.addChild(this.primaryHandles);
         this.container.addChild(this.secondaryHandles);
+        this.container.addChild(this.info);
 
         this.topLeftHandle = this.createHandle(primaryHandleSize, 'left', 'top');
         this.topRightHandle = this.createHandle(primaryHandleSize, 'right', 'top');

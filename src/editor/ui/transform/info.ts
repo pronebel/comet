@@ -1,10 +1,10 @@
-import { Graphics } from 'pixi.js';
+import { Container } from 'pixi.js';
 
 import type { TransformGizmoFrame } from './frame';
 
-export class TransformGizmoInfo extends Graphics
+export class TransformGizmoInfo extends Container
 {
-    constructor(public readonly gizmo: TransformGizmoFrame)
+    constructor(public readonly frame: TransformGizmoFrame)
     {
         super();
 
@@ -13,6 +13,6 @@ export class TransformGizmoInfo extends Graphics
 
     public update()
     {
-
+        // const { frame: { gizmo } } = this;
     }
 }

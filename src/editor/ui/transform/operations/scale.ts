@@ -93,7 +93,7 @@ export abstract class ScaleOperation extends TransformOperation<
 
         this.gizmo.updateTransform();
 
-        gizmo.setPivotFromGlobalPoint(localX, localY);
+        gizmo.setPivot(localX, localY);
     }
 
     // @ts-ignore

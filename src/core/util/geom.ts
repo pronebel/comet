@@ -1,4 +1,3 @@
-import type { Matrix } from 'pixi.js';
 import { Rectangle } from 'pixi.js';
 
 export type Point = { x: number; y: number };
@@ -225,11 +224,11 @@ export function fitRectToPoints(points: Point[])
     return new Rectangle(minX, minY, maxX - minX, maxY - minY);
 }
 
-export function getMatrixRotation(matrix: Matrix)
+export function interpolateLine(x1: number, y1: number, x2: number, y2: number, t: number): Point
 {
-    const p0 = matrix.apply({ x: 0, y: 0 });
-    const p1 = matrix.apply({ x: 10, y: 0 });
-    const angle = angleBetween(p0.x, p0.y, p1.x, p1.y);
+    const x = x1 + ((x2 - x1) * t);
+    const y = y1 + ((y2 - y1) * t);
 
-    return angle;
+    return { x, y };
 }
+

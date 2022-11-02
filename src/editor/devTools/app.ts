@@ -233,7 +233,7 @@ export class DevToolsApp extends Application
                 },
             });
 
-            this.exec(new AddChildCommand({ parentId, nodeSchema }));
+            this.undoStack.exec(new AddChildCommand({ parentId, nodeSchema }));
         }
     }
 
@@ -254,7 +254,7 @@ export class DevToolsApp extends Application
                 },
             });
 
-            this.exec(new AddChildCommand({ parentId, nodeSchema }));
+            this.undoStack.exec(new AddChildCommand({ parentId, nodeSchema }));
         }
     }
 
@@ -266,7 +266,7 @@ export class DevToolsApp extends Application
             const parentNode = this.selected.parent;
             const {
                 clonedNode,
-            } = this.exec<CloneCommandReturn>(new CloneCommand({
+            } = this.undoStack.exec<CloneCommandReturn>(new CloneCommand({
                 parentId: parentNode ? parentNode.id : undefined,
                 nodeId: this.selected.id,
                 cloneMode,
@@ -280,7 +280,7 @@ export class DevToolsApp extends Application
     {
         if (this.selected && (this.selected.nodeType() !== 'Scene' || this.selected?.nodeType() !== 'Project'))
         {
-            this.exec(new RemoveChildCommand({ nodeId: this.selected.id }));
+            this.undoStack.exec(new RemoveChildCommand({ nodeId: this.selected.id }));
         }
     }
 
@@ -288,7 +288,7 @@ export class DevToolsApp extends Application
     {
         if (this.project && this.selected)
         {
-            this.exec(new UnlinkCommand({ nodeId: this.selected.id }));
+            this.undoStack.exec(new UnlinkCommand({ nodeId: this.selected.id }));
         }
     }
 
@@ -346,7 +346,7 @@ export class DevToolsApp extends Application
     {
         if (this.selected && this.selected instanceof DebugNode)
         {
-            this.exec(new ModifyModelCommand<SpriteModel>({
+            this.undoStack.exec(new ModifyModelCommand<SpriteModel>({
                 nodeId: this.selected.getModificationCloneTarget().id,
                 values: {
                     tint: Math.round(Math.random() * 100000),
@@ -358,7 +358,7 @@ export class DevToolsApp extends Application
     {
         if (this.selected)
         {
-            this.exec(new ModifyModelCommand<SpriteModel>({
+            this.undoStack.exec(new ModifyModelCommand<SpriteModel>({
                 nodeId: this.selected.getModificationCloneTarget().id,
                 values: {
                     width: Math.round(Math.random() * 50),
@@ -400,7 +400,7 @@ export class DevToolsApp extends Application
             const propType = isNaN(value) ? 'string' : 'number';
             const propValue = propType === 'string' ? value : parseFloat(value);
 
-            this.exec(new SetCustomPropCommand({
+            this.undoStack.exec(new SetCustomPropCommand({
                 nodeId: selected.id,
                 customKey: name,
                 type: propType,
@@ -416,7 +416,7 @@ export class DevToolsApp extends Application
 
         if (selected)
         {
-            this.exec(new RemoveCustomPropCommand({
+            this.undoStack.exec(new RemoveCustomPropCommand({
                 nodeId: selected.id,
                 customKey: name,
                 updateMode: 'full',
@@ -430,7 +430,7 @@ export class DevToolsApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.exec(new AssignCustomPropCommand({
+            this.undoStack.exec(new AssignCustomPropCommand({
                 nodeId: selected.id,
                 modelKey,
                 customKey,
@@ -445,7 +445,7 @@ export class DevToolsApp extends Application
 
         if (selected && selected instanceof DebugNode)
         {
-            this.exec(new UnAssignCustomPropCommand({
+            this.undoStack.exec(new UnAssignCustomPropCommand({
                 nodeId: selected.id,
                 modelKey,
                 updateMode: 'full',

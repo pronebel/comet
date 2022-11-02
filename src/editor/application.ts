@@ -7,8 +7,7 @@ import type { ContainerNode } from '../core/nodes/concrete/container';
 import { ProjectNode } from '../core/nodes/concrete/project';
 import { clearInstances, getInstance } from '../core/nodes/instances';
 import { RemoveNodeCommand } from './commands/removeNode';
-import type { Command } from './core/command';
-import { initHistory, writeCommandList, writeUndoStack } from './core/history';
+import { initHistory, writeUndoStack } from './core/history';
 import UndoStack from './core/undoStack';
 import { initDiagnostics } from './diagnostics';
 import { Datastore } from './sync/datastore';
@@ -115,30 +114,6 @@ export class Application extends EventEmitter<AppEvents>
 
         this.undoStack.clear();
         this.datastore.reset();
-        // this.editorViews.forEach((view) => view.reset());
-    }
-
-    public exec<R = unknown>(command: Command, isUndoRoot = true): R
-    {
-        command.isUndoRoot = isUndoRoot;
-
-        writeCommandList(command.name);
-
-        this.undoStack.push(command);
-
-        if (localStorage['saveUndo'] !== '0')
-        {
-            writeUndoStack();
-        }
-
-        console.group(`%c${logId}:%c🔔 ${command.name}.run()`, userColor, `font-weight:bold;${logStyle}`);
-        console.log(`%c${JSON.stringify(command.params)}`, 'color:#999');
-
-        const result = command.run();
-
-        console.groupEnd();
-
-        return result as unknown as R;
     }
 
     public emit<T extends AppEvents>(event: T, ...args: any[]): boolean

@@ -27,7 +27,7 @@ export class TranslatePivotOperation extends TransformOperation
                 localPoint.y = snapToIncrement(localPoint.y, 1);
             }
 
-            this.gizmo.setPivotFromGlobalPoint(localPoint.x, localPoint.y);
+            this.gizmo.setPivot(localPoint.x, localPoint.y);
         }
     }
 
