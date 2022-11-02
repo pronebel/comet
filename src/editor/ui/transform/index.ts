@@ -260,31 +260,21 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         localPoint.y = Math.min(height, Math.max(0, localPoint.y));
     }
 
-    public setPivotFromGlobalPoint(globalX: number, globalY: number, constrain = false)
+    public setPivotFromGlobalPoint(localX: number, localY: number)
     {
         this.updateTransform();
 
-        const globalPoint = { x: globalX, y: globalY };
-        const localPoint = this.getLocalPoint(globalX, globalY);
+        const p1 = this.getGlobalPoint(localX, localY);
 
-        if (constrain)
-        {
-            this.constrainLocalPoint(localPoint);
-            const p = this.getGlobalPoint(localPoint.x, localPoint.y);
-
-            globalPoint.x = p.x;
-            globalPoint.y = p.y;
-        }
-
-        this.transform.pivot.x = localPoint.x;
-        this.transform.pivot.y = localPoint.y;
+        this.transform.pivot.x = localX;
+        this.transform.pivot.y = localY;
 
         this.updateTransform();
 
-        const p = this.getGlobalPoint(localPoint.x, localPoint.y);
+        const p2 = this.getGlobalPoint(localX, localY);
 
-        const deltaX = globalPoint.x - p.x;
-        const deltaY = globalPoint.y - p.y;
+        const deltaX = p1.x - p2.x;
+        const deltaY = p1.y - p2.y;
 
         this.x += deltaX;
         this.y += deltaY;

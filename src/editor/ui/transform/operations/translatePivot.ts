@@ -1,4 +1,5 @@
 import { type DragInfo, TransformOperation } from '../operation';
+import { snapToIncrement } from '../util';
 
 export class TranslatePivotOperation extends TransformOperation
 {
@@ -13,7 +14,20 @@ export class TranslatePivotOperation extends TransformOperation
     {
         if (dragInfo.isAltDown)
         {
-            this.gizmo.setPivotFromGlobalPoint(dragInfo.globalX, dragInfo.globalY, dragInfo.isControlDown);
+            const localPoint = { x: dragInfo.localX, y: dragInfo.localY };
+
+            if (dragInfo.isControlDown)
+            {
+                this.gizmo.constrainLocalPoint(localPoint);
+            }
+
+            if (dragInfo.isShiftDown)
+            {
+                localPoint.x = snapToIncrement(localPoint.x, 1);
+                localPoint.y = snapToIncrement(localPoint.y, 1);
+            }
+
+            this.gizmo.setPivotFromGlobalPoint(localPoint.x, localPoint.y);
         }
     }
 
