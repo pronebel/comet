@@ -5,6 +5,7 @@ import { Container, Graphics, Rectangle } from 'pixi.js';
 import type { TransformGizmo } from '.';
 import { type HandleVertexHorizontal, type HandleVertexVertical, TransformGizmoHandle } from './handle';
 import { TransformGizmoInfo } from './info';
+import type { DragInfo } from './operation';
 import { yellowPivot } from './util';
 
 const primaryHandleSize = 10;
@@ -271,17 +272,20 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         this.drawPivot();
     }
 
-    public startOperation()
+    public startOperation(dragInfo: DragInfo)
     {
         this.info.visible = true;
+        this.info.update(dragInfo);
     }
 
-    public updateOperation()
+    public updateOperation(dragInfo: DragInfo)
     {
-        this.info.update();
+        this.info.update(dragInfo);
     }
 
-    public endOperation()
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public endOperation(dragInfo: DragInfo)
     {
         this.info.visible = false;
     }

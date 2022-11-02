@@ -16,7 +16,7 @@ export abstract class TransformOperation<K extends string = string>
         this.cache.set(key, value);
     }
 
-    protected readCache(key: K)
+    public readCache(key: K)
     {
         if (!this.cache.has(key))
         {
@@ -26,12 +26,12 @@ export abstract class TransformOperation<K extends string = string>
         return this.cache.get(key) as number;
     }
 
-    protected hasCache(key: K)
+    public hasCache(key: K)
     {
         return this.cache.has(key);
     }
 
-    protected get isCached()
+    public get isCached()
     {
         return this.cache.size > 0;
     }

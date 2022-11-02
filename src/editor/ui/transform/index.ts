@@ -73,6 +73,26 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         return false;
     }
 
+    get localX()
+    {
+        if (this.selected.length === 1)
+        {
+            return this.selected[0].view.x;
+        }
+
+        return this.x;
+    }
+
+    get localY()
+    {
+        if (this.selected.length === 1)
+        {
+            return this.selected[0].view.y;
+        }
+
+        return this.y;
+    }
+
     get x()
     {
         return this.transform.position.x;
@@ -359,7 +379,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
         this.update();
 
-        this.frame.startOperation();
+        this.frame.startOperation(this.dragInfo);
     };
 
     public onMouseMove = (event: InteractionEvent) =>
@@ -370,7 +390,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             this.operation.drag(this.dragInfo);
 
             this.update();
-            this.frame.updateOperation();
+            this.frame.updateOperation(this.dragInfo);
         }
     };
 
@@ -382,6 +402,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         {
             this.operation.end(this.dragInfo);
             this.update();
+            this.frame.endOperation(this.dragInfo);
         }
 
         this.clearOperation();
@@ -391,7 +412,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
     public clearOperation()
     {
         this.vertex = { h: 'none', v: 'none' };
-        this.frame.endOperation();
 
         delete this.operation;
         delete this.dragInfo;

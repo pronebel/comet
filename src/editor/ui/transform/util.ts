@@ -23,10 +23,14 @@ export interface InitialGizmoTransform
     matrix: Matrix;
 }
 
-export function round(num: number)
+export function round(num: number, places: number)
 {
-    return Math.round((num + Number.EPSILON) * 1000) / 1000;
+    const factor = Math.pow(10, places);
+
+    return Math.round((num + Number.EPSILON) * factor) / factor;
 }
+
+(window as any).round = round;
 
 export function updateTransforms(view: DisplayObject)
 {
