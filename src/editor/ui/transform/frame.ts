@@ -4,6 +4,7 @@ import { Container, Graphics, Rectangle } from 'pixi.js';
 
 import type { TransformGizmo } from '.';
 import { type HandleVertexHorizontal, type HandleVertexVertical, TransformGizmoHandle } from './handle';
+import { TransformGizmoInfo } from './info';
 import { yellowPivot } from './util';
 
 const primaryHandleSize = 10;
@@ -18,6 +19,7 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
     public secondaryHandles: Container;
     public border: Graphics;
     public pivotView: DisplayObject;
+    public info: TransformGizmoInfo;
 
     public topLeftHandle: TransformGizmoHandle;
     public topRightHandle: TransformGizmoHandle;
@@ -39,6 +41,7 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         this.border = new Graphics();
 
         this.pivotView = yellowPivot;
+        this.info = new TransformGizmoInfo(this);
 
         this.container.addChild(this.border);
         this.container.addChild(this.pivotView);
@@ -265,5 +268,20 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
         this.container.addChild(pivotView);
         this.pivotView = pivotView;
         this.drawPivot();
+    }
+
+    public startOperation()
+    {
+        this.info.visible = true;
+    }
+
+    public updateOperation()
+    {
+        this.info.update();
+    }
+
+    public endOperation()
+    {
+        this.info.visible = false;
     }
 }

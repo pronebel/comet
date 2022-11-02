@@ -358,6 +358,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
         }
 
         this.update();
+
+        this.frame.startOperation();
     };
 
     public onMouseMove = (event: InteractionEvent) =>
@@ -368,6 +370,7 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
             this.operation.drag(this.dragInfo);
 
             this.update();
+            this.frame.updateOperation();
         }
     };
 
@@ -388,6 +391,8 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
     public clearOperation()
     {
         this.vertex = { h: 'none', v: 'none' };
+        this.frame.endOperation();
+
         delete this.operation;
         delete this.dragInfo;
     }
