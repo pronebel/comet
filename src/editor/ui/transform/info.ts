@@ -96,7 +96,6 @@ export class TransformGizmoInfo extends Container
 
         keyValueLabel1.setText('global:', `${round(x, 1)}px x ${round(y, 1)}px`);
         keyValueLabel2.setText('local: ', `${round(localX, 1)}px x ${round(localY, 1)}px`);
-        // keyValueLabel2.setText('y:', `${round(y, 1)}px`);
     }
 
     protected drawTranslatePivot()

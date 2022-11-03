@@ -69,7 +69,7 @@ export class EditableView
         const underCursor = this.getUnderCursor(globalX, globalY)
             .filter((node) => !this.selection.isSelected(node));
 
-        // console.log(underCursor.map((node) => node.id));
+        console.log(underCursor.map((node) => node.id));
 
         let wasDoubleClick = false;
 

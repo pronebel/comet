@@ -1,4 +1,4 @@
-import { type DisplayObject, Container } from 'pixi.js';
+import { type DisplayObject, type Transform, Container, Matrix } from 'pixi.js';
 
 import { ModelSchema } from '../../../core/model/schema';
 import { displayObjectSchema } from '../../../core/nodes/abstract/displayObject';
@@ -45,11 +45,61 @@ export class EmptyNode extends ContainerNode<ContainerModel, Container>
             bgColor: 0xffffff,
             bgAlpha: 0.1,
             crosshairSize: 8,
-            showCircle: false,
+            showCircle: true,
         });
 
         yellowPivot.x = radius;
         yellowPivot.y = radius;
+
+        const pivot = (yellowPivot as any);
+
+        pivot._calculateBounds = () => ({});
+
+        pivot.transform.updateTransform = function updateTransform(parentTransform: Transform)
+        {
+            const lt = this.localTransform;
+
+            if (this._localID !== this._currentLocalID)
+            {
+            // get the matrix values of the displayobject based on its transform properties..
+                lt.a = this._cx * this.scale.x;
+                lt.b = this._sx * this.scale.x;
+                lt.c = this._cy * this.scale.y;
+                lt.d = this._sy * this.scale.y;
+
+                lt.tx = this.position.x - ((this.pivot.x * lt.a) + (this.pivot.y * lt.c));
+                lt.ty = this.position.y - ((this.pivot.x * lt.b) + (this.pivot.y * lt.d));
+                this._currentLocalID = this._localID;
+
+                // force an update..
+                this._parentID = -1;
+            }
+
+            if (this._parentID !== parentTransform._worldID)
+            {
+            // concat the parent matrix with the objects transform.
+                const pt = parentTransform.worldTransform;
+                const wt = this.worldTransform;
+
+                wt.a = (lt.a * pt.a) + (lt.b * pt.c);
+                wt.b = (lt.a * pt.b) + (lt.b * pt.d);
+                wt.c = (lt.c * pt.a) + (lt.d * pt.c);
+                wt.d = (lt.c * pt.b) + (lt.d * pt.d);
+                wt.tx = (lt.tx * pt.a) + (lt.ty * pt.c) + pt.tx;
+                wt.ty = (lt.tx * pt.b) + (lt.ty * pt.d) + pt.ty;
+
+                const matrix = new Matrix();
+
+                matrix.scale(1 / parentTransform.scale.x, 1 / parentTransform.scale.y);
+
+                wt.append(matrix);
+
+                this._parentID = parentTransform._worldID;
+
+                // update the id of the transform..
+                this._worldID++;
+            }
+        };
 
         container.addChild(yellowPivot);
 
