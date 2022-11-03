@@ -350,6 +350,24 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         }
     }
 
+    protected assertValue(value: unknown)
+    {
+        if (typeof value === 'number' && isNaN(value))
+        {
+            throw new Error(`Cannot store NaN in datastore`);
+        }
+        else if (value === Infinity)
+        {
+            throw new Error(`Cannot store Infinity in datastore`);
+        }
+        else if (value === undefined)
+        {
+            throw new Error(`Cannot store undefined in datastore`);
+        }
+
+        return value;
+    }
+
     public async createProject(name: string, id?: string)
     {
         const data = createProjectSchema(name);
@@ -556,7 +574,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const childElement = this.getNodeElement(childId);
 
         // set parent data
-        childElement.set('parent', parentId);
+        childElement.set('parent', this.assertValue(parentId));
 
         // set children data if not present
         const childArray = parentElement.get('children') as RealTimeArray;
@@ -587,7 +605,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
             {
                 for (const [k, v] of entries)
                 {
-                    modelElement.set(k, v);
+                    modelElement.set(k, this.assertValue(v));
                 }
             });
         }
@@ -618,7 +636,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
         definedCustomProps.set(customKey, {
             type,
-            value,
+            value: this.assertValue(value),
         });
     }
 
@@ -635,7 +653,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const nodeElement = this.getNodeElement(nodeId);
         const assignedCustomProps = nodeElement.elementAt('customProperties', 'assigned') as RealTimeObject;
 
-        assignedCustomProps.set(modelKey, customKey);
+        assignedCustomProps.set(modelKey, this.assertValue(customKey));
     }
 
     public unassignCustomProperty(nodeId: string, modelKey: string)
