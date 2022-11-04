@@ -1,7 +1,8 @@
 import type { Container } from 'pixi.js';
 
 import { ModelSchema } from '../../model/schema';
-import { type ContainerEvents, type ContainerModel, ContainerNode, containerSchema } from './container';
+import { MetaNode } from '../abstract/metaNode';
+import { type ContainerEvents, type ContainerModel, containerSchema } from './container';
 
 export type ProjectEvents = ContainerEvents;
 
@@ -16,7 +17,7 @@ export const projectSchema = new ModelSchema<ProjectModel>({
 
 }, containerSchema.constraints);
 
-export class ProjectNode extends ContainerNode<ProjectModel, Container, ProjectEvents>
+export class ProjectNode extends MetaNode<ProjectModel, Container, ProjectEvents>
 {
     private static readonly _instance: ProjectNode;
 
@@ -33,11 +34,6 @@ export class ProjectNode extends ContainerNode<ProjectModel, Container, ProjectE
         }
 
         return ProjectNode._instance;
-    }
-
-    public get isMetaNode()
-    {
-        return true;
     }
 }
 
