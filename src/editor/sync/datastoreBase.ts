@@ -1,6 +1,8 @@
+import { EventEmitter } from 'eventemitter3';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import type { NodeSchema, CloneInfoSchema } from '../../core/nodes/schema';
+import type { DatastoreEvent } from './datastoreEvents';
 
 export interface Datastore {
     connect(): Promise<void>;
@@ -12,10 +14,11 @@ export interface Datastore {
     getNodeAsJSON(nodeId: string): NodeSchema;
     createProject(name: string, id?: string): Promise<ClonableNode>;
     openProject(id: string): Promise<ClonableNode>;
-    hasProject(name: string): boolean;
+    hasProject(name: string): Promise<boolean>;
     closeProject(name: string): Promise<void>;
     deleteProject(name: string): Promise<void>;
-    hydrate(): Promise<ClonableNode>;
+    hydrate(): ClonableNode;
+    reset(): void;
 }
 
 export interface DatastoreCommandProvider
@@ -46,8 +49,19 @@ export interface DatastoreChangeEventHandler<ChangeEventType> {
     onNodeCloneInfoValueSet(event: ChangeEventType): void;
 }
 
-export abstract class DatastoreBase<ChangeEventType> 
-    implements Datastore, DatastoreCommandProvider, DatastoreChangeEventHandler<ChangeEventType> {
+export abstract class DatastoreBase<NodeProxyObject, ChangeEventType> 
+    extends EventEmitter<DatastoreEvent>
+    implements Datastore, DatastoreCommandProvider, DatastoreChangeEventHandler<ChangeEventType>
+{
+
+    protected nodeProxies: Map<string, NodeProxyObject>;
+
+    constructor() {
+        super();
+
+        this.nodeProxies = new Map();
+    }
+
     // general public API
     public abstract connect(): Promise<void>;
     public abstract disconnect(): Promise<void>;
@@ -58,18 +72,19 @@ export abstract class DatastoreBase<ChangeEventType>
     public abstract getNodeAsJSON(nodeId: string): NodeSchema;
     public abstract createProject(name: string, id?: string): Promise<ClonableNode>;
     public abstract openProject(id: string): Promise<ClonableNode>;
-    public abstract hasProject(name: string): boolean;
+    public abstract hasProject(name: string): Promise<boolean>;
     public abstract closeProject(name: string): Promise<void>;
     public abstract deleteProject(name: string): Promise<void>;
-    public abstract hydrate(): Promise<ClonableNode>;
+    public abstract hydrate(): ClonableNode;
+    public abstract reset(): void;
 
     // command API
-    public abstract createNode: (nodeSchema: NodeSchema) => void;
-    public abstract removeNode: (nodeId: string) => void;
-    public abstract setNodeParent: (childId: string, parentId: string) => void;
-    public abstract modifyNodeModel: (nodeId: string, values: object) => void;
-    public abstract updateNodeCloneInfo: (nodeId: string, cloneInfoSchema: CloneInfoSchema) => void;
-    public abstract setCustomProperty: (nodeId: string, customKey: string, type: CustomPropertyType, value: CustomPropertyValueType | undefined) => void;
+    public abstract createNode(nodeSchema: NodeSchema): void;
+    public abstract removeNode(nodeId: string): void;
+    public abstract setNodeParent(childId: string, parentId: string): void;
+    public abstract modifyNodeModel(nodeId: string, values: object): void;
+    public abstract updateNodeCloneInfo(nodeId: string, cloneInfoSchema: CloneInfoSchema): void;
+    public abstract setCustomProperty(nodeId: string, customKey: string, type: CustomPropertyType, value: CustomPropertyValueType | undefined): void;
     public abstract removeCustomProperty(nodeId: string, customKey: string): void;
     public abstract assignCustomProperty(nodeId: string, modelKey: string, customKey: string): void;
     public abstract unassignCustomProperty(nodeId: string, modelKey: string): void;

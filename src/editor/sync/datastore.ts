@@ -56,19 +56,13 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 {
     protected _domain?: ConvergenceDomain;
     protected _model?: RealTimeModel;
-    protected nodeRealtimeObjects: Map<string, RealTimeObject>;
-
-    public static instance: Datastore;
+    protected nodeProxies: Map<string, RealTimeObject>;
 
     constructor()
     {
         super();
 
-        Datastore.instance = this;
-
-        this.nodeRealtimeObjects = new Map();
-
-        (window as any).DS = this;
+        this.nodeProxies = new Map();
     }
 
     protected get app()
@@ -103,14 +97,14 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     public reset()
     {
-        this.nodeRealtimeObjects.clear();
+        this.nodeProxies.clear();
 
         delete this._model;
     }
 
     public getRegisteredIds()
     {
-        return Array.from(this.nodeRealtimeObjects.keys());
+        return Array.from(this.nodeProxies.keys());
     }
 
     public setNodesData(data: Record<string, NodeSchema>)
@@ -130,7 +124,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     public hasRegisteredNode(nodeId: string)
     {
-        return this.nodeRealtimeObjects.has(nodeId);
+        return this.nodeProxies.has(nodeId);
     }
 
     public getNodeAsJSON(nodeId: string)
@@ -340,10 +334,10 @@ export class Datastore extends EventEmitter<DatastoreEvent>
             throw new Error(`${logId}:Existing node "${nodeId}" RealTimeObject not found, cannot track.`);
         }
 
-        if (!this.nodeRealtimeObjects.has(nodeId))
+        if (!this.nodeProxies.has(nodeId))
         {
             // index element
-            this.nodeRealtimeObjects.set(nodeId, nodeElement);
+            this.nodeProxies.set(nodeId, nodeElement);
 
             // track remote changes
             this.initNodeRemoteEvents(nodeId);
@@ -489,13 +483,13 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected registerExistingNode(nodeId: string, nodeElement: RealTimeObject)
     {
-        if (this.nodeRealtimeObjects.has(nodeId))
+        if (this.nodeProxies.has(nodeId))
         {
             throw new Error(`${logId}:Node "${nodeId}" RealTimeObject already registered.`);
         }
 
         // store element
-        this.nodeRealtimeObjects.set(nodeId, nodeElement);
+        this.nodeProxies.set(nodeId, nodeElement);
 
         console.log(`%c${logId}:%cRegistered New RealTimeObject "${nodeId}"`, userColor, logStyle);
 
@@ -726,19 +720,19 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected unRegisterNode(id: string)
     {
-        if (!this.nodeRealtimeObjects.has(id))
+        if (!this.nodeProxies.has(id))
         {
             throw new Error(`${logId}:Cannot remove Node "${id}" as RealTimeObject is not registered.`);
         }
 
-        this.nodeRealtimeObjects.delete(id);
+        this.nodeProxies.delete(id);
 
         console.log(`%c${logId}:%cUnregistered RealTimeObject "${id}"`, userColor, logStyle);
     }
 
     public getNodeElement(id: string)
     {
-        const nodeElement = this.nodeRealtimeObjects.get(id);
+        const nodeElement = this.nodeProxies.get(id);
 
         if (!nodeElement)
         {
