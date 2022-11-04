@@ -2,6 +2,22 @@ import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import type { NodeSchema, CloneInfoSchema } from '../../core/nodes/schema';
 
+export interface Datastore {
+    connect(): Promise<void>;
+    disconnect(): Promise<void>;
+    batch(fn: () => void): Promise<void>;
+    registerNode(nodeId: string): void;
+    hasNode(nodeId: string): boolean;
+    hasRegisteredNode(nodeId: string): boolean;
+    getNodeAsJSON(nodeId: string): NodeSchema;
+    createProject(name: string, id?: string): Promise<ClonableNode>;
+    openProject(id: string): Promise<ClonableNode>;
+    hasProject(name: string): boolean;
+    closeProject(name: string): Promise<void>;
+    deleteProject(name: string): Promise<void>;
+    hydrate(): Promise<ClonableNode>;
+}
+
 export interface DatastoreCommandProvider
 {
     // command API
@@ -16,7 +32,22 @@ export interface DatastoreCommandProvider
     unassignCustomProperty(nodeId: string, modelKey: string): void;
 }
 
-export abstract class DatastoreBase<ChangeEventType> implements DatastoreCommandProvider {
+export interface DatastoreChangeEventHandler<ChangeEventType> {
+    onNodeCreated(event: ChangeEventType): void;
+    onNodeRemoved(event: ChangeEventType): void;
+    onNodeRootPropertySet(event: ChangeEventType): void;
+    onNodeDefinedCustomPropSet(event: ChangeEventType): void;
+    onNodeDefinedCustomPropRemoved(event: ChangeEventType): void;
+    onNodeAssignedCustomPropSet(event: ChangeEventType): void;
+    onNodeAssignedCustomPropRemoved(event: ChangeEventType): void;
+    onNodeModelPropertySet(event: ChangeEventType): void;
+    onNodeModelValueSet(event: ChangeEventType): void;
+    onNodeModelPropertyRemove(event: ChangeEventType): void;
+    onNodeCloneInfoValueSet(event: ChangeEventType): void;
+}
+
+export abstract class DatastoreBase<ChangeEventType> 
+    implements Datastore, DatastoreCommandProvider, DatastoreChangeEventHandler<ChangeEventType> {
     // general public API
     public abstract connect(): Promise<void>;
     public abstract disconnect(): Promise<void>;
@@ -31,6 +62,7 @@ export abstract class DatastoreBase<ChangeEventType> implements DatastoreCommand
     public abstract closeProject(name: string): Promise<void>;
     public abstract deleteProject(name: string): Promise<void>;
     public abstract hydrate(): Promise<ClonableNode>;
+
     // command API
     public abstract createNode: (nodeSchema: NodeSchema) => void;
     public abstract removeNode: (nodeId: string) => void;
@@ -41,16 +73,17 @@ export abstract class DatastoreBase<ChangeEventType> implements DatastoreCommand
     public abstract removeCustomProperty(nodeId: string, customKey: string): void;
     public abstract assignCustomProperty(nodeId: string, modelKey: string, customKey: string): void;
     public abstract unassignCustomProperty(nodeId: string, modelKey: string): void;
+    
     // change event handles
-    protected abstract onNodeCreated(event: ChangeEventType): void;
-    protected abstract onNodeRemoved(event: ChangeEventType): void;
-    protected abstract onNodeRootPropertySet(event: ChangeEventType): void;
-    protected abstract onNodeDefinedCustomPropSet(event: ChangeEventType): void;
-    protected abstract onNodeDefinedCustomPropRemoved(event: ChangeEventType): void;
-    protected abstract onNodeAssignedCustomPropSet(event: ChangeEventType): void;
-    protected abstract onNodeAssignedCustomPropRemoved(event: ChangeEventType): void;
-    protected abstract onNodeModelPropertySet(event: ChangeEventType): void;
-    protected abstract onNodeModelValueSet(event: ChangeEventType): void;
-    protected abstract onNodeModelPropertyRemove(event: ChangeEventType): void;
-    protected abstract onNodeCloneInfoValueSet(event: ChangeEventType): void;
+    public abstract onNodeCreated(event: ChangeEventType): void;
+    public abstract onNodeRemoved(event: ChangeEventType): void;
+    public abstract onNodeRootPropertySet(event: ChangeEventType): void;
+    public abstract onNodeDefinedCustomPropSet(event: ChangeEventType): void;
+    public abstract onNodeDefinedCustomPropRemoved(event: ChangeEventType): void;
+    public abstract onNodeAssignedCustomPropSet(event: ChangeEventType): void;
+    public abstract onNodeAssignedCustomPropRemoved(event: ChangeEventType): void;
+    public abstract onNodeModelPropertySet(event: ChangeEventType): void;
+    public abstract onNodeModelValueSet(event: ChangeEventType): void;
+    public abstract onNodeModelPropertyRemove(event: ChangeEventType): void;
+    public abstract onNodeCloneInfoValueSet(event: ChangeEventType): void;
 }
