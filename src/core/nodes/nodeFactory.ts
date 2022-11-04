@@ -2,7 +2,7 @@ import EventEmitter from 'eventemitter3';
 
 import { getUserLogColor, getUserName } from '../../editor/sync/user';
 import type { ModelValue } from '../model/model';
-import type { ClonableNode, ClonableNodeConstructor, NodeOptions } from './abstract/clonableNode';
+import type { ClonableNode, ClonableNodeConstructor, NewNodeOptions } from './abstract/clonableNode';
 import { registerInstance } from './instances';
 
 export const nodeClasses: Map<string, ClonableNodeConstructor> = new Map();
@@ -35,7 +35,7 @@ export function registerNodeType(nodeClass: ClonableNodeConstructor)
     nodeClasses.set(nodeType, nodeClass);
 }
 
-export function createNode<T>(nodeType: string, options: NodeOptions<{}>): T
+export function createNode<T>(nodeType: string, options: NewNodeOptions<{}>): T
 {
     const NodeClass = nodeClasses.get(nodeType);
 

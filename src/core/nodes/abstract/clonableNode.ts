@@ -14,21 +14,22 @@ export type ClonableNodeEvents = GraphNodeEvents | 'modelChanged' | 'unlinked';
 export type AnyNode = ClonableNode<any, any, any>;
 
 export type ClonableNodeConstructor = {
-    new (options: NodeOptions<any>): AnyNode;
+    new (options: NewNodeOptions<any>): AnyNode;
 };
 
-export interface NodeOptions<M>
+export interface NewNodeOptions<M>
 {
     id?: string;
     model?: Partial<M>;
     cloneInfo?: CloneInfo;
 }
 
-const modelBase = {} as ModelBase;
-
 export abstract class ClonableNode<
-    M extends ModelBase = typeof modelBase,
+    /** Model */
+    M extends ModelBase = ModelBase,
+    /** View */
     V extends object = object,
+    /** Events */
     E extends string = string,
 > extends GraphNode<ClonableNodeEvents | E> implements Clonable
 {
@@ -41,7 +42,7 @@ export abstract class ClonableNode<
     public isCloaked: boolean;
 
     constructor(
-        options: NodeOptions<M> = {},
+        options: NewNodeOptions<M> = {},
     )
     {
         super(options.id);
