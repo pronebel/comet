@@ -91,7 +91,7 @@ export class Auditor
         datastoreRegisteredIds.forEach((id) =>
         {
             const nodeElement = datastore.getNodeElement(id);
-            const schema = datastore.getNodeElementSchema(id);
+            const schema = datastore.getNodeAsJSON(id);
             const node = getInstance<ClonableNode>(schema.id);
             const graphSchema = getNodeSchema(node);
             const matchesGraphSchema = deepEqual(graphSchema, schema);

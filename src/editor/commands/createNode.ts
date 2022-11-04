@@ -31,7 +31,7 @@ export class CreateNodeCommand<
         const { id, type, model, cloneInfo: { cloneMode, cloner }, customProperties } = nodeSchema;
         const cloneInfo = new CloneInfo(cloneMode, cloner ? this.getInstance(cloner) : undefined);
 
-        if (!datastore.hasNodeElement(id))
+        if (!datastore.hasNode(id))
         {
             // create datastore entry
             datastore.createNode(nodeSchema);
@@ -39,7 +39,7 @@ export class CreateNodeCommand<
         else
         {
             // just register the model, we are loading existing nodes
-            datastore.trackExistingNodeElement(id);
+            datastore.initNode(id);
         }
 
         const node = createNode<ClonableNode>(type, { id, model, cloneInfo });

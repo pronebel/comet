@@ -50,7 +50,7 @@ export class RemoveChildCommand
 
         const clonerNodesNeedingUpdate = nodes.filter((node) =>
             node.cloneInfo.cloner
-        && datastore.hasNodeElement(node.id))
+        && datastore.hasNode(node.id))
             .map((node) => [node, node.cloneInfo.getCloner<ClonableNode>()]);
 
         if (clonerNodesNeedingUpdate.length > 0)

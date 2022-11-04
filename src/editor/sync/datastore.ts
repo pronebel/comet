@@ -123,26 +123,26 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         return this.model.root().toJSON() as ProjectSchema;
     }
 
-    public hasNodeElement(nodeId: string)
+    public hasNode(nodeId: string)
     {
         return this.nodes.hasKey(nodeId);
     }
 
-    public hasRegisteredNodeElement(nodeId: string)
+    public hasRegisteredNode(nodeId: string)
     {
         return this.nodeRealtimeObjects.has(nodeId);
     }
 
-    public getNodeElementSchema(nodeId: string)
+    public getNodeAsJSON(nodeId: string)
     {
         const nodeElement = this.getNodeElement(nodeId);
 
         return nodeElement.toJSON() as NodeSchema;
     }
 
-    public connect(): Promise<ConvergenceDomain>
+    public connect(): Promise<void>
     {
-        return new Promise<ConvergenceDomain>((resolve, reject) =>
+        return new Promise((resolve, reject) =>
         {
             const url = 'https://localhost/realtime/convergence/default';
 
@@ -168,12 +168,12 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
                 clearTimeout(timeout);
                 this._domain = domain;
-                resolve(domain);
+                resolve();
             }).catch(reject);
         });
     }
 
-    public onNodeCreated = (e: IConvergenceEvent) =>
+    protected onNodeCreated = (e: IConvergenceEvent) =>
     {
         const { event } = objectSetEvent(e);
         const nodeElement = event.value as RealTimeObject;
@@ -188,12 +188,12 @@ export class Datastore extends EventEmitter<DatastoreEvent>
             'color:#999',
         );
 
-        this.registerNodeElement(nodeId, nodeElement);
+        this.registerNode(nodeId, nodeElement);
 
         this.emit('nodeCreated', { nodeId } as DSNodeCreatedEvent);
     };
 
-    public onNodeRemoved = (e: IConvergenceEvent) =>
+    protected onNodeRemoved = (e: IConvergenceEvent) =>
     {
         const { event } = objectSetEvent(e);
         const nodeId = event.key;
@@ -207,7 +207,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         this.emit('nodeRemoved', { nodeId, parentId } as DSNodeRemovedEvent);
     };
 
-    public onNodeRootPropertySet = (e: IConvergenceEvent) =>
+    protected onNodeRootPropertySet = (e: IConvergenceEvent) =>
     {
         const { event, nodeId } = objectSetEvent(e);
         const key = event.key;
@@ -226,7 +226,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         }
     };
 
-    public onNodeDefinedCustomPropSet = (e: IConvergenceEvent) =>
+    protected onNodeDefinedCustomPropSet = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = objectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
@@ -240,7 +240,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         this.emit('customPropDefined', { nodeId, customKey, type, value } as DSCustomPropDefinedEvent);
     };
 
-    public onNodeDefinedCustomPropRemoved = (e: IConvergenceEvent) =>
+    protected onNodeDefinedCustomPropRemoved = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = objectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
@@ -255,7 +255,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         this.emit('customPropUndefined', { nodeId, customKey } as DSCustomPropUndefinedEvent);
     };
 
-    public onNodeAssignedCustomPropSet = (e: IConvergenceEvent) =>
+    protected onNodeAssignedCustomPropSet = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = objectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
@@ -271,7 +271,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         this.emit('customPropAssigned', { nodeId, modelKey, customKey } as DSCustomPropAssignedEvent);
     };
 
-    public onNodeAssignedCustomPropRemoved = (e: IConvergenceEvent) =>
+    protected onNodeAssignedCustomPropRemoved = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = objectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
@@ -285,7 +285,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         this.emit('customPropUnassigned', { nodeId, modelKey } as DSCustomPropUnassignedEvent);
     };
 
-    public onNodeModelPropertySet = (e: IConvergenceEvent) =>
+    protected onNodeModelPropertySet = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = objectSetEvent(e);
         const nodeId = (nodeElement.parent() as RealTimeObject).get('id').value() as string;
@@ -301,7 +301,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         this.emit('modelModified', { nodeId, key, value } as DSModelModifiedEvent);
     };
 
-    public onNodeModelValueSet = (e: IConvergenceEvent) =>
+    protected onNodeModelValueSet = (e: IConvergenceEvent) =>
     {
         const { event, nodeId } = objectSetEvent(e);
         const model = event.element.value() as object;
@@ -311,12 +311,12 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         this.emit('modelModified', { nodeId, key: null, value: model } as DSModelModifiedEvent);
     };
 
-    public onNodeModelPropertyRemove = (e: IConvergenceEvent) =>
+    protected onNodeModelPropertyRemove = (e: IConvergenceEvent) =>
     {
         throw new Error(`${logId}:Model REMOVED event not supported yet ${e.name}`);
     };
 
-    public onNodeCloneInfoValueSet = (e: IConvergenceEvent) =>
+    protected onNodeCloneInfoValueSet = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = objectSetEvent(e);
         const nodeId = (nodeElement.parent() as RealTimeObject).get('id').value() as string;
@@ -331,7 +331,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         this.emit('cloneInfoModified', { nodeId, ...cloneInfo } as DSCloneInfoModifiedEvent);
     };
 
-    public trackExistingNodeElement(nodeId: string)
+    public initNode(nodeId: string)
     {
         const nodeElement = this.nodes.get(nodeId) as RealTimeObject;
 
@@ -342,11 +342,11 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
         if (!this.nodeRealtimeObjects.has(nodeId))
         {
-        // index element
+            // index element
             this.nodeRealtimeObjects.set(nodeId, nodeElement);
 
             // track remote changes
-            this.trackNodeElementRemoteEvents(nodeId);
+            this.initNodeRemoteEvents(nodeId);
         }
     }
 
@@ -401,7 +401,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         return this.hydrate();
     }
 
-    protected trackNodeElementRemoteEvents(nodeId: string)
+    protected initNodeRemoteEvents(nodeId: string)
     {
         console.log(`%c${logId}:%ctrack nodeElement: "${nodeId}"`, userColor, logStyle);
 
@@ -440,7 +440,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         {
             const nodeElement = nodes.get(id) as RealTimeObject;
 
-            this.registerNodeElement(id, nodeElement);
+            this.registerNode(id, nodeElement);
         });
 
         // get the root
@@ -487,7 +487,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         });
     }
 
-    public registerNodeElement(nodeId: string, nodeElement: RealTimeObject)
+    protected registerNode(nodeId: string, nodeElement: RealTimeObject)
     {
         if (this.nodeRealtimeObjects.has(nodeId))
         {
@@ -500,10 +500,10 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         console.log(`%c${logId}:%cRegistered New RealTimeObject "${nodeId}"`, userColor, logStyle);
 
         // track remote events
-        this.trackNodeElementRemoteEvents(nodeId);
+        this.initNodeRemoteEvents(nodeId);
     }
 
-    // API Start
+    // Public Command API
 
     public createNode(nodeSchema: NodeSchema)
     {
@@ -521,7 +521,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
         const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
-        this.registerNodeElement(nodeSchema.id, nodeElement);
+        this.registerNode(nodeSchema.id, nodeElement);
 
         if (nodeSchema.parent)
         {

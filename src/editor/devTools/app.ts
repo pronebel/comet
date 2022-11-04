@@ -323,7 +323,7 @@ export class DevToolsApp extends Application
                 cloneTreeAncestors: selected.getCloneTreeAncestors().map((node) => (node.id)),
                 definedProps,
                 nodeGraphSchema: getNodeSchema(selected.cast<ClonableNode>()),
-                dsNodeSchema: this.datastore.getNodeElementSchema(selected.id),
+                dsNodeSchema: this.datastore.getNodeAsJSON(selected.id),
             };
 
             console.clear();

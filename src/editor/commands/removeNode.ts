@@ -24,7 +24,7 @@ export class RemoveNodeCommand
 
         const node = getInstance<ClonableNode>(nodeId);
 
-        if (datastore.hasNodeElement(nodeId))
+        if (datastore.hasNode(nodeId))
         {
             datastore.removeNode(nodeId);
         }
@@ -41,7 +41,7 @@ export class RemoveNodeCommand
         const node = getInstance<ClonableNode>(nodeId);
         const nodeSchema = getNodeSchema(node);
 
-        if (!datastore.hasNodeElement(nodeId))
+        if (!datastore.hasNode(nodeId))
         {
             datastore.createNode(nodeSchema);
         }

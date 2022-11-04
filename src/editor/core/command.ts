@@ -70,7 +70,7 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
         const { datastore, app } = this;
         const node = getInstance<ClonableNode>(nodeId);
 
-        if (!datastore.hasRegisteredNodeElement(nodeId))
+        if (!datastore.hasRegisteredNode(nodeId))
         {
             app.restoreNode(node.id);
         }

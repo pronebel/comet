@@ -59,7 +59,7 @@ export class NodeUpdater
         }
         else
         {
-            const nodeSchema = this.datastore.getNodeElementSchema(event.nodeId);
+            const nodeSchema = this.datastore.getNodeAsJSON(event.nodeId);
 
             new CreateNodeCommand({ nodeSchema }).run();
         }

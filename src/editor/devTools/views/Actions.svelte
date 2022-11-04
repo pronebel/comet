@@ -26,7 +26,7 @@
   const onPurge = () => {
     app.project?.walk<ClonableNode>((node) => {
       if (node.isCloaked) {
-        if (app.datastore.hasNodeElement(node.id)) {
+        if (app.datastore.hasNode(node.id)) {
           throw new Error(
             `Node "${node.id}" is cloaked but still in datastore`
           );
