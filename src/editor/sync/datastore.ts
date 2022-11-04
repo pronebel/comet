@@ -34,7 +34,7 @@ const logStyle = 'color:LimeGreen';
 const userColor = getUserLogColor(userName);
 const logId = `${userName}`;
 
-export const defaultProjectSettings = {
+export const defaultProjectModelSettings = {
     collection: 'projects',
     overrideCollectionWorldPermissions: false,
     ephemeral: false,
@@ -43,7 +43,7 @@ export const defaultProjectSettings = {
 
 export const connectionTimeout = 2500;
 
-function objectSetEvent(e: IConvergenceEvent)
+function asObjectSetEvent(e: IConvergenceEvent)
 {
     const event = e as ObjectSetEvent;
     const nodeElement = event.element as RealTimeObject;
@@ -175,7 +175,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected onNodeCreated = (e: IConvergenceEvent) =>
     {
-        const { event } = objectSetEvent(e);
+        const { event } = asObjectSetEvent(e);
         const nodeElement = event.value as RealTimeObject;
         const nodeId = nodeElement.get('id').value() as string;
 
@@ -188,14 +188,14 @@ export class Datastore extends EventEmitter<DatastoreEvent>
             'color:#999',
         );
 
-        this.registerNode(nodeId, nodeElement);
+        this.registerExistingNode(nodeId, nodeElement);
 
         this.emit('nodeCreated', { nodeId } as DSNodeCreatedEvent);
     };
 
     protected onNodeRemoved = (e: IConvergenceEvent) =>
     {
-        const { event } = objectSetEvent(e);
+        const { event } = asObjectSetEvent(e);
         const nodeId = event.key;
         const nodeElement = event.oldValue as RealTimeObject;
         const parentId = nodeElement.get('parent').value() as string | undefined;
@@ -209,7 +209,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected onNodeRootPropertySet = (e: IConvergenceEvent) =>
     {
-        const { event, nodeId } = objectSetEvent(e);
+        const { event, nodeId } = asObjectSetEvent(e);
         const key = event.key;
 
         if (key === 'parent')
@@ -228,7 +228,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected onNodeDefinedCustomPropSet = (e: IConvergenceEvent) =>
     {
-        const { event, nodeElement } = objectSetEvent(e);
+        const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
         const customKey = event.key;
         const element = event.value as RealTimeObject;
@@ -242,7 +242,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected onNodeDefinedCustomPropRemoved = (e: IConvergenceEvent) =>
     {
-        const { event, nodeElement } = objectSetEvent(e);
+        const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
         const customKey = event.key;
 
@@ -257,7 +257,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected onNodeAssignedCustomPropSet = (e: IConvergenceEvent) =>
     {
-        const { event, nodeElement } = objectSetEvent(e);
+        const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
         const modelKey = event.key;
         const customKey = event.value.value() as string;
@@ -273,7 +273,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected onNodeAssignedCustomPropRemoved = (e: IConvergenceEvent) =>
     {
-        const { event, nodeElement } = objectSetEvent(e);
+        const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
         const modelKey = event.key;
 
@@ -287,7 +287,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected onNodeModelPropertySet = (e: IConvergenceEvent) =>
     {
-        const { event, nodeElement } = objectSetEvent(e);
+        const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent() as RealTimeObject).get('id').value() as string;
         const key = event.key;
         const value = event.value.value() as ModelValue;
@@ -303,7 +303,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected onNodeModelValueSet = (e: IConvergenceEvent) =>
     {
-        const { event, nodeId } = objectSetEvent(e);
+        const { event, nodeId } = asObjectSetEvent(e);
         const model = event.element.value() as object;
 
         console.log(`%c${logId}:%c🟦 onNodeModelValueSet: nodeId: "${nodeId}" ${JSON.stringify(model)}`, userColor, logStyle);
@@ -318,7 +318,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
     protected onNodeCloneInfoValueSet = (e: IConvergenceEvent) =>
     {
-        const { event, nodeElement } = objectSetEvent(e);
+        const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent() as RealTimeObject).get('id').value() as string;
         const cloneInfo = event.element.value() as CloneInfoSchema;
 
@@ -331,7 +331,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         this.emit('cloneInfoModified', { nodeId, ...cloneInfo } as DSCloneInfoModifiedEvent);
     };
 
-    public initNode(nodeId: string)
+    public registerNode(nodeId: string)
     {
         const nodeElement = this.nodes.get(nodeId) as RealTimeObject;
 
@@ -373,7 +373,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         const data = createProjectSchema(name);
 
         const model = await this.domain.models().openAutoCreate({
-            ...defaultProjectSettings,
+            ...defaultProjectModelSettings,
             id,
             data,
         });
@@ -440,7 +440,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         {
             const nodeElement = nodes.get(id) as RealTimeObject;
 
-            this.registerNode(id, nodeElement);
+            this.registerExistingNode(id, nodeElement);
         });
 
         // get the root
@@ -487,7 +487,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         });
     }
 
-    protected registerNode(nodeId: string, nodeElement: RealTimeObject)
+    protected registerExistingNode(nodeId: string, nodeElement: RealTimeObject)
     {
         if (this.nodeRealtimeObjects.has(nodeId))
         {
@@ -521,7 +521,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
 
         const nodeElement = this.nodes.set(nodeSchema.id, nodeSchema) as RealTimeObject;
 
-        this.registerNode(nodeSchema.id, nodeElement);
+        this.registerExistingNode(nodeSchema.id, nodeElement);
 
         if (nodeSchema.parent)
         {
@@ -724,7 +724,7 @@ export class Datastore extends EventEmitter<DatastoreEvent>
         console.log(`%c${logId}:%cDelete project "${id}"`, userColor, logStyle);
     }
 
-    public unRegisterNode(id: string)
+    protected unRegisterNode(id: string)
     {
         if (!this.nodeRealtimeObjects.has(id))
         {

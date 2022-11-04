@@ -39,7 +39,7 @@ export class CreateNodeCommand<
         else
         {
             // just register the model, we are loading existing nodes
-            datastore.initNode(id);
+            datastore.registerNode(id);
         }
 
         const node = createNode<ClonableNode>(type, { id, model, cloneInfo });

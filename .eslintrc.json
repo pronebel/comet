@@ -11,7 +11,8 @@
     {
       "files": ["*/**/**.ts", "**.test**"],
       "rules": {
-        "dot-notation": 0
+        "dot-notation": 0,
+        "max-len": 140,
       }
     }
   ]
