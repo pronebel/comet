@@ -1,7 +1,8 @@
 import { type Container, type InteractionEvent, filters, Sprite, Texture } from 'pixi.js';
 
 import { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { type GraphNode, sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
+import type { GraphNode } from '../../core/nodes/abstract/graphNode';
+import { sortNodesByCreation } from '../../core/nodes/abstract/const';
 import type { CloneMode } from '../../core/nodes/cloneInfo';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import type { ProjectNode } from '../../core/nodes/concrete/project';

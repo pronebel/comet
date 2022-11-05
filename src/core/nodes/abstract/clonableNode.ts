@@ -7,7 +7,8 @@ import type {
     CustomPropertyValueType,
 } from '../customProperties';
 import { registerNewNode } from '../nodeFactory';
-import { type GraphNodeEvents, GraphNode, sortNodesByCreation } from './graphNode';
+import { type GraphNodeEvents, GraphNode } from './graphNode';
+import { sortNodesByCreation } from './const';
 
 export type ClonableNodeEvents = GraphNodeEvents | 'modelChanged' | 'unlinked';
 

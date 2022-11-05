@@ -1,4 +1,4 @@
-import type { Container, DisplayObject } from 'pixi.js';
+import type { Container } from 'pixi.js';
 
 import { type ContainerModel, ContainerNode } from '../concrete/container';
 

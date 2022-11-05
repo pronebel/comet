@@ -23,6 +23,8 @@ const logStyle = 'color:LightCyan;';
 
 export type AppEvents = '';
 
+export interface AppOptions {}
+
 export class Application extends EventEmitter<AppEvents>
 {
     public datastore: Datastore;
@@ -43,7 +45,7 @@ export class Application extends EventEmitter<AppEvents>
         return Application._instance;
     }
 
-    constructor(public readonly options: {})
+    constructor(public readonly options: AppOptions)
     {
         super();
 

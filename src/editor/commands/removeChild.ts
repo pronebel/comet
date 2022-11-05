@@ -1,5 +1,5 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
-import { sortNodesByCreation } from '../../core/nodes/abstract/graphNode';
+import { sortNodesByCreation } from '../../core/nodes/abstract/const';
 import { Command } from '../core/command';
 import { RemoveNodeCommand } from './removeNode';
 
