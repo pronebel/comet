@@ -1,4 +1,4 @@
-import type { AnyNode, ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance } from '../../core/nodes/instances';
 import { Application } from '../application';
 import type { CommandName } from './commandFactory';
@@ -8,9 +8,7 @@ export type UpdateMode = 'graphOnly' | 'full';
 export interface CommandSchema
 {
     name: string;
-    // isUndoRoot: boolean;
     params: Record<string, any>;
-    // cache: Record<string, any>;
 }
 
 export abstract class Command<ParamsType extends {} = {}, ReturnType = void, CacheType extends {} = {}>
@@ -65,7 +63,7 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
         return this.app.datastore;
     }
 
-    protected getInstance<T extends AnyNode>(nodeId: string): T
+    protected getInstance<T extends ClonableNode<any, any, any>>(nodeId: string): T
     {
         const { datastore, app } = this;
         const node = getInstance<ClonableNode>(nodeId);
@@ -82,9 +80,7 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
     {
         return {
             name: this.name,
-            // isUndoRoot: this.isUndoRoot,
             params: this.params,
-            // cache: this.cache,
         };
     }
 }

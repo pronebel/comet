@@ -12,10 +12,8 @@ import { sortNodesByCreation } from './const';
 
 export type ClonableNodeEvents = GraphNodeEvents | 'modelChanged' | 'unlinked';
 
-export type AnyNode = ClonableNode<any, any, any>;
-
 export type ClonableNodeConstructor = {
-    new (options: NewNodeOptions<any>): AnyNode;
+    new (options: NewNodeOptions<any>): ClonableNode<any, any, any>;
 };
 
 export interface NewNodeOptions<M>
@@ -72,11 +70,15 @@ export abstract class ClonableNode<
         this.assignedCustomProperties = new Map();
 
         this.view = this.createView();
-
         this.initView();
+
         this.initModel();
+        this.model.on('modified', this.onModelModified);
+
         this.initCloning();
+
         this.init();
+
         this.update();
 
         registerNewNode(this.cast<ClonableNode>());
@@ -84,15 +86,9 @@ export abstract class ClonableNode<
         this.emit('created', this);
     }
 
-    protected initView()
-    {
-        // subclasses
-    }
+    protected abstract initView(): void
 
-    protected initModel()
-    {
-        this.model.on('modified', this.onModelModified);
-    }
+    protected abstract initModel(): void;
 
     protected initCloning()
     {

@@ -1,9 +1,9 @@
 import { type DisplayObject, type Transform, Container, Matrix } from 'pixi.js';
 
-import { ModelSchema } from '../../../core/model/schema';
-import { displayObjectSchema } from '../../../core/nodes/abstract/displayObject';
-import { type ContainerModel, ContainerNode } from '../../../core/nodes/concrete/container';
-import { createPivotShape } from '../../ui/transform/util';
+import { ModelSchema } from '../../core/model/schema';
+import { displayObjectSchema } from '../../core/nodes/abstract/displayObject';
+import { type ContainerModel, ContainerNode } from '../../core/nodes/concrete/container';
+import { createPivotShape } from '../ui/transform/util';
 
 const radius = 10;
 

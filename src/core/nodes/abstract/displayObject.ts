@@ -78,4 +78,8 @@ export abstract class DisplayObjectNode<
     {
         return this.view.getBounds();
     }
+
+    // not the localBounds (which includes the children, but the single local dimension of this view)
+    public abstract get naturalWidth(): number;
+    public abstract get naturalHeight(): number;
 }

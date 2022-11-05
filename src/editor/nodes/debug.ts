@@ -1,7 +1,7 @@
 import { Sprite, Text, Texture } from 'pixi.js';
 
-import { ModelSchema } from '../../../core/model/schema';
-import { type SpriteModel, SpriteNode, spriteSchema } from '../../../core/nodes/concrete/sprite';
+import { ModelSchema } from '../../core/model/schema';
+import { type SpriteModel, SpriteNode, spriteSchema } from '../../core/nodes/concrete/sprite';
 
 export interface DebugModel extends SpriteModel
 {

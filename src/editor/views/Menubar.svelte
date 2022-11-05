@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { newDebugNode } from "../devTools/actions/newDebugNode";
+  import { newDebugNode } from "../actions/newDebugNode";
   import { newEmptyNode } from "../devTools/actions/newEmptyNode";
 </script>
 

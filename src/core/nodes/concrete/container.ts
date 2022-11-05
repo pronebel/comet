@@ -14,12 +14,22 @@ export const containerSchema = new ModelSchema<ContainerModel>({
     ...displayObjectSchema.defaults,
 }, displayObjectSchema.constraints);
 
-export abstract class ContainerNode<
+export class ContainerNode<
     M extends ContainerModel = ContainerModel,
     V extends Container = Container,
     E extends string = ContainerEvents,
 > extends DisplayObjectNode<M, V, E>
 {
+    public get naturalWidth(): number
+    {
+        return 0;
+    }
+
+    public get naturalHeight(): number
+    {
+        return 0;
+    }
+
     public nodeType()
     {
         return 'Container';
@@ -38,6 +48,10 @@ export abstract class ContainerNode<
     protected initView()
     {
         (this.view as any).id = this.id;
+    }
+
+    protected initModel(): void {
+        //
     }
 
     protected addViewToParent(parent: ClonableNode<ModelBase, object, string>): void
@@ -66,8 +80,5 @@ export abstract class ContainerNode<
         this.addViewToParent(this.getParent<ClonableNode>());
     }
 
-    // not the localBounds (which includes the children, but the single local dimension of this view)
-    public abstract get naturalWidth(): number;
-    public abstract get naturalHeight(): number;
 }
 

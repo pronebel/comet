@@ -1,7 +1,8 @@
-import { createNodeSchema } from '../../../core/nodes/schema';
-import { Application } from '../../application';
-import { type AddChildCommandReturn, AddChildCommand } from '../../commands/addChild';
+import { createNodeSchema } from '../../core/nodes/schema';
+import { Application } from '../application';
+import { type AddChildCommandReturn, AddChildCommand } from '../commands/addChild';
 import type { EmptyNode } from '../nodes/empty';
+
 
 export function newEmptyNode()
 {
