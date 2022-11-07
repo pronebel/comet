@@ -1,3 +1,7 @@
-import type EventEmitter from 'eventemitter3';
+import EventEmitter from 'eventemitter3';
 
-export type EventMesh = Record<string, EventEmitter>;
+const emitter: EventEmitter = new EventEmitter();
+
+export function events<T extends string>(): EventEmitter<T> {
+    return emitter as unknown as EventEmitter<T>;
+}
