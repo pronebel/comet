@@ -1,3 +1,4 @@
+import { getGlobalEmitter } from '../core/events';
 import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { ContainerNode } from '../core/nodes/concrete/container';
 import { ProjectNode } from '../core/nodes/concrete/project';
@@ -5,11 +6,14 @@ import { clearInstances, getInstance } from '../core/nodes/instances';
 import { RemoveNodeCommand } from './commands/removeNode';
 import { initHistory, writeUndoStack } from './core/history';
 import UndoStack from './core/undoStack';
-import { Datastore } from './sync/datastore';
+import { ConvergenceDatastore } from './sync/convergenceDatastore';
+import type { DatastoreNodeEvent } from './sync/events';
 import { NodeUpdater } from './sync/nodeUpdater';
 import { getUserLogColor, getUserName } from './sync/user';
 import { EditableView } from './ui/editableView';
 import { getUrlParam } from './util';
+
+const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();
 
 const userName = getUserName();
 const userColor = getUserLogColor(userName);
@@ -20,7 +24,7 @@ export interface AppOptions {}
 
 export class Application
 {
-    public datastore: Datastore;
+    public datastore: ConvergenceDatastore;
     public nodeUpdater: NodeUpdater;
     public undoStack: UndoStack;
     public editorView: EditableView;
@@ -46,14 +50,14 @@ export class Application
 
         this.project = new ProjectNode();
 
-        const datastore = this.datastore = new Datastore();
+        const datastore = this.datastore = new ConvergenceDatastore();
 
         this.editorView = new EditableView(this.project.cast<ContainerNode>());
 
         this.undoStack = new UndoStack(datastore);
         this.nodeUpdater = new NodeUpdater(datastore);
 
-        this.datastore.on('nodeRemoved', () => { writeUndoStack(); });
+        globalEmitter.on('datastore.node.removed', () => { writeUndoStack(); });
 
         initHistory();
     }

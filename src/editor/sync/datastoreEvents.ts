@@ -2,29 +2,6 @@ import type { ModelValue } from '../../core/model/model';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import type { CloneInfoSchema } from '../../core/nodes/schema';
 
-export type DatastoreEvent =
-| 'nodeCreated'
-| 'nodeHydrated'
-| 'nodeRemoved'
-| 'parentSet'
-| 'customPropDefined'
-| 'customPropUndefined'
-| 'customPropAssigned'
-| 'customPropUnassigned'
-| 'modelModified'
-| 'cloneInfoModified';
-
-export type DSNodeEvent =
-    | DSNodeCreatedEvent
-    | DSNodeRemovedEvent
-    | DSParentSetEvent
-    | DSCustomPropDefinedEvent
-    | DSCustomPropUndefinedEvent
-    | DSCustomPropAssignedEvent
-    | DSCustomPropUnassignedEvent
-    | DSModelModifiedEvent
-    | DSCloneInfoModifiedEvent;
-
 export interface DSNodeEventBase
 {
     nodeId: string;

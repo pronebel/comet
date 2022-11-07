@@ -1,3 +1,4 @@
+import { getGlobalEmitter } from '../../core/events';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance, hasInstance } from '../../core/nodes/instances';
 import { AssignCustomPropCommand } from '../commands/assignCustomProp';
@@ -6,7 +7,7 @@ import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
-import type { Datastore } from './datastore';
+import type { DatastoreBase } from './datastoreBase';
 import type {
     DSCloneInfoModifiedEvent,
     DSCustomPropAssignedEvent,
@@ -18,7 +19,10 @@ import type {
     DSNodeRemovedEvent,
     DSParentSetEvent,
 } from './datastoreEvents';
+import type { DatastoreEvent } from './events';
 import { getUserLogColor, getUserName } from './user';
+
+const globalEmitter = getGlobalEmitter<DatastoreEvent>();
 
 const userName = getUserName();
 const userColor = getUserLogColor(userName);
@@ -27,19 +31,19 @@ const logStyle = 'color:cyan';
 
 export class NodeUpdater
 {
-    constructor(public readonly datastore: Datastore)
+    constructor(public readonly datastore: DatastoreBase<any, any>)
     {
-        datastore
-            .on('nodeCreated', this.onNodeCreated)
-            .on('nodeHydrated', this.onNodeCreated)
-            .on('nodeRemoved', this.onNodeRemoved)
-            .on('parentSet', this.onParentSet)
-            .on('customPropDefined', this.onCustomPropDefined)
-            .on('customPropUndefined', this.onCustomPropUndefined)
-            .on('customPropAssigned', this.onCustomPropAssigned)
-            .on('customPropUnassigned', this.onCustomPropUnassigned)
-            .on('modelModified', this.onModelModified)
-            .on('cloneInfoModified', this.onCloneInfoModified);
+        globalEmitter
+            .on('datastore.node.created', this.onNodeCreated)
+            .on('datastore.node.hydrated', this.onNodeCreated)
+            .on('datastore.node.removed', this.onNodeRemoved)
+            .on('datastore.node.parent.set', this.onParentSet)
+            .on('datastore.node.customProp.defined', this.onCustomPropDefined)
+            .on('datastore.node.customProp.undefined', this.onCustomPropUndefined)
+            .on('datastore.node.customProp.assigned', this.onCustomPropAssigned)
+            .on('datastore.node.customProp.unassigned', this.onCustomPropUnassigned)
+            .on('datastore.node.model.modified', this.onModelModified)
+            .on('datastore.node.cloneInfo.modified', this.onCloneInfoModified);
     }
 
     protected log(eventName: string, event: any)

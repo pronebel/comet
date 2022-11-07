@@ -6,6 +6,7 @@ import Convergence, {
     type RealTimeModel,
     RealTimeObject,
 } from '@convergence/convergence';
+import { getGlobalEmitter } from '../../core/events';
 
 import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
@@ -26,7 +27,10 @@ import type {
     DSNodeRemovedEvent,
     DSParentSetEvent,
 } from './datastoreEvents';
+import type { DatastoreEvent } from './events';
 import { getUserLogColor, getUserName } from './user';
+
+const globalEmitter = getGlobalEmitter<DatastoreEvent>();
 
 const userName = getUserName();
 const logStyle = 'color:LimeGreen';
@@ -415,7 +419,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
 
         this.registerExistingNode(nodeId, nodeElement);
 
-        this.emit('nodeCreated', { nodeId } as DSNodeCreatedEvent);
+        globalEmitter.emit('datastore.node.created', { nodeId } as DSNodeCreatedEvent);
     };
 
     public onNodeRemoved = (e: IConvergenceEvent) =>
@@ -429,7 +433,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
 
         this.unRegisterNode(nodeId);
 
-        this.emit('nodeRemoved', { nodeId, parentId } as DSNodeRemovedEvent);
+        globalEmitter.emit('datastore.node.removed', { nodeId, parentId } as DSNodeRemovedEvent);
     };
 
     public onNodeRootPropertySet = (e: IConvergenceEvent) =>
@@ -447,7 +451,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
                 childId: "${nodeId}" oldParentId: "${oldParentId}"`, userColor, logStyle,
             );
 
-            this.emit('parentSet', { parentId, nodeId } as DSParentSetEvent);
+            globalEmitter.emit('datastore.node.parent.set', { parentId, nodeId } as DSParentSetEvent);
         }
     };
 
@@ -462,7 +466,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
 
         console.log(`%c${logId}:%c🟦 onNodeDefinedCustomPropSet: nodeId: "${nodeId}" info: ${info}`, userColor, logStyle);
 
-        this.emit('customPropDefined', { nodeId, customKey, type, value } as DSCustomPropDefinedEvent);
+        globalEmitter.emit('datastore.node.customProp.defined', { nodeId, customKey, type, value } as DSCustomPropDefinedEvent);
     };
 
     public onNodeDefinedCustomPropRemoved = (e: IConvergenceEvent) =>
@@ -477,7 +481,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
             logStyle,
         );
 
-        this.emit('customPropUndefined', { nodeId, customKey } as DSCustomPropUndefinedEvent);
+        globalEmitter.emit('datastore.node.customProp.undefined', { nodeId, customKey } as DSCustomPropUndefinedEvent);
     };
 
     public onNodeAssignedCustomPropSet = (e: IConvergenceEvent) =>
@@ -493,7 +497,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
             logStyle,
         );
 
-        this.emit('customPropAssigned', { nodeId, modelKey, customKey } as DSCustomPropAssignedEvent);
+        globalEmitter.emit('datastore.node.customProp.assigned', { nodeId, modelKey, customKey } as DSCustomPropAssignedEvent);
     };
 
     public onNodeAssignedCustomPropRemoved = (e: IConvergenceEvent) =>
@@ -507,7 +511,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
             logStyle,
         );
 
-        this.emit('customPropUnassigned', { nodeId, modelKey } as DSCustomPropUnassignedEvent);
+        globalEmitter.emit('datastore.node.customProp.unassigned', { nodeId, modelKey } as DSCustomPropUnassignedEvent);
     };
 
     public onNodeModelPropertySet = (e: IConvergenceEvent) =>
@@ -523,7 +527,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
             logStyle,
         );
 
-        this.emit('modelModified', { nodeId, key, value } as DSModelModifiedEvent);
+        globalEmitter.emit('datastore.node.model.modified', { nodeId, key, value } as DSModelModifiedEvent);
     };
 
     public onNodeModelValueSet = (e: IConvergenceEvent) =>
@@ -533,7 +537,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
 
         console.log(`%c${logId}:%c🟦 onNodeModelValueSet: nodeId: "${nodeId}" ${JSON.stringify(model)}`, userColor, logStyle);
 
-        this.emit('modelModified', { nodeId, key: null, value: model } as DSModelModifiedEvent);
+        globalEmitter.emit('datastore.node.model.modified', { nodeId, key: null, value: model } as DSModelModifiedEvent);
     };
 
     public onNodeModelPropertyRemove = (e: IConvergenceEvent) =>
@@ -553,7 +557,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
             logStyle,
         );
 
-        this.emit('cloneInfoModified', { nodeId, ...cloneInfo } as DSCloneInfoModifiedEvent);
+        globalEmitter.emit('datastore.node.cloneInfo.modified', { nodeId, ...cloneInfo } as DSCloneInfoModifiedEvent);
     };
 
     public getRegisteredIds()
@@ -651,7 +655,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         consolidateId(id);
 
         // create the graph node
-        this.emit('nodeHydrated', { nodeId: id } as DSNodeCreatedEvent);
+        globalEmitter.emit('datastore.node.hydrated', { nodeId: id } as DSNodeCreatedEvent);
 
         // recursively create children
         (nodeElement.get('children').value() as RealTimeArray).forEach((id) =>

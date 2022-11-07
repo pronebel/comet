@@ -1,8 +1,6 @@
-import { EventEmitter } from 'eventemitter3';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import type { NodeSchema, CloneInfoSchema } from '../../core/nodes/schema';
-import type { DatastoreEvent } from './datastoreEvents';
 
 export interface Datastore {
     connect(): Promise<void>;
@@ -50,15 +48,12 @@ export interface DatastoreChangeEventHandler<ChangeEventType> {
 }
 
 export abstract class DatastoreBase<NodeProxyObject, ChangeEventType> 
-    extends EventEmitter<DatastoreEvent>
     implements Datastore, DatastoreCommandProvider, DatastoreChangeEventHandler<ChangeEventType>
 {
 
     protected nodeProxies: Map<string, NodeProxyObject>;
 
     constructor() {
-        super();
-
         this.nodeProxies = new Map();
     }
 

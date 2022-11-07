@@ -2,6 +2,6 @@ import EventEmitter from 'eventemitter3';
 
 const emitter: EventEmitter = new EventEmitter();
 
-export function events<T extends string>(): EventEmitter<T> {
+export function getGlobalEmitter<T extends string>() {
     return emitter as unknown as EventEmitter<T>;
 }
