@@ -163,8 +163,8 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
 
         // catch events when a remote user adds or removes a node...
         this.nodes
-            .on(RealTimeObject.Events.SET, this.onNodeCreated)
-            .on(RealTimeObject.Events.REMOVE, this.onNodeRemoved);
+            .on(RealTimeObject.Events.SET, this.onRemoteNodeCreated)
+            .on(RealTimeObject.Events.REMOVE, this.onRemoteNodeRemoved);
 
         // catch events for assets
         this.textures
@@ -398,7 +398,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         assignedCustomProps.remove(modelKey);
     }
 
-    public onNodeCreated = (e: IConvergenceEvent) =>
+    public onRemoteNodeCreated = (e: IConvergenceEvent) =>
     {
         const { event } = asObjectSetEvent(e);
         const nodeElement = event.value as RealTimeObject;
@@ -418,7 +418,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         globalEmitter.emit('datastore.node.created', { nodeId });
     };
 
-    public onNodeRemoved = (e: IConvergenceEvent) =>
+    public onRemoteNodeRemoved = (e: IConvergenceEvent) =>
     {
         const { event } = asObjectSetEvent(e);
         const nodeId = event.key;
@@ -432,7 +432,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         globalEmitter.emit('datastore.node.removed', { nodeId, parentId });
     };
 
-    public onNodeRootPropertySet = (e: IConvergenceEvent) =>
+    public onRemoteNodeRootPropertySet = (e: IConvergenceEvent) =>
     {
         const { event, nodeId } = asObjectSetEvent(e);
         const key = event.key;
@@ -451,7 +451,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         }
     };
 
-    public onNodeDefinedCustomPropSet = (e: IConvergenceEvent) =>
+    public onRemoteNodeDefinedCustomPropSet = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
@@ -465,7 +465,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         globalEmitter.emit('datastore.node.customProp.defined', { nodeId, customKey, type, value });
     };
 
-    public onNodeDefinedCustomPropRemoved = (e: IConvergenceEvent) =>
+    public onRemoteNodeDefinedCustomPropRemoved = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
@@ -480,7 +480,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         globalEmitter.emit('datastore.node.customProp.undefined', { nodeId, customKey });
     };
 
-    public onNodeAssignedCustomPropSet = (e: IConvergenceEvent) =>
+    public onRemoteNodeAssignedCustomPropSet = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
@@ -496,7 +496,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         globalEmitter.emit('datastore.node.customProp.assigned', { nodeId, modelKey, customKey });
     };
 
-    public onNodeAssignedCustomPropRemoved = (e: IConvergenceEvent) =>
+    public onRemoteNodeAssignedCustomPropRemoved = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent().parent() as RealTimeObject).get('id').value() as string;
@@ -510,7 +510,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         globalEmitter.emit('datastore.node.customProp.unassigned', { nodeId, modelKey });
     };
 
-    public onNodeModelPropertySet = (e: IConvergenceEvent) =>
+    public onRemoteNodeModelPropertySet = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent() as RealTimeObject).get('id').value() as string;
@@ -526,7 +526,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         globalEmitter.emit('datastore.node.model.modified', { nodeId, key, value });
     };
 
-    public onNodeModelValueSet = (e: IConvergenceEvent) =>
+    public onRemoteNodeModelValueSet = (e: IConvergenceEvent) =>
     {
         const { event, nodeId } = asObjectSetEvent(e);
         const model = event.element.value() as object;
@@ -536,12 +536,12 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         globalEmitter.emit('datastore.node.model.modified', { nodeId, key: null, value: model });
     };
 
-    public onNodeModelPropertyRemove = (e: IConvergenceEvent) =>
+    public onRemoteNodeModelPropertyRemove = (e: IConvergenceEvent) =>
     {
         throw new Error(`${logId}:Model REMOVED event not supported yet ${e.name}`);
     };
 
-    public onNodeCloneInfoValueSet = (e: IConvergenceEvent) =>
+    public onRemoteNodeCloneInfoValueSet = (e: IConvergenceEvent) =>
     {
         const { event, nodeElement } = asObjectSetEvent(e);
         const nodeId = (nodeElement.parent() as RealTimeObject).get('id').value() as string;
@@ -720,27 +720,27 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         const nodeElement = this.getNodeElement(nodeId);
 
         // track remote events on node property changes
-        nodeElement.on(RealTimeObject.Events.SET, this.onNodeRootPropertySet);
+        nodeElement.on(RealTimeObject.Events.SET, this.onRemoteNodeRootPropertySet);
 
         // catch events on nodeElement custom prop defined changes (as a remote user)
         nodeElement.elementAt('customProperties', 'defined')
-            .on(RealTimeObject.Events.SET, this.onNodeDefinedCustomPropSet)
-            .on(RealTimeObject.Events.REMOVE, this.onNodeDefinedCustomPropRemoved);
+            .on(RealTimeObject.Events.SET, this.onRemoteNodeDefinedCustomPropSet)
+            .on(RealTimeObject.Events.REMOVE, this.onRemoteNodeDefinedCustomPropRemoved);
 
         // catch events on nodeElement custom prop assigned changes (as a remote user)
         nodeElement.elementAt('customProperties', 'assigned')
-            .on(RealTimeObject.Events.SET, this.onNodeAssignedCustomPropSet)
-            .on(RealTimeObject.Events.REMOVE, this.onNodeAssignedCustomPropRemoved);
+            .on(RealTimeObject.Events.SET, this.onRemoteNodeAssignedCustomPropSet)
+            .on(RealTimeObject.Events.REMOVE, this.onRemoteNodeAssignedCustomPropRemoved);
 
         // catch events from model
         nodeElement.elementAt('model')
-            .on(RealTimeObject.Events.SET, this.onNodeModelPropertySet)
-            .on(RealTimeObject.Events.VALUE, this.onNodeModelValueSet)
-            .on(RealTimeObject.Events.REMOVE, this.onNodeModelPropertyRemove);
+            .on(RealTimeObject.Events.SET, this.onRemoteNodeModelPropertySet)
+            .on(RealTimeObject.Events.VALUE, this.onRemoteNodeModelValueSet)
+            .on(RealTimeObject.Events.REMOVE, this.onRemoteNodeModelPropertyRemove);
 
         // catch events from cloneInfo
         nodeElement.elementAt('cloneInfo')
-            .on(RealTimeObject.Events.VALUE, this.onNodeCloneInfoValueSet);
+            .on(RealTimeObject.Events.VALUE, this.onRemoteNodeCloneInfoValueSet);
     }
 
     protected async joinActivity(type: string, id: string)

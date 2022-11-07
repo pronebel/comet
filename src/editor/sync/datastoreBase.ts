@@ -37,17 +37,17 @@ export interface DatastoreCommandProvider
 
 export interface DatastoreChangeEventHandler<ChangeEventType>
 {
-    onNodeCreated: (event: ChangeEventType) => void;
-    onNodeRemoved: (event: ChangeEventType) => void;
-    onNodeRootPropertySet: (event: ChangeEventType) => void;
-    onNodeDefinedCustomPropSet: (event: ChangeEventType) => void;
-    onNodeDefinedCustomPropRemoved: (event: ChangeEventType) => void;
-    onNodeAssignedCustomPropSet: (event: ChangeEventType) => void;
-    onNodeAssignedCustomPropRemoved: (event: ChangeEventType) => void;
-    onNodeModelPropertySet: (event: ChangeEventType) => void;
-    onNodeModelValueSet: (event: ChangeEventType) => void;
-    onNodeModelPropertyRemove: (event: ChangeEventType) => void;
-    onNodeCloneInfoValueSet: (event: ChangeEventType) => void;
+    onRemoteNodeCreated: (event: ChangeEventType) => void;
+    onRemoteNodeRemoved: (event: ChangeEventType) => void;
+    onRemoteNodeRootPropertySet: (event: ChangeEventType) => void;
+    onRemoteNodeDefinedCustomPropSet: (event: ChangeEventType) => void;
+    onRemoteNodeDefinedCustomPropRemoved: (event: ChangeEventType) => void;
+    onRemoteNodeAssignedCustomPropSet: (event: ChangeEventType) => void;
+    onRemoteNodeAssignedCustomPropRemoved: (event: ChangeEventType) => void;
+    onRemoteNodeModelPropertySet: (event: ChangeEventType) => void;
+    onRemoteNodeModelValueSet: (event: ChangeEventType) => void;
+    onRemoteNodeModelPropertyRemove: (event: ChangeEventType) => void;
+    onRemoteNodeCloneInfoValueSet: (event: ChangeEventType) => void;
 }
 
 export abstract class DatastoreBase<NodeProxyObject, ChangeEventType>
@@ -89,17 +89,17 @@ implements Datastore, DatastoreCommandProvider, DatastoreChangeEventHandler<Chan
     public abstract unassignCustomProperty(nodeId: string, modelKey: string): void;
 
     // change event handles
-    public abstract onNodeCreated(event: ChangeEventType): void;
-    public abstract onNodeRemoved(event: ChangeEventType): void;
-    public abstract onNodeRootPropertySet(event: ChangeEventType): void;
-    public abstract onNodeDefinedCustomPropSet(event: ChangeEventType): void;
-    public abstract onNodeDefinedCustomPropRemoved(event: ChangeEventType): void;
-    public abstract onNodeAssignedCustomPropSet(event: ChangeEventType): void;
-    public abstract onNodeAssignedCustomPropRemoved(event: ChangeEventType): void;
-    public abstract onNodeModelPropertySet(event: ChangeEventType): void;
-    public abstract onNodeModelValueSet(event: ChangeEventType): void;
-    public abstract onNodeModelPropertyRemove(event: ChangeEventType): void;
-    public abstract onNodeCloneInfoValueSet(event: ChangeEventType): void;
+    public abstract onRemoteNodeCreated(event: ChangeEventType): void;
+    public abstract onRemoteNodeRemoved(event: ChangeEventType): void;
+    public abstract onRemoteNodeRootPropertySet(event: ChangeEventType): void;
+    public abstract onRemoteNodeDefinedCustomPropSet(event: ChangeEventType): void;
+    public abstract onRemoteNodeDefinedCustomPropRemoved(event: ChangeEventType): void;
+    public abstract onRemoteNodeAssignedCustomPropSet(event: ChangeEventType): void;
+    public abstract onRemoteNodeAssignedCustomPropRemoved(event: ChangeEventType): void;
+    public abstract onRemoteNodeModelPropertySet(event: ChangeEventType): void;
+    public abstract onRemoteNodeModelValueSet(event: ChangeEventType): void;
+    public abstract onRemoteNodeModelPropertyRemove(event: ChangeEventType): void;
+    public abstract onRemoteNodeCloneInfoValueSet(event: ChangeEventType): void;
     public abstract onAssetCreated(event: ChangeEventType): void;
     public abstract onAssetRemoved(event: ChangeEventType): void;
 }
