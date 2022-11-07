@@ -1,9 +1,8 @@
 import type { Container } from 'pixi.js';
 import { MetaNode } from '../abstract/metaNode';
-import type { ContainerEvents, ContainerModel } from './container';
+import type { ContainerModel } from './container';
 
-
-export class SceneNode extends MetaNode<ContainerModel, Container, ContainerEvents>
+export class SceneNode extends MetaNode<ContainerModel, Container>
 {
     public nodeType()
     {

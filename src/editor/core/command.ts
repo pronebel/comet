@@ -63,7 +63,7 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
         return this.app.datastore;
     }
 
-    protected getInstance<T extends ClonableNode<any, any, any>>(nodeId: string): T
+    protected getInstance<T extends ClonableNode<any, any>>(nodeId: string): T
     {
         const { datastore, app } = this;
         const node = getInstance<ClonableNode>(nodeId);

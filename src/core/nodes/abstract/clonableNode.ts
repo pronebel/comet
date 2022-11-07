@@ -6,14 +6,12 @@ import type {
     CustomPropertyType,
     CustomPropertyValueType,
 } from '../customProperties';
-import { registerNewNode } from '../nodeFactory';
-import { type GraphNodeEvents, GraphNode } from './graphNode';
+import { GraphNode } from './graphNode';
 import { sortNodesByCreation } from './const';
-
-export type ClonableNodeEvents = GraphNodeEvents | 'modelChanged' | 'unlinked';
+import { getAllCloned, getDependants, getDependencies, getRestoreDependencies } from './cloneUtils';
 
 export type ClonableNodeConstructor = {
-    new (options: NewNodeOptions<any>): ClonableNode<any, any, any>;
+    new (options: NewNodeOptions<any>): ClonableNode<any, any>;
 };
 
 export interface NewNodeOptions<M>
@@ -27,10 +25,8 @@ export abstract class ClonableNode<
     /** Model */
     M extends ModelBase = ModelBase,
     /** View */
-    V extends object = object,
-    /** Events */
-    E extends string = string,
-> extends GraphNode<ClonableNodeEvents | E> implements Clonable
+    V extends object = object
+> extends GraphNode implements Clonable
 {
     public model: Model<M> & M;
     public view: V;
@@ -73,17 +69,13 @@ export abstract class ClonableNode<
         this.initView();
 
         this.initModel();
-        this.model.on('modified', this.onModelModified);
+        this.model.emitter.on('modified', this.onModelModified);
 
         this.initCloning();
 
         this.init();
 
         this.update();
-
-        registerNewNode(this.cast<ClonableNode>());
-
-        this.emit('created', this);
     }
 
     protected abstract initView(): void
@@ -207,8 +199,6 @@ export abstract class ClonableNode<
             cloner.cloneInfo.removeCloned(this);
             this.cloneInfo.unlink(this);
 
-            this.emit('unlinked');
-
             this.update();
         }
     }
@@ -217,17 +207,15 @@ export abstract class ClonableNode<
     {
         super.dispose();
 
-        this.model.off('modified', this.onModelModified);
+        this.model.emitter.off('modified', this.onModelModified);
 
         if (this.cloneInfo.isClone)
         {
             this.unlink();
         }
-
-        this.emit('disposed');
     }
 
-    public isReferencingNode<T extends GraphNode<string>>(refNode: T): boolean
+    public isReferencingNode<T extends GraphNode>(refNode: T): boolean
     {
         if (super.isReferencingNode(refNode))
         {
@@ -288,11 +276,11 @@ export abstract class ClonableNode<
         this.getClonedDescendants().forEach((node) => node.update());
     }
 
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onModelModified = <T>(key: string, value: T, oldValue: T) =>
     {
         this.update();
-
-        this.emit('modelChanged', key, value, oldValue);
     };
 
     protected onAddedToParent(): void
@@ -307,7 +295,7 @@ export abstract class ClonableNode<
 
     protected abstract addViewToParent(parent: ClonableNode): void;
 
-    protected onRemovedFromParent(oldParent: GraphNode<string>): void
+    protected onRemovedFromParent(oldParent: GraphNode): void
     {
         this.removeViewFromParent(oldParent.cast<ClonableNode>());
     }
@@ -694,14 +682,12 @@ export abstract class ClonableNode<
     {
         this.isCloaked = true;
         this.onCloaked();
-        this.emit('cloaked', this);
     }
 
     public uncloak()
     {
         this.isCloaked = false;
         this.onUncloaked();
-        this.emit('uncloaked', this);
     }
 
     protected onCloaked()
@@ -731,62 +717,3 @@ export abstract class ClonableNode<
     }
 }
 
-function getAllCloned(node: ClonableNode, array: ClonableNode[] = []): ClonableNode[]
-{
-    node.cloneInfo.forEachCloned<ClonableNode>((cloned) =>
-    {
-        array.push(cloned);
-        getAllCloned(cloned, array);
-    });
-
-    return array;
-}
-
-function getDependants(node: ClonableNode, includeSelf = false, array: ClonableNode[] = []): ClonableNode[]
-{
-    const { cloneInfo } = node;
-
-    if (includeSelf && array.indexOf(node) === -1)
-    {
-        array.push(node);
-    }
-
-    cloneInfo.forEachCloned<ClonableNode>((cloned) => getDependants(cloned, true, array));
-
-    node.forEach<ClonableNode>((child) => getDependants(child, true, array));
-
-    return array;
-}
-
-function getDependencies(node: ClonableNode, includeSelf = false, array: ClonableNode[] = []): ClonableNode[]
-{
-    const { cloneInfo } = node;
-
-    if (includeSelf && array.indexOf(node) === -1)
-    {
-        array.push(node);
-    }
-
-    if (cloneInfo.cloner)
-    {
-        getDependencies(cloneInfo.getCloner<ClonableNode>(), true, array);
-    }
-
-    node.getParents<ClonableNode>().forEach((parent) => getDependencies(parent, true, array));
-
-    return array;
-}
-
-function getRestoreDependencies(cloneRoot: ClonableNode, array: ClonableNode[] = []): ClonableNode[]
-{
-    const { cloneInfo } = cloneRoot;
-
-    array.push(cloneRoot, ...cloneRoot.getAllChildren<ClonableNode>());
-
-    if (cloneInfo.cloner)
-    {
-        getRestoreDependencies(cloneInfo.getCloner<ClonableNode>().getCloneRoot(), array);
-    }
-
-    return array;
-}

@@ -5,7 +5,6 @@ import { clearInstances, getInstance } from '../core/nodes/instances';
 import { RemoveNodeCommand } from './commands/removeNode';
 import { initHistory, writeUndoStack } from './core/history';
 import UndoStack from './core/undoStack';
-import { initDiagnostics } from './diagnostics';
 import { Datastore } from './sync/datastore';
 import { NodeUpdater } from './sync/nodeUpdater';
 import { getUserLogColor, getUserName } from './sync/user';
@@ -56,7 +55,6 @@ export class Application
 
         this.datastore.on('nodeRemoved', () => { writeUndoStack(); });
 
-        initDiagnostics();
         initHistory();
     }
 

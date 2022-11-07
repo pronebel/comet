@@ -1,11 +1,7 @@
-import EventEmitter from 'eventemitter3';
-
 import { newId } from '../instances';
 import { type WalkReturnData, type WalkOptions, defaultWalkOptions } from './const';
 
-export type GraphNodeEvents = 'created' | 'childAdded' | 'childRemoved' | 'cloaked' | 'uncloaked' | 'disposed';
-
-export abstract class GraphNode<E extends string = string> extends EventEmitter<GraphNodeEvents | E>
+export abstract class GraphNode
 {
     public id: string;
     public parent?: GraphNode;
@@ -14,8 +10,6 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
     constructor(id?: string)
     {
-        super();
-
         this.id = id ?? newId(this.nodeType());
         this.children = [];
         this.created = Date.now();
@@ -30,7 +24,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
     public dispose()
     {
-        this.removeAllListeners();
+        // subclasses
     }
 
     public deleteSelf()
@@ -111,10 +105,10 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
         this.onAddedToParent();
 
-        parent.emit('childAdded', this);
+        // parent.emit('childAdded', this);
     }
 
-    public addChild(node: GraphNode<string>)
+    public addChild(node: GraphNode)
     {
         if (node === this)
         {
@@ -138,7 +132,7 @@ export abstract class GraphNode<E extends string = string> extends EventEmitter<
 
             node.onRemovedFromParent(this);
 
-            this.emit('childRemoved', node);
+            // this.emit('childRemoved', node);
         }
         else
         {

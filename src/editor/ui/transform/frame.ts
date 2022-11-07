@@ -1,3 +1,4 @@
+import { EventEmitter } from 'eventemitter3';
 import type { DisplayObject, InteractionEvent } from 'pixi.js';
 import { Container, Graphics, Rectangle } from 'pixi.js';
 
@@ -10,7 +11,9 @@ import { yellowPivot } from './util';
 const primaryHandleSize = 10;
 const secondaryHandleSize = 7;
 
-export class TransformGizmoFrame
+export type TransformGizmoFrameEvent = 'mousedown' | 'mousemove' | 'mouseup';
+
+export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
 {
     public container: Container;
     public primaryHandles: Container;
@@ -31,6 +34,8 @@ export class TransformGizmoFrame
 
     constructor(public readonly gizmo: TransformGizmo)
     {
+        super();
+
         this.container = new Container();
         this.primaryHandles = new Container();
         this.secondaryHandles = new Container();

@@ -15,7 +15,6 @@ export default class UndoStack
 
     constructor(public readonly datastore: Datastore)
     {
-        super();
         this.stack = [];
         this.head = -1;
     }
@@ -71,8 +70,6 @@ export default class UndoStack
 
         stack.push(command);
         this.head++;
-
-        this.emit('push', command);
     }
 
     public undo()
@@ -90,7 +87,6 @@ export default class UndoStack
         {
             const cmd = stack[i];
 
-            this.emit('undo', cmd);
             cmd.undo();
         }
 
@@ -103,7 +99,6 @@ export default class UndoStack
 
         for (const cmd of commands)
         {
-            this.emit('redo', cmd);
             cmd.redo();
             this.head++;
         }

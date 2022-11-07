@@ -1,12 +1,9 @@
 import { Container } from 'pixi.js';
 
-import type { ModelBase } from '../../model/model';
 import { ModelSchema } from '../../model/schema';
 import type { ClonableNode } from '../abstract/clonableNode';
-import type { DisplayObjectEvents, DisplayObjectModel } from '../abstract/displayObject';
+import type { DisplayObjectModel } from '../abstract/displayObject';
 import { DisplayObjectNode, displayObjectSchema } from '../abstract/displayObject';
-
-export type ContainerEvents = DisplayObjectEvents;
 
 export type ContainerModel = DisplayObjectModel;
 
@@ -17,8 +14,7 @@ export const containerSchema = new ModelSchema<ContainerModel>({
 export class ContainerNode<
     M extends ContainerModel = ContainerModel,
     V extends Container = Container,
-    E extends string = ContainerEvents,
-> extends DisplayObjectNode<M, V, E>
+> extends DisplayObjectNode<M, V>
 {
     public get naturalWidth(): number
     {
@@ -54,7 +50,7 @@ export class ContainerNode<
         //
     }
 
-    protected addViewToParent(parent: ClonableNode<ModelBase, object, string>): void
+    protected addViewToParent(parent: ClonableNode): void
     {
         const thisView = this.view;
         const parentView = parent.getView<Container>();
@@ -62,7 +58,7 @@ export class ContainerNode<
         parentView.addChild(thisView);
     }
 
-    protected removeViewFromParent(parent: ClonableNode<ModelBase, object, string>): void
+    protected removeViewFromParent(parent: ClonableNode): void
     {
         const thisView = this.view;
         const parentView = parent.getView<Container>();

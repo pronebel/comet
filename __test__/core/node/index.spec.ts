@@ -332,14 +332,18 @@ describe('Component', () =>
         {
             const { parent, childA } = setup();
 
-            childA.on('disposed', () =>
-            {
-                expect(childA.parent).toBeUndefined();
-                expect(parent.children).toHaveLength(0);
-                done();
-            });
+            // childA.on('disposed', () =>
+            // {
+            //     expect(childA.parent).toBeUndefined();
+            //     expect(parent.children).toHaveLength(0);
+            //     done();
+            // });
 
             childA.deleteSelf();
+
+            expect(childA.parent).toBeUndefined();
+            expect(parent.children).toHaveLength(0);
+            done();
         });
 
         it('should receive child when cloner adds child', () =>

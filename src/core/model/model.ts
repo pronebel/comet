@@ -1,14 +1,16 @@
-import { type GraphNodeEvents, GraphNode } from '../nodes/abstract/graphNode';
+import EventEmitter from 'eventemitter3';
+import { GraphNode } from '../nodes/abstract/graphNode';
 import { newId } from '../nodes/instances';
 import type { ModelSchema } from './schema';
 
 export type ModelValue = string | number | boolean | object | null;
 export type ModelBase = Record<string, ModelValue>;
 
-export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
+export class Model<M> extends GraphNode
 {
-    public schema: ModelSchema<M>;
-    public data: Partial<M>;
+    public readonly schema: ModelSchema<M>;
+    public readonly data: Partial<M>;
+    public readonly emitter: EventEmitter<'modified'>;
 
     public isReference: boolean;
 
@@ -20,6 +22,8 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
         this.data = data;
         this.children = [];
         this.isReference = false;
+
+        this.emitter = new EventEmitter();
 
         this.setValues(data);
     }
@@ -114,7 +118,7 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
 
         if (keys.indexOf(String(key)) > -1)
         {
-            this.onModified(key, value as M[keyof M], oldValue as unknown as M[keyof M]);
+            this.notifyModified(key, value as M[keyof M], oldValue as unknown as M[keyof M]);
         }
 
         return rtn;
@@ -137,7 +141,7 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
 
         if (keys.indexOf(String(key)) > -1)
         {
-            this.emit('modified', key, value, oldValue);
+            this.emitter.emit('modified', key, value, oldValue);
 
             this.children.forEach((childModel) => (childModel as Model<any>).rawSetValue(key, value));
         }
@@ -170,7 +174,7 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
         const oldValue = this.ownValues[key];
 
         delete this.data[key];
-        this.onModified(key, undefined, oldValue);
+        this.notifyModified(key, undefined, oldValue);
     }
 
     public flatten()
@@ -211,14 +215,14 @@ export class Model<M> extends GraphNode<GraphNodeEvents | 'modified'>
             delete this.data[key];
         }
 
-        this.emit('modified');
+        this.emitter.emit('modified');
     }
 
-    public onModified(key: keyof M, value: M[keyof M] | undefined, oldValue: M[keyof M]): void
+    protected notifyModified(key: keyof M, value: M[keyof M] | undefined, oldValue: M[keyof M]): void
     {
-        this.emit('modified', key, value, oldValue);
+        this.emitter.emit('modified', key, value, oldValue);
 
-        this.forEach<Model<any>>((childModel) => childModel.onModified(key, value, oldValue));
+        this.forEach<Model<any>>((childModel) => childModel.notifyModified(key, value, oldValue));
     }
 
     public getReferenceParent(): Model<M> | undefined

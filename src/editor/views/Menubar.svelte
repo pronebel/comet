@@ -1,6 +1,6 @@
 <script lang="ts">
   import { newDebugNode } from "../actions/newDebugNode";
-  import { newEmptyNode } from "../devTools/actions/newEmptyNode";
+  import { newEmptyNode } from "../actions/newEmptyNode";
 </script>
 
 <div data-section="menubar" class="fill flex-container-center">

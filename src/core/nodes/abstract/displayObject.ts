@@ -3,9 +3,7 @@ import type { DisplayObject } from 'pixi.js';
 import { NumericRangeLimitConstraint, ReferenceConstraint } from '../../model/constraints';
 import type { ModelBase } from '../../model/model';
 import { ModelSchema } from '../../model/schema';
-import { type ClonableNodeEvents, ClonableNode } from './clonableNode';
-
-export type DisplayObjectEvents = ClonableNodeEvents;
+import { ClonableNode } from './clonableNode';
 
 export interface DisplayObjectModel extends ModelBase
 {
@@ -42,8 +40,7 @@ export const displayObjectSchema = new ModelSchema<DisplayObjectModel>({
 export abstract class DisplayObjectNode<
     M extends DisplayObjectModel = DisplayObjectModel,
     V extends DisplayObject = DisplayObject,
-    E extends string = DisplayObjectEvents,
-> extends ClonableNode<M, V, E>
+> extends ClonableNode<M, V>
 {
     public modelSchema(): ModelSchema<M>
     {
