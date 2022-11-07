@@ -1,4 +1,3 @@
-// import { EventEmitter } from 'eventemitter3';
 import { Graphics } from 'pixi.js';
 
 export type HandleVertexHorizontal = 'none' | 'left' | 'center' | 'right';

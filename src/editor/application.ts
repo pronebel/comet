@@ -1,7 +1,3 @@
-// note: this file must be imported to trigger node type registration
-
-import { EventEmitter } from 'eventemitter3';
-
 import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { ContainerNode } from '../core/nodes/concrete/container';
 import { ProjectNode } from '../core/nodes/concrete/project';
@@ -21,11 +17,9 @@ const userColor = getUserLogColor(userName);
 const logId = `${userName}`;
 const logStyle = 'color:LightCyan;';
 
-export type AppEvents = '';
-
 export interface AppOptions {}
 
-export class Application extends EventEmitter<AppEvents>
+export class Application
 {
     public datastore: Datastore;
     public nodeUpdater: NodeUpdater;
@@ -47,8 +41,6 @@ export class Application extends EventEmitter<AppEvents>
 
     constructor(public readonly options: AppOptions)
     {
-        super();
-
         Application._instance = this;
 
         (window as any).app = this;
@@ -107,7 +99,7 @@ export class Application extends EventEmitter<AppEvents>
 
     protected init()
     {
-        this.editorView.setRoot(this.project);
+        this.editorView.setRoot(this.project.cast<ContainerNode>());
     }
 
     protected clear()
@@ -116,13 +108,6 @@ export class Application extends EventEmitter<AppEvents>
 
         this.undoStack.clear();
         this.datastore.reset();
-    }
-
-    public emit<T extends AppEvents>(event: T, ...args: any[]): boolean
-    {
-        console.log(`%c${logId}:%c✨ ${event}!`, userColor, logStyle);
-
-        return EventEmitter.prototype.emit.call(this, event, ...args) as boolean;
     }
 
     public restoreNode(nodeId: string)

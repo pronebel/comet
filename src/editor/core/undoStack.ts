@@ -1,18 +1,14 @@
-import { EventEmitter } from 'eventemitter3';
-
 import type { Command } from '../core/command';
 import type { Datastore } from '../sync/datastore';
 import { getUserLogColor, getUserName } from '../sync/user';
 import { writeCommandList, writeUndoStack } from './history';
-
-export type UndoStackEvent = 'push' | 'undo' | 'redo';
 
 const userName = getUserName();
 const userColor = getUserLogColor(userName);
 const logId = `${userName}`;
 const logStyle = 'color:yellow;';
 
-export default class UndoStack extends EventEmitter<UndoStackEvent>
+export default class UndoStack
 {
     public stack: Command[];
     public head: number;

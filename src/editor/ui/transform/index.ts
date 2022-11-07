@@ -1,4 +1,3 @@
-import { EventEmitter } from 'eventemitter3';
 import type { Container, InteractionEvent } from 'pixi.js';
 import { Matrix, Rectangle, Transform } from 'pixi.js';
 
@@ -27,9 +26,7 @@ import {
     yellowPivot,
 } from './util';
 
-export type TransformGizmoEvent = 'changed';
-
-export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
+export class TransformGizmo
 {
     public config: TransformGizmoConfig;
 
@@ -47,8 +44,6 @@ export class TransformGizmo extends EventEmitter<TransformGizmoEvent>
 
     constructor(config?: TransformGizmoConfig)
     {
-        super();
-
         this.config = config ?? { ...defaultTransformGizmoConfig };
 
         this.initialTransform = defaultInitialGizmoTransform;

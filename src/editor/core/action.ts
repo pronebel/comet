@@ -1,4 +1,3 @@
-import EventEmitter from 'eventemitter3';
 import type { KeyHandler } from 'hotkeys-js';
 import hotkeys, { type HotkeysEvent } from 'hotkeys-js';
 
@@ -31,7 +30,6 @@ export class Action
     public handler: KeyHandler;
 
     public static actions: Map<string, Action> = new Map();
-    public static emitter = new EventEmitter<'execute'>();
 
     public static register(id: string, handler: KeyHandler, options: ActionConstructorOptions)
     {
@@ -101,8 +99,6 @@ export class Action
                 this.isChecked = !this.isChecked;
             }
             this.handler(event, handler);
-
-            Action.emitter.emit('execute', this, event, handler);
         }
     }
 }
