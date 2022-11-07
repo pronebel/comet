@@ -1,3 +1,13 @@
+<script lang="ts" context="module">
+  function preventDefaults(e: Event) {
+    e.preventDefault();
+    e.stopPropagation();
+  }
+  ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
+    document.body.addEventListener(eventName, preventDefaults, false);
+  });
+</script>
+
 <script lang="ts">
   const onDragStart = (e: DragEvent) => {
     const { dataTransfer } = e;
@@ -15,9 +25,11 @@
   };
 
   const onDragDrop = (e: DragEvent) => {
-    e.preventDefault();
-    alert("!");
-    console.log("drop", e);
+    const { dataTransfer } = e;
+    if (dataTransfer) {
+      var files = dataTransfer.files;
+      console.log("drop", files);
+    }
   };
 </script>
 
