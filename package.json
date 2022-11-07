@@ -26,6 +26,7 @@
     "dependencies": {
         "@convergence/convergence": "1.0.0-rc.12",
         "color": "^4.2.3",
+        "dropzone": "6.0.0-beta.2",
         "eventemitter3": "~4.0.7",
         "fast-equals": "^4.0.3",
         "hotkeys-js": "^3.10.0",

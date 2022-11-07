@@ -1,4 +1,4 @@
-export abstract class AssetStoreBase
+export abstract class StorageProvider
 {
     public abstract init(): Promise<void>;
     public abstract upload(blob: Blob): Promise<string>;

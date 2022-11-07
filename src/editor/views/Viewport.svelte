@@ -1,10 +1,13 @@
 <script lang="ts">
   import { Application } from "../application";
   import EditorView from "./EditorView.svelte";
+  import DropZone from "./DropZone.svelte";
 </script>
 
 <div data-section="viewport" class="fill">
-  <EditorView view={Application.instance.editorView} />
+  <DropZone>
+    <EditorView view={Application.instance.editorView} />
+  </DropZone>
 </div>
 
 <style>
