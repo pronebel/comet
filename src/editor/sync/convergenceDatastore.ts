@@ -16,7 +16,7 @@ import type { CloneInfoSchema, NodeSchema, ProjectSchema } from '../../core/node
 import { createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import { DatastoreBase } from './datastoreBase';
-import type { DatastoreNodeEvent } from './events';
+import type { DatastoreNodeEvent } from '../events';
 import { getUserLogColor, getUserName } from './user';
 
 const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();

@@ -8,7 +8,7 @@ import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import type { DatastoreBase } from './datastoreBase';
-import type { DatastoreNodeEvent } from './events';
+import type { DatastoreNodeEvent } from '../events';
 import { getUserLogColor, getUserName } from './user';
 
 const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();

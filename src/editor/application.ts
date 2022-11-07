@@ -7,7 +7,7 @@ import { RemoveNodeCommand } from './commands/removeNode';
 import { initHistory, writeUndoStack } from './core/history';
 import UndoStack from './core/undoStack';
 import { ConvergenceDatastore } from './sync/convergenceDatastore';
-import type { DatastoreNodeEvent } from './sync/events';
+import type { DatastoreNodeEvent } from './events';
 import { NodeUpdater } from './sync/nodeUpdater';
 import { getUserLogColor, getUserName } from './sync/user';
 import { EditableView } from './ui/editableView';
