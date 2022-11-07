@@ -1,4 +1,4 @@
-import type { Asset } from '../../core/assets/asset';
+import type { TextureAsset } from '../../core/assets/textureAsset';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import type { CloneInfoSchema, NodeSchema } from '../../core/nodes/schema';
@@ -19,7 +19,6 @@ export interface Datastore
     deleteProject: (name: string) => Promise<void>;
     hydrate: () => ClonableNode;
     reset: () => void;
-    createAsset: (asset: Asset) => Promise<void>;
 }
 
 export interface DatastoreCommandProvider
@@ -33,6 +32,7 @@ export interface DatastoreCommandProvider
     removeCustomProperty: (nodeId: string, customKey: string) => void;
     assignCustomProperty: (nodeId: string, modelKey: string, customKey: string) => void;
     unassignCustomProperty: (nodeId: string, modelKey: string) => void;
+    createTexture: (asset: TextureAsset) => Promise<void>;
 }
 
 export interface DatastoreChangeEventHandler<ChangeEventType>
@@ -75,7 +75,6 @@ implements Datastore, DatastoreCommandProvider, DatastoreChangeEventHandler<Chan
     public abstract deleteProject(name: string): Promise<void>;
     public abstract hydrate(): ClonableNode;
     public abstract reset(): void;
-    public abstract createAsset(asset: Asset): Promise<void>;
 
     // command API
     public abstract createNode(nodeSchema: NodeSchema): void;
@@ -87,6 +86,7 @@ implements Datastore, DatastoreCommandProvider, DatastoreChangeEventHandler<Chan
     public abstract removeCustomProperty(nodeId: string, customKey: string): void;
     public abstract assignCustomProperty(nodeId: string, modelKey: string, customKey: string): void;
     public abstract unassignCustomProperty(nodeId: string, modelKey: string): void;
+    public abstract createTexture(asset: TextureAsset): Promise<void>;
 
     // change event handles
     public abstract onRemoteNodeCreated(event: ChangeEventType): void;

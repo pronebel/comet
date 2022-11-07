@@ -7,13 +7,13 @@ import Convergence, {
     RealTimeObject,
 } from '@convergence/convergence';
 
-import type { Asset } from '../../core/assets/asset';
+import type { TextureAsset } from '../../core/assets/textureAsset';
 import { getGlobalEmitter } from '../../core/events';
 import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import { consolidateId, getInstance } from '../../core/nodes/instances';
-import type { AssetSchema, CloneInfoSchema, NodeSchema, ProjectSchema } from '../../core/nodes/schema';
+import type { CloneInfoSchema, NodeSchema, ProjectSchema } from '../../core/nodes/schema';
 import { createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import type { DatastoreNodeEvent } from '../events';
@@ -637,7 +637,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
 
     protected get textures()
     {
-        return this.assets.elementAt('textures');
+        return this.assets.elementAt('textures') as RealTimeObject;
     }
 
     protected assertValue(value: unknown)
@@ -755,17 +755,17 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         console.log(`%c${logId}:%cJoined activity "${type}:${id}"`, userColor, logStyle);
     }
 
-    public async createAsset<T extends Asset>(asset: T)
+    public async createTexture(asset: TextureAsset)
     {
         const { id, storageKey, name, type, size, properties } = asset;
 
-        this.assets.set(id, {
+        this.textures.set(id, {
             storageKey,
             name,
             type,
             size,
             properties,
-        } as AssetSchema);
+        } as TextureAsset);
 
         console.log(`%c${logId}:%cCreate Asset "${id}"`, userColor, logStyle);
     }

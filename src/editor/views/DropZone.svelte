@@ -33,7 +33,7 @@
       var files = dataTransfer.files;
       if (files.length >= 1) {
         console.log("drop", files);
-        Application.instance.createAsset(files[0]);
+        Application.instance.createTexture(files[0]);
       }
     }
   };

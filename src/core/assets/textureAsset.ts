@@ -1,7 +1,7 @@
 import { MIPMAP_MODES, MSAA_QUALITY, SCALE_MODES, WRAP_MODES } from 'pixi.js';
 
-import { Asset } from './asset';
-import { blobToBas64 } from './util';
+import { type AssetCacheKey, Asset } from './asset';
+import { blobToBas64, loadImage } from './util';
 
 export interface TextureAssetProperties
 {
@@ -14,32 +14,39 @@ export interface TextureAssetProperties
     wrapMode: WRAP_MODES;
 }
 
-export class TextureAsset extends Asset<TextureAssetProperties>
+export const defaultTextureAssetProperties: TextureAssetProperties = {
+    width: 0,
+    height: 0,
+    mipmap: MIPMAP_MODES.OFF,
+    multisample: MSAA_QUALITY.NONE,
+    resolution: 1,
+    scaleMode: SCALE_MODES.NEAREST,
+    wrapMode: WRAP_MODES.CLAMP,
+};
+
+export class TextureAsset extends Asset<TextureAssetProperties, HTMLImageElement>
 {
-    protected base64?: string;
-
-    public async getDataURI()
+    public static getTexture(id: string)
     {
-        if (this.base64)
-        {
-            return this.base64;
-        }
-
-        this.base64 = await blobToBas64(this.blob);
-
-        return this.base64;
+        return Asset.getAsset<TextureAsset>('textures', id);
     }
 
-    get defaultProperties(): TextureAssetProperties
+    public async getData()
     {
-        return {
-            width: 0,
-            height: 0,
-            mipmap: MIPMAP_MODES.OFF,
-            multisample: MSAA_QUALITY.NONE,
-            resolution: 1,
-            scaleMode: SCALE_MODES.NEAREST,
-            wrapMode: WRAP_MODES.CLAMP,
-        };
+        if (this.data)
+        {
+            return this.data;
+        }
+
+        const dataURI = await blobToBas64(this.blob);
+
+        this.data = await loadImage(dataURI);
+
+        return this.data;
+    }
+
+    get cacheKey()
+    {
+        return 'textures' as AssetCacheKey;
     }
 }

@@ -1,10 +1,10 @@
 import type { ModelBase } from '../../core/model/model';
 import { type AddChildCommandParams, AddChildCommand } from '../commands/addChild';
-import { AddSelectionCommand, type AddSelectionCommandParams } from '../commands/addSelection';
+import { type AddSelectionCommandParams, AddSelectionCommand } from '../commands/addSelection';
 import { type AssignCustomPropCommandParams, AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { type CloneCommandParams, CloneCommand } from '../commands/clone';
-import { CreateAssetCommand, type CreateAssetCommandParams } from '../commands/createAsset';
 import { type CreateNodeCommandParams, CreateNodeCommand } from '../commands/createNode';
+import { type CreateTextureAssetCommandParams, CreateTextureAssetCommand } from '../commands/createTextureAsset';
 import { type ModifyModelCommandParams, ModifyModelCommand } from '../commands/modifyModel';
 import { type RemoveChildCommandParams, RemoveChildCommand } from '../commands/removeChild';
 import { type RemoveCustomPropCommandParams, RemoveCustomPropCommand } from '../commands/removeCustomProp';
@@ -36,8 +36,8 @@ export const Commands
     AddSelection: AddSelectionCommand,
     AssignCustomProp: AssignCustomPropCommand,
     Clone: CloneCommand,
-    CreateAsset: CreateAssetCommand,
     CreateNode: CreateNodeCommand,
+    CreateTextureAsset: CreateTextureAssetCommand,
     ModifyModel: ModifyModelCommand,
     RemoveChild: RemoveChildCommand,
     RemoveCustomProp: RemoveCustomPropCommand,
@@ -54,8 +54,8 @@ export interface CommandParams
     AddSelection: AddSelectionCommandParams;
     AssignCustomProp: AssignCustomPropCommandParams;
     Clone: CloneCommandParams;
-    CreateAsset: CreateAssetCommandParams;
     CreateNode: CreateNodeCommandParams<ModelBase>;
+    CreateTextureAsset: CreateTextureAssetCommandParams;
     ModifyModel: ModifyModelCommandParams<ModelBase>;
     RemoveChild: RemoveChildCommandParams;
     RemoveCustomProp: RemoveCustomPropCommandParams;

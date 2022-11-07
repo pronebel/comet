@@ -4,7 +4,7 @@ import type { ContainerNode } from '../core/nodes/concrete/container';
 import { ProjectNode } from '../core/nodes/concrete/project';
 import { clearInstances, getInstance } from '../core/nodes/instances';
 import { newDebugNode } from './actions/newDebugNode';
-import { CreateAssetCommand } from './commands/createAsset';
+import { CreateTextureAssetCommand } from './commands/createTextureAsset';
 import { RemoveNodeCommand } from './commands/removeNode';
 import { initHistory, writeUndoStack } from './core/history';
 import UndoStack from './core/undoStack';
@@ -130,14 +130,14 @@ export class Application
             .forEach((node) => new RemoveNodeCommand({ nodeId: node.id }).undo());
     }
 
-    public createAsset(file: File)
+    public createTexture(file: File)
     {
-        const { promise } = new CreateAssetCommand({ file }).run();
+        const { promise } = new CreateTextureAssetCommand({ file }).run();
 
-        promise.then((asset) =>
+        promise.then((texture) =>
         {
             newDebugNode({
-                textureAssetId: asset.id,
+                textureAssetId: texture.id,
                 tint: 0xffffff,
             });
         });

@@ -1,6 +1,8 @@
 import { newId } from '../nodes/instances';
 
-export class Asset<T = {}>
+export type AssetCacheKey = 'textures';
+
+export abstract class Asset<P, D>
 {
     public id: string;
 
@@ -9,23 +11,40 @@ export class Asset<T = {}>
     public type: string;
     public size: number;
     public blob: Blob;
-    public properties: T;
+    public properties: P;
+    public data?: D;
 
-    private static readonly cache: Map<string, Asset> = new Map();
+    private static readonly cache: Record<AssetCacheKey, Map<string, Asset<any, any>>> = {
+        textures: new Map(),
+    };
 
-    public static async store(asset: Asset)
+    public static getCache(cacheKey: AssetCacheKey)
     {
-        this.cache.set(asset.id, asset);
+        const cache = this.cache[cacheKey];
+
+        if (!cache)
+        {
+            throw new Error(`Cannot find asset cache for key "${cacheKey}"`);
+        }
+
+        return cache;
     }
 
-    public static get<T>(id: string)
+    public static async storeAsset(asset: Asset<any, any>)
     {
-        if (!this.cache.has(id))
+        this.getCache(asset.cacheKey).set(asset.id, asset);
+    }
+
+    public static getAsset<T>(cacheKey: AssetCacheKey, id: string)
+    {
+        const cache = this.getCache(cacheKey);
+
+        if (!cache.has(id))
         {
             throw new Error(`Asset "${id}" not defined`);
         }
 
-        return this.cache.get(id) as unknown as T;
+        return cache.get(id) as unknown as T;
     }
 
     constructor(storageKey: string, name: string, type: string, size: number, blob: Blob)
@@ -37,11 +56,15 @@ export class Asset<T = {}>
         this.type = type;
         this.size = size;
         this.blob = blob;
-        this.properties = this.defaultProperties;
+        this.properties = {} as P;
     }
 
-    get defaultProperties(): T
+    get hasDataAvailable()
     {
-        return {} as T;
+        return !!this.data;
     }
+
+    abstract get cacheKey(): AssetCacheKey;
+
+    public abstract getData(): Promise<D>;
 }
