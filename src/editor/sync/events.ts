@@ -1,49 +1,39 @@
-export type DatastoreNodeEvent = 
-| 'datastore.node.created'
-| 'datastore.node.hydrated'
-| 'datastore.node.removed'
-| 'datastore.node.parent.set'
-| 'datastore.node.customProp.defined'
-| 'datastore.node.customProp.undefined'
-| 'datastore.node.customProp.assigned'
-| 'datastore.node.customProp.unassigned'
-| 'datastore.node.model.modified'
-| 'datastore.node.cloneInfo.modified';
+import type { ModelValue } from '../../core/model/model';
+import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
+import type { CloneInfoSchema } from '../../core/nodes/schema';
 
-export type DatastoreEvent = DatastoreNodeEvent;
-
-// todo: key value with event type? standardise way to define?
-
-// type Foo = {
-//     'a': {
-//         x: number;
-//     }
-// }
-
-// type K = keyof Foo;
-// type V<S extends K> = Foo[S];
-
-// const a: K = 'a';
-// const b: V<'a'> = {x:1};
-
-export interface DSNodeEventBase
+interface BaseEvent
 {
     nodeId: string;
 }
 
-export type DatastoreNodeEvents = {
-    'datastore.node.created': DSNodeEventBase;
-    'datastore.node.hydrated': DSNodeEventBase;
-    'datastore.node.removed': DSNodeEventBase & {
+export interface DatastoreNodeEvent {
+    'datastore.node.created': BaseEvent;
+    'datastore.node.hydrated': BaseEvent;
+    'datastore.node.removed': BaseEvent & {
+        parentId?: string;
+    };
+    'datastore.node.parent.set': BaseEvent & {
         parentId: string;
+    };
+    'datastore.node.customProp.defined': BaseEvent & {
+        customKey: string;
+        type: CustomPropertyType;
+        value: CustomPropertyValueType;
+    };
+    'datastore.node.customProp.undefined': BaseEvent & {
+        customKey: string;
+    };
+    'datastore.node.customProp.assigned': BaseEvent & {
+        modelKey: string;
+        customKey: string;
+    };
+    'datastore.node.customProp.unassigned': BaseEvent & {
+        modelKey: string;
     }
-}
-
-export type Foo = {
-    'datastore2': DSNodeEventBase;
-}
-
-type Keys = keyof DatastoreNodeEvents | keyof Foo;
-
-const k: Keys = 'datastore2';
-const v: Foo['datastore2']= {nodeId: 2};
+    'datastore.node.model.modified': BaseEvent & {
+        key: string | null; // undefined means whole object was set, which will be .value
+        value: ModelValue;
+    };
+    'datastore.node.cloneInfo.modified': BaseEvent & CloneInfoSchema;
+};

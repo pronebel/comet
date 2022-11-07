@@ -57,7 +57,9 @@ export class Application
         this.undoStack = new UndoStack(datastore);
         this.nodeUpdater = new NodeUpdater(datastore);
 
-        globalEmitter.on('datastore.node.removed', () => { writeUndoStack(); });
+        globalEmitter.on('datastore.node.removed', () => { 
+            writeUndoStack(); 
+        });
 
         initHistory();
     }

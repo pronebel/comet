@@ -8,21 +8,10 @@ import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
 import type { DatastoreBase } from './datastoreBase';
-import type {
-    DSCloneInfoModifiedEvent,
-    DSCustomPropAssignedEvent,
-    DSCustomPropDefinedEvent,
-    DSCustomPropUnassignedEvent,
-    DSCustomPropUndefinedEvent,
-    DSModelModifiedEvent,
-    DSNodeCreatedEvent,
-    DSNodeRemovedEvent,
-    DSParentSetEvent,
-} from './datastoreEvents';
-import type { DatastoreEvent } from './events';
+import type { DatastoreNodeEvent } from './events';
 import { getUserLogColor, getUserName } from './user';
 
-const globalEmitter = getGlobalEmitter<DatastoreEvent>();
+const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();
 
 const userName = getUserName();
 const userColor = getUserLogColor(userName);
@@ -51,7 +40,7 @@ export class NodeUpdater
         console.log(`%c${logId}:%c${eventName} ${JSON.stringify(event)}`, userColor, logStyle);
     }
 
-    protected onNodeCreated = (event: DSNodeCreatedEvent) =>
+    protected onNodeCreated = (event: DatastoreNodeEvent['datastore.node.created']) =>
     {
         const { nodeId } = event;
 
@@ -69,7 +58,7 @@ export class NodeUpdater
         }
     };
 
-    protected onNodeRemoved = (event: DSNodeRemovedEvent) =>
+    protected onNodeRemoved = (event: DatastoreNodeEvent['datastore.node.removed']) =>
     {
         this.log('onNodeRemoved', event);
 
@@ -78,7 +67,7 @@ export class NodeUpdater
         new RemoveNodeCommand({ nodeId }).run();
     };
 
-    protected onParentSet = (event: DSParentSetEvent) =>
+    protected onParentSet = (event: DatastoreNodeEvent['datastore.node.parent.set']) =>
     {
         this.log('onParentSet', event);
 
@@ -94,7 +83,7 @@ export class NodeUpdater
         }
     };
 
-    protected onCustomPropDefined = (event: DSCustomPropDefinedEvent) =>
+    protected onCustomPropDefined = (event: DatastoreNodeEvent['datastore.node.customProp.defined']) =>
     {
         this.log('onCustomPropDefined', event);
 
@@ -103,7 +92,7 @@ export class NodeUpdater
         new SetCustomPropCommand({ nodeId, customKey, type, value, updateMode: 'graphOnly' }).run();
     };
 
-    protected onCustomPropUndefined = (event: DSCustomPropUndefinedEvent) =>
+    protected onCustomPropUndefined = (event: DatastoreNodeEvent['datastore.node.customProp.undefined']) =>
     {
         this.log('onCustomPropUndefined', event);
 
@@ -112,7 +101,7 @@ export class NodeUpdater
         new RemoveCustomPropCommand({ nodeId, customKey, updateMode: 'graphOnly' }).run();
     };
 
-    protected onCustomPropAssigned = (event: DSCustomPropAssignedEvent) =>
+    protected onCustomPropAssigned = (event: DatastoreNodeEvent['datastore.node.customProp.assigned']) =>
     {
         this.log('onCustomPropAssigned', event);
 
@@ -121,7 +110,7 @@ export class NodeUpdater
         new AssignCustomPropCommand({ nodeId, modelKey, customKey, updateMode: 'graphOnly' }).run();
     };
 
-    protected onCustomPropUnassigned = (event: DSCustomPropUnassignedEvent) =>
+    protected onCustomPropUnassigned = (event: DatastoreNodeEvent['datastore.node.customProp.unassigned']) =>
     {
         this.log('onCustomPropUnassigned', event);
 
@@ -130,7 +119,7 @@ export class NodeUpdater
         new UnAssignCustomPropCommand({ nodeId, modelKey, updateMode: 'graphOnly' }).run();
     };
 
-    protected onModelModified = (event: DSModelModifiedEvent) =>
+    protected onModelModified = (event: DatastoreNodeEvent['datastore.node.model.modified']) =>
     {
         this.log('onModelModified', event);
 
@@ -150,7 +139,7 @@ export class NodeUpdater
         }
     };
 
-    protected onCloneInfoModified = (event: DSCloneInfoModifiedEvent) =>
+    protected onCloneInfoModified = (event: DatastoreNodeEvent['datastore.node.cloneInfo.modified']) =>
     {
         this.log('onCloneInfoModified', event);
 
