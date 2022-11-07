@@ -6,17 +6,18 @@ import Convergence, {
     type RealTimeModel,
     RealTimeObject,
 } from '@convergence/convergence';
-import { getGlobalEmitter } from '../../core/events';
 
+import type { Asset } from '../../core/assets/asset';
+import { getGlobalEmitter } from '../../core/events';
 import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import { consolidateId, getInstance } from '../../core/nodes/instances';
-import type { CloneInfoSchema, NodeSchema, ProjectSchema } from '../../core/nodes/schema';
+import type { AssetSchema, CloneInfoSchema, NodeSchema, ProjectSchema } from '../../core/nodes/schema';
 import { createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
-import { DatastoreBase } from './datastoreBase';
 import type { DatastoreNodeEvent } from '../events';
+import { DatastoreBase } from './datastoreBase';
 import { getUserLogColor, getUserName } from './user';
 
 const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();
@@ -44,7 +45,8 @@ function asObjectSetEvent(e: IConvergenceEvent)
     return { event, nodeElement, nodeId };
 }
 
-export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConvergenceEvent> {
+export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConvergenceEvent>
+{
     protected _domain?: ConvergenceDomain;
     protected _model?: RealTimeModel;
 
@@ -163,6 +165,11 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         this.nodes
             .on(RealTimeObject.Events.SET, this.onNodeCreated)
             .on(RealTimeObject.Events.REMOVE, this.onNodeRemoved);
+
+        // catch events for assets
+        this.textures
+            .on(RealTimeObject.Events.SET, this.onAssetCreated)
+            .on(RealTimeObject.Events.REMOVE, this.onAssetRemoved);
 
         return this.hydrate();
     }
@@ -549,6 +556,23 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         globalEmitter.emit('datastore.node.cloneInfo.modified', { nodeId, ...cloneInfo });
     };
 
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public onAssetCreated = (e: IConvergenceEvent) =>
+    {
+        // const { event, nodeElement } = asObjectSetEvent(e);
+        // const asset = event.element.value() as CloneInfoSchema;
+
+        // debugger;
+    };
+
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    public onAssetRemoved = (event: IConvergenceEvent) =>
+    {
+        //
+    };
+
     public getRegisteredIds()
     {
         return Array.from(this.nodeProxies.keys());
@@ -604,6 +628,16 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
     protected get nodes()
     {
         return this.model.elementAt('nodes') as RealTimeObject;
+    }
+
+    protected get assets()
+    {
+        return this.model.elementAt('assets') as RealTimeObject;
+    }
+
+    protected get textures()
+    {
+        return this.assets.elementAt('textures');
     }
 
     protected assertValue(value: unknown)
@@ -719,5 +753,20 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         });
 
         console.log(`%c${logId}:%cJoined activity "${type}:${id}"`, userColor, logStyle);
+    }
+
+    public async createAsset<T extends Asset>(asset: T)
+    {
+        const { id, storageKey, name, type, size, properties } = asset;
+
+        this.assets.set(id, {
+            storageKey,
+            name,
+            type,
+            size,
+            properties,
+        } as AssetSchema);
+
+        console.log(`%c${logId}:%cCreate Asset "${id}"`, userColor, logStyle);
     }
 }

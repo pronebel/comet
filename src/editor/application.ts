@@ -3,11 +3,14 @@ import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { ContainerNode } from '../core/nodes/concrete/container';
 import { ProjectNode } from '../core/nodes/concrete/project';
 import { clearInstances, getInstance } from '../core/nodes/instances';
+import { newDebugNode } from './actions/newDebugNode';
+import { CreateAssetCommand } from './commands/createAsset';
 import { RemoveNodeCommand } from './commands/removeNode';
 import { initHistory, writeUndoStack } from './core/history';
 import UndoStack from './core/undoStack';
-import { ConvergenceDatastore } from './sync/convergenceDatastore';
 import type { DatastoreNodeEvent } from './events';
+import { LocalStorageProvider } from './storage/localStorageProvider';
+import { ConvergenceDatastore } from './sync/convergenceDatastore';
 import { NodeUpdater } from './sync/nodeUpdater';
 import { getUserLogColor, getUserName } from './sync/user';
 import { EditableView } from './ui/editableView';
@@ -20,7 +23,7 @@ const userColor = getUserLogColor(userName);
 const logId = `${userName}`;
 const logStyle = 'color:LightCyan;';
 
-export interface AppOptions {}
+export type AppOptions = {};
 
 export class Application
 {
@@ -28,6 +31,7 @@ export class Application
     public nodeUpdater: NodeUpdater;
     public undoStack: UndoStack;
     public editorView: EditableView;
+    public storageProvider: LocalStorageProvider;
     public project: ProjectNode;
 
     private static _instance: Application;
@@ -48,17 +52,17 @@ export class Application
 
         (window as any).app = this;
 
-        this.project = new ProjectNode();
-
         const datastore = this.datastore = new ConvergenceDatastore();
 
+        this.storageProvider = new LocalStorageProvider();
+        this.project = new ProjectNode();
         this.editorView = new EditableView(this.project.cast<ContainerNode>());
-
-        this.undoStack = new UndoStack(datastore);
+        this.undoStack = new UndoStack();
         this.nodeUpdater = new NodeUpdater(datastore);
 
-        globalEmitter.on('datastore.node.removed', () => { 
-            writeUndoStack(); 
+        globalEmitter.on('datastore.node.removed', () =>
+        {
+            writeUndoStack();
         });
 
         initHistory();
@@ -124,5 +128,18 @@ export class Application
 
         dependencies.filter((dependantNode) => dependantNode.isCloaked)
             .forEach((node) => new RemoveNodeCommand({ nodeId: node.id }).undo());
+    }
+
+    public createAsset(file: File)
+    {
+        const { promise } = new CreateAssetCommand({ file }).run();
+
+        promise.then((asset) =>
+        {
+            newDebugNode({
+                textureAssetId: asset.id,
+                tint: 0xffffff,
+            });
+        });
     }
 }

@@ -1,13 +1,14 @@
 import Color from 'color';
 
 import type { ContainerNode } from '../../core/nodes/concrete/container';
+import type { SpriteModel } from '../../core/nodes/concrete/sprite';
 import { createNodeSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import { type AddChildCommandReturn, AddChildCommand } from '../commands/addChild';
 
 const rnd = () => Math.random() * 255;
 
-export function newDebugNode()
+export function newDebugNode(values: Partial<SpriteModel> = {})
 {
     const app = Application.instance;
     const selectedNode = app.editorView.selection.lastNode;
@@ -31,6 +32,7 @@ export function newDebugNode()
             scaleX: 1,
             scaleY: 1,
             tint: tint.rgbNumber(),
+            ...values,
         },
     });
 
@@ -40,5 +42,5 @@ export function newDebugNode()
 
     app.editorView.selection.set(node);
 
-    console.log(node);
+    return node;
 }

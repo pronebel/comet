@@ -1,7 +1,9 @@
 import type { ModelBase } from '../../core/model/model';
 import { type AddChildCommandParams, AddChildCommand } from '../commands/addChild';
+import { AddSelectionCommand, type AddSelectionCommandParams } from '../commands/addSelection';
 import { type AssignCustomPropCommandParams, AssignCustomPropCommand } from '../commands/assignCustomProp';
 import { type CloneCommandParams, CloneCommand } from '../commands/clone';
+import { CreateAssetCommand, type CreateAssetCommandParams } from '../commands/createAsset';
 import { type CreateNodeCommandParams, CreateNodeCommand } from '../commands/createNode';
 import { type ModifyModelCommandParams, ModifyModelCommand } from '../commands/modifyModel';
 import { type RemoveChildCommandParams, RemoveChildCommand } from '../commands/removeChild';
@@ -30,9 +32,11 @@ export type CommandName =
 
 export const Commands
 = {
+    AddChild: AddChildCommand,
+    AddSelection: AddSelectionCommand,
     AssignCustomProp: AssignCustomPropCommand,
     Clone: CloneCommand,
-    AddChild: AddChildCommand,
+    CreateAsset: CreateAssetCommand,
     CreateNode: CreateNodeCommand,
     ModifyModel: ModifyModelCommand,
     RemoveChild: RemoveChildCommand,
@@ -46,9 +50,11 @@ export const Commands
 
 export interface CommandParams
 {
+    AddChild: AddChildCommandParams<ModelBase>;
+    AddSelection: AddSelectionCommandParams;
     AssignCustomProp: AssignCustomPropCommandParams;
     Clone: CloneCommandParams;
-    AddChild: AddChildCommandParams<ModelBase>;
+    CreateAsset: CreateAssetCommandParams;
     CreateNode: CreateNodeCommandParams<ModelBase>;
     ModifyModel: ModifyModelCommandParams<ModelBase>;
     RemoveChild: RemoveChildCommandParams;

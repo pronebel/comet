@@ -1,5 +1,4 @@
 import type { Command } from '../core/command';
-import type { DatastoreBase } from '../sync/datastoreBase';
 import { getUserLogColor, getUserName } from '../sync/user';
 import { writeCommandList, writeUndoStack } from './history';
 
@@ -13,7 +12,7 @@ export default class UndoStack
     public stack: Command[];
     public head: number;
 
-    constructor(public readonly datastore: DatastoreBase<any, any>)
+    constructor()
     {
         this.stack = [];
         this.head = -1;

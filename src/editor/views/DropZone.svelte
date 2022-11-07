@@ -9,6 +9,8 @@
 </script>
 
 <script lang="ts">
+  import { Application } from "../application";
+
   const onDragStart = (e: DragEvent) => {
     const { dataTransfer } = e;
     if (dataTransfer) {
@@ -16,6 +18,7 @@
       dataTransfer.setData("application/x-moz-file", d);
 
       dataTransfer.dropEffect = "move";
+
       console.log("start", d);
     }
   };
@@ -28,7 +31,10 @@
     const { dataTransfer } = e;
     if (dataTransfer) {
       var files = dataTransfer.files;
-      console.log("drop", files);
+      if (files.length >= 1) {
+        console.log("drop", files);
+        Application.instance.createAsset(files[0]);
+      }
     }
   };
 </script>
@@ -37,7 +43,6 @@
   on:dragenter={onDragStart}
   on:dragleave={onDragLeave}
   on:drop={onDragDrop}
-  draggable="true"
   class="fill"
   data-section="dragzone">
   <slot />

@@ -1,3 +1,5 @@
+import type { MIPMAP_MODES, MSAA_QUALITY, SCALE_MODES, WRAP_MODES } from 'pixi.js';
+
 import { version } from '../../../package.json';
 import { getUserName } from '../../editor/sync/user';
 import type { ModelBase } from '../model/model';
@@ -7,6 +9,25 @@ import type { CustomProperty } from './customProperties';
 import { newId } from './instances';
 
 export type id = string;
+
+export interface AssetSchema<T = {}>
+{
+    storageKey: string;
+    name: string;
+    type: string;
+    size: number;
+    properties: T;
+}
+
+export type TextureAssetSchema = AssetSchema<{
+    width: number;
+    height: number;
+    mipmap: MIPMAP_MODES;
+    multisample: MSAA_QUALITY;
+    resolution: number;
+    scaleMode: SCALE_MODES;
+    wrapMode: WRAP_MODES;
+}>;
 
 export interface CustomPropsSchema
 {
@@ -40,6 +61,9 @@ export interface ProjectSchema
     createdBy: string;
     nodes: Record<string, NodeSchema<any>>;
     root: id;
+    assets: {
+        textures: Record<string, TextureAssetSchema>;
+    };
 }
 
 export interface NodeOptionsSchema<M extends ModelBase>
@@ -66,6 +90,9 @@ export function createProjectSchema(name: string): ProjectSchema
             [scene.id]: scene,
         },
         root: project.id,
+        assets: {
+            textures: {},
+        },
     };
 }
 
