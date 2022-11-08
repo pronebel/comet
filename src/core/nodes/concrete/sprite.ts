@@ -1,7 +1,7 @@
 import Color from 'color';
 import { Sprite, Texture } from 'pixi.js';
 
-import type { TextureAssetProperties } from '../../assets/textureAsset';
+import type { TextureAsset } from '../../assets/textureAsset';
 import { Cache } from '../../cache';
 import { ModelSchema } from '../../model/schema';
 import { delay } from '../../util';
@@ -57,26 +57,27 @@ export class SpriteNode<M extends SpriteModel, V extends Sprite> extends Contain
             if (Cache.textures.has(textureAssetId))
             {
                 // texture is loaded
-                const asset = Cache.textures.get(textureAssetId);
+                const textureAsset = Cache.textures.get(textureAssetId);
 
-                if (asset.isResourceReady)
+                if (textureAsset.isResourceReady)
                 {
-                    this.setTexture(asset.resource as HTMLImageElement, asset.properties);
+                    this.setTexture(textureAsset);
                 }
                 else
                 {
+                    // show a random gray texture at the correct size until texture is loaded
                     const rnd = Math.round(Math.random() * 100) + 0;
 
                     view.texture = Texture.WHITE;
                     view.tint = Color.rgb(rnd, rnd, rnd).rgbNumber();
-                    view.scale.x = asset.properties.width / 16;
-                    view.scale.y = asset.properties.height / 16;
+                    view.scale.x = textureAsset.properties.width / 16;
+                    view.scale.y = textureAsset.properties.height / 16;
 
-                    asset.getResource().then((imageElement) =>
+                    textureAsset.getResource().then(() =>
                     {
                         delay(0).then(() =>
                         {
-                            this.setTexture(imageElement, asset.properties);
+                            this.setTexture(textureAsset);
                         });
                     });
                 }
@@ -88,12 +89,18 @@ export class SpriteNode<M extends SpriteModel, V extends Sprite> extends Contain
         }
     }
 
-    protected setTexture(imageElement: HTMLImageElement, properties: TextureAssetProperties)
+    protected setTexture(textureAsset: TextureAsset)
     {
+        const { id, properties, resource } = textureAsset;
         const { width, height, mipmap, multisample, resolution, scaleMode, wrapMode } = properties;
         const { view, model: { values: { scaleX, scaleY, tint } } } = this;
 
-        const texture = Texture.from(imageElement, {
+        if (!resource)
+        {
+            throw new Error(`Texture "${id}" resource not available`);
+        }
+
+        const texture = Texture.from(resource, {
             height,
             width,
             mipmap,

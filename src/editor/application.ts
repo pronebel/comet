@@ -57,9 +57,9 @@ export class Application
 
         this.storageProvider = new LocalStorageProvider();
         this.project = new ProjectNode();
+        this.nodeUpdater = new RemoteObjectSync(datastore);
         this.editorView = new EditableView(this.project.cast<ContainerNode>());
         this.undoStack = new UndoStack();
-        this.nodeUpdater = new RemoteObjectSync(datastore);
 
         Cache.textures.fetchProvider = (storageKey: string) =>
             this.storageProvider.download(storageKey);

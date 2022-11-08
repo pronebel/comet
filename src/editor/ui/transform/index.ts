@@ -1,11 +1,13 @@
 import type { Container, InteractionEvent } from 'pixi.js';
 import { Matrix, Rectangle, Transform } from 'pixi.js';
 
+import { getGlobalEmitter } from '../../../core/events';
 import type { DisplayObjectModel } from '../../../core/nodes/abstract/displayObject';
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { Application } from '../../application';
 import { ModifyModelCommand } from '../../commands/modifyModel';
+import type { DatastoreNodeEvent } from '../../events';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
 import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';
@@ -25,6 +27,8 @@ import {
     updateTransforms,
     yellowPivot,
 } from './util';
+
+const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();
 
 export class TransformGizmo
 {
@@ -56,7 +60,30 @@ export class TransformGizmo
         this.hide();
 
         this.initFrame();
+
+        globalEmitter.on('datastore.node.model.modified', this.onModelModified);
     }
+
+    protected onModelModified = (e: DatastoreNodeEvent['datastore.node.model.modified']) =>
+    {
+        const { selected } = this;
+        const { nodeId } = e;
+        const node = selected.find((node) => node.id === nodeId);
+
+        if (node)
+        {
+            this.deselect();
+
+            if (selected.length === 1)
+            {
+                this.selectSingleNode(node);
+            }
+            else
+            {
+                this.selectMultipleNodes(selected);
+            }
+        }
+    };
 
     get isVertexDrag()
     {
@@ -569,7 +596,7 @@ export class TransformGizmo
 
             view.interactive = false;
         });
-        this.selected.length = 0;
+        this.selected = [];
         this.matrixCache.clear();
         this.hide();
     }

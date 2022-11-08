@@ -535,13 +535,19 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
         const key = event.key;
         const value = event.value.value() as ModelValue;
 
-        console.log(
-            `%c${logId}:%c🟦 onNodeModelPropertySet: nodeId: "${nodeId}" key: "${key}" value: "${value}"`,
-            userColor,
-            logStyle,
-        );
+        const node = getInstance<ClonableNode>(nodeId);
+        const values = node.model.values;
 
-        globalEmitter.emit('datastore.node.model.modified', { nodeId, key, value });
+        if (value !== values[key])
+        {
+            console.log(
+                `%c${logId}:%c🟦 onNodeModelPropertySet: nodeId: "${nodeId}" key: "${key}" value: "${value}"`,
+                userColor,
+                logStyle,
+            );
+
+            globalEmitter.emit('datastore.node.model.modified', { nodeId, key, value });
+        }
     };
 
     public onRemoteNodeModelValueSet = (e: IConvergenceEvent) =>
