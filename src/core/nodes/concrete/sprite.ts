@@ -51,18 +51,27 @@ export class SpriteNode<M extends SpriteModel, V extends Sprite> extends Contain
 
         if (textureAssetId !== null)
         {
-            const asset = TextureAsset.getTexture(textureAssetId);
-
-            if (asset.hasDataAvailable)
+            if (TextureAsset.hasTexture(textureAssetId))
             {
-                this.setTexture(asset.data as HTMLImageElement, asset.properties);
+                // texture is loaded
+                const asset = TextureAsset.getTexture(textureAssetId);
+
+                if (asset.isResourceReady)
+                {
+                    this.setTexture(asset.resources as HTMLImageElement, asset.properties);
+                }
+                else
+                {
+                    asset.getResource().then((imageElement) =>
+                    {
+                        this.setTexture(imageElement, asset.properties);
+                    });
+                }
             }
             else
             {
-                asset.getData().then((imageElement) =>
-                {
-                    this.setTexture(imageElement, asset.properties);
-                });
+                // texture needs loading
+                debugger;
             }
         }
     }

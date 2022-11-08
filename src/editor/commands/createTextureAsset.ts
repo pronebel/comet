@@ -22,7 +22,7 @@ export class CreateTextureAssetCommand extends Command<CreateTextureAssetCommand
 
         const storageKey = await app.storageProvider.upload(file);
         const asset = new TextureAsset(storageKey, file.name, file.type, file.size, file);
-        const imageElement = await asset.getData();
+        const imageElement = await asset.getResource();
 
         asset.properties.width = imageElement.naturalWidth;
         asset.properties.height = imageElement.naturalHeight;

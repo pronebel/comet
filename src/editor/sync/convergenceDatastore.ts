@@ -13,7 +13,7 @@ import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import type { CustomPropertyType, CustomPropertyValueType } from '../../core/nodes/customProperties';
 import { consolidateId, getInstance } from '../../core/nodes/instances';
-import type { CloneInfoSchema, NodeSchema, ProjectSchema } from '../../core/nodes/schema';
+import type { CloneInfoSchema, NodeSchema, ProjectSchema, TextureAssetSchema } from '../../core/nodes/schema';
 import { createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import type { DatastoreNodeEvent } from '../events';
@@ -214,6 +214,8 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
 
             this.registerExistingNode(id, nodeElement);
         });
+
+        // hydrate assets
 
         // get the root
         const rootId = this.model.root().get('root').value() as string;
@@ -765,7 +767,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
             type,
             size,
             properties,
-        } as TextureAsset);
+        } as TextureAssetSchema);
 
         console.log(`%c${logId}:%cCreate Asset "${id}"`, userColor, logStyle);
     }

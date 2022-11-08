@@ -2,7 +2,7 @@ import { newId } from '../nodes/instances';
 
 export type AssetCacheKey = 'textures';
 
-export abstract class Asset<P, D>
+export abstract class Asset<P, R>
 {
     public id: string;
 
@@ -12,7 +12,7 @@ export abstract class Asset<P, D>
     public size: number;
     public blob: Blob;
     public properties: P;
-    public data?: D;
+    public resources?: R;
 
     private static readonly cache: Record<AssetCacheKey, Map<string, Asset<any, any>>> = {
         textures: new Map(),
@@ -33,6 +33,13 @@ export abstract class Asset<P, D>
     public static async storeAsset(asset: Asset<any, any>)
     {
         this.getCache(asset.cacheKey).set(asset.id, asset);
+    }
+
+    public static hasAsset(cacheKey: AssetCacheKey, id: string)
+    {
+        const cache = this.getCache(cacheKey);
+
+        return cache.has(id);
     }
 
     public static getAsset<T>(cacheKey: AssetCacheKey, id: string)
@@ -59,12 +66,12 @@ export abstract class Asset<P, D>
         this.properties = {} as P;
     }
 
-    get hasDataAvailable()
+    get isResourceReady()
     {
-        return !!this.data;
+        return !!this.resources;
     }
 
     abstract get cacheKey(): AssetCacheKey;
 
-    public abstract getData(): Promise<D>;
+    public abstract getResource(): Promise<R>;
 }

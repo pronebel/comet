@@ -1,6 +1,9 @@
 <script lang="ts">
   import Menubar from "./Menubar.svelte";
   import Viewport from "./Viewport.svelte";
+  import { Application } from "../application";
+
+  Application.instance.init();
 </script>
 
 <div data-section="main-layout">

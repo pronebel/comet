@@ -71,7 +71,10 @@ export class Application
     public async connect()
     {
         await this.datastore.connect();
+    }
 
+    public async init()
+    {
         if (getUrlParam<number>('open') === 1)
         {
             await this.openProject('test');
@@ -94,7 +97,7 @@ export class Application
         }
 
         this.project = await datastore.createProject(name, id) as unknown as ProjectNode;
-        this.init();
+        this.initProject();
     }
 
     public async openProject(id: string)
@@ -102,10 +105,10 @@ export class Application
         this.clear();
 
         this.project = await this.datastore.openProject(id) as unknown as ProjectNode;
-        this.init();
+        this.initProject();
     }
 
-    protected init()
+    protected initProject()
     {
         this.editorView.setRoot(this.project.cast<ContainerNode>());
     }

@@ -31,18 +31,23 @@ export class TextureAsset extends Asset<TextureAssetProperties, HTMLImageElement
         return Asset.getAsset<TextureAsset>('textures', id);
     }
 
-    public async getData()
+    public static hasTexture(id: string)
     {
-        if (this.data)
+        return Asset.hasAsset('textures', id);
+    }
+
+    public async getResource()
+    {
+        if (this.resources)
         {
-            return this.data;
+            return this.resources;
         }
 
         const dataURI = await blobToBas64(this.blob);
 
-        this.data = await loadImage(dataURI);
+        this.resources = await loadImage(dataURI);
 
-        return this.data;
+        return this.resources;
     }
 
     get cacheKey()
