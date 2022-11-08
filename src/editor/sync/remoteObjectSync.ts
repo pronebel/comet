@@ -9,7 +9,7 @@ import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
-import type { DatastoreNodeEvent } from '../events';
+import type { DatastoreNodeEvent } from '../events/datastoreEvents';
 import type { DatastoreBase } from './datastoreBase';
 import { getUserLogColor, getUserName } from './user';
 

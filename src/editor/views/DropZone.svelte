@@ -47,8 +47,3 @@
   data-section="dragzone">
   <slot />
 </div>
-
-<style>
-  [data-section="dragzone"] {
-  }
-</style>

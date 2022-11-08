@@ -1,7 +1,6 @@
 import { type Model, type ModelBase, createModel } from '../../model/model';
 import type { ModelSchema } from '../../model/schema';
 import { type Clonable, CloneInfo, CloneMode } from '../cloneInfo';
-import type { ProjectNode } from '../concrete/project';
 import type {
     CustomProperty,
     CustomPropertyType,
@@ -36,8 +35,6 @@ export abstract class ClonableNode<
     public defineCustomProperties: Map<string, CustomProperty>;
     public assignedCustomProperties: Map<keyof M, string>;
     public isCloaked: boolean;
-
-    private readonly _project?: ProjectNode;
 
     constructor(
         options: NewNodeOptions<M> = {},

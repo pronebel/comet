@@ -7,7 +7,7 @@ import type { ContainerNode } from '../../../core/nodes/concrete/container';
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { Application } from '../../application';
 import { ModifyModelCommand } from '../../commands/modifyModel';
-import type { DatastoreNodeEvent } from '../../events';
+import type { DatastoreNodeEvent } from '../../events/datastoreEvents';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
 import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';

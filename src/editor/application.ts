@@ -9,7 +9,7 @@ import { CreateTextureAssetCommand } from './commands/createTextureAsset';
 import { RemoveNodeCommand } from './commands/removeNode';
 import { initHistory, writeUndoStack } from './core/history';
 import UndoStack from './core/undoStack';
-import type { DatastoreNodeEvent } from './events';
+import type { DatastoreNodeEvent } from './events/datastoreEvents';
 import { LocalStorageProvider } from './storage/localStorageProvider';
 import { ConvergenceDatastore } from './sync/convergenceDatastore';
 import { RemoteObjectSync } from './sync/remoteObjectSync';
