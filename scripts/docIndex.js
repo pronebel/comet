@@ -4,8 +4,12 @@ import walk from 'walkdir';
 
 const rootPath = path.resolve(process.argv[2]);
 const outName = process.argv[3];
-const docPath = './src/doc/';
+const docPath = './src/docs/';
 const outputPath = path.join(docPath, `${outName}.ts`);
+
+if (!fs.existsSync(docPath)) {
+    fs.mkdirSync(docPath, { recursive: true });
+}
 
 console.log(`Walking: ${rootPath}...\n`)
 
@@ -14,7 +18,13 @@ const buffer = [];
 walk.sync(rootPath, function(filePath, stat) {
     const ext = path.extname(filePath);
     const name = path.basename(filePath);
-    if (stat.isFile() && ext === '.ts' && name.indexOf('vite') !== 0) {
+    if (
+        stat.isFile() && 
+        ext === '.ts' && 
+        filePath.indexOf('.d.ts') === -1 &&
+        name.indexOf('vite') !== 0
+    ) {
+        console.log(filePath)
         buffer.push(filePath);
     }
 });
@@ -28,4 +38,4 @@ const output = buffer
 
 fs.writeFileSync(outputPath, output);
 
-console.log(`(${buffer.length}) lines successfully written to ${outputPath}.`)
+console.log(`\n(${buffer.length}) lines successfully written to ${outputPath}`)

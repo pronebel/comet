@@ -37,11 +37,14 @@
         "src/**/*.js",
         "src/**/*.svelte",
         "src/custom.d.ts",
-        "__test__"
-, "typedocEntry.ts"    ],
-    // "exclude": [
-    //     "src/core/**/*.ts",
-    //     "src/editor/**/*.ts",
-    //     "src/player/**/*.ts"
-    // ]
+        "__test__",
+         "typedocEntry.ts"
+    ],
+    "exclude": [
+        // "src/core/**/*.ts",
+        // "src/editor/**/*.ts",
+        // "src/player/**/*.ts"
+        "src/docs/core",
+        "src/docs/editor",
+    ]
 }

@@ -1,6 +1,6 @@
 // import { Application } from '../application';
 
-export function clone()
+export function unlink()
 {
     // const app = Application.instance;
 
