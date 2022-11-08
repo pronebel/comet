@@ -25,7 +25,7 @@ export const spriteSchema = new ModelSchema<SpriteModel>({
     ...containerSchema.constraints,
 });
 
-export class SpriteNode<M extends SpriteModel, V extends Sprite> extends ContainerNode<M, V>
+export class SpriteNode<M extends SpriteModel = SpriteModel, V extends Sprite = Sprite> extends ContainerNode<M, V>
 {
     public nodeType()
     {

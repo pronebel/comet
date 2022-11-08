@@ -1,8 +1,19 @@
 import { Application } from '../application';
+import { Action } from '../core/action';
 import { writeCommandList } from '../core/history';
 
-export function undo()
+export class UndoAction extends Action<void>
 {
-    writeCommandList('undo');
-    Application.instance.undoStack.undo();
+    constructor()
+    {
+        super('undo', {
+            hotkey: 'Ctrl+Z',
+        });
+    }
+
+    protected exec()
+    {
+        writeCommandList('undo');
+        Application.instance.undoStack.undo();
+    }
 }

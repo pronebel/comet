@@ -10,6 +10,7 @@
         "check:svelte": "svelte-check --tsconfig ./tsconfig.json",
         "dev": "vite --config vite.editor.config.js --port=3000",
         "doc:core": "typedoc src/core/index.ts",
+        "cloc": "npx cloc ./src",
         "lint": "eslint \"src/**/*.ts\" --fix",
         "postinstall": "husky install && chmod +x .husky/{pre*,commit*} && chmod +x gc && chmod +x ./scripts/server.sh",
         "preview": "vite preview",

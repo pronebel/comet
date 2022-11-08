@@ -1,4 +1,3 @@
-import type { KeyHandler } from 'hotkeys-js';
 import hotkeys, { type HotkeysEvent } from 'hotkeys-js';
 
 export const isMac = () =>
@@ -20,40 +19,35 @@ export const defaultActionOptions: Omit<ActionOptions, 'hotkey'> = {
 
 export type ActionConstructorOptions = Partial<ActionOptions> & { hotkey: string };
 
-export class Action
+export abstract class Action<T>
 {
     public id: string;
     public isEnabled: boolean;
     public isChecked: boolean;
     public canToggle: boolean;
     public hotkey: string;
-    public handler: KeyHandler;
 
-    public static actions: Map<string, Action> = new Map();
+    public static actions: Map<string, Action<any>> = new Map();
 
-    public static register(id: string, handler: KeyHandler, options: ActionConstructorOptions)
-    {
-        return new Action(id, handler, options).register();
-    }
-
-    constructor(id: string, handler: KeyHandler, options: ActionConstructorOptions)
+    constructor(id: string, options: ActionConstructorOptions)
     {
         if (Action.actions.has(id))
         {
             throw new Error(`Action "${id}" already registered`);
         }
 
-        const { isEnabled, isChecked, canToggle } = {
+        const { isEnabled, isChecked, canToggle, hotkey } = {
             ...defaultActionOptions,
             ...options,
         };
 
         this.id = id;
-        this.handler = handler;
-        this.hotkey = options.hotkey;
+        this.hotkey = hotkey;
         this.isEnabled = isEnabled;
         this.isChecked = isChecked;
         this.canToggle = canToggle;
+
+        this.register();
     }
 
     get printShortcut()
@@ -71,7 +65,7 @@ export class Action
             hotkeys(this.hotkey, (event, handler) =>
             {
                 event.preventDefault();
-                this.execute(event, handler);
+                this.onShortCut(event, handler);
 
                 return false;
             });
@@ -82,7 +76,7 @@ export class Action
         return this;
     }
 
-    public unregister()
+    protected unregister()
     {
         if (this.hotkey)
         {
@@ -90,7 +84,7 @@ export class Action
         }
     }
 
-    public execute(event: KeyboardEvent, handler: HotkeysEvent)
+    protected onShortCut(event: KeyboardEvent, handler: HotkeysEvent)
     {
         if (this.isEnabled)
         {
@@ -98,7 +92,22 @@ export class Action
             {
                 this.isChecked = !this.isChecked;
             }
-            this.handler(event, handler);
+
+            this.triggerFromShortcut(event, handler);
         }
     }
+
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected triggerFromShortcut(event: KeyboardEvent, handler: HotkeysEvent)
+    {
+        this.exec();
+    }
+
+    public dispatch(...args: any[]): T
+    {
+        return this.exec(...args);
+    }
+
+    protected abstract exec(...args: any[]): T;
 }

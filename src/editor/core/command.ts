@@ -1,6 +1,8 @@
+import { getGlobalEmitter } from '../../core/events';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance } from '../../core/nodes/instances';
 import { Application } from '../application';
+import type { CommandEvent } from '../events/commandEvents';
 import type { CommandName } from './commandFactory';
 
 export type UpdateMode = 'graphOnly' | 'full';
@@ -10,6 +12,8 @@ export interface CommandSchema
     name: string;
     params: Record<string, any>;
 }
+
+const globalEmitter = getGlobalEmitter<CommandEvent>();
 
 export abstract class Command<ParamsType extends {} = {}, ReturnType = void, CacheType extends {} = {}>
 {
@@ -44,6 +48,8 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
         const result = this.apply();
 
         this.hasRun = true;
+
+        globalEmitter.emit('command.exec', { command: this });
 
         return result as unknown as ReturnType;
     }

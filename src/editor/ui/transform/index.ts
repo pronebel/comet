@@ -7,6 +7,7 @@ import type { ContainerNode } from '../../../core/nodes/concrete/container';
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { Application } from '../../application';
 import { ModifyModelCommand } from '../../commands/modifyModel';
+import type { CommandEvent } from '../../events/commandEvents';
 import type { DatastoreNodeEvent } from '../../events/datastoreEvents';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
@@ -28,7 +29,7 @@ import {
     yellowPivot,
 } from './util';
 
-const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();
+const globalEmitter = getGlobalEmitter<DatastoreNodeEvent & CommandEvent>();
 
 export class TransformGizmo
 {
@@ -61,27 +62,29 @@ export class TransformGizmo
 
         this.initFrame();
 
-        globalEmitter.on('datastore.node.model.modified', this.onModelModified);
+        globalEmitter
+            .on('datastore.node.model.modified', this.updateSelection)
+            .on('command.exec', this.updateSelection);
     }
 
-    protected onModelModified = (e: DatastoreNodeEvent['datastore.node.model.modified']) =>
+    protected updateSelection = () =>
     {
         const { selected } = this;
-        const { nodeId } = e;
-        const node = selected.find((node) => node.id === nodeId);
 
-        if (node)
+        if (this.selected.length == 0)
         {
-            this.deselect();
+            return;
+        }
 
-            if (selected.length === 1)
-            {
-                this.selectSingleNode(node);
-            }
-            else
-            {
-                this.selectMultipleNodes(selected);
-            }
+        this.deselect();
+
+        if (selected.length === 1)
+        {
+            this.selectSingleNode(selected[0]);
+        }
+        else
+        {
+            this.selectMultipleNodes(selected);
         }
     };
 

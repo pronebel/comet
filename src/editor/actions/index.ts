@@ -1,11 +1,11 @@
-import { newContainer } from './newContainer';
-import { newSprite } from './newSprite';
-import { redo } from './redo';
-import { undo } from './undo';
+import { NewContainerAction } from './newContainer';
+import { NewSpriteAction } from './newSprite';
+import { RedoAction } from './redo';
+import { UndoAction } from './undo';
 
 export const Actions = {
-    newSprite,
-    newContainer,
-    undo,
-    redo,
+    newSprite: new NewSpriteAction(),
+    newContainer: new NewContainerAction(),
+    undo: new UndoAction(),
+    redo: new RedoAction(),
 };

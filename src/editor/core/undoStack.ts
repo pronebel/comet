@@ -1,4 +1,6 @@
+import { getGlobalEmitter } from '../../core/events';
 import type { Command } from '../core/command';
+import type { CommandEvent } from '../events/commandEvents';
 import { getUserLogColor, getUserName } from '../sync/user';
 import { writeCommandList, writeUndoStack } from './history';
 
@@ -6,6 +8,8 @@ const userName = getUserName();
 const userColor = getUserLogColor(userName);
 const logId = `${userName}`;
 const logStyle = 'color:yellow;';
+
+const globalEmitter = getGlobalEmitter<CommandEvent>();
 
 export default class UndoStack
 {
@@ -87,6 +91,8 @@ export default class UndoStack
             const cmd = stack[i];
 
             cmd.undo();
+
+            globalEmitter.emit('command.exec', { command: cmd });
         }
 
         this.head = nextUndoRootIndex - 1;
@@ -99,6 +105,9 @@ export default class UndoStack
         for (const cmd of commands)
         {
             cmd.redo();
+
+            globalEmitter.emit('command.exec', { command: cmd });
+
             this.head++;
         }
     }

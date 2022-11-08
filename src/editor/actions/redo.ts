@@ -1,8 +1,19 @@
 import { Application } from '../application';
+import { Action } from '../core/action';
 import { writeCommandList } from '../core/history';
 
-export function redo()
+export class RedoAction extends Action<void>
 {
-    writeCommandList('redo');
-    Application.instance.undoStack.redo();
+    constructor()
+    {
+        super('redo', {
+            hotkey: 'Ctrl+Shift+Z',
+        });
+    }
+
+    protected exec()
+    {
+        writeCommandList('redo');
+        Application.instance.undoStack.redo();
+    }
 }

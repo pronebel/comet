@@ -1,34 +1,45 @@
 import { createNodeSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import { type AddChildCommandReturn, AddChildCommand } from '../commands/addChild';
+import { Action } from '../core/action';
 import type { EmptyNode } from '../nodes/empty';
 
-export function newContainer()
+export class NewContainerAction extends Action<EmptyNode>
 {
-    const app = Application.instance;
-    const selectedNode = app.editorView.selection.lastNode;
-
-    let parentId = 'Scene:1';
-
-    if (selectedNode)
+    constructor()
     {
-        parentId = selectedNode.id;
+        super('newContainer', {
+            hotkey: 'Shift+Ctrl+N',
+        });
     }
 
-    const nodeSchema = createNodeSchema('Empty', {
-        parent: parentId,
-        model: {
-            x: 50,
-            y: 50,
-            tint: Math.round(Math.random() * 100000),
-        },
-    });
+    protected exec()
+    {
+        const app = Application.instance;
+        const selectedNode = app.editorView.selection.lastNode;
 
-    const { nodes } = app.undoStack.exec<AddChildCommandReturn>(new AddChildCommand({ parentId, nodeSchema }));
+        let parentId = 'Scene:1';
 
-    const node = nodes[0] as unknown as EmptyNode;
+        if (selectedNode)
+        {
+            parentId = selectedNode.id;
+        }
 
-    app.editorView.selection.set(node);
+        const nodeSchema = createNodeSchema('Empty', {
+            parent: parentId,
+            model: {
+                x: 50,
+                y: 50,
+                tint: Math.round(Math.random() * 100000),
+            },
+        });
 
-    console.log(node);
+        const { nodes } = app.undoStack.exec<AddChildCommandReturn>(new AddChildCommand({ parentId, nodeSchema }));
+
+        const node = nodes[0] as unknown as EmptyNode;
+
+        app.editorView.selection.set(node);
+
+        return node;
+    }
 }
