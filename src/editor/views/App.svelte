@@ -6,13 +6,11 @@
   import HotReload from "./HotReload.svelte";
   import MainLayout from "./MainLayout.svelte";
 
-  const app: Application = new Application({});
-
   let isConnected = false;
   let connectionError: Error | undefined;
 
   function connect() {
-    app
+    Application.instance
       .connect()
       .then(() => {
         isConnected = true;

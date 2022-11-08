@@ -1,9 +1,11 @@
 import type { Container, InteractionEvent } from 'pixi.js';
 import { Matrix, Rectangle, Transform } from 'pixi.js';
 
+import type { ClonableNode } from '../../../core';
 import { getGlobalEmitter } from '../../../core/events';
 import type { DisplayObjectModel } from '../../../core/nodes/abstract/displayObject';
 import type { ContainerNode } from '../../../core/nodes/concrete/container';
+import { getInstance } from '../../../core/nodes/instances';
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { Application } from '../../application';
 import { ModifyModelCommand } from '../../commands/modifyModel';
@@ -31,6 +33,12 @@ import {
 
 const globalEmitter = getGlobalEmitter<DatastoreNodeEvent & CommandEvent>();
 
+interface PreviousSelectedState
+{
+    nodeId: string;
+    isCloaked: boolean;
+}
+
 export class TransformGizmo
 {
     public config: TransformGizmoConfig;
@@ -47,6 +55,8 @@ export class TransformGizmo
     public operation?: TransformOperation;
     public dragInfo?: DragInfo;
 
+    private previousSelected: PreviousSelectedState[];
+
     constructor(config?: TransformGizmoConfig)
     {
         this.config = config ?? { ...defaultTransformGizmoConfig };
@@ -56,6 +66,7 @@ export class TransformGizmo
         this.frame = new TransformGizmoFrame(this);
         this.vertex = { h: 'none', v: 'none' };
         this.selected = [];
+        this.previousSelected = [];
         this.matrixCache = new Map();
 
         this.hide();
@@ -63,21 +74,56 @@ export class TransformGizmo
         this.initFrame();
 
         globalEmitter
-            .on('datastore.node.model.modified', this.updateSelection)
-            .on('command.exec', this.updateSelection);
+            .on('datastore.node.model.modified', (e: DatastoreNodeEvent['datastore.node.model.modified']) =>
+            {
+                this.updateSelection(e.nodeId);
+            })
+            .on('command.exec', (e: CommandEvent['command.exec']) =>
+            {
+                this.updateSelection(e.command.targetNodeId);
+            })
+            .on('command.undo', (e: CommandEvent['command.undo']) =>
+            {
+                this.updateSelection(e.command.targetNodeId);
+            })
+            .on('command.redo', (e: CommandEvent['command.redo']) =>
+            {
+                this.updateSelection(e.command.targetNodeId);
+            });
     }
 
-    protected updateSelection = () =>
+    protected updateSelection(nodeId: string | null)
     {
-        const { selected } = this;
+        let { selected } = this;
 
-        if (this.selected.length === 0)
+        if (nodeId)
+        {
+            const node = getInstance<ClonableNode>(nodeId);
+
+            // console.log('!!!', nodeId, JSON.stringify(this.previousSelected), selected.length, node.isCloaked);
+            const nodeInfo = this.previousSelected.filter((info) => info.nodeId === nodeId && info.isCloaked);
+
+            if (nodeInfo.length && !node.isCloaked)
+            {
+                // console.log('***', JSON.stringify(nodeInfo));
+                selected = [node.cast<ContainerNode>()];
+            }
+        }
+
+        if (selected.length === 0)
         {
             return;
         }
 
         this.deselect();
 
+        selected = selected.filter((node) => !node.isCloaked);
+
+        if (selected.length === 0)
+        {
+            this.hide();
+        }
+        else
         if (selected.length === 1)
         {
             this.selectSingleNode(selected[0]);
@@ -86,7 +132,7 @@ export class TransformGizmo
         {
             this.selectMultipleNodes(selected);
         }
-    };
+    }
 
     get isVertexDrag()
     {
@@ -593,6 +639,16 @@ export class TransformGizmo
 
     public deselect()
     {
+        if (this.selected.length === 0)
+        {
+            return;
+        }
+
+        this.previousSelected = this.selected.map((node) => ({
+            nodeId: node.id,
+            isCloaked: node.isCloaked,
+        }));
+
         this.selected.forEach((node) =>
         {
             const view = node.view;

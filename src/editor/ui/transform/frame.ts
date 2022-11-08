@@ -2,7 +2,7 @@ import { EventEmitter } from 'eventemitter3';
 import type { DisplayObject, InteractionEvent } from 'pixi.js';
 import { Container, Graphics, Rectangle } from 'pixi.js';
 
-import type { TransformGizmo } from '.';
+import type { TransformGizmo } from './gizmo';
 import { type HandleVertexHorizontal, type HandleVertexVertical, TransformGizmoHandle } from './handle';
 import { TransformGizmoInfo } from './info';
 import type { DragInfo } from './operation';

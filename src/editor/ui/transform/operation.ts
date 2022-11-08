@@ -1,6 +1,6 @@
 import type { InteractionEvent } from 'pixi.js';
 
-import type { TransformGizmo } from '.';
+import type { TransformGizmo } from './gizmo';
 
 export abstract class TransformOperation<K extends string = string>
 {

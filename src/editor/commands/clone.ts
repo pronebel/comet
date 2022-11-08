@@ -31,6 +31,11 @@ export class CloneCommand
 {
     public static commandName = 'Clone';
 
+    public get targetNodeId()
+    {
+        return this.params.nodeId;
+    }
+
     public apply(): CloneCommandReturn
     {
         const { datastore, params: { nodeId, cloneMode, depth, parentId }, cache } = this;

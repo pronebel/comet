@@ -17,6 +17,11 @@ export class CreateTextureAssetCommand extends Command<CreateTextureAssetCommand
 {
     public static commandName = 'CreateAsset';
 
+    public get targetNodeId()
+    {
+        return null;
+    }
+
     protected async upload(file: File)
     {
         const { app, datastore } = this;

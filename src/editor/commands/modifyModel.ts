@@ -18,6 +18,11 @@ export class ModifyModelCommand<M extends ModelBase>
 {
     public static commandName = 'ModifyModel';
 
+    public get targetNodeId()
+    {
+        return this.params.nodeId;
+    }
+
     public apply(): void
     {
         const { datastore, params, params: { values }, cache } = this;

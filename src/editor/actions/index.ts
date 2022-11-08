@@ -1,3 +1,4 @@
+import { DeleteNodeAction } from './deleteNode';
 import { NewContainerAction } from './newContainer';
 import { NewSpriteAction } from './newSprite';
 import { RedoAction } from './redo';
@@ -8,4 +9,5 @@ export const Actions = {
     newContainer: new NewContainerAction(),
     undo: new UndoAction(),
     redo: new RedoAction(),
+    deleteNode: new DeleteNodeAction(),
 };

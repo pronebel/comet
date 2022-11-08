@@ -18,6 +18,11 @@ export class RemoveNodeCommand
 {
     public static commandName = 'RemoveNode';
 
+    public get targetNodeId()
+    {
+        return this.params.nodeId;
+    }
+
     public apply(): RemoveNodeCommandReturn
     {
         const { datastore, params: { nodeId } } = this;

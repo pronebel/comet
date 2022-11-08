@@ -44,7 +44,7 @@
         // "src/core/**/*.ts",
         // "src/editor/**/*.ts",
         // "src/player/**/*.ts"
-        "src/docs/core",
+        "src/docs/core/**/*",
         "src/docs/editor",
     ]
 }

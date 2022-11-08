@@ -1,8 +1,31 @@
-// import { Application } from '../application';
+import { Application } from '../application';
+import { RemoveChildCommand } from '../commands/removeChild';
+import { Action } from '../core/action';
 
-export function undo()
+export type DeleteNodeOptions = {
+    nodeId?: string;
+};
+
+export class DeleteNodeAction extends Action<DeleteNodeOptions, void>
 {
-    // const app = Application.instance;
+    constructor()
+    {
+        super('deleteNode', {
+            hotkey: 'backspace,delete,del',
+        });
+    }
 
-    // app.exec(new RemoveChildCommand({ nodeId: this.selected.id }));
+    protected exec(options: DeleteNodeOptions): void
+    {
+        const app = Application.instance;
+        const selectedNode = app.editorView.selection.lastNode;
+
+        const nodeId = options.nodeId
+            ?? (selectedNode ? selectedNode.id : undefined);
+
+        if (nodeId)
+        {
+            app.undoStack.exec(new RemoveChildCommand({ nodeId }));
+        }
+    }
 }

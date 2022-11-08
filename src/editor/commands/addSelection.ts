@@ -13,6 +13,11 @@ export class AddSelectionCommand
 {
     public static commandName = 'SetCustomProp';
 
+    public get targetNodeId()
+    {
+        return this.params.nodeId;
+    }
+
     public apply(): void
     {
         const { params: { nodeId, view } } = this;

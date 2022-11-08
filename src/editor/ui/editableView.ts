@@ -4,7 +4,7 @@ import { Application as PixiApplication, Container } from 'pixi.js';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import Grid from './grid';
 import { NodeSelection } from './selection';
-import { TransformGizmo } from './transform';
+import { TransformGizmo } from './transform/gizmo';
 
 export const dblClickMsThreshold = 250;
 
@@ -69,7 +69,7 @@ export class EditableView
         const underCursor = this.getUnderCursor(globalX, globalY)
             .filter((node) => !this.selection.isSelected(node));
 
-        console.log(underCursor.map((node) => node.id));
+        // console.log(underCursor.map((node) => node.id));
 
         let wasDoubleClick = false;
 

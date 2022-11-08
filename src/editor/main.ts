@@ -6,8 +6,11 @@ import './style/theme.css';
 import './style/dark-theme.css';
 import './style/light-theme.css';
 
-// test
-// import './transformTest4';
+import { Application } from './application';
+
+// eslint-disable-next-line no-new
+new Application({});
+
 import App from './views/App.svelte';
 
 const target = document.getElementById('app') as HTMLElement;

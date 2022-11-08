@@ -21,6 +21,11 @@ export class RemoveCustomPropCommand
 {
     public static commandName = 'RemoveCustomProp';
 
+    public get targetNodeId()
+    {
+        return this.params.nodeId;
+    }
+
     public apply(): void
     {
         const { datastore, params: { nodeId, customKey, updateMode }, cache } = this;

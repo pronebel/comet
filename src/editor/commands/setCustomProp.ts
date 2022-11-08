@@ -23,6 +23,11 @@ export class SetCustomPropCommand
 {
     public static commandName = 'SetCustomProp';
 
+    public get targetNodeId()
+    {
+        return this.params.nodeId;
+    }
+
     public apply(): void
     {
         const { datastore, params: { nodeId, customKey, type, value, updateMode }, cache } = this;

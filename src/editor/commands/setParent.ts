@@ -23,6 +23,11 @@ export class SetParentCommand
 {
     public static commandName = 'SetParent';
 
+    public get targetNodeId()
+    {
+        return this.params.nodeId;
+    }
+
     public apply(): SetParentCommandReturn
     {
         const { datastore, params: { parentId, nodeId } } = this;
