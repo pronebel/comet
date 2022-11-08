@@ -3,8 +3,7 @@ import { Application } from '../application';
 import { type AddChildCommandReturn, AddChildCommand } from '../commands/addChild';
 import type { EmptyNode } from '../nodes/empty';
 
-
-export function newEmptyNode()
+export function newContainer()
 {
     const app = Application.instance;
     const selectedNode = app.editorView.selection.lastNode;

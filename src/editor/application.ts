@@ -4,7 +4,7 @@ import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { ContainerNode } from '../core/nodes/concrete/container';
 import { ProjectNode } from '../core/nodes/concrete/project';
 import { clearInstances, getInstance } from '../core/nodes/instances';
-import { newDebugNode } from './actions/newDebugNode';
+import { newSprite } from './actions/newSprite';
 import { CreateTextureAssetCommand } from './commands/createTextureAsset';
 import { RemoveNodeCommand } from './commands/removeNode';
 import { initHistory, writeUndoStack } from './core/history';
@@ -143,7 +143,7 @@ export class Application
 
         promise.then((texture) =>
         {
-            newDebugNode({
+            newSprite({
                 textureAssetId: texture.id,
                 tint: 0xffffff,
             });

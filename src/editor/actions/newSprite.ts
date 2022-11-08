@@ -8,7 +8,7 @@ import { type AddChildCommandReturn, AddChildCommand } from '../commands/addChil
 
 const rnd = () => Math.random() * 255;
 
-export function newDebugNode(values: Partial<SpriteModel> = {})
+export function newSprite(values: Partial<SpriteModel> = {})
 {
     const app = Application.instance;
     const selectedNode = app.editorView.selection.lastNode;

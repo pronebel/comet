@@ -1,11 +1,10 @@
 <script lang="ts">
-  import { newDebugNode } from "../actions/newDebugNode";
-  import { newEmptyNode } from "../actions/newEmptyNode";
+  import { Actions } from "../actions";
 </script>
 
 <div data-section="menubar" class="fill flex-container-center">
-  <button on:click={() => newEmptyNode()}>New Container</button>
-  <button on:click={() => newDebugNode()}>New Node</button>
+  <button on:click={() => Actions.newContainer()}>New Container</button>
+  <button on:click={() => Actions.newSprite()}>New Node</button>
 </div>
 
 <style>
