@@ -177,10 +177,7 @@ export class NodeUpdater
 
     protected onTextureCreated = (event: DatastoreNodeEvent['datastore.texture.created']) =>
     {
-        const { id, name, properties, size, storageKey, mimeType: type } = event;
-        const texture = new TextureAsset(id, storageKey, name, type, size);
-
-        texture.properties = properties;
+        const texture = TextureAsset.withIdFromSchema(event.id, event);
 
         Cache.textures.add(texture);
     };

@@ -7,7 +7,8 @@ import Convergence, {
     RealTimeObject,
 } from '@convergence/convergence';
 
-import type { TextureAsset } from '../../core/assets/textureAsset';
+import { TextureAsset } from '../../core/assets/textureAsset';
+import { Cache } from '../../core/cache';
 import { getGlobalEmitter } from '../../core/events';
 import type { ModelValue } from '../../core/model/model';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
@@ -168,8 +169,8 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
 
         // catch events for assets
         this.textures
-            .on(RealTimeObject.Events.SET, this.onAssetCreated)
-            .on(RealTimeObject.Events.REMOVE, this.onAssetRemoved);
+            .on(RealTimeObject.Events.SET, this.onTextureCreated)
+            .on(RealTimeObject.Events.REMOVE, this.onTextureRemoved);
 
         return this.hydrate();
     }
@@ -230,6 +231,10 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
                     id,
                     ...textureElement.toJSON(),
                 };
+
+                consolidateId(id);
+
+                console.log(`%c${logId}:%cHydrate Texture Asset "${id}"`, userColor, logStyle);
 
                 globalEmitter.emit('datastore.texture.created', schema);
             });
@@ -571,17 +576,22 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onAssetCreated = (e: IConvergenceEvent) =>
+    public onTextureCreated = (e: IConvergenceEvent) =>
     {
-        // const { event, nodeElement } = asObjectSetEvent(e);
-        // const asset = event.element.value() as CloneInfoSchema;
+        const { event } = asObjectSetEvent(e);
+        const id = event.key;
+        const schema = (event.element.value())[id] as TextureAssetSchema;
 
-        // debugger;
+        consolidateId(id);
+
+        const texture = TextureAsset.withIdFromSchema(id, schema);
+
+        Cache.textures.add(texture);
     };
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public onAssetRemoved = (event: IConvergenceEvent) =>
+    public onTextureRemoved = (event: IConvergenceEvent) =>
     {
         //
     };

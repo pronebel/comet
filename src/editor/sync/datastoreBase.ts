@@ -100,6 +100,6 @@ implements Datastore, DatastoreCommandProvider, DatastoreChangeEventHandler<Chan
     public abstract onRemoteNodeModelValueSet(event: ChangeEventType): void;
     public abstract onRemoteNodeModelPropertyRemove(event: ChangeEventType): void;
     public abstract onRemoteNodeCloneInfoValueSet(event: ChangeEventType): void;
-    public abstract onAssetCreated(event: ChangeEventType): void;
-    public abstract onAssetRemoved(event: ChangeEventType): void;
+    public abstract onTextureCreated(event: ChangeEventType): void;
+    public abstract onTextureRemoved(event: ChangeEventType): void;
 }

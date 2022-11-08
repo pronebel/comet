@@ -41,7 +41,18 @@
         </style>
     </head>
     <body>
-        <iframe id="a" src="http://localhost:3000/?user=ali&connect=1&open=0" frameBorder="0"></iframe> 
-        <iframe id="b" src="http://localhost:3000/?user=mat&connect=0&open=1" frameBorder="0"></iframe> 
+        <iframe id="a" frameBorder="0"></iframe> 
+        <iframe id="b" frameBorder="0"></iframe> 
+        <script>
+            const url = new URL(window.location.href);
+            const params = new URLSearchParams(url.search);
+            const open = params.get('open') === '1';
+            const frameASrc = `http://localhost:3000/?user=ali&connect=1&open=${open ? 1 : 0}`;
+            const frameBSrc = `http://localhost:3000/?user=mat&connect=0&open=1`;
+            const frameA = document.getElementById('a');
+            const frameB = document.getElementById('b');
+            frameA.src = frameASrc;
+            frameB.src = frameBSrc;
+        </script>
     </body>
 </html>

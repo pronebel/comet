@@ -1,6 +1,8 @@
 <script lang="ts">
   import { onMount } from "svelte";
+  import { delay } from "../../core/util";
   import { Application } from "../application";
+  import { getUrlParam } from "../util";
   import HotReload from "./HotReload.svelte";
   import MainLayout from "./MainLayout.svelte";
 
@@ -9,7 +11,7 @@
   let isConnected = false;
   let connectionError: Error | undefined;
 
-  onMount(() => {
+  function connect() {
     app
       .connect()
       .then(() => {
@@ -18,6 +20,14 @@
       .catch((e) => {
         connectionError = e;
       });
+  }
+
+  onMount(() => {
+    if (getUrlParam<number>("connect") === 1) {
+      connect();
+    } else {
+      delay(1000).then(() => connect());
+    }
   });
 </script>
 
@@ -26,6 +36,10 @@
     <div class="error">{connectionError}</div>
   {:else if isConnected}
     <MainLayout />
+  {:else}
+    <div class="fill flex-container-center">
+      <button on:click={() => connect()}>Connect</button>
+    </div>
   {/if}
 
   <HotReload />

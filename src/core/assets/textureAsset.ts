@@ -1,6 +1,7 @@
 import { MIPMAP_MODES, MSAA_QUALITY, SCALE_MODES, WRAP_MODES } from 'pixi.js';
 
 import { Cache } from '../cache';
+import type { TextureAssetSchema } from '../nodes/schema';
 import { blobToBas64, loadImage } from '../util/file';
 import { Asset } from './asset';
 
@@ -27,6 +28,17 @@ export const defaultTextureAssetProperties: TextureAssetProperties = {
 
 export class TextureAsset extends Asset<TextureAssetProperties, HTMLImageElement>
 {
+    public static withIdFromSchema(id: string, schema: TextureAssetSchema)
+    {
+        const { mimeType, name, properties, size, storageKey } = schema;
+
+        const texture = new TextureAsset(id, storageKey, name, mimeType, size);
+
+        texture.properties = properties;
+
+        return texture;
+    }
+
     public async getResource()
     {
         if (this.resource)
