@@ -12,7 +12,7 @@ import UndoStack from './core/undoStack';
 import type { DatastoreNodeEvent } from './events';
 import { LocalStorageProvider } from './storage/localStorageProvider';
 import { ConvergenceDatastore } from './sync/convergenceDatastore';
-import { NodeUpdater } from './sync/nodeUpdater';
+import { RemoteObjectSync } from './sync/remoteObjectSync';
 import { getUserLogColor, getUserName } from './sync/user';
 import { EditableView } from './ui/editableView';
 import { getUrlParam } from './util';
@@ -29,7 +29,7 @@ export type AppOptions = {};
 export class Application
 {
     public datastore: ConvergenceDatastore;
-    public nodeUpdater: NodeUpdater;
+    public nodeUpdater: RemoteObjectSync;
     public undoStack: UndoStack;
     public editorView: EditableView;
     public storageProvider: LocalStorageProvider;
@@ -59,7 +59,7 @@ export class Application
         this.project = new ProjectNode();
         this.editorView = new EditableView(this.project.cast<ContainerNode>());
         this.undoStack = new UndoStack();
-        this.nodeUpdater = new NodeUpdater(datastore);
+        this.nodeUpdater = new RemoteObjectSync(datastore);
 
         Cache.textures.fetchProvider = (storageKey: string) =>
             this.storageProvider.download(storageKey);

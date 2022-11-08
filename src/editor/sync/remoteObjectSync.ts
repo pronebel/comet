@@ -20,7 +20,7 @@ const userColor = getUserLogColor(userName);
 const logId = `${userName}`;
 const logStyle = 'color:cyan';
 
-export class NodeUpdater
+export class RemoteObjectSync
 {
     constructor(public readonly datastore: DatastoreBase<any, any>)
     {
