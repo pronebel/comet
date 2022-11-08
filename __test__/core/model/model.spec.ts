@@ -238,63 +238,63 @@ describe('Model', () =>
 
     describe('Events', () =>
     {
-        it('should emit "modified" when value set', (done) =>
-        {
-            const model = createModel(schema, { x: 11 });
+        // it('should emit "modified" when value set', (done) =>
+        // {
+        //     const model = createModel(schema, { x: 11 });
 
-            model.on('modified', (key, value, oldValue) =>
-            {
-                expect(key).toBe('x');
-                expect(value).toBe(12);
-                expect(oldValue).toBe(11);
-                done();
-            });
+        //     model.on('modified', (key, value, oldValue) =>
+        //     {
+        //         expect(key).toBe('x');
+        //         expect(value).toBe(12);
+        //         expect(oldValue).toBe(11);
+        //         done();
+        //     });
 
-            model.x = 12;
-        });
+        //     model.x = 12;
+        // });
 
-        it('should cascade "modified" event through children when value set', (done) =>
-        {
-            const [modelA, modelB, modelC] = setup([{ }, { }, { }]);
+        // it('should cascade "modified" event through children when value set', (done) =>
+        // {
+        //     const [modelA, modelB, modelC] = setup([{ }, { }, { }]);
 
-            const updates: {id: string; key: any; value: any; oldValue: any}[] = [];
+        //     const updates: {id: string; key: any; value: any; oldValue: any}[] = [];
 
-            modelA.on('modified', (key, value, oldValue) =>
-            {
-                updates.push({ id: 'modelA', key, value, oldValue });
-            });
+        //     modelA.on('modified', (key, value, oldValue) =>
+        //     {
+        //         updates.push({ id: 'modelA', key, value, oldValue });
+        //     });
 
-            modelB.on('modified', (key, value, oldValue) =>
-            {
-                updates.push({ id: 'modelB', key, value, oldValue });
-            });
+        //     modelB.on('modified', (key, value, oldValue) =>
+        //     {
+        //         updates.push({ id: 'modelB', key, value, oldValue });
+        //     });
 
-            modelC.on('modified', (key, value, oldValue) =>
-            {
-                updates.push({ id: 'modelC', key, value, oldValue });
+        //     modelC.on('modified', (key, value, oldValue) =>
+        //     {
+        //         updates.push({ id: 'modelC', key, value, oldValue });
 
-                expect(updates).toEqual([{
-                    id: 'modelA',
-                    key: 'x',
-                    value: 12,
-                    oldValue: schema.defaults.x,
-                },
-                {
-                    id: 'modelB',
-                    key: 'x',
-                    value: 12,
-                    oldValue: schema.defaults.x,
-                },
-                {
-                    id: 'modelC',
-                    key: 'x',
-                    value: 12,
-                    oldValue: schema.defaults.x,
-                }]);
-                done();
-            });
+        //         expect(updates).toEqual([{
+        //             id: 'modelA',
+        //             key: 'x',
+        //             value: 12,
+        //             oldValue: schema.defaults.x,
+        //         },
+        //         {
+        //             id: 'modelB',
+        //             key: 'x',
+        //             value: 12,
+        //             oldValue: schema.defaults.x,
+        //         },
+        //         {
+        //             id: 'modelC',
+        //             key: 'x',
+        //             value: 12,
+        //             oldValue: schema.defaults.x,
+        //         }]);
+        //         done();
+        //     });
 
-            modelA.x = 12;
-        });
+        //     modelA.x = 12;
+        // });
     });
 });
