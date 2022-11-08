@@ -46,7 +46,8 @@ export class ContainerNode<
         (this.view as any).id = this.id;
     }
 
-    protected initModel(): void {
+    protected initModel(): void
+    {
         //
     }
 
@@ -75,6 +76,5 @@ export class ContainerNode<
     {
         this.addViewToParent(this.getParent<ClonableNode>());
     }
-
 }
 

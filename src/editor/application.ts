@@ -1,3 +1,4 @@
+import { Cache } from '../core/cache';
 import { getGlobalEmitter } from '../core/events';
 import type { ClonableNode } from '../core/nodes/abstract/clonableNode';
 import type { ContainerNode } from '../core/nodes/concrete/container';
@@ -59,6 +60,9 @@ export class Application
         this.editorView = new EditableView(this.project.cast<ContainerNode>());
         this.undoStack = new UndoStack();
         this.nodeUpdater = new NodeUpdater(datastore);
+
+        Cache.textures.fetchProvider = (storageKey: string) =>
+            this.storageProvider.download(storageKey);
 
         globalEmitter.on('datastore.node.removed', () =>
         {

@@ -1,7 +1,10 @@
+import Color from 'color';
 import { Sprite, Texture } from 'pixi.js';
 
-import { type TextureAssetProperties, TextureAsset } from '../../assets/textureAsset';
+import type { TextureAssetProperties } from '../../assets/textureAsset';
+import { Cache } from '../../cache';
 import { ModelSchema } from '../../model/schema';
+import { delay } from '../../util';
 import { type ContainerModel, ContainerNode, containerSchema } from './container';
 
 export interface SpriteModel extends ContainerModel
@@ -51,27 +54,36 @@ export class SpriteNode<M extends SpriteModel, V extends Sprite> extends Contain
 
         if (textureAssetId !== null)
         {
-            if (TextureAsset.hasTexture(textureAssetId))
+            if (Cache.textures.has(textureAssetId))
             {
                 // texture is loaded
-                const asset = TextureAsset.getTexture(textureAssetId);
+                const asset = Cache.textures.get(textureAssetId);
 
                 if (asset.isResourceReady)
                 {
-                    this.setTexture(asset.resources as HTMLImageElement, asset.properties);
+                    this.setTexture(asset.resource as HTMLImageElement, asset.properties);
                 }
                 else
                 {
+                    const rnd = Math.round(Math.random() * 100) + 0;
+
+                    view.texture = Texture.WHITE;
+                    view.tint = Color.rgb(rnd, rnd, rnd).rgbNumber();
+                    view.scale.x = asset.properties.width / 16;
+                    view.scale.y = asset.properties.height / 16;
+
                     asset.getResource().then((imageElement) =>
                     {
-                        this.setTexture(imageElement, asset.properties);
+                        delay(0).then(() =>
+                        {
+                            this.setTexture(imageElement, asset.properties);
+                        });
                     });
                 }
             }
             else
             {
-                // texture needs loading
-                debugger;
+                throw new Error(`Texture "${textureAssetId}" was not loaded correctly in cache`);
             }
         }
     }
@@ -79,6 +91,7 @@ export class SpriteNode<M extends SpriteModel, V extends Sprite> extends Contain
     protected setTexture(imageElement: HTMLImageElement, properties: TextureAssetProperties)
     {
         const { width, height, mipmap, multisample, resolution, scaleMode, wrapMode } = properties;
+        const { view, model: { values: { scaleX, scaleY, tint } } } = this;
 
         const texture = Texture.from(imageElement, {
             height,
@@ -90,21 +103,24 @@ export class SpriteNode<M extends SpriteModel, V extends Sprite> extends Contain
             wrapMode,
         });
 
-        this.view.texture = texture;
+        view.texture = texture;
+        view.scale.x = scaleX;
+        view.scale.y = scaleY;
+        view.tint = tint;
     }
 
     public get naturalWidth(): number
     {
         const { view, values: { textureAssetId } } = this;
 
-        return textureAssetId ? TextureAsset.getTexture(textureAssetId).properties.width : view.texture.width;
+        return textureAssetId ? Cache.textures.get(textureAssetId).properties.width : view.texture.width;
     }
 
     public get naturalHeight(): number
     {
         const { view, values: { textureAssetId } } = this;
 
-        return textureAssetId ? TextureAsset.getTexture(textureAssetId).properties.height : view.texture.height;
+        return textureAssetId ? Cache.textures.get(textureAssetId).properties.height : view.texture.height;
     }
 }
 

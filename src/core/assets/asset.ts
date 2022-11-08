@@ -8,70 +8,31 @@ export abstract class Asset<P, R>
 
     public storageKey: string;
     public name: string;
-    public type: string;
+    public mimeType: string;
     public size: number;
-    public blob: Blob;
+    public blob?: Blob;
     public properties: P;
-    public resources?: R;
+    public resource?: R;
 
-    private static readonly cache: Record<AssetCacheKey, Map<string, Asset<any, any>>> = {
-        textures: new Map(),
-    };
-
-    public static getCache(cacheKey: AssetCacheKey)
+    constructor(id: string | undefined, storageKey: string, name: string, type: string, size: number, blob?: Blob)
     {
-        const cache = this.cache[cacheKey];
+        this.id = id ?? newId('Asset');
 
-        if (!cache)
-        {
-            throw new Error(`Cannot find asset cache for key "${cacheKey}"`);
-        }
-
-        return cache;
-    }
-
-    public static async storeAsset(asset: Asset<any, any>)
-    {
-        this.getCache(asset.cacheKey).set(asset.id, asset);
-    }
-
-    public static hasAsset(cacheKey: AssetCacheKey, id: string)
-    {
-        const cache = this.getCache(cacheKey);
-
-        return cache.has(id);
-    }
-
-    public static getAsset<T>(cacheKey: AssetCacheKey, id: string)
-    {
-        const cache = this.getCache(cacheKey);
-
-        if (!cache.has(id))
-        {
-            throw new Error(`Asset "${id}" not defined`);
-        }
-
-        return cache.get(id) as unknown as T;
-    }
-
-    constructor(storageKey: string, name: string, type: string, size: number, blob: Blob)
-    {
-        this.id = newId('Asset');
-
+        // primary metadata
         this.storageKey = storageKey;
         this.name = name;
-        this.type = type;
+        this.mimeType = type;
         this.size = size;
         this.blob = blob;
+
+        // properties (subclass defined)
         this.properties = {} as P;
     }
 
     get isResourceReady()
     {
-        return !!this.resources;
+        return !!this.resource;
     }
-
-    abstract get cacheKey(): AssetCacheKey;
 
     public abstract getResource(): Promise<R>;
 }

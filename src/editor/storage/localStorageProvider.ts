@@ -1,4 +1,4 @@
-import { base64ToBlob, blobToBas64 } from '../../core/assets/util';
+import { base64ToBlob, blobToBas64 } from '../../core/util/file';
 import { StorageProvider } from './storageProvider';
 
 const storageKeyPrefix = 'comet.asset:';
@@ -7,10 +7,10 @@ export class LocalStorageProvider extends StorageProvider
 {
     protected get idKey()
     {
-        return this.key('id');
+        return this.localStorageKey('id');
     }
 
-    protected key(key: string)
+    protected localStorageKey(key: string)
     {
         return `${storageKeyPrefix}:${key}`;
     }
@@ -35,7 +35,7 @@ export class LocalStorageProvider extends StorageProvider
 
     public init(): Promise<void>
     {
-        const key = this.key('id');
+        const key = this.localStorageKey('id');
 
         if (!localStorage.getItem(key))
         {
@@ -51,14 +51,14 @@ export class LocalStorageProvider extends StorageProvider
         // const id = this.newRandomId();
         const id = 'image';
 
-        localStorage.setItem(this.key(id), base64);
+        localStorage.setItem(this.localStorageKey(id), base64);
 
         return id;
     }
 
-    public async download(id: string)
+    public async download(storageKey: string)
     {
-        const key = this.key(id);
+        const key = this.localStorageKey(storageKey);
         const base64 = localStorage.getItem(key);
 
         if (base64)
@@ -66,12 +66,12 @@ export class LocalStorageProvider extends StorageProvider
             return base64ToBlob(base64);
         }
 
-        throw new Error(`Could not retrieve localStorage data for id "${id}"`);
+        throw new Error(`Could not retrieve localStorage data for id "${storageKey}"`);
     }
 
     // @ts-ignore
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    public delete(id: string): Promise<void>
+    public delete(storageKey: string): Promise<void>
     {
         throw new Error('Method not implemented.');
     }

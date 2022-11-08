@@ -1,7 +1,8 @@
 import { MIPMAP_MODES, MSAA_QUALITY, SCALE_MODES, WRAP_MODES } from 'pixi.js';
 
-import { type AssetCacheKey, Asset } from './asset';
-import { blobToBas64, loadImage } from './util';
+import { Cache } from '../cache';
+import { blobToBas64, loadImage } from '../util/file';
+import { Asset } from './asset';
 
 export interface TextureAssetProperties
 {
@@ -26,32 +27,22 @@ export const defaultTextureAssetProperties: TextureAssetProperties = {
 
 export class TextureAsset extends Asset<TextureAssetProperties, HTMLImageElement>
 {
-    public static getTexture(id: string)
-    {
-        return Asset.getAsset<TextureAsset>('textures', id);
-    }
-
-    public static hasTexture(id: string)
-    {
-        return Asset.hasAsset('textures', id);
-    }
-
     public async getResource()
     {
-        if (this.resources)
+        if (this.resource)
         {
-            return this.resources;
+            return this.resource;
+        }
+
+        if (!this.blob)
+        {
+            this.blob = await Cache.textures.fetch(this.storageKey);
         }
 
         const dataURI = await blobToBas64(this.blob);
 
-        this.resources = await loadImage(dataURI);
+        this.resource = await loadImage(dataURI);
 
-        return this.resources;
-    }
-
-    get cacheKey()
-    {
-        return 'textures' as AssetCacheKey;
+        return this.resource;
     }
 }

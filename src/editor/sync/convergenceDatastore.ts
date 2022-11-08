@@ -205,7 +205,7 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
 
     public hydrate()
     {
-        const { nodes } = this;
+        const { nodes, textures } = this;
 
         // index all nodeElements
         nodes.keys().forEach((id) =>
@@ -215,14 +215,25 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
             this.registerExistingNode(id, nodeElement);
         });
 
-        // hydrate assets
-
         // get the root
         const rootId = this.model.root().get('root').value() as string;
         const projectNode = nodes.get(rootId) as RealTimeObject;
 
         if (projectNode)
         {
+            // hydrate textures
+            textures.keys().forEach((id) =>
+            {
+                const textureElement = textures.get(id) as RealTimeObject;
+
+                const schema = {
+                    id,
+                    ...textureElement.toJSON(),
+                };
+
+                globalEmitter.emit('datastore.texture.created', schema);
+            });
+
             // start hydrating from the root node (Project)
             this.hydrateElement(projectNode);
         }
@@ -759,12 +770,12 @@ export class ConvergenceDatastore extends DatastoreBase<RealTimeObject, IConverg
 
     public async createTexture(asset: TextureAsset)
     {
-        const { id, storageKey, name, type, size, properties } = asset;
+        const { id, storageKey, name, mimeType: type, size, properties } = asset;
 
         this.textures.set(id, {
             storageKey,
             name,
-            type,
+            mimeType: type,
             size,
             properties,
         } as TextureAssetSchema);

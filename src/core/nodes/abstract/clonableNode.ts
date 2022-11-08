@@ -1,14 +1,15 @@
 import { type Model, type ModelBase, createModel } from '../../model/model';
 import type { ModelSchema } from '../../model/schema';
 import { type Clonable, CloneInfo, CloneMode } from '../cloneInfo';
+import type { ProjectNode } from '../concrete/project';
 import type {
     CustomProperty,
     CustomPropertyType,
     CustomPropertyValueType,
 } from '../customProperties';
-import { GraphNode } from './graphNode';
-import { sortNodesByCreation } from './const';
 import { getAllCloned, getDependants, getDependencies, getRestoreDependencies } from './cloneUtils';
+import { sortNodesByCreation } from './const';
+import { GraphNode } from './graphNode';
 
 export type ClonableNodeConstructor = {
     new (options: NewNodeOptions<any>): ClonableNode<any, any>;
@@ -25,7 +26,7 @@ export abstract class ClonableNode<
     /** Model */
     M extends ModelBase = ModelBase,
     /** View */
-    V extends object = object
+    V extends object = object,
 > extends GraphNode implements Clonable
 {
     public model: Model<M> & M;
@@ -35,6 +36,8 @@ export abstract class ClonableNode<
     public defineCustomProperties: Map<string, CustomProperty>;
     public assignedCustomProperties: Map<keyof M, string>;
     public isCloaked: boolean;
+
+    private readonly _project?: ProjectNode;
 
     constructor(
         options: NewNodeOptions<M> = {},
@@ -78,7 +81,7 @@ export abstract class ClonableNode<
         this.update();
     }
 
-    protected abstract initView(): void
+    protected abstract initView(): void;
 
     protected abstract initModel(): void;
 

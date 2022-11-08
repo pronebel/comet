@@ -14,7 +14,7 @@ export interface AssetSchema<T = {}>
 {
     storageKey: string;
     name: string;
-    type: string;
+    mimeType: string;
     size: number;
     properties: T;
 }

@@ -1,4 +1,5 @@
 import { TextureAsset } from '../../core/assets/textureAsset';
+import { Cache } from '../../core/cache';
 import { registerInstance } from '../../core/nodes/instances';
 import { Command } from '../core/command';
 
@@ -21,7 +22,7 @@ export class CreateTextureAssetCommand extends Command<CreateTextureAssetCommand
         const { app, datastore } = this;
 
         const storageKey = await app.storageProvider.upload(file);
-        const asset = new TextureAsset(storageKey, file.name, file.type, file.size, file);
+        const asset = new TextureAsset(undefined, storageKey, file.name, file.type, file.size, file);
         const imageElement = await asset.getResource();
 
         asset.properties.width = imageElement.naturalWidth;
@@ -30,7 +31,8 @@ export class CreateTextureAssetCommand extends Command<CreateTextureAssetCommand
         registerInstance(asset);
 
         await datastore.createTexture(asset);
-        await TextureAsset.storeAsset(asset);
+
+        Cache.textures.add(asset);
 
         return asset;
     }

@@ -1,3 +1,5 @@
+import { TextureAsset } from '../../core/assets/textureAsset';
+import { Cache } from '../../core/cache';
 import { getGlobalEmitter } from '../../core/events';
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
 import { getInstance, hasInstance } from '../../core/nodes/instances';
@@ -7,8 +9,8 @@ import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
-import type { DatastoreBase } from './datastoreBase';
 import type { DatastoreNodeEvent } from '../events';
+import type { DatastoreBase } from './datastoreBase';
 import { getUserLogColor, getUserName } from './user';
 
 const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();
@@ -32,7 +34,8 @@ export class NodeUpdater
             .on('datastore.node.customProp.assigned', this.onCustomPropAssigned)
             .on('datastore.node.customProp.unassigned', this.onCustomPropUnassigned)
             .on('datastore.node.model.modified', this.onModelModified)
-            .on('datastore.node.cloneInfo.modified', this.onCloneInfoModified);
+            .on('datastore.node.cloneInfo.modified', this.onCloneInfoModified)
+            .on('datastore.texture.created', this.onTextureCreated);
     }
 
     protected log(eventName: string, event: any)
@@ -170,5 +173,15 @@ export class NodeUpdater
         // overwrite cloneMode and cloners
         cloneInfo.cloneMode = cloneMode;
         cloneInfo.cloned = cloned.map((clonedId) => getInstance<ClonableNode>(clonedId));
+    };
+
+    protected onTextureCreated = (event: DatastoreNodeEvent['datastore.texture.created']) =>
+    {
+        const { id, name, properties, size, storageKey, mimeType: type } = event;
+        const texture = new TextureAsset(id, storageKey, name, type, size);
+
+        texture.properties = properties;
+
+        Cache.textures.add(texture);
     };
 }
