@@ -9,7 +9,8 @@
         "check:types": "tsc --noEmit",
         "check:svelte": "svelte-check --tsconfig ./tsconfig.json",
         "dev": "vite --config vite.editor.config.js --port=3000",
-        "doc:core": "typedoc src/core/index.ts",
+        "doc:core:prepare": "node ./scripts/docIndex.js ./src/core core",
+        "doc:core:build": "typedoc src/doc/core.ts",
         "cloc": "npx cloc ./src",
         "lint": "eslint \"src/**/*.ts\" --fix",
         "postinstall": "husky install && chmod +x .husky/{pre*,commit*} && chmod +x gc && chmod +x ./scripts/server.sh",
@@ -71,6 +72,7 @@
         "tslib": "~2.4.0",
         "typedoc": "^0.23.14",
         "typescript": "~4.6.4",
-        "vite": "~3.0.7"
+        "vite": "~3.0.7",
+        "walkdir": "^0.4.1"
     }
 }

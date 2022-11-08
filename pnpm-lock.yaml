@@ -43,6 +43,7 @@ specifiers:
   typescript: ~4.6.4
   uuid: ^8.3.2
   vite: ~3.0.7
+  walkdir: ^0.4.1
 
 dependencies:
   '@convergence/convergence': 1.0.0-rc.12
@@ -89,6 +90,7 @@ devDependencies:
   typedoc: 0.23.14_typescript@4.6.4
   typescript: 4.6.4
   vite: 3.0.9
+  walkdir: 0.4.1
 
 packages:
 
@@ -7762,6 +7764,11 @@ packages:
     engines: {node: '>=10'}
     dependencies:
       xml-name-validator: 3.0.0
+    dev: true
+
+  /walkdir/0.4.1:
+    resolution: {integrity: sha512-3eBwRyEln6E1MSzcxcVpQIhRG8Q1jLvEqRmCZqS3dsfXEDR/AhOF4d+jHg1qvDCpYaVRZjENPQyrVxAkQqxPgQ==}
+    engines: {node: '>=6.0.0'}
     dev: true
 
   /walker/1.0.8:
