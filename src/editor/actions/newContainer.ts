@@ -1,10 +1,16 @@
+import type { ContainerModel } from '../../core/nodes/concrete/container';
 import { createNodeSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
 import { type AddChildCommandReturn, AddChildCommand } from '../commands/addChild';
 import { Action } from '../core/action';
 import type { EmptyNode } from '../nodes/empty';
 
-export class NewContainerAction extends Action<EmptyNode>
+export type NewContainerOptions = {
+    addToSelected?: boolean;
+    model?: Partial<ContainerModel>;
+};
+
+export class NewContainerAction extends Action<NewContainerOptions, EmptyNode>
 {
     constructor()
     {
@@ -13,14 +19,17 @@ export class NewContainerAction extends Action<EmptyNode>
         });
     }
 
-    protected exec()
+    protected exec(options: NewContainerOptions = {
+        model: {},
+        addToSelected: true,
+    }): EmptyNode
     {
         const app = Application.instance;
         const selectedNode = app.editorView.selection.lastNode;
 
         let parentId = 'Scene:1';
 
-        if (selectedNode)
+        if (selectedNode && options.addToSelected)
         {
             parentId = selectedNode.id;
         }
@@ -31,6 +40,7 @@ export class NewContainerAction extends Action<EmptyNode>
                 x: 50,
                 y: 50,
                 tint: Math.round(Math.random() * 100000),
+                ...options.model,
             },
         });
 

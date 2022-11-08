@@ -71,7 +71,7 @@ export class TransformGizmo
     {
         const { selected } = this;
 
-        if (this.selected.length == 0)
+        if (this.selected.length === 0)
         {
             return;
         }

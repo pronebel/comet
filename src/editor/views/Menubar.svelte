@@ -3,8 +3,9 @@
 </script>
 
 <div data-section="menubar" class="fill flex-container-center">
-  <button on:click={() => Actions.newContainer.exec()}>New Container</button>
-  <button on:click={() => Actions.newSprite.exec()}>New Node</button>
+  <button on:click={() => Actions.newContainer.dispatch()}
+    >New Container</button>
+  <button on:click={() => Actions.newSprite.dispatch()}>New Node</button>
 </div>
 
 <style>

@@ -144,8 +144,11 @@ export class Application
         promise.then((texture) =>
         {
             Actions.newSprite.dispatch({
-                textureAssetId: texture.id,
-                tint: 0xffffff,
+                addToSelected: false,
+                model: {
+                    textureAssetId: texture.id,
+                    tint: 0xffffff,
+                },
             });
         });
     }

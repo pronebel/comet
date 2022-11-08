@@ -2,7 +2,7 @@ import { Application } from '../application';
 import { Action } from '../core/action';
 import { writeCommandList } from '../core/history';
 
-export class UndoAction extends Action<void>
+export class UndoAction extends Action<void, void>
 {
     constructor()
     {

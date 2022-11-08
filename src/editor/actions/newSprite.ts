@@ -7,7 +7,12 @@ import { Application } from '../application';
 import { type AddChildCommandReturn, AddChildCommand } from '../commands/addChild';
 import { Action } from '../core/action';
 
-export class NewSpriteAction extends Action<SpriteNode>
+export type NewSpriteOptions = {
+    addToSelected?: boolean;
+    model?: Partial<SpriteModel>;
+};
+
+export class NewSpriteAction extends Action<NewSpriteOptions, SpriteNode>
 {
     constructor()
     {
@@ -21,14 +26,17 @@ export class NewSpriteAction extends Action<SpriteNode>
         return Math.random() * 255;
     }
 
-    protected exec(values: Partial<SpriteModel> = {}): SpriteNode
+    protected exec(options: NewSpriteOptions = {
+        model: {},
+        addToSelected: true,
+    }): SpriteNode
     {
         const app = Application.instance;
         const selectedNode = app.editorView.selection.lastNode;
 
         let parentId = 'Scene:1';
 
-        if (selectedNode)
+        if (selectedNode && options.addToSelected)
         {
             parentId = selectedNode.id;
         }
@@ -45,7 +53,7 @@ export class NewSpriteAction extends Action<SpriteNode>
                 scaleX: 1,
                 scaleY: 1,
                 tint: tint.rgbNumber(),
-                ...values,
+                ...options.model,
             },
         });
 

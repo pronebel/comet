@@ -19,7 +19,7 @@ export const defaultActionOptions: Omit<ActionOptions, 'hotkey'> = {
 
 export type ActionConstructorOptions = Partial<ActionOptions> & { hotkey: string };
 
-export abstract class Action<T>
+export abstract class Action<P, T>
 {
     public id: string;
     public isEnabled: boolean;
@@ -27,7 +27,7 @@ export abstract class Action<T>
     public canToggle: boolean;
     public hotkey: string;
 
-    public static actions: Map<string, Action<any>> = new Map();
+    public static actions: Map<string, Action<any, any>> = new Map();
 
     constructor(id: string, options: ActionConstructorOptions)
     {
@@ -101,13 +101,13 @@ export abstract class Action<T>
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected triggerFromShortcut(event: KeyboardEvent, handler: HotkeysEvent)
     {
-        this.exec();
+        this.dispatch();
     }
 
-    public dispatch(...args: any[]): T
+    public dispatch(options: Partial<P> = {}): T
     {
-        return this.exec(...args);
+        return this.exec(options);
     }
 
-    protected abstract exec(...args: any[]): T;
+    protected abstract exec(options: Partial<P>): T;
 }
