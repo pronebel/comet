@@ -1,5 +1,4 @@
-import Color from 'color';
-import { Sprite, Texture } from 'pixi.js';
+import { Graphics, Sprite, Texture } from 'pixi.js';
 
 import type { TextureAsset } from '../../assets/textureAsset';
 import { Cache } from '../../cache';
@@ -27,6 +26,8 @@ export const spriteSchema = new ModelSchema<SpriteModel>({
 
 export class SpriteNode<M extends SpriteModel = SpriteModel, V extends Sprite = Sprite> extends ContainerNode<M, V>
 {
+    protected placeHolder?: Graphics;
+
     public nodeType()
     {
         return 'Sprite';
@@ -66,16 +67,17 @@ export class SpriteNode<M extends SpriteModel = SpriteModel, V extends Sprite = 
                 else
                 {
                     // show a random gray texture at the correct size until texture is loaded
-                    const rnd = Math.round(Math.random() * 100) + 0;
+                    const placeHolder = this.placeHolder = new Graphics();
 
-                    view.texture = Texture.WHITE;
-                    view.tint = Color.rgb(rnd, rnd, rnd).rgbNumber();
-                    view.scale.x = textureAsset.properties.width / 16;
-                    view.scale.y = textureAsset.properties.height / 16;
+                    placeHolder.beginFill(0xffffff, 0.5);
+                    placeHolder.drawRect(0, 0, textureAsset.properties.width, textureAsset.properties.height);
+
+                    view.texture = Texture.EMPTY;
+                    view.addChild(placeHolder);
 
                     textureAsset.getResource().then(() =>
                     {
-                        delay(0).then(() =>
+                        delay(2000).then(() =>
                         {
                             this.setTexture(textureAsset);
                         });
@@ -93,7 +95,7 @@ export class SpriteNode<M extends SpriteModel = SpriteModel, V extends Sprite = 
     {
         const { id, properties, resource } = textureAsset;
         const { width, height, mipmap, multisample, resolution, scaleMode, wrapMode } = properties;
-        const { view, model: { values: { scaleX, scaleY, tint } } } = this;
+        const { view } = this;
 
         if (!resource)
         {
@@ -111,9 +113,12 @@ export class SpriteNode<M extends SpriteModel = SpriteModel, V extends Sprite = 
         });
 
         view.texture = texture;
-        view.scale.x = scaleX;
-        view.scale.y = scaleY;
-        view.tint = tint;
+
+        if (this.placeHolder)
+        {
+            view.removeChild(this.placeHolder);
+            delete this.placeHolder;
+        }
     }
 
     public get naturalWidth(): number

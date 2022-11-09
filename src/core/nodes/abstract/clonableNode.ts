@@ -74,8 +74,6 @@ export abstract class ClonableNode<
         this.initCloning();
 
         this.init();
-
-        this.update();
     }
 
     protected abstract initView(): void;

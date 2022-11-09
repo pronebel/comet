@@ -38,5 +38,7 @@ export function createNode<T>(nodeType: string, options: NewNodeOptions<{}>): T
 
     registerInstance(node);
 
+    node.update();
+
     return node as unknown as T;
 }

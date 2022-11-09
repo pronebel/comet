@@ -160,6 +160,8 @@ export class EditableView
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     protected onAddSelection = (node: ContainerNode) =>
     {
+        (window as any).$1 = node;
+
         if (this.selection.isSingle)
         {
             this.transformGizmo.selectSingleNode(node);
