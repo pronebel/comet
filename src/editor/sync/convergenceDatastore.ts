@@ -17,11 +17,11 @@ import { consolidateId, getInstance } from '../../core/nodes/instances';
 import type { CloneInfoSchema, NodeSchema, ProjectSchema, TextureAssetSchema } from '../../core/nodes/schema';
 import { createProjectSchema } from '../../core/nodes/schema';
 import { Application } from '../application';
-import type { DatastoreNodeEvent } from '../events/datastoreEvents';
+import type { DatastoreEvent } from '../events/datastoreEvents';
 import { DatastoreBase } from './datastoreBase';
 import { getUserLogColor, getUserName } from './user';
 
-const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();
+const globalEmitter = getGlobalEmitter<DatastoreEvent>();
 
 const userName = getUserName();
 const logStyle = 'color:LimeGreen';

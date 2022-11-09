@@ -1,9 +1,10 @@
-import type { DisplayObject } from 'pixi.js';
+import { type DisplayObject, Container } from 'pixi.js';
 
 import { yellowPivot } from './util';
 
 export interface TransformGizmoConfig
 {
+    rootContainer: Container;
     showEncompassingBorder: boolean;
     showTransformBorder: boolean;
     showPrimaryHandles: boolean;
@@ -20,6 +21,7 @@ export interface TransformGizmoConfig
 }
 
 export const defaultTransformGizmoConfig: TransformGizmoConfig = {
+    rootContainer: new Container(),
     showEncompassingBorder: true,
     showTransformBorder: true,
     showPrimaryHandles: true,

@@ -1,10 +1,12 @@
 import type { InteractionEvent } from 'pixi.js';
 import { Application as PixiApplication, Container } from 'pixi.js';
+import { Viewport } from 'pixi-viewport';
 
 import type { DisplayObjectNode } from '../../core/nodes/abstract/displayObject';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import { Application } from '../application';
 import Grid from './grid';
+import { isKeyPressed } from './keyboard';
 import { TransformGizmo } from './transform/gizmo';
 
 export const dblClickMsThreshold = 250;
@@ -18,15 +20,12 @@ export class EditableView
     public gridLayer: Container;
     public nodeLayer: Container;
     public editLayer: Container;
+    public viewport: Viewport;
 
     protected lastClick: number;
 
     constructor(rootNode: ContainerNode)
     {
-        this.rootNode = rootNode;
-        this.transformGizmo = new TransformGizmo();
-        this.lastClick = -1;
-
         // create canvas and pixi context
         const canvas = this.canvas = document.createElement('canvas');
 
@@ -35,23 +34,47 @@ export class EditableView
             backgroundColor: 0x111111,
         });
 
+        const viewport = this.viewport = new Viewport({
+            screenWidth: window.innerWidth,
+            screenHeight: window.innerHeight,
+            worldWidth: 1000,
+            worldHeight: 1000,
+
+            interaction: pixi.renderer.plugins.interaction,
+        });
+
+        this.rootNode = rootNode;
+        this.transformGizmo = new TransformGizmo({
+            rootContainer: viewport,
+        });
+        this.lastClick = -1;
+
         // create layers
         const gridLayer = this.gridLayer = new Container();
         const nodeLayer = this.nodeLayer = new Container();
         const editLayer = this.editLayer = new Container();
 
-        pixi.stage.addChild(gridLayer);
-        pixi.stage.addChild(nodeLayer);
-        pixi.stage.addChild(editLayer);
+        (window as any).stage = pixi.stage;
+
+        pixi.stage.addChild(viewport);
+
+        viewport.addChild(gridLayer);
+        viewport.addChild(nodeLayer);
+        viewport.addChild(editLayer);
 
         gridLayer.addChild(Grid.createTilingSprite(screen.availWidth, screen.availHeight));
         nodeLayer.addChild(rootNode.view);
         editLayer.addChild(this.transformGizmo.frame.container);
 
         // set selection
-        pixi.stage.interactive = true;
-        pixi.stage
-            .on('mousedown', this.onMouseDown);
+        viewport
+            .on('mousedown', this.onMouseDown)
+            .on('mouseup', this.onMouseUp);
+
+        viewport
+            .drag()
+            .pinch()
+            .wheel();
     }
 
     protected wasDoubleClick()
@@ -68,6 +91,7 @@ export class EditableView
         const wasDoubleClick = this.wasDoubleClick();
         const underCursor = this.getUnderCursor(globalX, globalY).filter((node) => !selection.has(node));
         const topNode = underCursor[0];
+        const isSpacePressed = isKeyPressed(' ');
 
         if (wasDoubleClick && underCursor.length > 0)
         {
@@ -79,8 +103,11 @@ export class EditableView
             // click outside of transform gizmo area
             if (underCursor.length === 0)
             {
-                // nothing selected, deselect
-                selection.deselect();
+                if (!isSpacePressed)
+                {
+                    // nothing selected, deselect
+                    selection.deselect();
+                }
             }
             else
             {
@@ -107,8 +134,15 @@ export class EditableView
             selection.remove(topNode);
         }
 
+        this.viewport.pause = !isSpacePressed;
+
         // track last click
         this.lastClick = Date.now();
+    };
+
+    protected onMouseUp = () =>
+    {
+        this.viewport.pause = false;
     };
 
     protected selectWithDrag(selectedNode: DisplayObjectNode, e: InteractionEvent)

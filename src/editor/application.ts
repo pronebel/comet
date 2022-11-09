@@ -9,7 +9,8 @@ import { CreateTextureAssetCommand } from './commands/createTextureAsset';
 import { RemoveNodeCommand } from './commands/removeNode';
 import { initHistory, writeUndoStack } from './core/history';
 import UndoStack from './core/undoStack';
-import type { DatastoreNodeEvent } from './events/datastoreEvents';
+import type { DatastoreEvent } from './events/datastoreEvents';
+import type { ProjectEvent } from './events/projectEvents';
 import { LocalStorageProvider } from './storage/localStorageProvider';
 import { ConvergenceDatastore } from './sync/convergenceDatastore';
 import { RemoteObjectSync } from './sync/remoteObjectSync';
@@ -18,7 +19,8 @@ import { EditableView } from './ui/editableView';
 import { NodeSelection } from './ui/selection';
 import { getUrlParam } from './util';
 
-const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();
+const datastoreGlobalEmitter = getGlobalEmitter<DatastoreEvent>();
+const projectGlobalEmitter = getGlobalEmitter<ProjectEvent>();
 
 const userName = getUserName();
 const userColor = getUserLogColor(userName);
@@ -67,7 +69,7 @@ export class Application
         Cache.textures.fetchProvider = (storageKey: string) =>
             this.storageProvider.download(storageKey);
 
-        globalEmitter.on('datastore.node.removed', () =>
+        datastoreGlobalEmitter.on('datastore.node.removed', () =>
         {
             writeUndoStack();
         });
@@ -83,7 +85,9 @@ export class Application
 
     public async connect()
     {
+        datastoreGlobalEmitter.emit('datastore.connection.attempt');
         await this.datastore.connect();
+        datastoreGlobalEmitter.emit('datastore.connection.success');
     }
 
     public async init()
@@ -102,6 +106,8 @@ export class Application
     {
         const { datastore } = this;
 
+        projectGlobalEmitter.emit('project.create.attempt');
+
         this.clear();
 
         if (await datastore.hasProject(name))
@@ -111,14 +117,22 @@ export class Application
 
         this.project = await datastore.createProject(name, id) as unknown as ProjectNode;
         this.initProject();
+
+        projectGlobalEmitter.emit('project.create.success');
+        projectGlobalEmitter.emit('project.ready');
     }
 
     public async openProject(id: string)
     {
+        projectGlobalEmitter.emit('project.open.attempt');
+
         this.clear();
 
         this.project = await this.datastore.openProject(id) as unknown as ProjectNode;
         this.initProject();
+
+        projectGlobalEmitter.emit('project.open.success');
+        projectGlobalEmitter.emit('project.ready');
     }
 
     protected initProject()

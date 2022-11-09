@@ -9,11 +9,11 @@ import { RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { RemoveNodeCommand } from '../commands/removeNode';
 import { SetCustomPropCommand } from '../commands/setCustomProp';
 import { UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
-import type { DatastoreNodeEvent } from '../events/datastoreEvents';
+import type { DatastoreEvent } from '../events/datastoreEvents';
 import type { DatastoreBase } from './datastoreBase';
 import { getUserLogColor, getUserName } from './user';
 
-const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();
+const globalEmitter = getGlobalEmitter<DatastoreEvent>();
 
 const userName = getUserName();
 const userColor = getUserLogColor(userName);
@@ -43,7 +43,7 @@ export class RemoteObjectSync
         console.log(`%c${logId}:%c${eventName} ${JSON.stringify(event)}`, userColor, logStyle);
     }
 
-    protected onNodeCreated = (event: DatastoreNodeEvent['datastore.node.created']) =>
+    protected onNodeCreated = (event: DatastoreEvent['datastore.node.created']) =>
     {
         const { nodeId } = event;
 
@@ -61,7 +61,7 @@ export class RemoteObjectSync
         }
     };
 
-    protected onNodeRemoved = (event: DatastoreNodeEvent['datastore.node.removed']) =>
+    protected onNodeRemoved = (event: DatastoreEvent['datastore.node.removed']) =>
     {
         this.log('onNodeRemoved', event);
 
@@ -70,7 +70,7 @@ export class RemoteObjectSync
         new RemoveNodeCommand({ nodeId }).run();
     };
 
-    protected onParentSet = (event: DatastoreNodeEvent['datastore.node.parent.set']) =>
+    protected onParentSet = (event: DatastoreEvent['datastore.node.parent.set']) =>
     {
         this.log('onParentSet', event);
 
@@ -86,7 +86,7 @@ export class RemoteObjectSync
         }
     };
 
-    protected onCustomPropDefined = (event: DatastoreNodeEvent['datastore.node.customProp.defined']) =>
+    protected onCustomPropDefined = (event: DatastoreEvent['datastore.node.customProp.defined']) =>
     {
         this.log('onCustomPropDefined', event);
 
@@ -95,7 +95,7 @@ export class RemoteObjectSync
         new SetCustomPropCommand({ nodeId, customKey, type, value, updateMode: 'graphOnly' }).run();
     };
 
-    protected onCustomPropUndefined = (event: DatastoreNodeEvent['datastore.node.customProp.undefined']) =>
+    protected onCustomPropUndefined = (event: DatastoreEvent['datastore.node.customProp.undefined']) =>
     {
         this.log('onCustomPropUndefined', event);
 
@@ -104,7 +104,7 @@ export class RemoteObjectSync
         new RemoveCustomPropCommand({ nodeId, customKey, updateMode: 'graphOnly' }).run();
     };
 
-    protected onCustomPropAssigned = (event: DatastoreNodeEvent['datastore.node.customProp.assigned']) =>
+    protected onCustomPropAssigned = (event: DatastoreEvent['datastore.node.customProp.assigned']) =>
     {
         this.log('onCustomPropAssigned', event);
 
@@ -113,7 +113,7 @@ export class RemoteObjectSync
         new AssignCustomPropCommand({ nodeId, modelKey, customKey, updateMode: 'graphOnly' }).run();
     };
 
-    protected onCustomPropUnassigned = (event: DatastoreNodeEvent['datastore.node.customProp.unassigned']) =>
+    protected onCustomPropUnassigned = (event: DatastoreEvent['datastore.node.customProp.unassigned']) =>
     {
         this.log('onCustomPropUnassigned', event);
 
@@ -122,7 +122,7 @@ export class RemoteObjectSync
         new UnAssignCustomPropCommand({ nodeId, modelKey, updateMode: 'graphOnly' }).run();
     };
 
-    protected onModelModified = (event: DatastoreNodeEvent['datastore.node.model.modified']) =>
+    protected onModelModified = (event: DatastoreEvent['datastore.node.model.modified']) =>
     {
         this.log('onModelModified', event);
 
@@ -142,7 +142,7 @@ export class RemoteObjectSync
         }
     };
 
-    protected onCloneInfoModified = (event: DatastoreNodeEvent['datastore.node.cloneInfo.modified']) =>
+    protected onCloneInfoModified = (event: DatastoreEvent['datastore.node.cloneInfo.modified']) =>
     {
         this.log('onCloneInfoModified', event);
 
@@ -175,7 +175,7 @@ export class RemoteObjectSync
         cloneInfo.cloned = cloned.map((clonedId) => getInstance<ClonableNode>(clonedId));
     };
 
-    protected onTextureCreated = (event: DatastoreNodeEvent['datastore.texture.created']) =>
+    protected onTextureCreated = (event: DatastoreEvent['datastore.texture.created']) =>
     {
         const texture = TextureAsset.withIdFromSchema(event.id, event);
 

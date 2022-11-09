@@ -37,6 +37,7 @@
         "fast-equals": "^4.0.3",
         "hotkeys-js": "^3.10.0",
         "lz-string": "^1.4.4",
+        "pixi-viewport": "^4.37.0",
         "pixi.js": "~6.5.1",
         "svelte-routing": "^1.6.0",
         "tslib": "~2.4.0",

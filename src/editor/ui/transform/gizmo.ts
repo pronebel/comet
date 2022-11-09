@@ -1,15 +1,13 @@
 import type { Container, InteractionEvent } from 'pixi.js';
 import { Matrix, Rectangle, Transform } from 'pixi.js';
 
-import { ClonableNode } from '../../../core';
 import { getGlobalEmitter } from '../../../core/events';
 import type { DisplayObjectModel, DisplayObjectNode } from '../../../core/nodes/abstract/displayObject';
-import { getInstance } from '../../../core/nodes/instances';
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { Application } from '../../application';
 import { ModifyModelCommand } from '../../commands/modifyModel';
 import type { CommandEvent } from '../../events/commandEvents';
-import type { DatastoreNodeEvent } from '../../events/datastoreEvents';
+import type { DatastoreEvent } from '../../events/datastoreEvents';
 import type { SelectionEvent } from '../../events/selectionEvents';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
@@ -31,7 +29,7 @@ import {
     yellowPivot,
 } from './util';
 
-const globalEmitter = getGlobalEmitter<DatastoreNodeEvent & CommandEvent & SelectionEvent>();
+const globalEmitter = getGlobalEmitter<DatastoreEvent & CommandEvent & SelectionEvent>();
 
 export class TransformGizmo
 {
@@ -39,6 +37,7 @@ export class TransformGizmo
 
     public visualPivot?: Point;
 
+    public rootContainer: Container;
     public initialTransform: InitialGizmoTransform;
     public transform: Transform;
     public frame: TransformGizmoFrame;
@@ -48,10 +47,14 @@ export class TransformGizmo
     public operation?: TransformOperation;
     public dragInfo?: DragInfo;
 
-    constructor(config?: TransformGizmoConfig)
+    constructor(config: Partial<TransformGizmoConfig> = {})
     {
-        this.config = config ?? { ...defaultTransformGizmoConfig };
+        this.config = {
+            ...defaultTransformGizmoConfig,
+            ...config,
+        };
 
+        this.rootContainer = this.config.rootContainer;
         this.initialTransform = defaultInitialGizmoTransform;
         this.transform = new Transform();
         this.frame = new TransformGizmoFrame(this);
@@ -238,11 +241,6 @@ export class TransformGizmo
     set scaleY(y: number)
     {
         this.transform.scale.y = y;
-    }
-
-    get matrix()
-    {
-        return this.transform.localTransform.clone();
     }
 
     public get isVisible()
@@ -444,6 +442,8 @@ export class TransformGizmo
 
             this.update();
             this.frame.updateOperation(this.dragInfo);
+
+            event.stopPropagation();
         }
     };
 
@@ -463,6 +463,8 @@ export class TransformGizmo
             this.operation.end(this.dragInfo);
             this.update();
             this.frame.endOperation(this.dragInfo);
+
+            event.stopPropagation();
         }
 
         this.clearOperation();
@@ -579,9 +581,20 @@ export class TransformGizmo
         this.matrixCache.set(node, cachedMatrix);
     }
 
+    get matrix()
+    {
+        const rootMatrix = this.rootContainer.worldTransform;
+        const matrix = this.transform.localTransform.clone();
+
+        matrix.prepend(rootMatrix.clone().invert());
+
+        return matrix;
+    }
+
     protected updateSelectedTransforms()
     {
-        const { matrix: thisMatrix, selection } = this;
+        const { matrix: thisMatrix, selection, rootContainer } = this;
+        const rootMatrix = rootContainer.localTransform;
 
         if (selection.length === 1)
         {
@@ -590,6 +603,7 @@ export class TransformGizmo
             const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
 
             thisMatrix.prepend(this.initialTransform.matrix.clone().invert());
+            // thisMatrix.prepend(rootMatrix.clone().invert());
             cachedMatrix.append(thisMatrix);
 
             view.transform.setFromMatrix(cachedMatrix);

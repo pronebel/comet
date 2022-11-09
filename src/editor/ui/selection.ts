@@ -46,7 +46,10 @@ export class NodeSelection
 
     public deselect()
     {
-        // nodes.forEach((selectedNode) => this.remove(selectedNode));
+        if (this.isEmpty)
+        {
+            return;
+        }
 
         globalEmitter.emit('selection.deselect');
         this.nodes.length = 0;

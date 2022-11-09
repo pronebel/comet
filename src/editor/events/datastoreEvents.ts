@@ -7,8 +7,12 @@ interface BaseDatastoreEvent
     nodeId: string;
 }
 
-export interface DatastoreNodeEvent
+export interface DatastoreEvent
 {
+    'datastore.connection.attempt': void;
+    'datastore.connection.success': void;
+    'datastore.connection.error': void;
+    'datastore.connection.end': void;
     'datastore.node.created': BaseDatastoreEvent;
     'datastore.node.hydrated': BaseDatastoreEvent;
     'datastore.node.removed': BaseDatastoreEvent & {
