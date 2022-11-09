@@ -100,12 +100,10 @@ export class TransformGizmo
         {
             const node = getInstance<ClonableNode>(nodeId);
 
-            // console.log('!!!', nodeId, JSON.stringify(this.previousSelected), selected.length, node.isCloaked);
             const nodeInfo = this.previousSelected.filter((info) => info.nodeId === nodeId && info.isCloaked);
 
             if (nodeInfo.length && !node.isCloaked)
             {
-                // console.log('***', JSON.stringify(nodeInfo));
                 selected = [node.cast<ContainerNode>()];
             }
         }
