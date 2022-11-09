@@ -61,7 +61,8 @@ export class TransformGizmo
         this.initFrame();
 
         globalEmitter
-            .on('selection.modified', this.onSelectionModified)
+            .on('selection.add', this.onSelectionAdd)
+            .on('selection.remove', this.onSelectionRemove)
             .on('selection.deselect', this.onSelectionDeselect);
     }
 
@@ -70,7 +71,7 @@ export class TransformGizmo
         return Application.instance.selection;
     }
 
-    protected onSelectionModified = (node: DisplayObjectNode) =>
+    protected onSelectionAdd = (node: DisplayObjectNode) =>
     {
         const { selection: { isSingle, isMulti, nodes } } = Application.instance;
 
@@ -81,6 +82,26 @@ export class TransformGizmo
         else if (isMulti)
         {
             this.selectMultipleNodes(nodes);
+        }
+    };
+
+    // @ts-ignore
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    protected onSelectionRemove = (node: DisplayObjectNode) =>
+    {
+        const { selection: { isSingle, isMulti, isEmpty, nodes } } = Application.instance;
+
+        if (isSingle)
+        {
+            this.selectSingleNode(nodes[0]);
+        }
+        else if (isMulti)
+        {
+            this.selectMultipleNodes(nodes);
+        }
+        else if (isEmpty)
+        {
+            this.onSelectionDeselect();
         }
     };
 
@@ -434,6 +455,13 @@ export class TransformGizmo
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     public onMouseUp = (event: MouseEvent) =>
     {
+        const { selection } = this;
+
+        if (selection.isEmpty)
+        {
+            return;
+        }
+
         if (this.operation && this.dragInfo)
         {
             this.operation.end(this.dragInfo);
@@ -595,6 +623,7 @@ export class TransformGizmo
 
     protected updateSelectedModels()
     {
+        return;
         const { selection } = this;
 
         selection.forEach((node) =>

@@ -13,12 +13,21 @@ export class NodeSelection
         this.nodes = [];
     }
 
+    public set(node: DisplayObjectNode)
+    {
+        if (!this.isEmpty)
+        {
+            this.deselect();
+        }
+
+        this.add(node);
+    }
+
     public add(node: DisplayObjectNode)
     {
         this.nodes.push(node);
 
         globalEmitter.emit('selection.add', node);
-        globalEmitter.emit('selection.modified', node);
     }
 
     public remove(node: DisplayObjectNode)
@@ -33,17 +42,6 @@ export class NodeSelection
         this.nodes.splice(index, 1);
 
         globalEmitter.emit('selection.remove', node);
-        globalEmitter.emit('selection.modified', node);
-    }
-
-    public set(node: DisplayObjectNode)
-    {
-        if (!this.isEmpty)
-        {
-            this.deselect();
-        }
-
-        this.add(node);
     }
 
     public deselect()
@@ -54,7 +52,7 @@ export class NodeSelection
         this.nodes.length = 0;
     }
 
-    public isSelected(node: DisplayObjectNode)
+    public has(node: DisplayObjectNode)
     {
         return this.nodes.indexOf(node) > -1;
     }

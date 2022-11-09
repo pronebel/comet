@@ -5,6 +5,5 @@ export interface SelectionEvent
     'selection.set': DisplayObjectNode;
     'selection.add': DisplayObjectNode;
     'selection.remove': DisplayObjectNode;
-    'selection.modified': DisplayObjectNode;
     'selection.deselect': void[];
 }

@@ -54,51 +54,60 @@ export class EditableView
             .on('mousedown', this.onMouseDown);
     }
 
+    protected wasDoubleClick()
+    {
+        return this.lastClick > -1
+            && Date.now() - this.lastClick < dblClickMsThreshold;
+    }
+
     protected onMouseDown = (e: InteractionEvent) =>
     {
         const globalX = e.data.global.x;
         const globalY = e.data.global.y;
-
-        const underCursor = this.getUnderCursor(globalX, globalY)
-            .filter((node) => !Application.instance.selection.isSelected(node));
-
-        let wasDoubleClick = false;
-
-        if (this.lastClick > -1)
-        {
-            const delta = Date.now() - this.lastClick;
-
-            if (delta < dblClickMsThreshold)
-            {
-                wasDoubleClick = true;
-            }
-        }
+        const { selection } = Application.instance;
+        const wasDoubleClick = this.wasDoubleClick();
+        const underCursor = this.getUnderCursor(globalX, globalY).filter((node) => !selection.has(node));
+        const topNode = underCursor[0];
 
         if (wasDoubleClick && underCursor.length > 0)
         {
-            this.selectWithDrag(underCursor[0], e);
+            // handle double click on first node and start dragging
+            this.selectWithDrag(topNode, e);
         }
         else if (!this.transformGizmo.frame.getGlobalBounds().contains(globalX, globalY))
         {
+            // click outside of transform gizmo area
             if (underCursor.length === 0)
             {
-                Application.instance.selection.deselect();
+                // nothing selected, deselect
+                selection.deselect();
             }
             else
             {
-                const selectedNode = underCursor[0].getCloneRoot().cast<DisplayObjectNode>();
+                const selectedNode = topNode.getCloneRoot().cast<DisplayObjectNode>();
 
                 if (e.data.originalEvent.shiftKey)
                 {
-                    Application.instance.selection.add(underCursor[0]);
+                    // add to selection
+                    selection.add(topNode);
                 }
                 else
                 {
+                    // new selection and start dragging
                     this.selectWithDrag(selectedNode, e);
                 }
             }
         }
+        else if (e.data.originalEvent.shiftKey)
+        {
+            // click inside transform gizmo area remove from selection if shift down
+            const underCursor = this.getUnderCursor(globalX, globalY).filter((node) => selection.has(node));
+            const topNode = underCursor[0];
 
+            selection.remove(topNode);
+        }
+
+        // track last click
         this.lastClick = Date.now();
     };
 
