@@ -20,11 +20,6 @@ export class AssignCustomPropCommand
 {
     public static commandName = 'AssignCustomProp';
 
-    public get targetNodeId()
-    {
-        return this.params.nodeId;
-    }
-
     public apply(): void
     {
         const { datastore, params: { nodeId, modelKey, customKey, updateMode }, cache } = this;

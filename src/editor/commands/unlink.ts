@@ -19,11 +19,6 @@ export class UnlinkCommand
 {
     public static commandName = 'Unlink';
 
-    public get targetNodeId()
-    {
-        return this.params.nodeId;
-    }
-
     public apply(): void
     {
         const { datastore, params: { nodeId }, cache } = this;

@@ -1,5 +1,5 @@
 import { Application } from '../application';
-import { RemoveChildCommand } from '../commands/removeChild';
+import { RemoveNodesCommand } from '../commands/removeNodes';
 import { Action } from '../core/action';
 
 export type DeleteNodeOptions = {
@@ -18,14 +18,17 @@ export class DeleteNodeAction extends Action<DeleteNodeOptions, void>
     protected exec(options: DeleteNodeOptions): void
     {
         const app = Application.instance;
-        const selectedNode = app.selection.lastNode;
+        const nodeIds: string[] = [];
 
-        const nodeId = options.nodeId
-            ?? (selectedNode ? selectedNode.id : undefined);
-
-        if (nodeId)
+        if (options.nodeId)
         {
-            app.undoStack.exec(new RemoveChildCommand({ nodeId }));
+            nodeIds.push(options.nodeId);
         }
+        else
+        {
+            nodeIds.push(...app.selection.nodes.map((node) => node.id));
+        }
+
+        app.undoStack.exec(new RemoveNodesCommand({ nodeIds }));
     }
 }

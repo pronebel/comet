@@ -1,4 +1,5 @@
 import type { ClonableNode } from '../../core/nodes/abstract/clonableNode';
+import { DisplayObjectNode } from '../../core/nodes/abstract/displayObject';
 import { getInstance } from '../../core/nodes/instances';
 import { getNodeSchema } from '../../core/nodes/schema';
 import { Command } from '../core/command';
@@ -13,21 +14,23 @@ export interface RemoveNodeCommandReturn
     node: ClonableNode;
 }
 
+export interface RemoveNodeCommandCache
+{
+    wasSelected: boolean;
+}
+
 export class RemoveNodeCommand
-    extends Command<RemoveNodeCommandParams, RemoveNodeCommandReturn>
+    extends Command<RemoveNodeCommandParams, RemoveNodeCommandReturn, RemoveNodeCommandCache>
 {
     public static commandName = 'RemoveNode';
 
-    public get targetNodeId()
-    {
-        return this.params.nodeId;
-    }
-
     public apply(): RemoveNodeCommandReturn
     {
-        const { datastore, params: { nodeId } } = this;
+        const { app, datastore, params: { nodeId }, cache } = this;
 
         const node = getInstance<ClonableNode>(nodeId);
+
+        cache.wasSelected = false;
 
         if (datastore.hasNode(nodeId))
         {
@@ -36,12 +39,18 @@ export class RemoveNodeCommand
 
         node.cloak();
 
-        return { node };
+        if (node instanceof DisplayObjectNode && app.selection.has(node.cast<DisplayObjectNode>()))
+        {
+            cache.wasSelected = true;
+            app.selection.remove(node);
+        }
+
+        return { node: node.cast<ClonableNode>() };
     }
 
     public undo()
     {
-        const { datastore, params: { nodeId } } = this;
+        const { app, cache, datastore, params: { nodeId } } = this;
 
         const node = getInstance<ClonableNode>(nodeId);
         const nodeSchema = getNodeSchema(node);
@@ -52,5 +61,10 @@ export class RemoveNodeCommand
         }
 
         node.uncloak();
+
+        if (node instanceof DisplayObjectNode && cache.wasSelected)
+        {
+            app.selection.add(node);
+        }
     }
 }

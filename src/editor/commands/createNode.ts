@@ -24,11 +24,6 @@ export class CreateNodeCommand<
 {
     public static commandName = 'CreateNode';
 
-    public get targetNodeId()
-    {
-        return this.params.nodeSchema.id;
-    }
-
     public apply(): CreateNodeCommandReturn
     {
         const { datastore, params: { nodeSchema } } = this;

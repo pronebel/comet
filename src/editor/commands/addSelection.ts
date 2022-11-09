@@ -1,11 +1,9 @@
 import type { ContainerNode } from '../../core/nodes/concrete/container';
 import { Command } from '../core/command';
-import type { EditableView } from '../ui/editableView';
 
 export interface AddSelectionCommandParams
 {
     nodeId: string;
-    view: EditableView;
 }
 
 export class AddSelectionCommand
@@ -13,26 +11,21 @@ export class AddSelectionCommand
 {
     public static commandName = 'SetCustomProp';
 
-    public get targetNodeId()
-    {
-        return this.params.nodeId;
-    }
-
     public apply(): void
     {
-        const { params: { nodeId, view } } = this;
+        const { app, params: { nodeId } } = this;
 
         const node = this.getInstance<ContainerNode>(nodeId);
 
-        view.selection.add(node);
+        app.selection.add(node);
     }
 
     public undo(): void
     {
-        const { params: { nodeId, view } } = this;
+        const { app, params: { nodeId } } = this;
 
         const node = this.getInstance<ContainerNode>(nodeId);
 
-        view.selection.remove(node);
+        app.selection.remove(node);
     }
 }

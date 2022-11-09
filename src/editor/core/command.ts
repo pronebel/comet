@@ -43,8 +43,6 @@ export abstract class Command<ParamsType extends {} = {}, ReturnType = void, Cac
         return this.app.undoStack.indexOf(this);
     }
 
-    public abstract get targetNodeId(): string | null;
-
     public run(): ReturnType
     {
         const result = this.apply();

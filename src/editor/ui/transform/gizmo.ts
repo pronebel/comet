@@ -1,8 +1,10 @@
 import type { Container, InteractionEvent } from 'pixi.js';
 import { Matrix, Rectangle, Transform } from 'pixi.js';
 
+import { ClonableNode } from '../../../core';
 import { getGlobalEmitter } from '../../../core/events';
 import type { DisplayObjectModel, DisplayObjectNode } from '../../../core/nodes/abstract/displayObject';
+import { getInstance } from '../../../core/nodes/instances';
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { Application } from '../../application';
 import { ModifyModelCommand } from '../../commands/modifyModel';
@@ -63,7 +65,8 @@ export class TransformGizmo
         globalEmitter
             .on('selection.add', this.onSelectionAdd)
             .on('selection.remove', this.onSelectionRemove)
-            .on('selection.deselect', this.onSelectionDeselect);
+            .on('selection.deselect', this.onSelectionDeselect)
+            .on('datastore.node.model.modified', this.onModelModified);
     }
 
     get selection()
@@ -114,6 +117,25 @@ export class TransformGizmo
         this.matrixCache.clear();
 
         this.hide();
+    };
+
+    protected onModelModified = (e: DatastoreNodeEvent['datastore.node.model.modified']) =>
+    {
+        const { nodeId } = e;
+        const { selection: { isSingle, isMulti, nodes } } = Application.instance;
+        const node = getInstance<DisplayObjectNode>(nodeId);
+
+        if (this.selection.has(node))
+        {
+            if (isSingle)
+            {
+                this.selectSingleNode(node);
+            }
+            else if (isMulti)
+            {
+                // this.selectMultipleNodes(nodes);
+            }
+        }
     };
 
     get isVertexDrag()
@@ -623,7 +645,6 @@ export class TransformGizmo
 
     protected updateSelectedModels()
     {
-        return;
         const { selection } = this;
 
         selection.forEach((node) =>

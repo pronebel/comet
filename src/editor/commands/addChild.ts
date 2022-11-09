@@ -29,11 +29,6 @@ export class AddChildCommand<
 {
     public static commandName = 'AddChild';
 
-    public get targetNodeId()
-    {
-        return this.params.nodeSchema.id;
-    }
-
     public apply(): AddChildCommandReturn
     {
         const { cache, params, params: { nodeSchema } } = this;

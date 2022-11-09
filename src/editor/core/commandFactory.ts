@@ -9,6 +9,7 @@ import { type ModifyModelCommandParams, ModifyModelCommand } from '../commands/m
 import { type RemoveChildCommandParams, RemoveChildCommand } from '../commands/removeChild';
 import { type RemoveCustomPropCommandParams, RemoveCustomPropCommand } from '../commands/removeCustomProp';
 import { type RemoveNodeCommandParams, RemoveNodeCommand } from '../commands/removeNode';
+import { type RemoveNodesCommandParams, RemoveNodesCommand } from '../commands/removeNodes';
 import { type SetCustomPropCommandParams, SetCustomPropCommand } from '../commands/setCustomProp';
 import { type SetParentCommandParams, SetParentCommand } from '../commands/setParent';
 import { type UnAssignCustomPropCommandParams, UnAssignCustomPropCommand } from '../commands/unassignCustomProp';
@@ -42,6 +43,7 @@ export const Commands
     RemoveChild: RemoveChildCommand,
     RemoveCustomProp: RemoveCustomPropCommand,
     RemoveNode: RemoveNodeCommand,
+    RemoveNodes: RemoveNodesCommand,
     SetCustomProp: SetCustomPropCommand,
     SetParent: SetParentCommand,
     UnAssignCustomProp: UnAssignCustomPropCommand,
@@ -60,6 +62,7 @@ export interface CommandParams
     RemoveChild: RemoveChildCommandParams;
     RemoveCustomProp: RemoveCustomPropCommandParams;
     RemoveNode: RemoveNodeCommandParams;
+    RemoveNodes: RemoveNodesCommandParams;
     SetCustomProp: SetCustomPropCommandParams;
     SetParent: SetParentCommandParams;
     UnAssignCustomProp: UnAssignCustomPropCommandParams;

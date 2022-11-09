@@ -18,11 +18,6 @@ export class UnAssignCustomPropCommand
 {
     public static commandName = 'UnAssignCustomProp';
 
-    public get targetNodeId()
-    {
-        return this.params.nodeId;
-    }
-
     public apply(): void
     {
         const { datastore, params: { nodeId, modelKey, updateMode }, cache } = this;

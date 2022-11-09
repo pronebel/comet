@@ -23,11 +23,6 @@ export class RemoveChildCommand
 {
     public static commandName = 'RemoveChild';
 
-    public get targetNodeId()
-    {
-        return this.params.nodeId;
-    }
-
     public apply(): RemoveChildCommandReturn
     {
         const { cache, datastore, params: { nodeId } } = this;
