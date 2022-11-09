@@ -25,7 +25,7 @@ export class NewContainerAction extends Action<NewContainerOptions, EmptyNode>
     }): EmptyNode
     {
         const app = Application.instance;
-        const selectedNode = app.editorView.selection.lastNode;
+        const selectedNode = app.selection.lastNode;
 
         let parentId = 'Scene:1';
 
@@ -48,7 +48,7 @@ export class NewContainerAction extends Action<NewContainerOptions, EmptyNode>
 
         const node = nodes[0] as unknown as EmptyNode;
 
-        app.editorView.selection.set(node);
+        app.selection.set(node);
 
         return node;
     }

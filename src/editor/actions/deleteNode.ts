@@ -18,7 +18,7 @@ export class DeleteNodeAction extends Action<DeleteNodeOptions, void>
     protected exec(options: DeleteNodeOptions): void
     {
         const app = Application.instance;
-        const selectedNode = app.editorView.selection.lastNode;
+        const selectedNode = app.selection.lastNode;
 
         const nodeId = options.nodeId
             ?? (selectedNode ? selectedNode.id : undefined);

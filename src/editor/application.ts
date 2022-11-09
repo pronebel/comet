@@ -15,6 +15,7 @@ import { ConvergenceDatastore } from './sync/convergenceDatastore';
 import { RemoteObjectSync } from './sync/remoteObjectSync';
 import { getUserLogColor, getUserName } from './sync/user';
 import { EditableView } from './ui/editableView';
+import { NodeSelection } from './ui/selection';
 import { getUrlParam } from './util';
 
 const globalEmitter = getGlobalEmitter<DatastoreNodeEvent>();
@@ -31,9 +32,10 @@ export class Application
     public datastore: ConvergenceDatastore;
     public nodeUpdater: RemoteObjectSync;
     public undoStack: UndoStack;
-    public editorView: EditableView;
+    public editorViews: EditableView[];
     public storageProvider: LocalStorageProvider;
     public project: ProjectNode;
+    public selection: NodeSelection;
 
     private static _instance: Application;
 
@@ -57,8 +59,9 @@ export class Application
 
         this.storageProvider = new LocalStorageProvider();
         this.project = new ProjectNode();
+        this.selection = new NodeSelection();
         this.nodeUpdater = new RemoteObjectSync(datastore);
-        this.editorView = new EditableView(this.project.cast<ContainerNode>());
+        this.editorViews = [new EditableView(this.project.cast<ContainerNode>())];
         this.undoStack = new UndoStack();
 
         Cache.textures.fetchProvider = (storageKey: string) =>
@@ -70,6 +73,12 @@ export class Application
         });
 
         initHistory();
+    }
+
+    public get activeEditorView(): EditableView
+    {
+        // simple single view for now, but we could make it multi-view this way later
+        return this.editorViews[0];
     }
 
     public async connect()
@@ -114,7 +123,7 @@ export class Application
 
     protected initProject()
     {
-        this.editorView.setRoot(this.project.cast<ContainerNode>());
+        this.editorViews.forEach((editorView) => editorView.setRoot(this.project.cast<ContainerNode>()));
     }
 
     protected clear()

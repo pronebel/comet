@@ -108,9 +108,9 @@ export class TransformGizmoFrame extends EventEmitter<TransformGizmoFrameEvent>
 
     public getGlobalBounds()
     {
-        const { gizmo } = this;
+        const { gizmo: { selection }, gizmo } = this;
 
-        if (gizmo.selected.length === 0)
+        if (selection.length === 0)
         {
             return Rectangle.EMPTY;
         }

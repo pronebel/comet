@@ -1,7 +1,7 @@
 import type { DisplayObject } from 'pixi.js';
 import { Graphics, Matrix, Rectangle, Transform } from 'pixi.js';
 
-import type { ContainerNode } from '../../../core/nodes/concrete/container';
+import type { DisplayObjectNode } from '../../../core/nodes/abstract/displayObject';
 import { angleBetween, degToRad } from '../../../core/util/geom';
 
 export interface InitialGizmoTransform
@@ -51,7 +51,7 @@ export function updateTransforms(view: DisplayObject)
     }
 }
 
-export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGizmoTransform
+export function getGizmoInitialTransformFromView(node: DisplayObjectNode): InitialGizmoTransform
 {
     const view = node.view;
     const { worldTransform } = view;
@@ -117,7 +117,7 @@ export function getGizmoInitialTransformFromView(node: ContainerNode): InitialGi
     };
 }
 
-export function getTotalGlobalBounds<T extends ContainerNode>(nodes: T[])
+export function getTotalGlobalBounds<T extends DisplayObjectNode>(nodes: T[])
 {
     let rect = Rectangle.EMPTY;
 

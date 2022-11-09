@@ -1,16 +1,14 @@
 import type { Container, InteractionEvent } from 'pixi.js';
 import { Matrix, Rectangle, Transform } from 'pixi.js';
 
-import type { ClonableNode } from '../../../core';
 import { getGlobalEmitter } from '../../../core/events';
-import type { DisplayObjectModel } from '../../../core/nodes/abstract/displayObject';
-import type { ContainerNode } from '../../../core/nodes/concrete/container';
-import { getInstance } from '../../../core/nodes/instances';
+import type { DisplayObjectModel, DisplayObjectNode } from '../../../core/nodes/abstract/displayObject';
 import { type Point, degToRad, radToDeg } from '../../../core/util/geom';
 import { Application } from '../../application';
 import { ModifyModelCommand } from '../../commands/modifyModel';
 import type { CommandEvent } from '../../events/commandEvents';
 import type { DatastoreNodeEvent } from '../../events/datastoreEvents';
+import type { SelectionEvent } from '../../events/selectionEvents';
 import { TransformGizmoFrame } from './frame';
 import type { HandleVertex } from './handle';
 import { type DragInfo, type TransformOperation, defaultDragInfo } from './operation';
@@ -31,13 +29,7 @@ import {
     yellowPivot,
 } from './util';
 
-const globalEmitter = getGlobalEmitter<DatastoreNodeEvent & CommandEvent>();
-
-interface PreviousSelectedState
-{
-    nodeId: string;
-    isCloaked: boolean;
-}
+const globalEmitter = getGlobalEmitter<DatastoreNodeEvent & CommandEvent & SelectionEvent>();
 
 export class TransformGizmo
 {
@@ -48,14 +40,11 @@ export class TransformGizmo
     public initialTransform: InitialGizmoTransform;
     public transform: Transform;
     public frame: TransformGizmoFrame;
-    public selected: ContainerNode[];
-    public matrixCache: Map<ContainerNode, Matrix>;
+    public matrixCache: Map<DisplayObjectNode, Matrix>;
 
     public vertex: HandleVertex;
     public operation?: TransformOperation;
     public dragInfo?: DragInfo;
-
-    private previousSelected: PreviousSelectedState[];
 
     constructor(config?: TransformGizmoConfig)
     {
@@ -65,8 +54,6 @@ export class TransformGizmo
         this.transform = new Transform();
         this.frame = new TransformGizmoFrame(this);
         this.vertex = { h: 'none', v: 'none' };
-        this.selected = [];
-        this.previousSelected = [];
         this.matrixCache = new Map();
 
         this.hide();
@@ -74,63 +61,39 @@ export class TransformGizmo
         this.initFrame();
 
         globalEmitter
-            .on('datastore.node.model.modified', (e: DatastoreNodeEvent['datastore.node.model.modified']) =>
-            {
-                this.updateSelection(e.nodeId);
-            })
-            .on('command.exec', (e: CommandEvent['command.exec']) =>
-            {
-                this.updateSelection(e.command.targetNodeId);
-            })
-            .on('command.undo', (e: CommandEvent['command.undo']) =>
-            {
-                this.updateSelection(e.command.targetNodeId);
-            })
-            .on('command.redo', (e: CommandEvent['command.redo']) =>
-            {
-                this.updateSelection(e.command.targetNodeId);
-            });
+            .on('selection.modified', this.onSelectionModified)
+            .on('selection.deselect', this.onSelectionDeselect);
     }
 
-    protected updateSelection(nodeId: string | null)
+    get selection()
     {
-        let { selected } = this;
-
-        if (nodeId)
-        {
-            const node = getInstance<ClonableNode>(nodeId);
-
-            const nodeInfo = this.previousSelected.filter((info) => info.nodeId === nodeId && info.isCloaked);
-
-            if (nodeInfo.length && !node.isCloaked)
-            {
-                selected = [node.cast<ContainerNode>()];
-            }
-        }
-
-        if (selected.length === 0)
-        {
-            return;
-        }
-
-        this.deselect();
-
-        selected = selected.filter((node) => !node.isCloaked);
-
-        if (selected.length === 0)
-        {
-            this.hide();
-        }
-        else
-        if (selected.length === 1)
-        {
-            this.selectSingleNode(selected[0]);
-        }
-        else
-        {
-            this.selectMultipleNodes(selected);
-        }
+        return Application.instance.selection;
     }
+
+    protected onSelectionModified = (node: DisplayObjectNode) =>
+    {
+        const { selection: { isSingle, isMulti, nodes } } = Application.instance;
+
+        if (isSingle)
+        {
+            this.selectSingleNode(node);
+        }
+        else if (isMulti)
+        {
+            this.selectMultipleNodes(nodes);
+        }
+    };
+
+    protected onSelectionDeselect = () =>
+    {
+        const { selection } = this;
+
+        selection.nodes.forEach((node) => (node.view.interactive = false));
+
+        this.matrixCache.clear();
+
+        this.hide();
+    };
 
     get isVertexDrag()
     {
@@ -144,9 +107,11 @@ export class TransformGizmo
 
     get localX()
     {
-        if (this.selected.length === 1)
+        const { selection } = this;
+
+        if (selection.length === 1)
         {
-            return this.selected[0].view.x;
+            return selection.nodes[0].view.x;
         }
 
         return this.x;
@@ -154,9 +119,11 @@ export class TransformGizmo
 
     get localY()
     {
-        if (this.selected.length === 1)
+        const { selection } = this;
+
+        if (selection.length === 1)
         {
-            return this.selected[0].view.y;
+            return selection.nodes[0].view.y;
         }
 
         return this.y;
@@ -488,7 +455,7 @@ export class TransformGizmo
 
     public getContentGlobalBounds()
     {
-        return getTotalGlobalBounds(this.selected);
+        return getTotalGlobalBounds(this.selection.nodes);
     }
 
     public update()
@@ -508,11 +475,9 @@ export class TransformGizmo
         this.transform.updateLocalTransform();
     }
 
-    public selectSingleNode<T extends ContainerNode>(node: T)
+    public selectSingleNode<T extends DisplayObjectNode>(node: T)
     {
         this.initTransform(getGizmoInitialTransformFromView(node));
-
-        this.selected = [node];
 
         this.initNode(node);
 
@@ -523,7 +488,7 @@ export class TransformGizmo
         this.update();
     }
 
-    public selectMultipleNodes<T extends ContainerNode>(nodes: T[])
+    public selectMultipleNodes<T extends DisplayObjectNode>(nodes: T[])
     {
         const rect = getTotalGlobalBounds(nodes);
         const centerX = rect.width * 0.5;
@@ -547,16 +512,9 @@ export class TransformGizmo
             pivotY: centerY,
         });
 
-        this.selected = [...nodes];
+        this.selection.forEach((node) => this.initNode(node));
 
-        this.selected.forEach((node) =>
-        {
-            this.initNode(node);
-        });
-
-        this.setConfig({
-            pivotView: yellowPivot,
-        });
+        this.setConfig({ pivotView: yellowPivot });
 
         this.update();
     }
@@ -577,7 +535,7 @@ export class TransformGizmo
         this.transform.skew.y = transform.skewY;
     }
 
-    protected initNode(node: ContainerNode)
+    protected initNode(node: DisplayObjectNode)
     {
         const view = node.view;
 
@@ -586,7 +544,7 @@ export class TransformGizmo
 
         const cachedMatrix = view.worldTransform.clone();
 
-        if (view.parent && this.selected.length === 1)
+        if (view.parent && this.selection.length === 1)
         {
             const parentMatrix = view.parent.worldTransform.clone();
 
@@ -599,11 +557,11 @@ export class TransformGizmo
 
     protected updateSelectedTransforms()
     {
-        const thisMatrix = this.matrix;
+        const { matrix: thisMatrix, selection } = this;
 
-        if (this.selected.length === 1)
+        if (selection.length === 1)
         {
-            const node = this.selected[0];
+            const node = selection.nodes[0];
             const view = node.getView();
             const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
 
@@ -614,7 +572,7 @@ export class TransformGizmo
         }
         else
         {
-            this.selected.forEach((node) =>
+            selection.forEach((node) =>
             {
                 const view = node.getView();
                 const cachedMatrix = (this.matrixCache.get(node) as Matrix).clone();
@@ -635,34 +593,11 @@ export class TransformGizmo
         }
     }
 
-    public deselect()
-    {
-        if (this.selected.length === 0)
-        {
-            return;
-        }
-
-        this.previousSelected = this.selected.map((node) => ({
-            nodeId: node.id,
-            isCloaked: node.isCloaked,
-        }));
-
-        this.selected.forEach((node) =>
-        {
-            const view = node.view;
-
-            view.interactive = false;
-        });
-        this.selected = [];
-        this.matrixCache.clear();
-        this.hide();
-    }
-
     protected updateSelectedModels()
     {
-        const { selected } = this;
+        const { selection } = this;
 
-        selected.forEach((node) =>
+        selection.forEach((node) =>
         {
             const view = node.view;
 
@@ -704,7 +639,7 @@ export class TransformGizmo
                 skewY,
             };
 
-            if (selected.length === 1)
+            if (selection.length === 1)
             {
                 values.pivotX = pivotX;
                 values.pivotY = pivotY;

@@ -1,9 +1,10 @@
 import type { InteractionEvent } from 'pixi.js';
 import { Application as PixiApplication, Container } from 'pixi.js';
 
+import type { DisplayObjectNode } from '../../core/nodes/abstract/displayObject';
 import type { ContainerNode } from '../../core/nodes/concrete/container';
+import { Application } from '../application';
 import Grid from './grid';
-import { NodeSelection } from './selection';
 import { TransformGizmo } from './transform/gizmo';
 
 export const dblClickMsThreshold = 250;
@@ -13,7 +14,6 @@ export class EditableView
     public rootNode: ContainerNode;
     public canvas: HTMLCanvasElement;
     public pixi: PixiApplication;
-    public selection: NodeSelection;
     public transformGizmo: TransformGizmo;
     public gridLayer: Container;
     public nodeLayer: Container;
@@ -24,7 +24,6 @@ export class EditableView
     constructor(rootNode: ContainerNode)
     {
         this.rootNode = rootNode;
-        this.selection = new NodeSelection();
         this.transformGizmo = new TransformGizmo();
         this.lastClick = -1;
 
@@ -53,12 +52,6 @@ export class EditableView
         pixi.stage.interactive = true;
         pixi.stage
             .on('mousedown', this.onMouseDown);
-
-        this.selection
-            .on('add', this.onAddSelection)
-            .on('remove', this.onRemoveSelection);
-
-        (window as any).sel = this.selection;
     }
 
     protected onMouseDown = (e: InteractionEvent) =>
@@ -67,9 +60,7 @@ export class EditableView
         const globalY = e.data.global.y;
 
         const underCursor = this.getUnderCursor(globalX, globalY)
-            .filter((node) => !this.selection.isSelected(node));
-
-        // console.log(underCursor.map((node) => node.id));
+            .filter((node) => !Application.instance.selection.isSelected(node));
 
         let wasDoubleClick = false;
 
@@ -91,16 +82,15 @@ export class EditableView
         {
             if (underCursor.length === 0)
             {
-                this.selection.deselect();
-                this.transformGizmo.deselect();
+                Application.instance.selection.deselect();
             }
             else
             {
-                const selectedNode = underCursor[0].getCloneRoot().cast<ContainerNode>();
+                const selectedNode = underCursor[0].getCloneRoot().cast<DisplayObjectNode>();
 
                 if (e.data.originalEvent.shiftKey)
                 {
-                    this.selection.add(underCursor[0]);
+                    Application.instance.selection.add(underCursor[0]);
                 }
                 else
                 {
@@ -112,9 +102,9 @@ export class EditableView
         this.lastClick = Date.now();
     };
 
-    protected selectWithDrag(selectedNode: ContainerNode, e: InteractionEvent)
+    protected selectWithDrag(selectedNode: DisplayObjectNode, e: InteractionEvent)
     {
-        this.selection.set(selectedNode);
+        Application.instance.selection.set(selectedNode);
 
         if (this.transformGizmo.config.enableTranslation)
         {
@@ -124,9 +114,9 @@ export class EditableView
 
     protected getUnderCursor(globalX: number, globalY: number)
     {
-        const underCursor: ContainerNode[] = [];
+        const underCursor: DisplayObjectNode[] = [];
 
-        this.rootNode.walk<ContainerNode>((node) =>
+        this.rootNode.walk<DisplayObjectNode>((node) =>
         {
             const bounds = node.getGlobalBounds();
 
@@ -155,27 +145,4 @@ export class EditableView
         this.pixi.resizeTo = container;
         container.appendChild(this.canvas);
     }
-
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onAddSelection = (node: ContainerNode) =>
-    {
-        (window as any).$1 = node;
-
-        if (this.selection.isSingle)
-        {
-            this.transformGizmo.selectSingleNode(node);
-        }
-        else
-        {
-            this.transformGizmo.selectMultipleNodes(this.selection.nodes);
-        }
-    };
-
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onRemoveSelection = (node: ContainerNode) =>
-    {
-        //
-    };
 }

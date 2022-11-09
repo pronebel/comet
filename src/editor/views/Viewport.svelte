@@ -6,7 +6,7 @@
 
 <div data-section="viewport" class="fill">
   <DropZone>
-    <EditorView view={Application.instance.editorView} />
+    <EditorView view={Application.instance.activeEditorView} />
   </DropZone>
 </div>
 

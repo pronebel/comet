@@ -1,28 +1,27 @@
-import { EventEmitter } from 'eventemitter3';
+import { getGlobalEmitter } from '../../core/events';
+import type { DisplayObjectNode } from '../../core/nodes/abstract/displayObject';
+import type { SelectionEvent } from '../events/selectionEvents';
 
-import type { ContainerNode } from '../../core/nodes/concrete/container';
+const globalEmitter = getGlobalEmitter<SelectionEvent>();
 
-export type NodeSelectionEvent = 'add' | 'remove';
-
-export class NodeSelection extends EventEmitter<NodeSelectionEvent>
+export class NodeSelection
 {
-    public readonly nodes: ContainerNode[];
+    public readonly nodes: DisplayObjectNode[];
 
     constructor()
     {
-        super();
-
         this.nodes = [];
     }
 
-    public add(node: ContainerNode)
+    public add(node: DisplayObjectNode)
     {
         this.nodes.push(node);
 
-        this.emit('add', node);
+        globalEmitter.emit('selection.add', node);
+        globalEmitter.emit('selection.modified', node);
     }
 
-    public remove(node: ContainerNode)
+    public remove(node: DisplayObjectNode)
     {
         const index = this.nodes.indexOf(node);
 
@@ -33,20 +32,36 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
 
         this.nodes.splice(index, 1);
 
-        this.emit('remove', node);
+        globalEmitter.emit('selection.remove', node);
+        globalEmitter.emit('selection.modified', node);
     }
 
-    public set(node: ContainerNode)
+    public set(node: DisplayObjectNode)
     {
-        this.deselect();
+        if (!this.isEmpty)
+        {
+            this.deselect();
+        }
+
         this.add(node);
     }
 
     public deselect()
     {
-        const nodes = [...this.nodes];
+        // nodes.forEach((selectedNode) => this.remove(selectedNode));
 
-        nodes.forEach((selectedNode) => this.remove(selectedNode));
+        globalEmitter.emit('selection.deselect');
+        this.nodes.length = 0;
+    }
+
+    public isSelected(node: DisplayObjectNode)
+    {
+        return this.nodes.indexOf(node) > -1;
+    }
+
+    public forEach(fn: (node: DisplayObjectNode, i: number) => void)
+    {
+        this.nodes.forEach(fn);
     }
 
     public get length()
@@ -69,7 +84,7 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
         return this.nodes.length > 1;
     }
 
-    public get firstNode(): ContainerNode | undefined
+    public get firstNode(): DisplayObjectNode | undefined
     {
         const { nodes } = this;
 
@@ -81,7 +96,7 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
         return nodes[0];
     }
 
-    public get lastNode(): ContainerNode | undefined
+    public get lastNode(): DisplayObjectNode | undefined
     {
         const { nodes } = this;
 
@@ -91,15 +106,5 @@ export class NodeSelection extends EventEmitter<NodeSelectionEvent>
         }
 
         return nodes[nodes.length - 1];
-    }
-
-    public isSelected(node: ContainerNode)
-    {
-        return this.nodes.indexOf(node) > -1;
-    }
-
-    public forEach(fn: (node: ContainerNode, i: number) => void)
-    {
-        this.nodes.forEach(fn);
     }
 }

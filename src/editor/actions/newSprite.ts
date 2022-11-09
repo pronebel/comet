@@ -32,7 +32,7 @@ export class NewSpriteAction extends Action<NewSpriteOptions, SpriteNode>
     }): SpriteNode
     {
         const app = Application.instance;
-        const selectedNode = app.editorView.selection.lastNode;
+        const selectedNode = app.selection.lastNode;
 
         let parentId = 'Scene:1';
 
@@ -61,7 +61,7 @@ export class NewSpriteAction extends Action<NewSpriteOptions, SpriteNode>
 
         const node = nodes[0] as unknown as SpriteNode;
 
-        app.editorView.selection.set(node.cast<ContainerNode>());
+        app.selection.set(node.cast<ContainerNode>());
 
         return node;
     }
