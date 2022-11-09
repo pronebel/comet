@@ -63,10 +63,12 @@ export class TransformGizmo
         this.initFrame();
 
         globalEmitter
-            .on('selection.add', this.onSelectionAdd)
-            .on('selection.remove', this.onSelectionRemove)
+            .on('selection.add', this.updateSelection)
+            .on('selection.remove', this.updateSelection)
             .on('selection.deselect', this.onSelectionDeselect)
-            .on('datastore.node.model.modified', this.onModelModified);
+            .on('datastore.node.model.modified', this.updateSelection)
+            .on('datastore.node.removed', this.updateSelection)
+            .on('datastore.node.created', this.updateSelection);
     }
 
     get selection()
@@ -74,29 +76,13 @@ export class TransformGizmo
         return Application.instance.selection;
     }
 
-    protected onSelectionAdd = (node: DisplayObjectNode) =>
-    {
-        const { selection: { isSingle, isMulti, nodes } } = Application.instance;
-
-        if (isSingle)
-        {
-            this.selectSingleNode(node);
-        }
-        else if (isMulti)
-        {
-            this.selectMultipleNodes(nodes);
-        }
-    };
-
-    // @ts-ignore
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    protected onSelectionRemove = (node: DisplayObjectNode) =>
+    protected updateSelection = () =>
     {
         const { selection: { isSingle, isMulti, isEmpty, nodes } } = Application.instance;
 
         if (isSingle)
         {
-            this.selectSingleNode(nodes[0]);
+            this.updateSingleSelectionNode();
         }
         else if (isMulti)
         {
@@ -119,24 +105,12 @@ export class TransformGizmo
         this.hide();
     };
 
-    protected onModelModified = (e: DatastoreNodeEvent['datastore.node.model.modified']) =>
+    protected updateSingleSelectionNode()
     {
-        const { nodeId } = e;
-        const { selection: { isSingle, isMulti, nodes } } = Application.instance;
-        const node = getInstance<DisplayObjectNode>(nodeId);
+        const { selection: { nodes } } = Application.instance;
 
-        if (this.selection.has(node))
-        {
-            if (isSingle)
-            {
-                this.selectSingleNode(node);
-            }
-            else if (isMulti)
-            {
-                // this.selectMultipleNodes(nodes);
-            }
-        }
-    };
+        this.selectSingleNode(nodes[0]);
+    }
 
     get isVertexDrag()
     {
